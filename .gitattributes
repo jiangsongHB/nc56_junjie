@@ -1,4 +1,5 @@
 * text=auto !eol
+temp/NC5.01制造成本/NC5.01制造成本.doc -text
 temp/features/org.eclipse.uml2.diagram.source_0.9.0.v200906190654.jar -text
 temp/features/org.eclipse.uml2.diagram_0.9.0.v200906190654.jar -text
 temp/features/org.eclipse.uml2tools.def.source_0.9.0.v200906190654.jar -text
