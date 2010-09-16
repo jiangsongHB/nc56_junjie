@@ -1,11 +1,4 @@
 * text=auto !eol
-junjie/develop/proj/modules/out/client/nc/ui/scm/jjpanel/InfoCostPanel.class -text
-junjie/develop/proj/modules/out/client/nc/ui/scm/pub/ScmPubHelper.class -text
-junjie/develop/proj/modules/out/private/nc/bs/scm/pub/ScmPubDMO.class -text
-junjie/develop/proj/modules/out/private/nc/bs/scm/pub/ScmPubImpl.class -text
-junjie/develop/proj/modules/out/public/nc/itf/scm/pub/IScmPub.class -text
-junjie/develop/proj/modules/out/public/nc/vo/scm/jjvo/InformationCostVO.class -text
-junjie/develop/proj/modules/out/public/nc/vo/scm/jjvo/InformationCostVOMeta.class -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientCtrl.class -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientEH.class -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientUI.class -text
