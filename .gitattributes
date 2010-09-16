@@ -1,4 +1,21 @@
 * text=auto !eol
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientCtrl.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientEH.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientUI.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1003/ClientCtrl.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1003/ClientEH.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1003/ClientUI.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1003/InvtypeModel.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1005/ClientCtrl.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1005/ClientEH.class -text
+junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1005/ClientUI.class -text
+junjie/develop/proj/modules/uap/out/private/nc/bs/uap/pub/jj/JJUAPServiceImpl.class -text
+junjie/develop/proj/modules/uap/out/public/nc/itf/uap/pub/jj/IJJUAPService.class -text
+junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1001/AdjustmentCoefficientVO.class -text
+junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1003/AdditionalValueVO.class -text
+junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1003/MyBillVO.class -text
+junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/BurrCoefficientVO.class -text
+junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/MyBillVO.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI$1.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI$ButtonManager201.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI.class -text

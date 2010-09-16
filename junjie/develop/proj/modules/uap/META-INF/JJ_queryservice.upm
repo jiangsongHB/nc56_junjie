@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding='gb2312'?>
+<module name="uap">
+    <public>
+        <component remote="true" singleton="true" tx="NONE">
+            <interface>nc.itf.uap.pub.jj.IJJUAPService</interface>
+            <implementation>nc.bs.uap.pub.jj.JJUAPServiceImpl</implementation>
+        </component>
+     </public>
+</module>
