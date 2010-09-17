@@ -25,6 +25,10 @@ junjie/develop/proj/modules/scmpub/out/private/nc/bs/scm/pub/ScmPubImpl.class -t
 junjie/develop/proj/modules/scmpub/out/public/nc/itf/scm/pub/IScmPub.class -text
 junjie/develop/proj/modules/scmpub/out/public/nc/vo/scm/jjvo/InformationCostVO.class -text
 junjie/develop/proj/modules/scmpub/out/public/nc/vo/scm/jjvo/InformationCostVOMeta.class -text
+junjie/develop/proj/modules/so/out/client/nc/ui/so/so002/SaleInvoiceBtn.class -text
+junjie/develop/proj/modules/so/out/client/nc/ui/so/so002/SaleInvoiceUI$1.class -text
+junjie/develop/proj/modules/so/out/client/nc/ui/so/so002/SaleInvoiceUI$2.class -text
+junjie/develop/proj/modules/so/out/client/nc/ui/so/so002/SaleInvoiceUI.class -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientCtrl.class -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientEH.class -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientUI.class -text
