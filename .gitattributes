@@ -1,4 +1,13 @@
 * text=auto !eol
+junjie/develop/proj/modules/pu/out/client/nc/ui/po/oper/OrderUI.class -text
+junjie/develop/proj/modules/pu/out/client/nc/ui/po/oper/PoToftPanel.class -text
+junjie/develop/proj/modules/pu/out/client/nc/ui/po/pub/PoCardPanel$IMenuItemListener.class -text
+junjie/develop/proj/modules/pu/out/client/nc/ui/po/pub/PoCardPanel.class -text
+junjie/develop/proj/modules/pu/out/client/nc/ui/po/pub/PoListPanel.class -text
+junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI$IBillRelaSortListener2Body.class -text
+junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI$IMenuItemListener.class -text
+junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
+junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI.class -text
 junjie/develop/proj/modules/scmpub/out/client/nc/ui/scm/jjpanel/InfoCostPanel.class -text
 junjie/develop/proj/modules/scmpub/out/client/nc/ui/scm/pub/ScmPubHelper.class -text
 junjie/develop/proj/modules/scmpub/out/private/nc/bs/scm/pub/ScmPubDMO.class -text
