@@ -348,9 +348,9 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 				return;
 			}
 
-			for (int i = 0; i < icvos.length; i++) {
-				icvos[i].setStatus(nc.vo.pub.VOStatus.NEW);
-			}
+//			for (int i = 0; i < icvos.length; i++) {
+//				icvos[i].setStatus(nc.vo.pub.VOStatus.NEW);
+//			}
 			this.m_closeMark = true;
 			this.closeOK();
 		}
