@@ -1,4 +1,7 @@
 * text=auto !eol
+junjie/develop/proj/modules/pu/.classpath -text
+junjie/develop/proj/modules/pu/.module_prj -text
+junjie/develop/proj/modules/pu/.project -text
 junjie/develop/proj/modules/pu/out/client/nc/ui/po/oper/OrderUI.class -text
 junjie/develop/proj/modules/pu/out/client/nc/ui/po/oper/PoToftPanel.class -text
 junjie/develop/proj/modules/pu/out/client/nc/ui/po/pub/PoCardPanel$IMenuItemListener.class -text
