@@ -4099,7 +4099,7 @@ private void onButtonClickedCard(ButtonObject bo){
 	}
 
       getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-
+      getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
     }
   } else if (bo == m_btnBackPo) {
     onBackPo();
@@ -4212,7 +4212,7 @@ private void onButtonClickedList(ButtonObject bo){
       onCardNew();
       if(vos!=null&&vos.length!=0){
     	  getBillCardPanel().getBillData().setBodyValueVO("jj_scm_informationcost", vos);//add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-
+          getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
       }
     } else {
       onModifyList();

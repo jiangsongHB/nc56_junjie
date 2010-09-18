@@ -776,7 +776,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				getClientUI().setCardMode();
 				  //add by QuSida 2010-9-11 (佛山骏杰) --- begin
 				  //function:查询出相关的费用信息
-					String pk =	getBillCardPanel().getHeadItem("carriveorderid").getValue();
+					String pk =	getM_voBill().getPrimaryKey();
+					//getBillCardPanel().getHeadItem("carriveorderid").getValue();
 					String sql = "cbillid = '"+pk+"' and dr = 0";
 					InformationCostVO[] vos = null;
 				try {

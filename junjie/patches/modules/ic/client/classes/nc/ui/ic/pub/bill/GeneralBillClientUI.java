@@ -2386,6 +2386,23 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		// 设置条码框的当前条码数据VO add by hanwei 用于初始化条码框唯一校验数据
 		if (m_utfBarCode != null)
 			m_utfBarCode.setCurBillItem(voi);
+		 //add by QuSida 2010-9-11 (佛山骏杰)  --- begin
+		  //function:查询相关费用信息
+		  String pk = voBill.getPrimaryKey();
+			String sql = "cbillid = '"+pk+"' and dr = 0";
+			InformationCostVO[] vos = null;
+
+			 try {
+				vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				SCMEnv.out(e);
+			}
+		if(vos!=null&&vos.length!=0){
+			 getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos);
+			 getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+		}
+		//add by QuSida 2010-9-11 (佛山骏杰)  --- end
 
 		timer.showExecuteTime("@@方法selectListBill时间");
 
@@ -7300,7 +7317,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				      if(infoCostVOs!=null&&infoCostVOs.length!=0){
 				    	  ScmPubHelper scmHelper = new ScmPubHelper();
 							//将单据主键射入vo数组中
-				    	  String pk_bill = ((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getCgeneralhid();
+				    	  String pk_bill = ((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getPrimaryKey();
 						//String pk_bill = saveVO.getParentVO().getPrimaryKey();
 							for (int i = 0; i < infoCostVOs.length; i++) {
 								infoCostVOs[i].setCbillid(pk_bill);
@@ -10253,7 +10270,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	      getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.SAVE, new GeneralBillVO[]{voUpdatedBill});
 				saveUpdatedBill(voUpdatedBill);
 				//费用信息的修改
-				InformationCostVO[] vos = (InformationCostVO[])getBillCardPanel().getBillModel("jj_scm_information").getBodyValueVOs(InformationCostVO.class.getName());
+				InformationCostVO[] vos = (InformationCostVO[])getBillCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());
+				
 				String cbillid = voUpdatedBill.getHeaderVO().getPrimaryKey();
 				if(vos!=null&&vos.length!=0){
 		        	for (int i = 0; i < vos.length; i++) {
