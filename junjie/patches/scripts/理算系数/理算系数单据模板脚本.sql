@@ -1,3 +1,9 @@
+delete from pub_billtemplet_t where pk_billtemplet = '0001ZZ10000000000EOF';
+delete from pub_billtemplet_b where pk_billtemplet = '0001ZZ10000000000EOF';
+delete from pub_billtemplet where pk_billtemplet = '0001ZZ10000000000EOF';
+
+
+
 insert into pub_billtemplet (BILL_TEMPLETCAPTION, BILL_TEMPLETNAME, DR, METADATACLASS, MODEL_TYPE, NODECODE, OPTIONS, PK_BILLTEMPLET, PK_BILLTYPECODE, PK_CORP, RESID, SHAREFLAG, TS, VALIDATEFORMULA)
 values ('理算系数单据模板', 'SYSTEM', 0, '', '', '40950101', '', '0001ZZ10000000000EOF', 'HB1001', '@@@@', '', 'N', '2010-08-10 22:49:00', '');
 

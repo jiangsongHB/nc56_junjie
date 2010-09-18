@@ -1,3 +1,7 @@
+delete from pub_query_condition where ID = '0001ZZ10000000000EP0';
+delete from pub_query_templet where PK_TEMPLET = '0001ZZ10000000000EP0';
+
+
 insert into pub_query_templet(DESCRIBE,DR,FIXCONDITION,ID,METACLASS,MODEL_CODE,MODEL_NAME,NODE_CODE,PK_CORP,RESID,TS) values( null,null,null,'0001ZZ10000000000EP0',null,'40950101','理算系数查询模板','40950101','@@@@',null,'2010-09-13 21:07:14') ;
 
 insert into pub_query_condition(CONSULT_CODE,DATA_TYPE,DISP_SEQUENCE,DISP_TYPE,DISP_VALUE,DR,FIELD_CODE,FIELD_NAME,GUIDELINE,ID,IF_AUTOCHECK,IF_DATAPOWER,IF_DEFAULT,IF_DESC,IF_GROUP,IF_IMMOBILITY,IF_MUST,IF_ORDER,IF_SUM,IF_USED,INSTRUMENTSQL,ISCONDITION,MAX_LENGTH,OPERA_CODE,OPERA_NAME,ORDER_SEQUENCE,PK_CORP,PK_TEMPLET,PRERESTRICT,RESID,RETURN_TYPE,TABLE_CODE,TABLE_NAME,TS,USERDEFFLAG,VALUE) values( '存货基本档案',5,100,0,null,null,'jj_bd_adjustmentcoefficient.pk_invbasdoc','存货名称',null,'0001ZZ10000000000EP3','N','N','Y',null,'N','N','N','N','N','Y',null,'Y',null,'=@>@>=@<@<=@like@','等于@大于@大于等于@小于@小于等于@包含@',0,'@@@@','0001ZZ10000000000EP0',null,null,2,null,null,'2010-09-13 21:07:14',null,null) ;

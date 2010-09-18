@@ -1,9 +1,9 @@
 --理算系数表
-create table JJ_BD_ADJUSTMENTCOEFFICIENT  (
+create or replace table JJ_BD_ADJUSTMENTCOEFFICIENT  (
 --理算系数表主键
    pk_adjustmentcoefficient char(20), 
 --存货基本档案ID                        
-   pk_invbasdoc       char(20),
+   pk_invbasdoc       char(20) ,
 --规格
    vinvspec          varcahr2(50),
 --理算系数
@@ -22,5 +22,6 @@ create table JJ_BD_ADJUSTMENTCOEFFICIENT  (
    vdef8              varchar2(20),
    vdef9              varchar2(20),
    vdef10             varchar2(20),
-   constraint PK_JJ_BD_ADJUSTMENTCOEFFICIENT primary key (pk_adjustmentcoefficient)
+   constraint PK_JJ_BD_ADJUSTMENTCOEFFICIENT primary key (pk_adjustmentcoefficient),
+   constraint UN_JJ_BD_ADJUSTMENTCOEFFICIENT unique (pk_invbasdoc)
 )
