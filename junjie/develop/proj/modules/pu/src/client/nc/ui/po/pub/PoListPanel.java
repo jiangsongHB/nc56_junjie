@@ -24,7 +24,7 @@ import nc.ui.pub.bill.BillListPanel;
 import nc.ui.pub.bill.BillModel;
 import nc.ui.pub.bill.BillTotalListener;
 import nc.ui.pub.bill.IBillModelSortPrepareListener;
-import nc.ui.scm.pub.ScmPubHelper;
+import nc.ui.scm.pub.JJPuScmPubHelper;
 import nc.vo.po.OrderHeaderVO;
 import nc.vo.po.OrderItemVO;
 import nc.vo.po.OrderVO;
@@ -265,7 +265,7 @@ public void displayCurVOBody(int		iUIPos) {
 	  String pk = voViewCur.getHeadVO().getCorderid();
 		String sql = "cbillid = '"+pk+"' and dr = 0 ";
 		InformationCostVO[] vos = null;	
-		 vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+		 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
 	if(vos!=null&&vos.length!=0){
 		 getBillListData().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 		 getBillListData().getBodyBillModel("jj_scm_informationcost").execLoadFormula();

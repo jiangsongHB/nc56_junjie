@@ -57,7 +57,7 @@ import nc.ui.scm.ic.setpart.SetPartDlg;
 import nc.ui.scm.plugin.InvokeEventProxy;
 import nc.ui.scm.pub.BusiBillManageTool;
 import nc.ui.scm.pub.CollectSettingDlg;
-import nc.ui.scm.pub.ScmPubHelper;
+import nc.ui.scm.pub.JJPuScmPubHelper;
 import nc.ui.scm.pub.bill.IBillExtendFun;
 import nc.ui.scm.pub.bill.ScmHelper;
 import nc.ui.scm.pub.billutil.BillCardPanelHelper;
@@ -1011,7 +1011,7 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 		InformationCostVO[] vos = (InformationCostVO[])getPoCardPanel().getBillModel("jj_scm_information").getBodyValueVOs(InformationCostVO.class.getName());
 		if(vos!=null&&vos.length!=0){
 			try {
-				ScmPubHelper.deleteSmartVOs(vos);
+				JJPuScmPubHelper.deleteSmartVOs(vos);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				SCMEnv.out(e);
@@ -1778,7 +1778,7 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 		String sql = "cbillid = '"+pk+"'";
 		InformationCostVO[] vos = null;
 	try {
-		 vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+		 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
@@ -2366,7 +2366,7 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 	String sql = "cbillid = '"+pk+"' and dr = 0 " ;
 	InformationCostVO[] vos = null;
 try {
-	 vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+	 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
 } catch (Exception e) {
 	// TODO Auto-generated catch block
 	e.printStackTrace();
@@ -2728,7 +2728,7 @@ if(vos!=null&&vos.length!=0){
 				}
 			}
 			try {
-				ScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
+				JJPuScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
 			} catch (Exception e) {
 				showErrorMessage("费用信息保存失败");
 				SCMEnv.out(e);
@@ -4493,7 +4493,7 @@ if(vos!=null&&vos.length!=0){
 		String sql = "cbillid = '"+pk+"' and dr = 0 " ;
 		InformationCostVO[] vos = null;
 	try {
-		 vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+		 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
@@ -4570,7 +4570,7 @@ if(vos!=null&&vos.length!=0){
 		InformationCostVO[] vos = (InformationCostVO[])getPoListPanel().getBodyBillModel("jj_scm_information").getBodyValueVOs(InformationCostVO.class.getName());
 		if(vos!=null&&vos.length!=0){
 			try {
-				ScmPubHelper.deleteSmartVOs(vos);
+				JJPuScmPubHelper.deleteSmartVOs(vos);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				SCMEnv.out(e);
@@ -6191,7 +6191,7 @@ if(vos!=null&&vos.length!=0){
 				
 				//add by QuSida 2010-8-19 (佛山骏杰)  --- begin
 				//function:当订单保存成功后,将费用信息VO保存到数据库中				
-				ScmPubHelper scmHelper = new ScmPubHelper();
+				JJPuScmPubHelper scmHelper = new JJPuScmPubHelper();
 				if(infoCostVOs!=null&&infoCostVOs.length!=0){
 					//将单据主键和数量射入vo数组中
 					String pk_bill = voSaved.getParentVO().getPrimaryKey();

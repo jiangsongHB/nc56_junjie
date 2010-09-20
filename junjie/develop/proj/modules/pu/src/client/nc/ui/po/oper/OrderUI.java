@@ -38,7 +38,7 @@ import nc.ui.pub.linkoperate.ILinkQueryData;
 import nc.ui.pub.msg.PfLinkData;
 import nc.ui.pub.pf.PfUtilClient;
 import nc.ui.scm.jjpanel.InfoCostPanel;
-import nc.ui.scm.pub.ScmPubHelper;
+import nc.ui.scm.pub.JJPuScmPubHelper;
 import nc.ui.scm.pub.bill.IBillExtendFun;
 import nc.ui.uap.sf.SFClientUtil;
 import nc.vo.pf.change.PfUtilBaseTools;

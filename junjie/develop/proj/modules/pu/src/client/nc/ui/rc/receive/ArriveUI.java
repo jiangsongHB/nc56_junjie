@@ -101,7 +101,7 @@ import nc.ui.scm.pub.BillTools;
 import nc.ui.scm.pub.BusiBillManageTool;
 import nc.ui.scm.pub.CacheTool;
 import nc.ui.scm.pub.CollectSettingDlg;
-import nc.ui.scm.pub.ScmPubHelper;
+import nc.ui.scm.pub.JJPuScmPubHelper;
 import nc.ui.scm.pub.bill.ButtonTree;
 import nc.ui.scm.pub.bill.IBillExtendFun;
 import nc.ui.scm.pub.def.DefSetTool;
@@ -4099,7 +4099,7 @@ private void onButtonClickedCard(ButtonObject bo){
 	}
 
       getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-
+      getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
     }
   } else if (bo == m_btnBackPo) {
     onBackPo();
@@ -4212,7 +4212,7 @@ private void onButtonClickedList(ButtonObject bo){
       onCardNew();
       if(vos!=null&&vos.length!=0){
     	  getBillCardPanel().getBillData().setBodyValueVO("jj_scm_informationcost", vos);//add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-
+          getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
       }
     } else {
       onModifyList();
@@ -4674,7 +4674,7 @@ private void onCard() {
 	String sql = "cbillid = '"+pk+"' and dr = 0";
 	InformationCostVO[] vos = null;
 try {
-	 vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+	 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
 } catch (Exception e) {
 	// TODO Auto-generated catch block
 	e.printStackTrace();
@@ -4891,7 +4891,7 @@ private void onDiscard() {
 	InformationCostVO[] vos = (InformationCostVO[])getBillCardPanel().getBillModel("jj_scm_information").getBodyValueVOs(InformationCostVO.class.getName());
 	if(vos!=null&&vos.length!=0){
 		try {
-			ScmPubHelper.deleteSmartVOs(vos);
+			JJPuScmPubHelper.deleteSmartVOs(vos);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			SCMEnv.out(e);
@@ -6339,7 +6339,7 @@ private boolean onSave() {
 			}
         }
     	try {
-			ScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
+			JJPuScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			SCMEnv.out(e);
@@ -6408,7 +6408,7 @@ private boolean onSave() {
 			for (int i = 0; i < infoCostVOs.length; i++) {
 				infoCostVOs[i].setCbillid(pk_bill);
 			}
-		ScmPubHelper.updateSmartVOs(infoCostVOs,pk_bill);
+		JJPuScmPubHelper.updateSmartVOs(infoCostVOs,pk_bill);
 		}
     //add by QuSida 2010-8-31 (佛山骏杰)  --- end
       timer.addExecutePhase("执行SAVE脚本");
@@ -7997,7 +7997,7 @@ private boolean setListBodyData(int row0) {
 	InformationCostVO[] vos = null;
 
 	 try {
-		vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+		vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
 	} catch (Exception e) {
 		// TODO Auto-generated catch block
 		SCMEnv.out(e);
