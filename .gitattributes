@@ -74,11 +74,6 @@ junjie/patches/modules/jj/client/classes/nc/ui/bd/bd1003/InvtypeModel.class -tex
 junjie/patches/modules/jj/client/classes/nc/ui/bd/bd1005/ClientCtrl.class -text
 junjie/patches/modules/jj/client/classes/nc/ui/bd/bd1005/ClientEH.class -text
 junjie/patches/modules/jj/client/classes/nc/ui/bd/bd1005/ClientUI.class -text
-junjie/patches/modules/po/client/classes/nc/ui/po/oper/OrderUI.class -text
-junjie/patches/modules/po/client/classes/nc/ui/po/oper/PoToftPanel.class -text
-junjie/patches/modules/po/client/classes/nc/ui/po/pub/PoCardPanel$IMenuItemListener.class -text
-junjie/patches/modules/po/client/classes/nc/ui/po/pub/PoCardPanel.class -text
-junjie/patches/modules/po/client/classes/nc/ui/po/pub/PoListPanel.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceBtn.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$1.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$2.class -text
