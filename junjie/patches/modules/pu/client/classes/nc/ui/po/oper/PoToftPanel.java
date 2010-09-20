@@ -2720,7 +2720,6 @@ if(vos!=null&&vos.length!=0){
 			}
 			//add by QuSida 2010-9-11 (佛山骏杰) --- begin
 			//function:费用信息的修改保存
-			ScmPubHelper scmHelper = new ScmPubHelper();
 			InformationCostVO[] infoCostVOs = (InformationCostVO[])getPoCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());
 			String cbillid = voSavedOrder.getHeadVO().getPrimaryKey();
 			if(infoCostVOs!=null&&infoCostVOs.length!=0){	
@@ -2729,7 +2728,7 @@ if(vos!=null&&vos.length!=0){
 				}
 			}
 			try {
-				scmHelper.updateSmartVOs(infoCostVOs,cbillid);
+				ScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
 			} catch (Exception e) {
 				showErrorMessage("费用信息保存失败");
 				SCMEnv.out(e);
