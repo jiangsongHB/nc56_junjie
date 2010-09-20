@@ -6337,13 +6337,14 @@ private boolean onSave() {
         	for (int i = 0; i < infoCostVOs.length; i++) {
 				infoCostVOs[i].setCbillid(cbillid);
 			}
+        	try {
+    			JJPuScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
+    		} catch (Exception e) {
+    			// TODO Auto-generated catch block
+    			SCMEnv.out(e);
+    		}
         }
-    	try {
-			JJPuScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			SCMEnv.out(e);
-		}
+    	
     
     //add by QuSida 2010-9-11 (·ðÉ½¿¥½Ü) --- end
   } else {
