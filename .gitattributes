@@ -94,10 +94,6 @@ junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IBillRelaSort
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IMenuItemListener.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI.class -text
-junjie/patches/modules/rc/client/classes/nc/ui/rc/receive/ArriveUI$IBillRelaSortListener2Body.class -text
-junjie/patches/modules/rc/client/classes/nc/ui/rc/receive/ArriveUI$IMenuItemListener.class -text
-junjie/patches/modules/rc/client/classes/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
-junjie/patches/modules/rc/client/classes/nc/ui/rc/receive/ArriveUI.class -text
 junjie/patches/modules/scmpub/META-INF/classes/nc/bs/scm/pub/ScmPubDMO.class -text
 junjie/patches/modules/scmpub/META-INF/classes/nc/bs/scm/pub/ScmPubImpl.class -text
 junjie/patches/modules/scmpub/classes/nc/itf/scm/pub/IScmPub.class -text
