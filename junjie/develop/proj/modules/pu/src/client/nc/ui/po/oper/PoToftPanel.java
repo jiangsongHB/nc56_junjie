@@ -2726,14 +2726,15 @@ if(vos!=null&&vos.length!=0){
 				for (int i = 0; i < infoCostVOs.length; i++) {
 					infoCostVOs[i].setCbillid(cbillid);
 				}
+				try {
+					JJPuScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
+				} catch (Exception e) {
+					showErrorMessage("费用信息保存失败");
+					SCMEnv.out(e);
+					return false;
+				}
 			}
-			try {
-				JJPuScmPubHelper.updateSmartVOs(infoCostVOs,cbillid);
-			} catch (Exception e) {
-				showErrorMessage("费用信息保存失败");
-				SCMEnv.out(e);
-				return false;
-			}
+			
 			
 			//add by QuSida 2010-9-11 (佛山骏杰) --- end
 			timeDebug.addExecutePhase("保存");/*-=notranslate=-*/
@@ -6191,7 +6192,7 @@ if(vos!=null&&vos.length!=0){
 				
 				//add by QuSida 2010-8-19 (佛山骏杰)  --- begin
 				//function:当订单保存成功后,将费用信息VO保存到数据库中				
-				JJPuScmPubHelper scmHelper = new JJPuScmPubHelper();
+				
 				if(infoCostVOs!=null&&infoCostVOs.length!=0){
 					//将单据主键和数量射入vo数组中
 					String pk_bill = voSaved.getParentVO().getPrimaryKey();
@@ -6199,7 +6200,7 @@ if(vos!=null&&vos.length!=0){
 						infoCostVOs[i].setCbillid(pk_bill);
 						infoCostVOs[i].setNnumber(number);
 					}
-				scmHelper.insertSmartVOs(infoCostVOs);
+					JJPuScmPubHelper.insertSmartVOs(infoCostVOs);
 				}
 				//add by QuSida 2010-8-19 (佛山骏杰)  --- end
 				
