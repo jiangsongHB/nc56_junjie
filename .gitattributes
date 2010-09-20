@@ -83,6 +83,13 @@ junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IBillRelaSort
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IMenuItemListener.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI.class -text
+junjie/patches/modules/scmpub/META-INF/classes/nc/bs/scm/pub/ScmPubDMO.class -text
+junjie/patches/modules/scmpub/META-INF/classes/nc/bs/scm/pub/ScmPubImpl.class -text
+junjie/patches/modules/scmpub/classes/nc/itf/scm/pub/IScmPub.class -text
+junjie/patches/modules/scmpub/classes/nc/ui/scm/pub/ScmPubHelper.class -text
+junjie/patches/modules/scmpub/classes/nc/vo/scm/jjvo/InformationCostVO.class -text
+junjie/patches/modules/scmpub/classes/nc/vo/scm/jjvo/InformationCostVOMeta.class -text
+junjie/patches/modules/scmpub/client/classes/nc/ui/scm/jjpanel/InfoCostPanel.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceBtn.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$1.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$2.class -text
