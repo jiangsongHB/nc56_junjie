@@ -48,15 +48,6 @@ junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1003/AdditionalValueVO.cla
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1003/MyBillVO.class -text
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/BurrCoefficientVO.class -text
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/MyBillVO.class -text
-junjie/patches/modules/ic/classes/nc/ui/scm/pub/JJIcScmPubHelper.class -text
-junjie/patches/modules/ic/out/client/nc/ui/ic/ic201/ClientUI$1.class -text
-junjie/patches/modules/ic/out/client/nc/ui/ic/ic201/ClientUI$ButtonManager201.class -text
-junjie/patches/modules/ic/out/client/nc/ui/ic/ic201/ClientUI.class -text
-junjie/patches/modules/ic/out/client/nc/ui/ic/pub/bill/GeneralBillClientUI$1.class -text
-junjie/patches/modules/ic/out/client/nc/ui/ic/pub/bill/GeneralBillClientUI.class -text
-junjie/patches/modules/ic/out/client/nc/ui/ic/pub/bill/GeneralButtonManager$1IBillReferQueryProxyExt.class -text
-junjie/patches/modules/ic/out/client/nc/ui/ic/pub/bill/GeneralButtonManager$FreshTsListener.class -text
-junjie/patches/modules/ic/out/client/nc/ui/ic/pub/bill/GeneralButtonManager.class -text
 junjie/patches/modules/jj/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.class -text
 junjie/patches/modules/jj/classes/nc/itf/uap/pub/jj/IJJUAPService.class -text
 junjie/patches/modules/jj/classes/nc/vo/bd/bd1001/AdjustmentCoefficientVO.class -text
