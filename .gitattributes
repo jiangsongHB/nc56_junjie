@@ -86,7 +86,6 @@ junjie/patches/modules/po/client/classes/nc/ui/po/oper/PoToftPanel.class -text
 junjie/patches/modules/po/client/classes/nc/ui/po/pub/PoCardPanel$IMenuItemListener.class -text
 junjie/patches/modules/po/client/classes/nc/ui/po/pub/PoCardPanel.class -text
 junjie/patches/modules/po/client/classes/nc/ui/po/pub/PoListPanel.class -text
-junjie/patches/modules/pu/client/classes/nc/ui/po/oper/OrderUI.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/po/oper/PoToftPanel.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/po/pub/PoCardPanel$IMenuItemListener.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/po/pub/PoCardPanel.class -text
