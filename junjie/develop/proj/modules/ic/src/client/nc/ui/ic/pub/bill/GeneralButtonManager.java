@@ -39,7 +39,7 @@ import nc.ui.querytemplate.QueryConditionDLG;
 import nc.ui.scm.file.DocumentManager;
 import nc.ui.scm.print.IFreshTsListener;
 import nc.ui.scm.pub.CollectSettingDlg;
-import nc.ui.scm.pub.ScmPubHelper;
+import nc.ui.scm.pub.JJIcScmPubHelper;
 import nc.ui.scm.pub.bill.ButtonTree;
 import nc.ui.scm.pub.sourceref.IBillReferQueryProxy;
 import nc.vo.dm.service.delivery.SourceBillDeliveryStatus;
@@ -776,11 +776,12 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				getClientUI().setCardMode();
 				  //add by QuSida 2010-9-11 (佛山骏杰) --- begin
 				  //function:查询出相关的费用信息
-					String pk =	getBillCardPanel().getHeadItem("carriveorderid").getValue();
+					String pk =	getM_voBill().getPrimaryKey();
+					//getBillCardPanel().getHeadItem("carriveorderid").getValue();
 					String sql = "cbillid = '"+pk+"' and dr = 0";
 					InformationCostVO[] vos = null;
 				try {
-					 vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+					 vos = (InformationCostVO[])JJIcScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -1004,9 +1005,9 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						else
 							sql.append("or cbillid = '"+voaDeleteBill[i].getPrimaryKey()+"' ");
 					}
-					InformationCostVO[] vos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql.toString()); 
+					InformationCostVO[] vos = (InformationCostVO[])JJIcScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql.toString()); 
 					if(vos.length!=0&&vos!=null)
-						ScmPubHelper.deleteSmartVOs(vos);
+						JJIcScmPubHelper.deleteSmartVOs(vos);
 					break;
 
 				} catch (Exception ee1) {

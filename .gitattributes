@@ -6,6 +6,7 @@ junjie/develop/proj/modules/ic/META-INF/module.xml -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/ic201/ClientUI.java -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/pub/bill/GeneralBillClientUI.java -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/pub/bill/GeneralButtonManager.java -text
+junjie/develop/proj/modules/ic/src/public/nc/ui/scm/pub/JJIcScmPubHelper.java -text
 junjie/develop/proj/modules/pu/.classpath -text
 junjie/develop/proj/modules/pu/.module_prj -text
 junjie/develop/proj/modules/pu/.project -text

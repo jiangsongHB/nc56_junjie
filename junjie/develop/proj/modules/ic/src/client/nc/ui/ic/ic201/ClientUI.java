@@ -3,6 +3,9 @@ package nc.ui.ic.ic201;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 import nc.bs.framework.common.NCLocator;
 import nc.itf.pps.IPricStl;
 import nc.ui.ic.auditdlg.ClientUIInAndOut;
@@ -408,8 +411,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		
 		long lTime = System.currentTimeMillis();
 
-		getBillCardPanel().addBodyEditListener2(this);
-
+		getBillCardPanel().addBodyEditListener2(this);		
 		SCMEnv.showTime(lTime, "initialize:addBodyEditListener2:");
 
 		lTime = System.currentTimeMillis();
@@ -1867,7 +1869,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 				  number= new UFDouble(0.0);
 				   
 			    for (int i = 0; i < temp; i++) {
-			    	number = number.add(new UFDouble((getBillCardPanel().getBillModel("table").getValueAt(i,"ninnum")==null?0.0:getBillCardPanel().getBillModel("table").getValueAt(i,"ininum")).toString()));    			    	  
+			    	number = number.add(new UFDouble((getBillCardPanel().getBillModel("table").getValueAt(i,"ninnum")==null?0.0:getBillCardPanel().getBillModel("table").getValueAt(i,"ninnum")).toString()));    			    	  
 				}
 				
 				for (int i = 0; i < infoCostVOs.length; i++) {
@@ -1880,10 +1882,10 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 //			    	infoCostVOs[i].setAttributeValue("noriginalcursummny", taxmny);
 			    	infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
 //			    	infoCostVOs[i].setAttributeValue("ninvoriginalcursummny", taxmny);
-			    	infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", inmny);	}
+			    	infoCostVOs[i].setAttributeValue("ninstoreoriginalcurmny", inmny);	}
 					else{
 						infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	
-						infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", infoCostVOs[i].getNoriginalcurmny());
+						infoCostVOs[i].setAttributeValue("ninstoreoriginalcurmny", infoCostVOs[i].getNoriginalcurmny());
 					}
 				}
 										
@@ -1939,5 +1941,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 			break;
 		}
 	}
+
+
 
 }
