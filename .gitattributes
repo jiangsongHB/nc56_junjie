@@ -21,6 +21,9 @@ junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI$MyBillData.c
 junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI.class -text
 junjie/develop/proj/modules/pu/src/client/nc/ui/pi/invoice/InvoiceUI.java -text
 junjie/develop/proj/modules/pu/src/public/nc/ui/scm/pub/JJPuScmPubHelper.java -text
+junjie/develop/proj/modules/scmpub/.classpath -text
+junjie/develop/proj/modules/scmpub/.module_prj -text
+junjie/develop/proj/modules/scmpub/.project -text
 junjie/develop/proj/modules/scmpub/out/client/nc/ui/scm/jjpanel/InfoCostPanel.class -text
 junjie/develop/proj/modules/scmpub/out/client/nc/ui/scm/pub/ScmPubHelper.class -text
 junjie/develop/proj/modules/scmpub/out/private/nc/bs/scm/pub/ScmPubDMO.class -text
