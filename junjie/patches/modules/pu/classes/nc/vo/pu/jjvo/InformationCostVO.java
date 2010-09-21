@@ -18,7 +18,7 @@ import nc.vo.scm.pub.smart.SmartVO;
 public  class InformationCostVO extends SmartVO {
 	
 	/**
-	 * 字段详细信息请参考nc.vo.scm.jjvo.InformationCostVOMeta.java
+	 * 字段详细信息请参考nc.vo.pu.jjvo.InformationCostVOMeta.java
 	 */
 	
 	
@@ -696,7 +696,7 @@ public  class InformationCostVO extends SmartVO {
 	@Override
 	public Class getVOMetaClass() {
 		// TODO Auto-generated method stub
-		return nc.vo.scm.jjvo.InformationCostVOMeta.class;
+		return nc.vo.pu.jjvo.InformationCostVOMeta.class;
 	}
 
 
