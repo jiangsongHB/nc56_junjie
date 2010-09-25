@@ -8,6 +8,7 @@ junjie/develop/proj/modules/ic/src/client/nc/ui/ic/jj/JJIcScmPubHelper.java -tex
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/jjpanel/InfoCostPanel.java -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/pub/bill/GeneralBillClientUI.java -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/pub/bill/GeneralButtonManager.java -text
+junjie/develop/proj/modules/ic/src/private/nc/bs/ic/pub/bill/GeneralBillImpl.java -text
 junjie/develop/proj/modules/ic/src/public/nc/ui/scm/pub/JJIcScmPubHelper.java -text
 junjie/develop/proj/modules/pu/.classpath -text
 junjie/develop/proj/modules/pu/.module_prj -text
