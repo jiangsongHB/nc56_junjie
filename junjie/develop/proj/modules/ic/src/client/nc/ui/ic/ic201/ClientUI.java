@@ -27,7 +27,8 @@ import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.BillModel;
 import nc.ui.querytemplate.valueeditor.DefaultFieldValueEditor;
-import nc.ui.scm.jjpanel.InfoCostPanel;
+import nc.ui.ic.jjpanel.InfoCostPanel;
+import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
@@ -42,7 +43,6 @@ import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.constant.ic.BillMode;
 import nc.vo.scm.constant.ic.InOutFlag;
 import nc.vo.scm.ic.bill.InvVO;
-import nc.vo.scm.jjvo.InformationCostVO;
 import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.session.ClientLink;
 
@@ -210,9 +210,9 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		    temp = getBillCardPanel().getBillModel("jj_scm_informationcost").getRowCount();
 		    UFDouble innum = ((GeneralButtonManager)getButtonManager()).getArrnum(); 
 		    int length = 0;
-		    if(((GeneralButtonManager)getButtonManager()).getInfovos()!=null){
-		    	length = ((GeneralButtonManager)getButtonManager()).getInfovos().length;
-		    }		    
+//		    if(((GeneralButtonManager)getButtonManager()).getInfovos()!=null){
+//		    	length = ((GeneralButtonManager)getButtonManager()).getInfovos().length;
+//		    }		    
 		    for (int i = length; i < temp; i++) {
 		    	Boolean ismny = (Boolean)getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "ismny");		    	
 		    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(number, i, "nnumber");
@@ -1849,7 +1849,8 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 			InformationCostVO[] vos1 = new InformationCostVO[voList.size()];
 			voList.toArray(vos1);
 //		vos = voList.toArray();
-		c = new InfoCostPanel(getBillCardPanel(),vos1);
+//		c = new InfoCostPanel(getBillCardPanel(),vos1);
+			c = new InfoCostPanel(getBillCardPanel(),vos1);
 		}
 		else 			
 		c = new InfoCostPanel(getBillCardPanel());
