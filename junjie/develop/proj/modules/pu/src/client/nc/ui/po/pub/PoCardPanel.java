@@ -112,7 +112,7 @@ import nc.vo.scm.constant.ScmConst;
 import nc.vo.scm.coopwith.ForStockStruct;
 import nc.vo.scm.ctpo.RetCtToPoQueryVO;
 import nc.vo.scm.field.pu.FieldMaxLength;
-import nc.vo.scm.jjvo.InformationCostVO;
+import nc.vo.pu.jjvo.InformationCostVO;
 import nc.vo.scm.pu.BillTypeConst;
 import nc.vo.scm.pu.PuPubVO;
 import nc.vo.scm.pu.RelationsCalVO;
