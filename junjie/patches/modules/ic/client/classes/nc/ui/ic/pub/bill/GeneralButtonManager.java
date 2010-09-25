@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import nc.bs.framework.common.NCLocator;
-import nc.itf.scm.pub.IScmPub;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pfxx.IPFxxEJBService;
 import nc.jdbc.framework.processor.ColumnProcessor;
@@ -515,9 +514,9 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				           try {
 				        	   IUAPQueryBS query1 = NCLocator.getInstance().lookup(IUAPQueryBS.class);
 				                o = query1.executeQuery(sql, new ColumnProcessor());        		  
-				              IScmPub query = NCLocator.getInstance().lookup(IScmPub.class);
+				              
 				              //第二个参数为null表示查询全部字段,将查询结果存储在内存中
-				              infovos =  (InformationCostVO[]) query.querySmartVOs(InformationCostVO.class, null, whereSql.toString());
+				              infovos =  (InformationCostVO[]) JJIcScmPubHelper.querySmartVOs(InformationCostVO.class, null, whereSql.toString());
 				        	   
 						} catch (Exception e) {
 							// TODO Auto-generated catch block

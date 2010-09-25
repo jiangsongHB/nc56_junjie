@@ -54,6 +54,8 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	private nc.ui.pub.beans.UIButton m_btnAdd = null;
 	// 删除按钮
 	private nc.ui.pub.beans.UIButton m_btnDel = null;
+	// 修改按钮
+	private nc.ui.pub.beans.UIButton m_btnMod = null;
 	// 公司ID
 	private String m_sLoginCorp = null;
 	// 操作员ID
@@ -178,6 +180,8 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 			m_panelSouth.add(getBtnOK(), getBtnOK().getName());
 			// 取消
 			m_panelSouth.add(getBtnCancel(), getBtnCancel().getName());
+			//修改
+			m_panelSouth.add(getBtnMod(),getBtnMod().getName());
 		}
 		return m_panelSouth;
 	}
@@ -241,6 +245,25 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 			m_btnAdd.addActionListener(this);
 		}
 		return m_btnAdd;
+	}
+	/**
+	 * @function 得到修改按钮
+	 *
+	 * @author QuSida
+	 *
+	 * @return nc.ui.pub.beans.UIButton
+	 *
+	 * @date 2010-9-25 上午09:49:41
+	 */
+	private nc.ui.pub.beans.UIButton getBtnMod() {
+		if (m_btnMod == null) {
+
+			m_btnMod = new nc.ui.pub.beans.UIButton("修改");
+			m_btnMod.setName("BtnMod");
+
+			m_btnMod.addActionListener(this);
+		}
+		return m_btnMod;
 	}
 
 	/**
@@ -364,6 +387,10 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		else if (e.getSource() == this.m_btnDel) {
 			int[] delRows = getBillListPanel().getHeadTable().getSelectedRows();
 			getBillListPanel().getHeadBillModel().delLine(delRows);
+		}
+		// 修改按钮动作
+		else if (e.getSource() == this.m_btnMod) {
+			getBillListPanel().getHeadBillModel().setEnabledAllItems(true);
 		}
 
 	}

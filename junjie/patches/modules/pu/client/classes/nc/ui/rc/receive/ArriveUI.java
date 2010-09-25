@@ -22,7 +22,6 @@ import nc.bs.logging.Logger;
 import nc.itf.po.outer.IQueryForIc;
 import nc.itf.rc.receive.IArriveorder;
 import nc.itf.rc.receive.IQueryForInitUI;
-import nc.itf.scm.pub.IScmPub;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
 import nc.itf.uap.pf.IPFWorkflowQry;
@@ -857,7 +856,7 @@ private void afterEditWhenNum(BillEditEvent e) {
 //	}
 	UFDouble arrmny = null;
 	int length = 0;
-	if(vos!=null) length = vos.length;
+//	if(vos!=null) length = vos.length;
     for (int i = length; i < temp; i++) {
     	Boolean ismny = (Boolean)getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "ismny");
     	
@@ -3592,8 +3591,23 @@ private void loadBDData() {
 public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
   if (e.getPos() == BillItem.HEAD) {
     if (getStateStr().equals("转入列表")) {
+    	InformationCostVO[] vos = null;
+    	vos = (InformationCostVO[])getBillListPanel().getBodyBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
       setM_strState("转入修改");
       onCardNew();
+//  	String pk =	getBillCardPanel().getHeadItem("carriveorderid").getValue();
+//	String sql = "cbillid = '"+pk+"' and dr = 0";
+//	
+//try {
+//	 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+//} catch (Exception e1) {
+//	// TODO Auto-generated catch block
+//	e1.printStackTrace();
+//}
+if(vos!=null&&vos.length!=0){
+	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
+	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+}
     } else {
       //如果没有单据体，则认为并发并返回
       ArriveorderItemVO[] items =
@@ -3666,6 +3680,21 @@ private void onAudit(ButtonObject bo) {
     	getBillCardPanel().setBillValueVO(getCacheVOs()[getDispIndex()]);
     	lightRefreshUI();
     	setHeadValueByKey("vmemo", (String)getCacheVOs()[getDispIndex()].getParentVO().getAttributeValue("vmemo"));
+    	  //function:查询相关费用信息
+    	  String pk = (String)getCacheVOs()[getDispIndex()].getHeadVO().getAttributeValue("carriveorderid");
+    		String sql = "cbillid = '"+pk+"' and dr = 0";
+    		InformationCostVO[] vos = null;
+
+    		 try {
+    			vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+    		} catch (Exception e) {
+    			// TODO Auto-generated catch block
+    			SCMEnv.out(e);
+    		}
+    	if(vos!=null&&vos.length!=0){
+     		 getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
+      		 getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+      		 }
     } catch (Exception e) {
       showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000120")/*@res "审批成功,但加载单据时出现异常,请刷新界面再进行其它操作"*/);
     }
@@ -4074,9 +4103,9 @@ private void onButtonClickedCard(ButtonObject bo){
            try {
         	    IUAPQueryBS query1 = NCLocator.getInstance().lookup(IUAPQueryBS.class);
                 o = query1.executeQuery(sql, new ColumnProcessor());        		  		
-               IScmPub query = NCLocator.getInstance().lookup(IScmPub.class);
+               
               //第二个参数为null表示查询全部字段,将查询结果存储在内存中
-              vos =  (InformationCostVO[]) query.querySmartVOs(InformationCostVO.class, null, whereSql.toString());
+              vos =  (InformationCostVO[]) JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, whereSql.toString());
         	   
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -6648,6 +6677,21 @@ private void onUnAudit(ButtonObject bo) {
     	getBillCardPanel().setBillValueVO(getCacheVOs()[getDispIndex()]);
     	lightRefreshUI();
     	setHeadValueByKey("vmemo", (String)getCacheVOs()[getDispIndex()].getParentVO().getAttributeValue("vmemo"));
+  	  //function:查询相关费用信息
+  	  String pk = (String)getCacheVOs()[getDispIndex()].getHeadVO().getAttributeValue("carriveorderid");
+  		String sql = "cbillid = '"+pk+"' and dr = 0";
+  		InformationCostVO[] vos = null;
+
+  		 try {
+  			vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+  		} catch (Exception e) {
+  			// TODO Auto-generated catch block
+  			SCMEnv.out(e);
+  		}
+  	if(vos!=null&&vos.length!=0){
+  		 getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
+  		 getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+  	}
     } catch (Exception e) {
       showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000188")/*@res "弃审成功,但加载单据时出现异常,请刷新界面再进行其它操作"*/);
     }

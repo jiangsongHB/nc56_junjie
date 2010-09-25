@@ -751,6 +751,19 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 				setButtonsStateBrowse();
 				showHintMessage(NCLangRes.getInstance().getStrByID(
 						"4004020201", "UPP4004020201-000042")/* @res "‰Ø¿¿∂©µ•" */);
+				String pk =	getPoCardPanel().getHeadItem("corderid").getValue();
+				String sql = "cbillid = '"+pk+"'";
+				InformationCostVO[] vos = null;
+			try {
+				 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			if(vos!=null&&vos.length!=0){
+				getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
+				getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+			}
 			}
 		}
 	}
@@ -1785,6 +1798,7 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 	}
 	if(vos!=null&&vos.length!=0){
 		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
+		getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
 	}
 
 	}

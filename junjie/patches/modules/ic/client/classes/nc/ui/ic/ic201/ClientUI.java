@@ -210,9 +210,9 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		    temp = getBillCardPanel().getBillModel("jj_scm_informationcost").getRowCount();
 		    UFDouble innum = ((GeneralButtonManager)getButtonManager()).getArrnum(); 
 		    int length = 0;
-		    if(((GeneralButtonManager)getButtonManager()).getInfovos()!=null){
-		    	length = ((GeneralButtonManager)getButtonManager()).getInfovos().length;
-		    }		    
+//		    if(((GeneralButtonManager)getButtonManager()).getInfovos()!=null){
+//		    	length = ((GeneralButtonManager)getButtonManager()).getInfovos().length;
+//		    }		    
 		    for (int i = length; i < temp; i++) {
 		    	Boolean ismny = (Boolean)getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "ismny");		    	
 		    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(number, i, "nnumber");
