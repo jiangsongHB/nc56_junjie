@@ -20,6 +20,7 @@ junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI$IMenuItemLis
 junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
 junjie/develop/proj/modules/pu/out/client/nc/ui/rc/receive/ArriveUI.class -text
 junjie/develop/proj/modules/pu/src/client/nc/ui/pi/invoice/InvoiceUI.java -text
+junjie/develop/proj/modules/pu/src/private/nc/bs/ps/estimate/EstimateImpl.java -text
 junjie/develop/proj/modules/pu/src/public/nc/itf/ps/estimate/IEstimate.java -text
 junjie/develop/proj/modules/pu/src/public/nc/itf/pu/mm/ISrvPUToMM.java -text
 junjie/develop/proj/modules/pu/src/public/nc/vo/pu/jjvo/InformationCostVO.java -text
