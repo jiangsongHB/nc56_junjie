@@ -7,11 +7,11 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import nc.bs.framework.common.NCLocator;
-import nc.itf.scm.pub.IScmPub;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pfxx.IPFxxEJBService;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.ic001.BatchCodeDefSetTool;
+import nc.ui.ic.jj.JJIcScmPubHelper;
 import nc.ui.ic.pub.QueryInfo;
 import nc.ui.ic.pub.RefMsg;
 import nc.ui.ic.pub.barcodeoffline.ExcelReadCtrl;
@@ -39,10 +39,10 @@ import nc.ui.querytemplate.QueryConditionDLG;
 import nc.ui.scm.file.DocumentManager;
 import nc.ui.scm.print.IFreshTsListener;
 import nc.ui.scm.pub.CollectSettingDlg;
-import nc.ui.scm.pub.JJIcScmPubHelper;
 import nc.ui.scm.pub.bill.ButtonTree;
 import nc.ui.scm.pub.sourceref.IBillReferQueryProxy;
 import nc.vo.dm.service.delivery.SourceBillDeliveryStatus;
+import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.GenMethod;
 import nc.vo.ic.pub.GenParameterVO;
 import nc.vo.ic.pub.ICConst;
@@ -74,7 +74,6 @@ import nc.vo.scm.constant.ic.InOutFlag;
 import nc.vo.scm.ic.bill.InvVO;
 import nc.vo.scm.ic.bill.WhVO;
 import nc.vo.scm.ic.exp.ATPNotEnoughException;
-import nc.vo.scm.jjvo.InformationCostVO;
 import nc.vo.scm.print.PrintConst;
 import nc.vo.scm.print.ScmPrintlogVO;
 import nc.vo.scm.pub.SCMEnv;
@@ -515,9 +514,9 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				           try {
 				        	   IUAPQueryBS query1 = NCLocator.getInstance().lookup(IUAPQueryBS.class);
 				                o = query1.executeQuery(sql, new ColumnProcessor());        		  
-				              IScmPub query = NCLocator.getInstance().lookup(IScmPub.class);
+				              
 				              //第二个参数为null表示查询全部字段,将查询结果存储在内存中
-				              infovos =  (InformationCostVO[]) query.querySmartVOs(InformationCostVO.class, null, whereSql.toString());
+				              infovos =  (InformationCostVO[]) JJIcScmPubHelper.querySmartVOs(InformationCostVO.class, null, whereSql.toString());
 				        	   
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
