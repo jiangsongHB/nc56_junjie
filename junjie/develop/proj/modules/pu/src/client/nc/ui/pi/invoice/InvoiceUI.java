@@ -480,7 +480,20 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
   
   //缓存单据模板VO，列表和卡片只加载一次
   private BillTempletVO billTempletVo = null;
-
+  
+//  private ButtonObject[] extendBtns = null;
+//  private ButtonObject feeInvoice = null;
+//  private ButtonObject[] btnss = null;
+// 
+//private ButtonObject[] getBtnss(){
+//	if(btnss == null ){
+//		 btnss = new ButtonObject[m_btnTree.getButtonArray().length+getExtendBtns().length];
+//	      System.arraycopy(m_btnTree.getButtonArray(), 0, btnss, 0, m_btnTree.getButtonArray().length);
+//	      System.arraycopy(getExtendBtns(), 0, btnss, m_btnTree.getButtonArray().length, getExtendBtns().length);
+//	      return btnss;
+//	}
+//	return btnss;
+//}
   /**
    * InvBillClientUI 构造子注解。
    */
@@ -609,6 +622,12 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     if (m_btnTree == null) {
       try {
         m_btnTree = new ButtonTree(getModuleCode());
+//        ButtonObject[] btnsExtend = getExtendBtns();
+//        
+//            for(int j=0; j<btnsExtend.length;j++){
+//                getBtnTree().addMenu(btnsExtend[j]);
+//            }
+//        
       }
       catch (BusinessException be) {
         showHintMessage(be.getMessage());
@@ -1207,6 +1226,10 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     try {
       String sCurrId = getBillCardPanel().getHeadItem("ccurrencytypeid").getValue();
       String dInvoiceDate = getBillCardPanel().getHeadItem("dinvoicedate").getValue();
+      //add by QuSida (佛山骏杰) 2010-9-24  防止发票日期为空时，setExchangeRateHead(dInvoiceDate, sCurrId)方法报错
+      if(dInvoiceDate == null||dInvoiceDate.equals("")){
+    	  dInvoiceDate = ClientEnvironment.getInstance().getDate().toString();
+      }
 
       // =================表头
       // 设置折本及折辅汇率
@@ -1287,7 +1310,8 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     getBillCardPanel().getHeadItem("nexchangeotobrate").setDecimalDigits(iaExchRateDigit[0]);
     // 设置值
     UFDouble[] daRate = m_cardPoPubSetUI2.getBothExchRateValue(getPk_corp(), sCurrId, new UFDate(dInvoicedate));
-    getBillCardPanel().getHeadItem("nexchangeotobrate").setValue(daRate[0]);
+    UFDouble temp = daRate[0] == null?UFDouble.ONE_DBL:daRate[0];
+    getBillCardPanel().getHeadItem("nexchangeotobrate").setValue(temp);
     // 可编辑性
     boolean[] iaEditable = m_cardPoPubSetUI2.getBothExchRateEditable(getPk_corp(), sCurrId);
     getBillCardPanel().getHeadItem("nexchangeotobrate").setEnabled(iaEditable[0]);
@@ -3174,6 +3198,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     // }
 
     setButtonsList();
+//    setButtons(getBtnss());
     setButtons(m_btnTree.getButtonArray());
   }
 
@@ -5579,12 +5604,11 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
       // 业务类型导出来源单据类型
       PfUtilClient.retAddBtn(m_btnInvBillNew, nc.ui.pub.ClientEnvironment.getInstance().getCorporation()
           .getPrimaryKey(), nc.vo.scm.pu.BillTypeConst.PO_INVOICE, btn);
-      //
       btn.setSelected(true);
       m_btnInvBillBusiType.setEnabled(true);
       //
       setButtons(m_btnTree.getButtonArray());
-
+  //        setButtons(getBtnss());
       m_bizButton = btn;
       updateButtons();
     }
@@ -5697,6 +5721,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
                   || BillTypeConst.STORE_PO.equalsIgnoreCase(strUpBillType)) {
                 resetStoreorgAndStordoc(vos, strUpBillType);
               }
+
             }
           }
 
@@ -5787,6 +5812,9 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
           if (vos != null && vos.length == 1) {
             onListBill();
           }
+//          if("D1".equals(strUpBillType)){
+//        	  getBillCardPanel().getHeadItem("nexchangeotobrate").setEnabled(true);
+//          }
         }
       }
     }
@@ -6100,6 +6128,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
       // 放弃转单
       onGiveupBillConversion();
     }
+    
 
   }
 
@@ -8690,6 +8719,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
    * @deprecated 该方法从类的那一个版本后，已经被其它方法替换。（可选）
    */
   private void setButtonsStateInit() {
+	 
     m_btnInvBillCopy.setEnabled(false);
     // 列表下的刷新按钮
     m_btnInvBillRefresh.setEnabled(false);
@@ -9157,7 +9187,9 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     UFDouble[] daValue = null;
     if (dBRate == null) {
       daValue = POPubSetUI.getBothExchRateValue(getPk_corp(), sCurr, dOrderDate);
-      getBillCardPanel().setHeadItem("nexchangeotobrate", daValue[0]);
+      //add by QuSida (佛山骏杰)防止折本汇率为空
+      UFDouble temp = daValue[0] == null?UFDouble.ONE_DBL: daValue[0];
+      getBillCardPanel().setHeadItem("nexchangeotobrate", temp);
     }
     else {
       getBillCardPanel().setHeadItem("nexchangeotobrate", dBRate);
@@ -10848,6 +10880,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
       setCurPanelMode(INV_PANEL_LIST);
       initList();
       updateUI();
+//    setButtons(getBtnss());
       setButtons(m_btnTree.getButtonArray());
       // setButtonsAndPanelState();
       updateButtons();
@@ -10860,6 +10893,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
       setCurPanelMode(INV_PANEL_CARD);
       initCard();
       updateUI();
+      //setButtons(getBtnss());
       setButtons(m_btnTree.getButtonArray());
       // setButtonsAndPanelState();
       updateButtons();
@@ -11260,8 +11294,22 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
    */
   public ButtonObject[] getExtendBtns() {
     // TODO 自动生成方法存根
-    return null;
+//		if (extendBtns == null || extendBtns.length == 0) {
+//			// 加入费用发票按钮 add by QuSida 2010-9-22 （佛山骏杰）
+//			extendBtns = new ButtonObject[] { getBoFeeInvoice()
+//					};
+//			return extendBtns;
+//		}
+//		return extendBtns;
+	  return null;
   }
+//  public ButtonObject getBoFeeInvoice(){
+//	  if(feeInvoice == null){
+//		  feeInvoice = new ButtonObject("费用发票","费用发票","费用发票");
+//		  return feeInvoice;
+//	  }
+//	  return feeInvoice;
+//  }
 
   /*
    * （非 Javadoc）
@@ -11270,7 +11318,9 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
    */
   public void onExtendBtnsClick(ButtonObject bo) {
     // TODO 自动生成方法存根
-
+//		 if(bo == getBoFeeInvoice()){
+//		    	this.onBoFeeInvoice();
+//		    }
   }
 
   /*
@@ -11279,10 +11329,50 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
    * @see nc.ui.scm.pub.bill.IBillExtendFun#setExtendBtnsStat(int)
    */
   public void setExtendBtnsStat(int iState) {
-    // TODO 自动生成方法存根
+//    if(iState == 0){
+//    	 getBoFeeInvoice().setEnabled(true);
+//    }
+//    else if(iState == 1){
+//    	 getBoFeeInvoice().setEnabled(true);
+//    }
+//   else if(iState == 2){
+//	   getBoFeeInvoice().setEnabled(false);
+//      }
+// else if(iState == 3){
+//	 getBoFeeInvoice().setEnabled(false);
+// }
+// else if(iState == 4){
+//	 getBoFeeInvoice().setEnabled(false);
+// }
+// else if(iState == 4){
+//	 getBoFeeInvoice().setEnabled(false);
+// }
 
   }
-
+//private void onBoFeeInvoice(){
+////	getBoFeeInvoice().setTag("D1:"+m_strCurBizeType);
+// 	getBoFeeInvoice().setTag("D1:");
+//	PfUtilClient.childButtonClicked(getBoFeeInvoice(), nc.ui.pub.ClientEnvironment.getInstance().getCorporation().getPk_corp(),
+//            getModuleCode(), nc.ui.pub.ClientEnvironment.getInstance().getUser().getPrimaryKey(),
+//            "25", this);
+////	PfUtilClient.childButtonClicked(getBoFeeInvoice(),this.getCurrentCorp(),this.getNodeCode(),this.getDjSettingParam().getPk_user(),
+////			getDjDataBuffer().getCurrentDjlxbm(),this);]
+//	if(PfUtilClient.isCloseOK()){
+//	AggregatedValueObject[] vos = PfUtilClient.getRetVos();
+//	ArrayList list = new ArrayList();
+//	for (int i = 0; i < vos.length; i++) {
+//		InvoiceVO vo = new InvoiceVO();
+//		
+//	}
+//	}
+//	
+//}
+private InvoiceVO voProcess(AggregatedValueObject avo){
+	InvoiceVO vo = new InvoiceVO();
+	
+	
+	return vo;
+}
   public Object[] getRelaSortObjectArray() {
     // TODO 自动生成方法存根
     return m_InvVOs;
@@ -11590,7 +11680,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
         && getCorpPrimaryKey().trim().length() > 0) {
       if (pk_corp.equals(getCorpPrimaryKey())) {
         setButtons(m_btnTree.getButtonArray());// 本公司 加载单据卡片浏览按钮
-
+       // setButtons(getBtnss());
         setButtonsStateInit();
         setButtonsStateBrowseNormal();
         updateButtons();
@@ -12231,7 +12321,8 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
       }
     }
     
-    setButtons(m_btnTree.getButtonArray());
+   setButtons(m_btnTree.getButtonArray());
+//    setButtons(getBtnss());
   }
 
   private void setButtonsBAPFlag() {
