@@ -40,7 +40,7 @@ import nc.ui.pub.para.SysInitBO_Client;
 import nc.ui.pub.print.IDataSource;
 import nc.ui.pub.print.PrintEntry;
 import nc.ui.querytemplate.QueryConditionDLG;
-import nc.ui.scm.pub.ScmPubHelper;
+import nc.ui.pu.jj.JJPuScmPubHelper;
 import nc.ui.scm.pub.panel.RelationsCal;
 import nc.ui.scm.sourcebill.SourceBillFlowDlg;
 import nc.vo.jcom.lang.StringUtil;
@@ -3110,7 +3110,7 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 		}
 		InformationCostVO[] infovos = null;
 	 try{
-		 infovos = (InformationCostVO[])ScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql.toString());
+		 infovos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql.toString());
 	 } catch(Exception e){
 		 SCMEnv.out(e);
 		 showErrorMessage("∑—”√∑÷ÃØ ß∞‹!");
