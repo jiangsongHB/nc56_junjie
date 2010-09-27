@@ -29,9 +29,13 @@ junjie/develop/proj/modules/pu/src/client/nc/ui/ps/estimate/EstimateHelper.java 
 junjie/develop/proj/modules/pu/src/client/nc/ui/ps/estimate/EstimateUI.java -text
 junjie/develop/proj/modules/pu/src/client/nc/ui/pu/jj/JJPuScmPubHelper.java -text
 junjie/develop/proj/modules/pu/src/client/nc/ui/pu/jjpanel/InfoCostPanel.java -text
+junjie/develop/proj/modules/pu/src/client/nc/ui/pub/pf/PfUtilClient.java -text
+junjie/develop/proj/modules/pu/src/private/nc/bs/pi/InvoiceDMO.java -text
+junjie/develop/proj/modules/pu/src/private/nc/bs/pi/InvoiceImpl.java -text
 junjie/develop/proj/modules/pu/src/private/nc/bs/ps/estimate/EstimateImpl.java -text
 junjie/develop/proj/modules/pu/src/private/nc/bs/pu/mm/AdapterPuToMm.java -text
 junjie/develop/proj/modules/pu/src/private/nc/bs/pu/pr/PraybillDMO.java -text
+junjie/develop/proj/modules/pu/src/private/nc/bs/pub/action/N_25_FEEAPPROVE.java -text
 junjie/develop/proj/modules/pu/src/public/nc/itf/ps/estimate/IEstimate.java -text
 junjie/develop/proj/modules/pu/src/public/nc/itf/pu/mm/ISrvPUToMM.java -text
 junjie/develop/proj/modules/pu/src/public/nc/vo/pu/jjvo/InformationCostVO.java -text

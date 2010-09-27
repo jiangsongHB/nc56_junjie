@@ -154,7 +154,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     BillActionListener {
   
   String sContinueBillTypeName = "";
-  
+  boolean feeFlag = false;//费用发票审核标志 add by QuSida (佛山骏杰) 2010-9-26
   boolean bIswaitaudit = false;
 
   // {业务类型主键=是否配置了审批驱动传应付}
@@ -4124,8 +4124,8 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
        * 二次开发插件支持 by zhaoyha at 2009.2.16
        */
       getInvokeEventProxy().beforeAction(nc.vo.scm.plugin.Action.AUDIT, proceVOs);
-
-      PfUtilClient.processBatchFlow(this, "APPROVE", nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment
+      
+    	  PfUtilClient.processBatchFlow(this, "APPROVE", nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment
           .getInstance().getDate().toString(), proceVOs, null);
       if (PfUtilClient.isSuccess()) {
         /**
@@ -4319,6 +4319,11 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     }
 
     try {
+    	//费用发票审批  add by QuSida (佛山骏杰) 2010-9-27
+    	if(feeFlag)
+      	  PfUtilClient.processBatchFlow(this, "FEEAPPROVE", nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment
+      	          .getInstance().getDate().toString(), proceVOs, null);
+        else
       PfUtilClient.processBatchFlow(this, "APPROVE", nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment
           .getInstance().getDate().toString(), proceVOs, null);
       timer.addExecutePhase("执行审批操作APPROVE");
@@ -5640,9 +5645,13 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
           PfUtilClient.childButtonClicked(btn, getCorpPrimaryKey(), "400404", nc.ui.pub.ClientEnvironment.getInstance()
               .getUser().getPrimaryKey(), ScmConst.PO_Invoice, this);
         }
+      
 
         // if(m_bizButton!=null&&m_bizButton.getName()!=null&&m_bizButton.getName().equals("")){
         else {
+        	  if ("D1".equalsIgnoreCase(strUpBillType)||"F1".equalsIgnoreCase(strUpBillType)){
+                  feeFlag = true;  //费用发票标志 add by QuSida (佛山骏杰) 2010-9-26
+              }
           PfUtilClient.childButtonClicked(btn, nc.ui.pub.ClientEnvironment.getInstance().getCorporation().getPk_corp(),
               getModuleCode(), nc.ui.pub.ClientEnvironment.getInstance().getUser().getPrimaryKey(),
               nc.vo.scm.pu.BillTypeConst.PO_INVOICE, this);
