@@ -741,6 +741,8 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 	 * 2002-06-05 王印芬 修改函数onDoubleClick()
 	 */
 	public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
+		getPoCardPanel().getBodyTabbedPane().setSelectedIndex(0);//重置列表表体页签显示顺序!
+		
 		if (e.getPos() == BillItem.HEAD) {
 			if(!onDoubleClick(e.getRow())) return;
 			if (isFromOtherBill()) {
@@ -761,9 +763,14 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 				e1.printStackTrace();
 			}
 			if(vos!=null&&vos.length!=0){
+				
 				getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 				getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+			}else{
+				//20101010-22-20  MeiChao 费用为空时,清空历史费用信息.
+				getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 			}
+			
 			}
 		}
 	}

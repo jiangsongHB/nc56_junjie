@@ -269,7 +269,11 @@ public void displayCurVOBody(int		iUIPos) {
 	if(vos!=null&&vos.length!=0){
 		 getBillListData().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 		 getBillListData().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+	}else{
+		//20101010-22-20  MeiChao 费用为空时,清空历史费用信息.
+		getBillListData().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null);
 	}
+	
 	 //add by QuSida 2010-9-11 (佛山骏杰) --- end
 	} catch (Exception ex) {
 		PuTool.outException(this,ex) ;

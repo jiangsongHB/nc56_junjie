@@ -8048,8 +8048,13 @@ private boolean setListBodyData(int row0) {
 		SCMEnv.out(e);
 	}
 if(vos!=null&&vos.length!=0){
+	
 	 getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos);
-	 getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+	 getBillListPanel().getBodyBillModel().execLoadFormula();//20101010-Meichao 执行表体所有加载公式
+//	 getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+}else{
+	//20101010 2204 Meichao新增此else判断: 当费用信息为空时.清空之前的费用页签数据.
+	getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null);
 }
 //add by QuSida 2010-9-11 (佛山骏杰)  --- end
   return isErr;
@@ -8278,8 +8283,10 @@ public void valueChanged(javax.swing.event.ListSelectionEvent e) {
     setDispIndex(nCurIndex);
     isErr = setListBodyData(nCurIndex);
     //刷新
-    getBillListPanel().getBodyTable().updateUI();
+    getBillListPanel().getBodyTabbedPane().setSelectedIndex(0);//20101010-Meichao 修改焦点页签为子表页签.从而使公式执行成功显示.
     getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+    getBillListPanel().getBodyTable().updateUI();
+    
   }
   //按钮逻辑
   if ("转入列表".equals(getStateStr())) {
@@ -10227,6 +10234,9 @@ private void onBoInfoCost() {
 	c = new InfoCostPanel(getBillCardPanel());
 	// 打开费用录入界面
 	c.showModal();
+//	if(c.showModal()==UIDialog.ID_OK){//showModal为显示Dialog,如果该方法返回值为1,那么表示用户点了确定.
+//		20101010 15:26 梅超.添加
+//	}
 	// 当费用录入界面关闭时,将录入的数据存放到费用信息页签上
 	if (c.isCloseOK()) {
 		InformationCostVO[] infoCostVOs = c.getInfoCostVOs();
