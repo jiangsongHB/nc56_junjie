@@ -1,4 +1,7 @@
 * text=auto !eol
+junjie/develop/proj/NC_56_JUNJIE/.classpath -text
+junjie/develop/proj/NC_56_JUNJIE/.module_prj -text
+junjie/develop/proj/NC_56_JUNJIE/.project -text
 junjie/develop/proj/NC_56_JUNJIE/META-INF/mdrkTools.upm -text
 junjie/develop/proj/NC_56_JUNJIE/META-INF/module.xml -text
 junjie/develop/proj/NC_56_JUNJIE/ncscript/junjie/billtemplet/pub_billtemplet_0001AA10000000003JBT/001.sql -text
@@ -27,6 +30,7 @@ junjie/develop/proj/NC_56_JUNJIE/ncscript/junjie/dbcreate/Position/position.xml 
 junjie/develop/proj/NC_56_JUNJIE/ncscript/junjie/dbcreate/Position/position_obj.xml -text
 junjie/develop/proj/NC_56_JUNJIE/ncscript/junjie/dbcreate/SQLSERVER/00001/tb_码单数据库设计.sql -text
 junjie/develop/proj/NC_56_JUNJIE/ncscript/junjie/setup.ini -text
+junjie/develop/proj/NC_56_JUNJIE/scmplugin.xml -text
 junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/ic601/ClientUI.java -text
 junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/ic601/MdDetailDialog.java -text
 junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/ic601/MdDetailVO.java -text
