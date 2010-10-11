@@ -2401,6 +2401,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		if(vos!=null&&vos.length!=0){
 			 getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 			 getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+		}else{
+			//2010-10-10 Meichao 当费用信息为空时,将费用页签清空.
+			getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null);
 		}
 		//add by QuSida 2010-9-11 (佛山骏杰)  --- end
 
