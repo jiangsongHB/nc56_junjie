@@ -110,6 +110,9 @@ junjie/patches/modules/pu/client/classes/nc/ui/invoice/InvoiceUI$IMenuItemListen
 junjie/patches/modules/pu/client/classes/nc/ui/invoice/InvoiceUI$MyBillData.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/invoice/InvoiceUI.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/invoice/InvoiceUI.java -text
+junjie/patches/modules/pu/client/classes/nc/ui/pf/PfUtilClient$1.class -text
+junjie/patches/modules/pu/client/classes/nc/ui/pf/PfUtilClient.class -text
+junjie/patches/modules/pu/client/classes/nc/ui/pf/PfUtilClient.java -text
 junjie/patches/modules/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$1.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$2.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$IMenuItemListener.class -text
