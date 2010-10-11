@@ -1,4 +1,24 @@
 * text=auto !eol
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/ic601/ClientUI.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/ic601/MdDetailDialog.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/ic601/MdDetailVO.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/md/MDPlugin.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/md/SCMBasePlugin.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/md/dialog/MDioDialog.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/mdck/ChInfoVO.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/mdck/MDConstants.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/mdck/MdProcessBean.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/mdck/MdczRef.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/mdck/MdwhDlg.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/mdck/MdwhPanel.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/mdck/MyRowRenderer.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/pub/bill/GeneralBillClientUI.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/ic/pub/bill/dialog/MBJSDialog.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/so/so001/order/MdsdBean.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/so/so001/order/SaleOrderAdminUI.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/so/so001/order/SoMdwhDlg.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/so/so001/order/SoMdwhPanel.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.java -text
 junjie/develop/proj/NC_56_JUNJIE/src/private/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/develop/proj/NC_56_JUNJIE/src/public/nc/itf/ic/md/IMDTools.java -text
 junjie/develop/proj/NC_56_JUNJIE/src/public/nc/ui/ic/md/dialog/MDUtils.java -text
