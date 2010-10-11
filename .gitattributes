@@ -96,7 +96,6 @@ junjie/develop/proj/modules/ic/src/client/nc/ui/ic/mdck/MdwhPanel.class -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/mdck/MdwhPanel.java -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/mdck/MyRowRenderer.class -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/mdck/MyRowRenderer.java -text
-junjie/develop/proj/modules/ic/src/client/nc/ui/ic/pub/bill/GeneralBillClientUI.java -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/pub/bill/GeneralButtonManager.java -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/pub/bill/dialog/MBJSDialog.class -text
 junjie/develop/proj/modules/ic/src/client/nc/ui/ic/pub/bill/dialog/MBJSDialog.java -text
