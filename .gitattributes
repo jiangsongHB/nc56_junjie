@@ -1,4 +1,6 @@
 * text=auto !eol
+junjie/develop/proj/NC_56_JUNJIE/META-INF/mdrkTools.upm -text
+junjie/develop/proj/NC_56_JUNJIE/META-INF/module.xml -text
 junjie/develop/proj/NC_56_JUNJIE/ncscript/junjie/billtemplet/pub_billtemplet_0001AA10000000003JBT/001.sql -text
 junjie/develop/proj/NC_56_JUNJIE/ncscript/junjie/billtemplet/pub_billtemplet_0001AA10000000003JBT/002.sql -text
 junjie/develop/proj/NC_56_JUNJIE/ncscript/junjie/billtemplet/pub_billtemplet_0001AA10000000003JBT/003.sql -text
