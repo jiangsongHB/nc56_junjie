@@ -166,6 +166,16 @@ junjie/develop/proj/modules/so/out/client/nc/ui/so/so002/SaleInvoiceBtn.class -t
 junjie/develop/proj/modules/so/out/client/nc/ui/so/so002/SaleInvoiceUI$1.class -text
 junjie/develop/proj/modules/so/out/client/nc/ui/so/so002/SaleInvoiceUI$2.class -text
 junjie/develop/proj/modules/so/out/client/nc/ui/so/so002/SaleInvoiceUI.class -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/order/MdsdBean.class -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/order/MdsdBean.java -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/order/SaleOrderAdminUI.class -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/order/SaleOrderAdminUI.java -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/order/SoMdwhDlg.class -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/order/SoMdwhDlg.java -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/order/SoMdwhPanel.class -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/order/SoMdwhPanel.java -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.class -text
+junjie/develop/proj/modules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.java -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientCtrl.class -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientEH.class -text
 junjie/develop/proj/modules/uap/out/client/nc/ui/bd/bd1001/ClientUI.class -text
