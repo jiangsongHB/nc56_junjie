@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='gb2312'?>
+<position UserType= 'new' DbType='SQL SERVER'>
+<row><name>NNC_DATA01</name><type>table</type><attribute>default</attribute><comment>建table的默认容器</comment></row>
+<row><name>NNC_INDEX01</name><type>index</type><attribute>default</attribute><comment>建index的默认容器</comment></row>
+<row><name>NNC_DATA02</name><type>table</type><attribute>special</attribute><comment>基础档案table的默认容器</comment></row>
+<row><name>NNC_DATA03</name><type>table</type><attribute>special</attribute><comment>特殊table的默认容器</comment></row>
+<row><name>NNC_INDEX02</name><type>index</type><attribute>special</attribute><comment>基础档案index的默认容器</comment></row>
+<row><name>NNC_INDEX03</name><type>index</type><attribute>special</attribute><comment>特殊table上的index的默认容器</comment></row>
+</position>

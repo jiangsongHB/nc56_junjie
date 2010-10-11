@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='gb2312'?>
+<module name = 'Position_obj'>
+    <row><module_code>10</module_code><table>sm_appuserpower</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>sm_usergrouppower</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>sm_operatelog</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>pub_print_cell</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>pub_language_module</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+    <row><module_code>10</module_code><table>bd_accperiod</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_accperiodmonth</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_accperiodquarter</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_corp</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_corphistory</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+
+    <row><module_code>10</module_code><table>bd_abcpara</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_accbank</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_accid</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_accmanager</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_accpsndoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_accsubj</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_adjustrate</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_areacl</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_association</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_balatype</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_bankarea</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_batchcode_rule</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_bclb</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_bddict</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_bdinfo</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_billtype</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_billtype2</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_busitype</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_busityper</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_cacheconfig</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_cacheversion</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_calbody</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_cargdoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_cashflow</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_comabstr</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_convert</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_costsubj</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_cubasdoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_cumandoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_currinfo</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_currrate</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_currtype</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_custaddr</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_custbank</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_defdef</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_defdoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_defdoclist</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_defquote</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_defused</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_delivorg</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_deptdoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_doagent</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_fzqxjb</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_interfaceexec</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_invbasdoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_invcl</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_invmandoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_invrepl</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_jobbasfil</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_jobcl</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_jobmngfil</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_jobobjpha</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_jobphase</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_jobtype</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_measdoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_payterm</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_paytermch</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_prayvsbusi</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_produce</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_psncl</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_psndoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_psntopurorg</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_ptrate</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_purorg</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_rdcl</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_ref_relation</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_refcolumn</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_refdemo</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_rescenter</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_respdept</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_rlh</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_route</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_routeaddr</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_salestru</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_sc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_sendtype</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_setpart</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_ssc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_stordoc</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_subjass</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_subjtype</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_taxitems</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_vouchertype</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_wt</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>10</module_code><table>bd_zqxjb</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+   <row><module_code>10</module_code><table>sm_pub_filesystem</table><place>NNC_DATA02</place><index_place>NNC_DATA02</index_place><comment></comment></row>
+
+    <row><module_code>1009</module_code><table>bd_bom</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>1009</module_code><table>bd_bom_b</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>1009</module_code><table>bd_bom_td</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>1009</module_code><table>bd_bom_zp</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+    <row><module_code>1009</module_code><table>pd_rt_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+    <row><module_code>1016</module_code><table>bd_datapowerused</table><place>NNC_DATA02</place><index_place>NNC_INDEX02</index_place><comment></comment></row>
+
+
+
+    <row><module_code>2002</module_code><table>gl_voucher</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2002</module_code><table>gl_detail</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2002</module_code><table>gl_freevalue</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2002</module_code><table>gl_balance</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+    <row><module_code>2008</module_code><table>arap_djfb</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2008</module_code><table>arap_djfkxyb</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2008</module_code><table>arap_djzb</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2008</module_code><table>arap_tem_djclb</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+    <row><module_code>2012</module_code><table>fa_card</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2012</module_code><table>fa_cardhistory</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2012</module_code><table>fa_deptscale</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+    <row><module_code>2014</module_code><table>ia_bill</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>2014</module_code><table>ia_bill_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+
+
+    <row><module_code>3002</module_code><table>tb_plan_data</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>3002</module_code><table>tb_accpetdat</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>3002</module_code><table>tb_planfj</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>3002</module_code><table>tb_plan_run</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+
+    <row><module_code>4004</module_code><table>po_order</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4004</module_code><table>po_order_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+    <row><module_code>4006</module_code><table>so_sale</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4006</module_code><table>so_saleorder_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4006</module_code><table>so_saleinvoice</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4006</module_code><table>so_saleinvoice_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4006</module_code><table>so_square</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4006</module_code><table>so_square_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4006</module_code><table>so_squaredetail</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+    <row><module_code>4008</module_code><table>ic_general_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4008</module_code><table>ic_general_h</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4008</module_code><table>ic_atp</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4008</module_code><table>ic_onhandnum</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4008</module_code><table>ic_onhandnum_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4008</module_code><table>ic_general_bb1</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4008</module_code><table>ic_general_bb2</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+    <row><module_code>4014</module_code><table>dm_delivdaypl</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_delivbill_h</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_delivbill_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_missionbill_h</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_missionbill_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_delivinvoice_h</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_delivinvoice_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_baseprice</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_delivfeebill_h</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>4014</module_code><table>dm_delivfeebill_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+
+
+    <row><module_code>5006</module_code><table>mm_mo</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>5006</module_code><table>mm_wr</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>5006</module_code><table>mm_wr_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>5006</module_code><table>sf_slkz</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>5006</module_code><table>sf_zyl</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>5006</module_code><table>mm_mrpmx</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>5006</module_code><table>mm_pickm</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+    <row><module_code>5006</module_code><table>mm_pickm_b</table><place>NNC_DATA03</place><index_place>NNC_INDEX03</index_place><comment></comment></row>
+</module>
