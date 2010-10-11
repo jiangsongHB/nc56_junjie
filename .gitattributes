@@ -1,4 +1,13 @@
 * text=auto !eol
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/itf/ic/md/IMDTools.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/ui/ic/md/dialog/MDUtils.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/vo/ic/md/MdcrkVO.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/vo/ic/pub/bill/GeneralBillItemVO.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/vo/ic/pub/bill/GeneralBillItemVOMeta.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/vo/ic/sd/MdsdVO.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/vo/ic/xcl/MdxclBVO.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/vo/ic/xcl/MdxclVO.java -text
+junjie/develop/proj/NC_56_JUNJIE/src/public/nc/vo/ic/xcl/XclBillVO.java -text
 junjie/develop/proj/modules/ic/.classpath -text
 junjie/develop/proj/modules/ic/.module_prj -text
 junjie/develop/proj/modules/ic/.project -text
