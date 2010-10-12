@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding='gb2312'?>
-<module name="uap">
+<module name="newuap">
     <public>
         <component remote="true" singleton="true" tx="NONE">
             <interface>nc.itf.uap.pub.jj.IJJUAPService</interface>
