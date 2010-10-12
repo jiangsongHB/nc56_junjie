@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
-
+import nc.vo.ic.jjvo.InformationCostVO;
 import javax.swing.JFileChooser;
 
 import nc.bs.framework.common.NCLocator;
@@ -18,6 +18,9 @@ import nc.ui.ic.ic001.BatchCodeDefSetTool;
 import nc.ui.ic.ic001.BatchcodeHelper;
 import nc.ui.ic.ic009.PackCheckBusDialog;
 import nc.ui.ic.jj.JJIcScmPubHelper;
+import nc.ui.ic.md.dialog.MDUtils;
+import nc.ui.ic.md.dialog.MDioDialog;
+import nc.ui.ic.mdck.MdwhDlg;
 import nc.ui.ic.pub.BarcodeValidateDialog;
 import nc.ui.ic.pub.BillFormulaContainer;
 import nc.ui.ic.pub.ICCommonBusi;
@@ -29,6 +32,7 @@ import nc.ui.ic.pub.QueryOnHandInfoPanel;
 import nc.ui.ic.pub.bc.BarCodeDlg;
 import nc.ui.ic.pub.bill.cell.FreeItemCellRender;
 import nc.ui.ic.pub.bill.cell.LotItemRefCellRender;
+import nc.ui.ic.pub.bill.dialog.MBJSDialog;
 import nc.ui.ic.pub.bill.initref.RefFilter;
 import nc.ui.ic.pub.bill.query.QueryConditionDlgForBill;
 import nc.ui.ic.pub.corbillref.ICCorBillRefUI;
@@ -40,6 +44,7 @@ import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.FramePanel;
 import nc.ui.pub.ToftPanel;
 import nc.ui.pub.beans.MessageDialog;
+import nc.ui.pub.beans.UIDialog;
 import nc.ui.pub.beans.UIFileChooser;
 import nc.ui.pub.beans.UILabel;
 import nc.ui.pub.beans.UIMenuItem;
@@ -79,7 +84,6 @@ import nc.vo.bd.def.DefVO;
 import nc.vo.bill.pub.BillUtil;
 import nc.vo.ic.ic001.BatchcodeVO;
 import nc.vo.ic.ic700.ICDataSet;
-import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.BillTypeConst;
 import nc.vo.ic.pub.GenMethod;
 import nc.vo.ic.pub.ICConst;
@@ -158,14 +162,15 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		IBillExtendFun, ILinkAdd, ILinkMaintain, ILinkApprove, ILinkQuery,
 		BillSortListener2, ActionListener, IGeneralBill {
 
-	//protected String m_sBnoutnumnull = null; to QueryDlgHelp
+	// protected String m_sBnoutnumnull = null; to QueryDlgHelp
 
 	public static final int CANNOTSIGN = -1; // 不能签字
 
 	public static final int NOTSIGNED = 0; // 未签字//单据签字状态
 
 	public static final int SIGNED = 1; // 已签字
-	public static final String qualitylevelName=null;//质量等级
+
+	public static final String qualitylevelName = null;// 质量等级
 
 	private Environment m_environment;
 
@@ -194,7 +199,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	protected int m_iBillQty = 0; // 当前列表形式下的单据数量
 
 	private ArrayList<GeneralBillVO> m_alListData = null; // 列表数据
-	//修改人：刘家清 修改时间：2008-7-17 下午07:09:51 修改原因：
+
+	// 修改人：刘家清 修改时间：2008-7-17 下午07:09:51 修改原因：
 	private ArrayList<GeneralBillVO> m_alRefBillsBak = null; // 列表数据
 
 	private int m_iLastSelListHeadRow = -1; // 最后选中的列表表头行。
@@ -259,7 +265,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	private LocatorRefPane ivjLocatorRefPane = null;
 
 	// 查询对话框
-	//protected QueryConditionDlgForBill ivjQueryConditionDlg = null; to QueryDlgHelp
+	// protected QueryConditionDlgForBill ivjQueryConditionDlg = null; to
+	// QueryDlgHelp
 
 	// added by zhx 单据中是否使用公式的标志;
 	protected boolean m_bIsByFormula = true;
@@ -284,11 +291,11 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 	/** 定位对话框 */
 	protected nc.ui.ic.pub.orient.OrientDialog m_dlgOrient = null;
-	
-	protected HashMap<String,WhVO> hm_whid_vo = new HashMap<String, WhVO>();
+
+	protected HashMap<String, WhVO> hm_whid_vo = new HashMap<String, WhVO>();
 
 	// 新增时间
-//	protected nc.vo.pub.lang.UFDateTime m_dTime = null;
+	// protected nc.vo.pub.lang.UFDateTime m_dTime = null;
 
 	public Hashtable m_htBItemEditFlag = null;
 
@@ -304,9 +311,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	protected ScaleValue m_ScaleValue = new ScaleValue();
 
 	protected ScaleKey m_ScaleKey = new ScaleKey();
-	
+
 	protected String m_sIC026 = null;
-	
+
 	protected String m_sIC040 = null;
 
 	// /////////////////////////////////////////
@@ -335,7 +342,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	protected GeneralBillVO m_voBillRefInput = null;
 
 	// 最近一次的查询条件，可用于刷新。现用于列表形式下的打印。
-	//protected QryConditionVO m_voLastQryCond = null; to QueryDlgHelp
+	// protected QryConditionVO m_voLastQryCond = null; to QueryDlgHelp
 
 	// 支持二次开发的功能扩展
 	private nc.ui.scm.extend.IFuncExtend m_funcExtend = null;
@@ -347,7 +354,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	protected boolean m_isNeedNumEdit = true;
 
 	// 是否曾经查询过的标识
-	//protected boolean m_bEverQry = false; to QueryDlgHelp
+	// protected boolean m_bEverQry = false; to QueryDlgHelp
 
 	// 是进行查询还是进行刷新（为了兼容以前的版本，特增加该变量用来标识操作的类型）
 	protected boolean m_bQuery = true;
@@ -415,15 +422,18 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	// 排序主键
 	String m_sLastKey = null;
 
-	//表格中的颜色
+	// 表格中的颜色
 	protected Color m_cNormalColor = null;
-	//交错行显示开关
+
+	// 交错行显示开关
 	protected boolean m_bExchangeColor = false;
-	//故障定位显示开关
+
+	// 故障定位显示开关
 	protected boolean m_bLocateErrorColor = true;
-	//行故障定位显示开关
+
+	// 行故障定位显示开关
 	protected boolean m_bRowLocateErrorColor = true;
-	
+
 	// 时间显示
 	protected nc.vo.ic.pub.bill.Timer m_timer = new nc.vo.ic.pub.bill.Timer();
 
@@ -449,41 +459,43 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 																		 * @res
 																		 * "重排行号"
 																		 */);
-  
-  protected UIMenuItem miLineCardEdit = new UIMenuItem(nc.ui.ml.NCLangRes
-      .getInstance().getStrByID("common", "SCMCOMMONIC55YB002")/*
-                                     * @res
-                                     * "卡片编辑"
-                                     */);
-  
-//  protected UIMenuItem miLineBatchEdit = new UIMenuItem(nc.ui.ml.NCLangRes
-//      .getInstance().getStrByID("common", "SCMCOMMONIC55YB003")/*
-//                                     * @res
-//                                     * "批改"
-//                                     */);
+
+	protected UIMenuItem miLineCardEdit = new UIMenuItem(nc.ui.ml.NCLangRes
+			.getInstance().getStrByID("common", "SCMCOMMONIC55YB002")/*
+																		 * @res
+																		 * "卡片编辑"
+																		 */);
+
+	// protected UIMenuItem miLineBatchEdit = new UIMenuItem(nc.ui.ml.NCLangRes
+	// .getInstance().getStrByID("common", "SCMCOMMONIC55YB003")/*
+	// * @res
+	// * "批改"
+	// */);
 
 	protected int m_Menu_AddNewRowNO_Index = -1;
 
 	// 按钮管理对象
 	private IButtonManager m_buttonManager;
-  
-  protected QueryDlgHelp m_qryDlgHelp;
-  
-  private boolean isLineCardEdit ;
-//资产类存货在非资产仓出入时是否可以不输入序列号
-  protected boolean m_bCheckAssetInv = false;
-  
-  // 为解决拔网线引起的重复保存问题而引入的属性
-  private String tempHeaderID = null;
-  
-//二次开发扩展
-  private InvokeEventProxy pluginproxy;
-  
-  public InvokeEventProxy getPluginProxy() {
-    if(this.pluginproxy==null)
-      this.pluginproxy = new InvokeEventProxy(ICConst.MODULE_IC,getBillTypeCode(),new ICPluginUI(this));
-    return this.pluginproxy;
-  }
+
+	protected QueryDlgHelp m_qryDlgHelp;
+
+	private boolean isLineCardEdit;
+
+	// 资产类存货在非资产仓出入时是否可以不输入序列号
+	protected boolean m_bCheckAssetInv = false;
+
+	// 为解决拔网线引起的重复保存问题而引入的属性
+	private String tempHeaderID = null;
+
+	// 二次开发扩展
+	private InvokeEventProxy pluginproxy;
+
+	public InvokeEventProxy getPluginProxy() {
+		if (this.pluginproxy == null)
+			this.pluginproxy = new InvokeEventProxy(ICConst.MODULE_IC,
+					getBillTypeCode(), new ICPluginUI(this));
+		return this.pluginproxy;
+	}
 
 	/**
 	 * ClientUI 构造子注解。
@@ -563,7 +575,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		} else if (sItemKey.equals("cdispatcherid")) {
 			// 收发类别
 			getEditCtrl().afterDispatcherEdit(e);
-		} else if (sItemKey.equals("cinventoryid")) {//加工品
+		} else if (sItemKey.equals("cinventoryid")) {// 加工品
 			getEditCtrl().afterCinventoryidEdit(e);
 		} else if (sItemKey.equals(IItemKey.WAREHOUSE))
 			// 仓库
@@ -600,24 +612,24 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			getEditCtrl().afterVreceiveaddress(e);
 
 		}
-		
-		
-//		  2008.01.23 cy 雨润要求表头单据日期修改后，表体业务日期与表头单据日期一致 begin
-		else if (sItemKey.equals("dbilldate"))
-		{
-			//单据日期
+
+		// 2008.01.23 cy 雨润要求表头单据日期修改后，表体业务日期与表头单据日期一致 begin
+		else if (sItemKey.equals("dbilldate")) {
+			// 单据日期
 			String sName = ((nc.ui.pub.beans.UIRefPane) getBillCardPanel()
 					.getHeadItem("dbilldate").getComponent()).getRefCode();
-			
-			for (int i=0;i<getBillCardPanel().getBillModel().getRowCount();i++)
-			{
-				getBillCardPanel().getBillModel().setValueAt(sName, i, "dbizdate");
-				
-				if (BillModel.NORMAL == getBillCardPanel().getBillModel().getRowState(i))
-					getBillCardPanel().getBillModel().setRowState(i, BillModel.MODIFICATION);
+
+			for (int i = 0; i < getBillCardPanel().getBillModel().getRowCount(); i++) {
+				getBillCardPanel().getBillModel().setValueAt(sName, i,
+						"dbizdate");
+
+				if (BillModel.NORMAL == getBillCardPanel().getBillModel()
+						.getRowState(i))
+					getBillCardPanel().getBillModel().setRowState(i,
+							BillModel.MODIFICATION);
 			}
 		}
-	    //2008.01.23 cy 雨润要求表头单据日期修改后，表体业务日期与表头单据日期一致 end
+		// 2008.01.23 cy 雨润要求表头单据日期修改后，表体业务日期与表头单据日期一致 end
 
 		else if (sItemKey.equals("cotherwhid")) {
 			getEditCtrl().afterOtherWHEdit(e);
@@ -719,9 +731,11 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 		// 清除对应行货位、序列号数据
 		// zhy2005-08-25由于在入库单表体也增加了供应商，因此在此处清除货位序列号时需要判断下列条件
-		 //修改人：刘家清 修改时间：2008-6-16 上午10:49:05 修改原因：修改数量、辅数量时不清除序列号
+		// 修改人：刘家清 修改时间：2008-6-16 上午10:49:05 修改原因：修改数量、辅数量时不清除序列号
 		if (!((sItemKey.equals("vvendorname") && getM_voBill().getItemVOs()[row]
-				.getInOutFlag() != InOutFlag.OUT)  || sItemKey.equals(getEnvironment().getNumItemKey()) || sItemKey.equals(getEnvironment().getAssistNumItemKey())))
+				.getInOutFlag() != InOutFlag.OUT)
+				|| sItemKey.equals(getEnvironment().getNumItemKey()) || sItemKey
+				.equals(getEnvironment().getAssistNumItemKey())))
 			getEditCtrl().clearLocSnData(row, sItemKey);
 
 		//
@@ -755,9 +769,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		// 抽象类方法
 		afterBillEdit(e);
 		// getBillCardPanel().restoreFocusComponent();
-		
-		//  二次开发扩展
-    getPluginProxy().afterEdit(e);
+
+		// 二次开发扩展
+		getPluginProxy().afterEdit(e);
 	}
 
 	/**
@@ -801,9 +815,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 */
 	public void bodyRowChange(nc.ui.pub.bill.BillEditEvent e) {
 		getEditCtrl().bodyRowChange(e);
-    
-    //二次开发扩展
-    getPluginProxy().bodyRowChange(e);
+
+		// 二次开发扩展
+		getPluginProxy().bodyRowChange(e);
 
 	}
 
@@ -948,7 +962,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			}
 		}
 	}
+
 	private BillTempletVO billTempletVO = null;
+
 	public BillTempletVO getDefaultTemplet() {
 		if (null == billTempletVO) {
 			if (null == getFrame())
@@ -977,7 +993,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 *         将BillData设置入billCardPanel,重新设置行号，返回billCardPanel
 	 */
 	/* 警告：此方法将重新生成。 */
-	protected nc.ui.pub.bill.BillCardPanel getBillCardPanel() {
+	public nc.ui.pub.bill.BillCardPanel getBillCardPanel() {
 		if (ivjBillCardPanel == null) {
 			try {
 				ivjBillCardPanel = new nc.ui.pub.bill.BillCardPanel();
@@ -1022,10 +1038,11 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				if (bd.getBodyItem("vvehiclecode") != null)
 					bd.getBodyItem("vvehiclecode").setComponent(
 							getVehicleRefPane());
-        
-/*        if (bd.getBodyItem(IItemKey.CORRESCODE) != null) {
-          bd.getBodyItem(IItemKey.CORRESCODE).setComponent(getICCorBillRef());
-        }*/
+
+				/*
+				 * if (bd.getBodyItem(IItemKey.CORRESCODE) != null) {
+				 * bd.getBodyItem(IItemKey.CORRESCODE).setComponent(getICCorBillRef()); }
+				 */
 
 				// 将自由项参照加入单据模板表体
 				if (bd.getBodyItem("vfree0") != null)
@@ -1058,46 +1075,48 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				if (bd.getBodyItem("vspacename") != null)
 					bd.getBodyItem("vspacename").setComponent(
 							getLocatorRefPane()); //
-			
 
 				// 修改自定义项
-        bd = changeBillDataByUserDef(getDefHeadVO(), getDefBodyVO(), bd);
-        bd = BatchCodeDefSetTool.changeBillDataByBCUserDef(getCorpPrimaryKey(),bd);
+				bd = changeBillDataByUserDef(getDefHeadVO(), getDefBodyVO(), bd);
+				bd = BatchCodeDefSetTool.changeBillDataByBCUserDef(
+						getCorpPrimaryKey(), bd);
 
 				// 质量等级参照设置
-        BillItem item = null;
+				BillItem item = null;
 				try {
 					UIRefPane uiRefPanel = null;
-          item = bd.getBodyItem("cqualitylevelname");
-					if (item != null){
-            uiRefPanel = new UIRefPane();
-            uiRefPanel.setRefNodeName("自定义参照");
-            uiRefPanel.setIsCustomDefined(true);
-            uiRefPanel.setRefModel((AbstractRefModel) Class
-                .forName("nc.ui.qc.pub.CheckstateDef")
-                .newInstance());
-            uiRefPanel.getRefModel().setPk_corp(
-                getEnvironment().getCorpID());
-//          addied by liuzy 2008-05-09
-            // 质量登记参照没有重载AbstractRefModel.setPk_corp方法
-            // 导致参照出其它公司定义的质量等级
-            String newWherePart = " pk_corp = '"
-              + getEnvironment().getCorpID() + "' and dr = 0";
-            uiRefPanel.getRefModel().setWherePart(newWherePart);
-            uiRefPanel.setReturnCode(false);
-            item.setComponent(uiRefPanel);
-          }
+					item = bd.getBodyItem("cqualitylevelname");
+					if (item != null) {
+						uiRefPanel = new UIRefPane();
+						uiRefPanel.setRefNodeName("自定义参照");
+						uiRefPanel.setIsCustomDefined(true);
+						uiRefPanel.setRefModel((AbstractRefModel) Class
+								.forName("nc.ui.qc.pub.CheckstateDef")
+								.newInstance());
+						uiRefPanel.getRefModel().setPk_corp(
+								getEnvironment().getCorpID());
+						// addied by liuzy 2008-05-09
+						// 质量登记参照没有重载AbstractRefModel.setPk_corp方法
+						// 导致参照出其它公司定义的质量等级
+						String newWherePart = " pk_corp = '"
+								+ getEnvironment().getCorpID() + "' and dr = 0";
+						uiRefPanel.getRefModel().setWherePart(newWherePart);
+						uiRefPanel.setReturnCode(false);
+						item.setComponent(uiRefPanel);
+					}
 				} catch (java.lang.Throwable e) {
-          try{
-            if(item!=null){
-              bd.removeBillItem(BillItem.BODY, BillData.DEFAULT_BODY_TABLECODE, item.getKey());
-              //getBillCardPanel().hideBodyTableCol(item.getKey());
-            }
-          }catch (java.lang.Throwable ee){}
+					try {
+						if (item != null) {
+							bd.removeBillItem(BillItem.BODY,
+									BillData.DEFAULT_BODY_TABLECODE, item
+											.getKey());
+							// getBillCardPanel().hideBodyTableCol(item.getKey());
+						}
+					} catch (java.lang.Throwable ee) {
+					}
 				}
 				try {
-					item = bd
-							.getBodyItem("cmeaswarename");
+					item = bd.getBodyItem("cmeaswarename");
 					if (item != null) {
 						AbstractRefModel refModel = (AbstractRefModel) Class
 								.forName("nc.ui.mm.pub.pub1010.JlcRefModel")
@@ -1109,17 +1128,19 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						item.setComponent(ref);
 					}
 				} catch (java.lang.Throwable e) {
-            try{
-              if(item!=null){
-                //getBillCardPanel().hideBodyTableCol(item.getKey());
-                bd.removeBillItem(BillItem.BODY, BillData.DEFAULT_BODY_TABLECODE, item.getKey());
-              }
-            }catch (java.lang.Throwable ee){}
+					try {
+						if (item != null) {
+							// getBillCardPanel().hideBodyTableCol(item.getKey());
+							bd.removeBillItem(BillItem.BODY,
+									BillData.DEFAULT_BODY_TABLECODE, item
+											.getKey());
+						}
+					} catch (java.lang.Throwable ee) {
+					}
 				}
-        BillItem itemhead = null;
+				BillItem itemhead = null;
 				try {
-					itemhead = bd
-							.getHeadItem("pk_measware");
+					itemhead = bd.getHeadItem("pk_measware");
 					if (itemhead != null) {
 						AbstractRefModel refModel = (AbstractRefModel) Class
 								.forName("nc.ui.mm.pub.pub1010.JlcRefModel")
@@ -1148,30 +1169,32 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					 */
 
 				} catch (java.lang.Throwable e) {
-          try{
-            if(itemhead!=null)
-              bd.removeBillItem(BillItem.HEAD,null ,itemhead.getKey());
-          }catch (java.lang.Throwable ee){}
-          
-				}
-        
-        ivjBillCardPanel.setBillData(bd);
+					try {
+						if (itemhead != null)
+							bd.removeBillItem(BillItem.HEAD, null, itemhead
+									.getKey());
+					} catch (java.lang.Throwable ee) {
+					}
 
-        if (bd.getHeadItem("cbilltypecode") != null)
-          m_sTitle = bd.getHeadItem("cbilltypecode").getName();
-        if (ivjBillCardPanel.getTitle() != null
-            && ivjBillCardPanel.getTitle().trim().length() > 0)
-          m_sTitle = ivjBillCardPanel.getTitle();
-        // zhx new add billrowno
-        nc.ui.scm.pub.report.BillRowNo.loadRowNoItem(ivjBillCardPanel,
-            IItemKey.CROWNO);
-        // 将原单据模板的表体行隐藏!
-        ivjBillCardPanel.getBodyPanel().setRowNOShow(
-            nc.ui.ic.pub.bill.Setup.bShowBillRowNo);
-        
-        //设置模版批修改属性
-        GeneralBillUICtl.setBillCardPaneFillEnable(ivjBillCardPanel);
-        
+				}
+
+				ivjBillCardPanel.setBillData(bd);
+
+				if (bd.getHeadItem("cbilltypecode") != null)
+					m_sTitle = bd.getHeadItem("cbilltypecode").getName();
+				if (ivjBillCardPanel.getTitle() != null
+						&& ivjBillCardPanel.getTitle().trim().length() > 0)
+					m_sTitle = ivjBillCardPanel.getTitle();
+				// zhx new add billrowno
+				nc.ui.scm.pub.report.BillRowNo.loadRowNoItem(ivjBillCardPanel,
+						IItemKey.CROWNO);
+				// 将原单据模板的表体行隐藏!
+				ivjBillCardPanel.getBodyPanel().setRowNOShow(
+						nc.ui.ic.pub.bill.Setup.bShowBillRowNo);
+
+				// 设置模版批修改属性
+				GeneralBillUICtl.setBillCardPaneFillEnable(ivjBillCardPanel);
+
 			} catch (java.lang.Throwable ivjExc) {
 				// user code begin {2}
 				// user code end
@@ -1189,7 +1212,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 *         4.显示所有表体列，返回billListPanel
 	 */
 	/* 警告：此方法将重新生成。 */
-	protected nc.ui.pub.bill.BillListPanel getBillListPanel() {
+	public nc.ui.pub.bill.BillListPanel getBillListPanel() {
 		if (ivjBillListPanel == null) {
 			try {
 				ivjBillListPanel = new nc.ui.pub.bill.BillListPanel();
@@ -1197,20 +1220,21 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// user code begin {1}
 				// ivjBillListPanel.loadTemplet(m_sTempletID);
 				// 加载列表模版
-				/*ivjBillListPanel.loadTemplet(getBillType(), null,
-						getEnvironment().getUserID(), getEnvironment()
-								.getCorpID());
-*/
-				//BillListData bd = ivjBillListPanel.getBillListData();
+				/*
+				 * ivjBillListPanel.loadTemplet(getBillType(), null,
+				 * getEnvironment().getUserID(), getEnvironment() .getCorpID());
+				 */
+				// BillListData bd = ivjBillListPanel.getBillListData();
 				BillListData bd = new BillListData(getDefaultTemplet());
 
 				// 修改自定义项
-        bd = changeBillListDataByUserDef(getDefHeadVO(),
-            getDefBodyVO(), bd);
-        
-        bd = BatchCodeDefSetTool.changeBillListDataByBCUserDef(getCorpPrimaryKey(),bd);
+				bd = changeBillListDataByUserDef(getDefHeadVO(),
+						getDefBodyVO(), bd);
 
-        ivjBillListPanel.setListData(bd);
+				bd = BatchCodeDefSetTool.changeBillListDataByBCUserDef(
+						getCorpPrimaryKey(), bd);
+
+				ivjBillListPanel.setListData(bd);
 
 				// 设置小数精度
 				// setScaleOfListPanel();
@@ -1218,17 +1242,18 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 滤掉listid的列
 				nc.ui.pub.bill.BillItem biListItem[] = ivjBillListPanel
 						.getHeadBillModel().getBodyItems();
-        String[] hidkeys = new String[1];
+				String[] hidkeys = new String[1];
 				if (biListItem != null)
 					for (int col = biListItem.length - 1; col >= 0; col--)
 						if (biListItem[col].getName() != null
 								&& biListItem[col].getName().startsWith(
 										"listid")) {
 							try {
-                hidkeys[0] = biListItem[col].getKey();
-                GeneralBillUICtl.showItem(ivjBillListPanel.getChildListPanel(), false, hidkeys);
-								//hideListTableHeadCol(ivjBillListPanel
-								//		.getParentListPanel(), col);
+								hidkeys[0] = biListItem[col].getKey();
+								GeneralBillUICtl.showItem(ivjBillListPanel
+										.getChildListPanel(), false, hidkeys);
+								// hideListTableHeadCol(ivjBillListPanel
+								// .getParentListPanel(), col);
 								// SCMEnv.out("hide
 								// "+biListItem[col].getName());
 							} catch (Exception e) {
@@ -1635,10 +1660,14 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 							null,
 							new String[] { voaBills[i].getHeaderVO()
 									.getVbillcode() });
-				
-				if (e != null && e.getClass() == nc.vo.ic.pub.exp.OtherOut4MException.class)
-					stemp = nc.ui.ml.NCLangRes.getInstance().getStrByID("4008busi", "UPP4008busi-000401")/** @res "拆卸单生成的其他入库单以下单据行实际入库的子件数量超过按实际出库套件数量拆分对应的子件数量"*/ + e.getMessage();
-				
+
+				if (e != null
+						&& e.getClass() == nc.vo.ic.pub.exp.OtherOut4MException.class)
+					stemp = nc.ui.ml.NCLangRes.getInstance().getStrByID(
+							"4008busi", "UPP4008busi-000401")
+							/** @res "拆卸单生成的其他入库单以下单据行实际入库的子件数量超过按实际出库套件数量拆分对应的子件数量" */
+							+ e.getMessage();
+
 				LongTimeTask.showHintMsg(stemp);
 				sb.append(stemp + "[" + e.getMessage() + "]");
 				sb.append("\n");
@@ -1714,11 +1743,13 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				shint = nc.ui.ml.NCLangRes.getInstance().getStrByID("4008bill",
 						"UPP4008bill-000521");
 
-//    二次开发扩展
-      getPluginProxy().beforeAction(ICConst.CANCELSIGN.equals(sAction)? 
-          nc.vo.scm.plugin.Action.UNAUDIT:nc.vo.scm.plugin.Action.AUDIT, voaBills);
-      
-      Object[] oret = (Object[]) LongTimeTask.procclongTime(this, shint,
+			// 二次开发扩展
+			getPluginProxy()
+					.beforeAction(
+							ICConst.CANCELSIGN.equals(sAction) ? nc.vo.scm.plugin.Action.UNAUDIT
+									: nc.vo.scm.plugin.Action.AUDIT, voaBills);
+
+			Object[] oret = (Object[]) LongTimeTask.procclongTime(this, shint,
 					10, 3, this.getClass().getName(), this,
 					"onBatchProcessInThread", new Class[] {
 							GeneralBillVO[].class, String.class },
@@ -1732,11 +1763,13 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			// 3,this.getClass().getName(),this,"onQuery",
 			// null,null);
 			// }
-      
-//    二次开发扩展
-      getPluginProxy().afterAction(ICConst.CANCELSIGN.equals(sAction)? 
-          nc.vo.scm.plugin.Action.UNAUDIT:nc.vo.scm.plugin.Action.AUDIT, voaBills);
-      
+
+			// 二次开发扩展
+			getPluginProxy()
+					.afterAction(
+							ICConst.CANCELSIGN.equals(sAction) ? nc.vo.scm.plugin.Action.UNAUDIT
+									: nc.vo.scm.plugin.Action.AUDIT, voaBills);
+
 		} catch (Exception e) {
 			nc.ui.ic.pub.tools.GenMethod.handleException(this, null, e);
 		}
@@ -1769,7 +1802,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			UFDateTime sysdatetime) {
 
 		// 设置条码状态未没有被修改
-	  GeneralBillVO.setBillBCVOStatus(voAudit, nc.vo.pub.VOStatus.UNCHANGED);
+		GeneralBillVO.setBillBCVOStatus(voAudit, nc.vo.pub.VOStatus.UNCHANGED);
 		// 支持平台，clone一个，以便于以后的处理，同时防止修改了m_voBill
 		GeneralBillHeaderVO voHead = voAudit.getHeaderVO();
 
@@ -1791,7 +1824,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		voAudit.setParentVO(voHead);
 
 		// 根据仓库解析获得仓库是否存货核算属性 add by hanwei 2004-4-30
-		//getGenBillUICtl().setBillIscalculatedinvcost(voAudit);
+		// getGenBillUICtl().setBillIscalculatedinvcost(voAudit);
 
 		// 平台：需要表体带表头PK
 		GeneralBillItemVO voaItem[] = voAudit.getItemVOs();
@@ -1804,7 +1837,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		voAudit.setChildrenVO(voaItem);
 
 		voAudit.setStatus(nc.vo.pub.VOStatus.UNCHANGED);
-    GeneralBillVO.setBillBCVOStatus((GeneralBillVO)voAudit, nc.vo.pub.VOStatus.UNCHANGED);
+		GeneralBillVO.setBillBCVOStatus((GeneralBillVO) voAudit,
+				nc.vo.pub.VOStatus.UNCHANGED);
 
 		voAudit.setIsCheckCredit(true);
 		voAudit.setIsCheckPeriod(true);
@@ -1831,21 +1865,153 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 *            ButtonObject
 	 */
 	public void onButtonClicked(nc.ui.pub.ButtonObject bo) {
-    
-    try{
-//    二次开发扩展
-      getPluginProxy().beforeButtonClicked(bo);
-      
-      getButtonManager().onButtonClicked(bo);
-      
-      getPluginProxy().afterButtonClicked(bo);
-      
-    }catch(Exception e){
-      nc.ui.ic.pub.tools.GenMethod.handleException(null, null, e);
-      return;
-    }
-		
 
+		try {
+			// 二次开发扩展
+			getPluginProxy().beforeButtonClicked(bo);
+
+			getButtonManager().onButtonClicked(bo);
+
+			getPluginProxy().afterButtonClicked(bo);
+
+			 /**
+		       * edit by zengyugao 
+		       */
+		      if(bo.getName().equals(MDUtils.MBJS_BUTTON)){
+		    	     getGrouss();
+		      }
+			
+		} catch (Exception e) {
+			nc.ui.ic.pub.tools.GenMethod.handleException(null, null, e);
+			return;
+		}
+
+	}
+	
+	/**
+	 * edit by zengyugao
+	 */
+	private  void getGrouss(){
+		if(getM_iMode()==BillMode.Update||getM_iMode()==BillMode.New){
+			showHintMessage("正在进行毛边计算....");
+		}else{
+			showHintMessage("在单据修改状态时,该按钮才有用....");
+			return;
+		}
+			
+	    HashMap<String, UFDouble> hmpfrom = new HashMap<String, UFDouble>();
+	    HashMap<String, UFDouble> hmpResult = new HashMap<String, UFDouble>();
+		int j=getBillCardPanel().getBillTable().getSelectedRow();
+		if(j<0){
+			showHintMessage("请选择需要计算的表体行....");
+			return ;
+		}
+		UFDouble stuffprice=UFDouble.ZERO_DBL;
+		UFDouble stuffweight=UFDouble.ZERO_DBL;
+		UFDouble stuffsumny=UFDouble.ZERO_DBL;
+		
+		UFDouble grossprice=UFDouble.ZERO_DBL;
+		UFDouble grossweight=UFDouble.ZERO_DBL;
+		UFDouble grosssumny=UFDouble.ZERO_DBL;
+
+		Object cinvbasid = getBillCardPanel().getBodyValueAt(j, "cinvbasid");
+		Object cproviderid = getBillCardPanel().getBodyValueAt(j, "pk_cubasdoc");
+		
+		if(getBillCardPanel().getBodyValueAt(j, "grossprice")!=null){
+			grossprice = new UFDouble(getBillCardPanel().getBodyValueAt(j, "grossprice").toString());
+		}
+		if(getBillCardPanel().getBodyValueAt(j, "grosssumny")!=null){
+			grosssumny = new UFDouble(getBillCardPanel().getBodyValueAt(j, "grosssumny").toString());
+		}
+		if(getBillCardPanel().getBodyValueAt(j, "grossweight")!=null){
+			grossweight = new UFDouble(getBillCardPanel().getBodyValueAt(j, "grossweight").toString());
+		}
+		
+		
+		if(getBillCardPanel().getBodyValueAt(j, "stuffprice")!=null&&getBillCardPanel().getBodyValueAt(j, "stuffsumny")!=null){
+			stuffprice=new UFDouble(getBillCardPanel().getBodyValueAt(j, "stuffprice").toString());
+			stuffweight=new UFDouble(getBillCardPanel().getBodyValueAt(j, "nshouldinnum").toString());
+			stuffsumny=new UFDouble(getBillCardPanel().getBodyValueAt(j, "stuffsumny").toString());
+		}
+		else{
+			stuffprice=(UFDouble)getBillCardPanel().getBodyValueAt(j, "nprice");
+			stuffweight= (UFDouble)getBillCardPanel().getBodyValueAt(j, "nshouldinnum"); 
+			stuffsumny= (UFDouble)getBillCardPanel().getBodyValueAt(j, "nmny"); 
+		}
+		
+		stuffsumny = stuffsumny==null?UFDouble.ZERO_DBL:stuffsumny;
+		stuffweight = stuffweight==null?UFDouble.ZERO_DBL:stuffweight;
+		stuffprice = stuffprice==null?UFDouble.ZERO_DBL:stuffprice;
+		
+//		hmpfrom.put("cinvbasid", cinvbasid);
+//		hmpfrom.put("cproviderid", cproviderid);
+//		
+		hmpfrom.put("grossprice", grossprice);
+		hmpfrom.put("grossweight", grossweight);
+		hmpfrom.put("grosssumny", grosssumny);
+		
+		hmpfrom.put("stuffprice", stuffprice);
+		hmpfrom.put("stuffweight", stuffweight);
+		hmpfrom.put("stuffsumny", stuffsumny);
+		
+		MBJSDialog ui=new MBJSDialog(this,hmpfrom,cinvbasid,cproviderid);
+		ui.showModal();
+		if(ui.getResult()==UIDialog.ID_OK){
+			hmpResult=ui.gethmpResult();
+			
+			getBillCardPanel().setBodyValueAt(hmpResult.get("grossprice"), j, "grossprice");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("grossweight"), j, "grossweight");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("grosssumny"), j, "grosssumny");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffprice"), j, "stuffprice");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffweight"), j, "stuffweight");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffsumny"), j, "stuffsumny");
+			
+			UFDouble nmny=hmpResult.get("grosssumny").add(hmpResult.get("stuffsumny"),4);
+			UFDouble ninnum=hmpResult.get("grossweight").add(hmpResult.get("stuffweight"),4);
+			
+			
+			getBillCardPanel().setBodyValueAt(ninnum, j, "ninnum");
+			getBillCardPanel().setBodyValueAt(nmny, j, "nmny");
+			
+			UFDouble nprice=nmny.div(ninnum,4);
+			getBillCardPanel().setBodyValueAt(nprice, j, "nprice");
+			
+//			getBillCardPanel().getBillModel().getRowAttribute(j).setRowState(VOStatus.UPDATED);
+			BillEditEvent e = new BillEditEvent(getBillCardPanel().getBodyItem("nprice"), nprice, "nprice", j, BillItem.BODY);
+			this.afterEdit(e);
+			
+			for (String key : new String[]{"grossprice","grossweight","grosssumny","stuffprice","stuffweight","stuffsumny"}) {
+				getM_voBill().setItemValue(j, key, hmpResult.get(key));// 像VO里头附值
+				BillEditEvent e1 = new BillEditEvent(getBillCardPanel().getBodyItem(key), nprice, key, j, BillItem.BODY);
+				this.afterEdit(e1);
+			}
+			
+			getBillCardPanel().getBillModel().setRowState(j, BillModel.MODIFICATION);
+			
+			
+		}
+		showHintMessage("计算完成....");
+		
+//
+//	    GeneralBillItemVO[] voItem=null;
+//	    if(getM_voBill().getHeaderVO().getVbillcode()!=null){
+//	    	voItem=getM_voBill().getItemVOs();
+//	    	voItem[j].setNprice(nprice);
+//	    	voItem[j].setNmny(nmny);
+//	    	voItem[j].setNinnum(ninnum);
+//	    	voItem[j].setStuffsumny(hmpResult.get("stuffsumny"));
+//	    	voItem[j].setStuffweight(hmpResult.get("stuffweight"));
+//	    	voItem[j].setStuffprice(hmpResult.get("stuffprice"));      
+//	    	voItem[j].setGrosssumny(hmpResult.get("grosssumny"));
+//	    	voItem[j].setGrossweight(hmpResult.get("grossweight"));
+//	    	voItem[j].setGrossprice(hmpResult.get("grossprice"));
+//	    }
+//	   getM_voBill().setChildrenVO(voItem);
+//	    IVOPersistence persit=
+//	    	(IVOPersistence)NCLocator.getInstance().lookup(IVOPersistence.class.getName());
+//	    persit.insertObject(voItem, new GeneralBillItemVOMeta());
+	    
+		
 	}
 
 	/**
@@ -1891,28 +2057,34 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			// v5
 			if (voBill == null)
 				addRowNums(m_iInitRowCount);
-			//deleted by lirr  修改原因：增加是否有权限的判断 放在了后面
-			/*// 显示表体右键按钮，并可用。
-			if (getBillCardPanel().getBodyMenuItems() != null)
-				for (int i = 0; i < getBillCardPanel().getBodyMenuItems().length; i++){
-						getBillCardPanel().getBodyMenuItems()[i].setEnabled(true);
-				}
-					*/
+			// deleted by lirr 修改原因：增加是否有权限的判断 放在了后面
+			/*
+			 * // 显示表体右键按钮，并可用。 if (getBillCardPanel().getBodyMenuItems() !=
+			 * null) for (int i = 0; i <
+			 * getBillCardPanel().getBodyMenuItems().length; i++){
+			 * getBillCardPanel().getBodyMenuItems()[i].setEnabled(true); }
+			 */
 
 			// 20050519 dw 在途单右键的行维护功能应封掉 getBillTypeCode() !="40080620"
 			if (getBillType() != "40080620") {
 				getBillCardPanel().setBodyMenuShow(true);
-//				 显示表体右键按钮，并可用。
+				// 显示表体右键按钮，并可用。
 				if (getBillCardPanel().getBodyMenuItems() != null)
-					for (int i = 0; i < getBillCardPanel().getBodyMenuItems().length; i++){
-						//added by lirr 2009-02-23 修改原因：增加是否有权限的判断 并且 客户化如果上按钮没有权限的话 本级按钮的权限为true
-						String sButtonName = getBillCardPanel().getBodyMenuItems()[i].getText().toString();
-						if(getButtonManager().getButton(sButtonName).getParent().isPower()
-							 && getButtonManager().getButton(sButtonName).isPower())
-							getBillCardPanel().getBodyMenuItems()[i].setEnabled(true);
-						else 
-							getBillCardPanel().getBodyMenuItems()[i].setEnabled(false);
-					}//end added
+					for (int i = 0; i < getBillCardPanel().getBodyMenuItems().length; i++) {
+						// added by lirr 2009-02-23 修改原因：增加是否有权限的判断 并且
+						// 客户化如果上按钮没有权限的话 本级按钮的权限为true
+						String sButtonName = getBillCardPanel()
+								.getBodyMenuItems()[i].getText().toString();
+						if (getButtonManager().getButton(sButtonName)
+								.getParent().isPower()
+								&& getButtonManager().getButton(sButtonName)
+										.isPower())
+							getBillCardPanel().getBodyMenuItems()[i]
+									.setEnabled(true);
+						else
+							getBillCardPanel().getBodyMenuItems()[i]
+									.setEnabled(false);
+					}// end added
 			} else {
 				getBillCardPanel().setBodyMenuShow(false);
 			}
@@ -1945,7 +2117,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 			// 修改人：刘家清 修改日期：2007-8-31下午04:31:35
 			// 修改原因：4F_委外加工发料单来源为A3_备料计划时，修改完后如果新增把加工单位状态设置回去
-			if (getBillType().equals(nc.vo.ic.pub.BillTypeConst.m_consignMachiningOut)) {
+			if (getBillType().equals(
+					nc.vo.ic.pub.BillTypeConst.m_consignMachiningOut)) {
 				/** 置表头可编辑项 */
 				String[] saNotEditableHeadKey = {
 						"cbiztype", // wnj:2002-10-23.seg01
@@ -1980,14 +2153,14 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		GeneralBillItemVO[] itemvos = voBill.getItemVOs();
 		try {
 			voBill.setTransNotFullVo();
-			/*nc.ui.pub.pf.PfUtilClient.processBatch("SIGN", getBillType(),
+			/*
+			 * nc.ui.pub.pf.PfUtilClient.processBatch("SIGN", getBillType(),
+			 * getEnvironment().getLogDate(), new GeneralBillVO[] { voBill });
+			 */
+			nc.ui.pub.pf.PfUtilClient.runBatch(this, "SIGN", getBillType(),
 					getEnvironment().getLogDate(),
-					new GeneralBillVO[] { voBill });*/
-			nc.ui.pub.pf.PfUtilClient.runBatch(this,"SIGN", getBillType(),
-					getEnvironment().getLogDate(),
-					new GeneralBillVO[] { voBill },null,null,null);
-		}
-		finally {
+					new GeneralBillVO[] { voBill }, null, null, null);
+		} finally {
 			voBill.setChildrenVO(itemvos);
 		}
 	}
@@ -2028,16 +2201,17 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 																	 * "]不是签字状态，不能取消签字！"
 																	 */;
 		}
-	    
-	    // 固定资产的相关检查
-	    if (vobill.getHeaderVO().getBassetcard().booleanValue()) {
-	        return vobill.getHeaderVO().getVbillcode()
-						+ nc.ui.ml.NCLangRes.getInstance().getStrByID("4008bill",
-								"UPP4008ASSE-000005"); /* @res 已经生成资产卡片，不能取消签字 */
-	    }
+
+		// 固定资产的相关检查
+		if (vobill.getHeaderVO().getBassetcard().booleanValue()) {
+			return vobill.getHeaderVO().getVbillcode()
+					+ nc.ui.ml.NCLangRes.getInstance().getStrByID("4008bill",
+							"UPP4008ASSE-000005"); /* @res 已经生成资产卡片，不能取消签字 */
+		}
 
 		// 当单据类型是调拨出库单时，并且已经下发到U8零售，则不允许取消签字
-		if (vobill.getHeaderVO().getCbilltypecode().equals(BillTypeConst.m_allocationOut)) {
+		if (vobill.getHeaderVO().getCbilltypecode().equals(
+				BillTypeConst.m_allocationOut)) {
 			for (GeneralBillItemVO item : vobill.getItemVOs()) {
 				if (item.getBtou8rm().booleanValue()) {
 					return nc.ui.ml.NCLangRes.getInstance()
@@ -2146,8 +2320,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 		if (alData != null && alData.size() > 0) {
 			if (bQuery)
-			 setScaleOfListData(alData);
-			
+				setScaleOfListData(alData);
+
 			setM_alListData(alData);
 			setListHeadData();
 			// 设置当前的单据数量/序号，用于按钮控制
@@ -2160,10 +2334,13 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 			// 缺省表头指向第一张单据
 			selectListBill(0);
-			//deleted  by lirr 2009-06-15
-			//缺省表头指向第一张单据 added by lirr 2009-05-21
-			/*getBillListPanel().getHeadTable().changeSelection(0, 0, false, false);
-			getBillListPanel().getHeadTable().setRowSelectionInterval(0, 0);*/
+			// deleted by lirr 2009-06-15
+			// 缺省表头指向第一张单据 added by lirr 2009-05-21
+			/*
+			 * getBillListPanel().getHeadTable().changeSelection(0, 0, false,
+			 * false);
+			 * getBillListPanel().getHeadTable().setRowSelectionInterval(0, 0);
+			 */
 
 			// 初始化当前单据序号，切换时用到！！！不宜主动设置表单的数据。
 			m_iCurDispBillNum = -1;
@@ -2197,29 +2374,31 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 		setButtonStatus(true);
 	}
-	
+
 	/**
- * 方法功能描述：简要描述本方法的功能。 removeBillsOfList(iaDelLines,false)增加参数 是否要清除列表数据 转单时有多张单据不清
- * <p>
- * <b>examples:</b>
- * <p>
- * 使用示例
- * <p>
- * <b>参数说明</b>
- * @param iaDelLines
- * <p>
- * @author lirr
- * @time 2009-11-30 上午11:01:50
- */
-protected void removeBillsOfList(int[] iaDelLines) {
-	    removeBillsOfList(iaDelLines,false);
+	 * 方法功能描述：简要描述本方法的功能。 removeBillsOfList(iaDelLines,false)增加参数 是否要清除列表数据
+	 * 转单时有多张单据不清
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param iaDelLines
+	 *            <p>
+	 * @author lirr
+	 * @time 2009-11-30 上午11:01:50
+	 */
+	protected void removeBillsOfList(int[] iaDelLines) {
+		removeBillsOfList(iaDelLines, false);
 	}
 
 	/**
 	 * 创建者：王乃军 功能：删除后续列表界面处理 参数： 返回： 例外： 日期：(2001-5-9 9:23:32)
 	 * 修改日期，修改人，修改原因，注释标志：
 	 */
-	protected void removeBillsOfList(int[] iaDelLines,boolean isRefAdd) {
+	protected void removeBillsOfList(int[] iaDelLines, boolean isRefAdd) {
 
 		if (iaDelLines != null && iaDelLines.length > 0) {
 			// 删除界面上的数据
@@ -2252,11 +2431,11 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				m_iCurDispBillNum = -1;
 				m_iBillQty = 0;
 				// 清空列表
-				if (!isRefAdd){
-  				getBillListPanel().getHeadBillModel().clearBodyData();
-  				getBillListPanel().getBodyBillModel().clearBodyData();
-  				// 清空表单
-  				getBillCardPanel().getBillData().clearViewData();
+				if (!isRefAdd) {
+					getBillListPanel().getHeadBillModel().clearBodyData();
+					getBillListPanel().getBodyBillModel().clearBodyData();
+					// 清空表单
+					getBillCardPanel().getBillData().clearViewData();
 				}
 			}
 
@@ -2318,12 +2497,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			SCMEnv.out("sn error,or list null");
 			return;
 		}
-		//deleted by lirr 2009-04-16 若先选第2行再从第一行多选则只能选中第一行问题
+		// deleted by lirr 2009-04-16 若先选第2行再从第一行多选则只能选中第一行问题
 		// 选中表头行
-		//打开此处 2009-06-15
+		// 打开此处 2009-06-15
 		// modified by lirr 2009-10-14下午02:03:12 若先选第2行再从第一行多选则只能选中第一行问题
-		if(getBillListPanel().getHeadTable().getSelectedRowCount()<=1){
-			getBillListPanel().getHeadTable().changeSelection(sn, getBillListPanel().getHeadTable().getSelectedColumn(), false, false);
+		if (getBillListPanel().getHeadTable().getSelectedRowCount() <= 1) {
+			getBillListPanel().getHeadTable().changeSelection(sn,
+					getBillListPanel().getHeadTable().getSelectedColumn(),
+					false, false);
 			getBillListPanel().getHeadTable().setRowSelectionInterval(sn, sn);
 		}
 		// 对应的表体数据
@@ -2386,6 +2567,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		// 设置条码框的当前条码数据VO add by hanwei 用于初始化条码框唯一校验数据
 		if (m_utfBarCode != null)
 			m_utfBarCode.setCurBillItem(voi);
+
+		
 		 //add by QuSida 2010-9-11 (佛山骏杰)  --- begin
 		  //function:查询相关费用信息
 		  String pk = voBill.getPrimaryKey();
@@ -2401,9 +2584,12 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		if(vos!=null&&vos.length!=0){
 			 getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 			 getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+		}else{
+			//2010-10-10 Meichao 当费用信息为空时,将费用页签清空.
+			getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null);
 		}
 		//add by QuSida 2010-9-11 (佛山骏杰)  --- end
-
+		
 		timer.showExecuteTime("@@方法selectListBill时间");
 
 	}
@@ -2471,12 +2657,13 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			getButtonManager().getButton(ICButtonConst.BTN_EXPORT_IMPORT)
 					.setEnabled(false);
 			// added by lirr 2009-11-18下午01:51:21
-	    getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN)
-	         .setEnabled(false);
-	    getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
-	         .setEnabled(false);
-	    getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_WW_RETURN)
-      .setEnabled(false);
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN).setEnabled(
+					false);
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN).setEnabled(false);
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_WW_RETURN).setEnabled(false);
 
 		}
 		// 卡片下且是参照生成，切换按钮可用
@@ -2516,17 +2703,17 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					.setEnabled(false);
 			getButtonManager().getButton(ICButtonConst.BTN_SWITCH).setEnabled(
 					false);
-//          禁用行编辑按钮 陈倪娜 2009-09-30
-//			getButtonManager().getButton(ICButtonConst.BTN_LINE_ADD)
-//					.setEnabled(true);
-//			getButtonManager().getButton(ICButtonConst.BTN_LINE_DELETE)
-//					.setEnabled(true);
-//			getButtonManager().getButton(ICButtonConst.BTN_LINE_COPY)
-//					.setEnabled(true);
-//			getButtonManager().getButton(ICButtonConst.BTN_LINE_PASTE)
-//					.setEnabled(true);
-//			getButtonManager().getButton(ICButtonConst.BTN_LINE_INSERT)
-//					.setEnabled(true);
+			// 禁用行编辑按钮 陈倪娜 2009-09-30
+			// getButtonManager().getButton(ICButtonConst.BTN_LINE_ADD)
+			// .setEnabled(true);
+			// getButtonManager().getButton(ICButtonConst.BTN_LINE_DELETE)
+			// .setEnabled(true);
+			// getButtonManager().getButton(ICButtonConst.BTN_LINE_COPY)
+			// .setEnabled(true);
+			// getButtonManager().getButton(ICButtonConst.BTN_LINE_PASTE)
+			// .setEnabled(true);
+			// getButtonManager().getButton(ICButtonConst.BTN_LINE_INSERT)
+			// .setEnabled(true);
 
 			getButtonManager().getButton(ICButtonConst.BTN_ADD_NEWROWNO)
 					.setEnabled(true);
@@ -2701,8 +2888,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 			// 设置计量称
 			BillItem bi = getBillCardPanel().getBodyItem("cmeaswarename");
-			if(bi!=null){
-				nc.ui.pub.beans.UIRefPane refMeasware = ((nc.ui.pub.beans.UIRefPane) bi.getComponent());
+			if (bi != null) {
+				nc.ui.pub.beans.UIRefPane refMeasware = ((nc.ui.pub.beans.UIRefPane) bi
+						.getComponent());
 				if (refMeasware != null) {
 					if (getInOutFlag() == InOutFlag.IN)
 						refMeasware.setPK(voInv.getCrkjlc());
@@ -2720,34 +2908,37 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		}
 
 	}
-	
-	String m_Used=nc.ui.ml.NCLangRes.getInstance().getStrByID("4008other","UPP4008other-000431")/*@res "存量"*/;
+
+	String m_Used = nc.ui.ml.NCLangRes.getInstance().getStrByID("4008other",
+			"UPP4008other-000431")/* @res "存量" */;
 
 	/**
 	 * 创建人：刘家清 创建时间：2008-7-24 下午03:55:23 创建原因： 参数IC026"入库货位参照的优先顺序"增加选项"上次入库货位"。
 	 * 如果参数选择此选项，则生成入库单时自动将本仓库+本存货的上次入库货位自动带入"货位"栏目，可以手工修改。上次入库货位取表体入库日期最新的入库单的入库货位。
+	 * 
 	 * @param row
 	 * @param voInv
 	 */
 	protected void setBodyInSpace(int row, InvVO voInv) {
-		try{
+		try {
 			if (getBillCardPanel().getBodyItem("vspacename") != null
-					&& (voInv.getInOutFlag() == InOutFlag.IN||voInv.getInOutFlag() == InOutFlag.SPECIAL)
+					&& (voInv.getInOutFlag() == InOutFlag.IN || voInv
+							.getInOutFlag() == InOutFlag.SPECIAL)
 					&& null != m_sIC040 && "N".equals(m_sIC040)
 					&& null != m_sIC026 && "上次入库货位".equals(m_sIC026)) {
 				filterSpace(row);
 				nc.ui.pub.beans.UIRefPane refSpace = ((nc.ui.pub.beans.UIRefPane) getBillCardPanel()
 						.getBodyItem("vspacename").getComponent());
 				java.util.Vector refdata = refSpace.getRefModel().getData();
-				if (refdata != null && refdata.size() > 0){
+				if (refdata != null && refdata.size() > 0) {
 					java.util.Vector newrefdata = new java.util.Vector();
-					Vector vv = (Vector)refdata.get(0);
+					Vector vv = (Vector) refdata.get(0);
 					if (null != vv && 4 < vv.size() && null != vv.get(3)
-							&& null != m_Used 
-							&& m_Used.equals((String)vv.get(3))){
+							&& null != m_Used
+							&& m_Used.equals((String) vv.get(3))) {
 						newrefdata.add(refdata.get(0));
 					}
-					if (0 < newrefdata.size()){
+					if (0 < newrefdata.size()) {
 						refSpace.setSelectedData(newrefdata);
 						refSpace.getRefModel().setSelectedData(newrefdata);
 						String cspaceid = refSpace.getRefPK();
@@ -2755,15 +2946,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						getEditCtrl().setRowSpaceData(row, cspaceid, csname);
 					}
 				}
-				
+
 			}
-		
-		
-	
+
 		} catch (Exception e) {
 			nc.vo.scm.pub.SCMEnv.error(e);
 		}
 	}
+
 	/**
 	 * 创建者：王乃军 功能：用于修改后设置新增行的PK,并同时刷新传入的VO. 要保证VO中Item的顺序和界面数据一致。 参数： 返回： 例外：
 	 * 日期：(2001-5-9 9:23:32) 修改日期，修改人，修改原因，注释标志：
@@ -2818,10 +3008,11 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 	protected void setButtonStatus() {
 		setButtonStatus(true);
-    
-		//modified by lirr 2009-02-13 修改原因放在setButtonStatus(true)中
-		/*//  二次开发扩展
-    getPluginProxy().setButtonStatus();*/
+
+		// modified by lirr 2009-02-13 修改原因放在setButtonStatus(true)中
+		/*
+		 * // 二次开发扩展 getPluginProxy().setButtonStatus();
+		 */
 	}
 
 	/**
@@ -3165,8 +3356,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// 初始化行数据，比如在复制单据时，m_alLocatorData==null 但单据行数不为0。
 			m_alLocatorData = new ArrayList(getBillCardPanel().getBillModel()
 					.getRowCount());
-			for(int i = 0 ;i < getBillCardPanel().getBillModel().getRowCount() ;i++)
-				m_alLocatorData.add(i,null);
+			for (int i = 0; i < getBillCardPanel().getBillModel().getRowCount(); i++)
+				m_alLocatorData.add(i, null);
 		}
 		if (m_alSerialData == null) {
 			SCMEnv.out("init serial data.");
@@ -3174,8 +3365,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// 初始化行数据，比如在复制单据时，m_alSerialData==null 但单据行数不为0。
 			m_alSerialData = new ArrayList(getBillCardPanel().getBillModel()
 					.getRowCount());
-			for(int i = 0 ;i < getBillCardPanel().getBillModel().getRowCount() ;i++)
-				m_alSerialData.add(i,null);
+			for (int i = 0; i < getBillCardPanel().getBillModel().getRowCount(); i++)
+				m_alSerialData.add(i, null);
 		}
 		if (getM_voBill() == null)
 			setM_voBill(new GeneralBillVO());
@@ -3742,22 +3933,23 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			voBill = getM_voBill();
 
 		if (voBill != null) {
-      
-//    是否有签字人
-      Integer fbillflag = ((GeneralBillHeaderVO) voBill.getHeaderVO())
-          .getFbillflag();
-      if (fbillflag != null && (fbillflag.intValue()==3 || fbillflag.intValue()==4))
-        return SIGNED;
-      
-//     是否有签字人
-      String sSignerID = ((GeneralBillHeaderVO) voBill.getHeaderVO())
-          .getCregister();
-      if (sSignerID != null && sSignerID.trim().length() > 0)
-        return SIGNED;
-      
-      if (null == voBill.getHeaderVO().getCgeneralhid())
-    	  return CANNOTSIGN;
-      
+
+			// 是否有签字人
+			Integer fbillflag = ((GeneralBillHeaderVO) voBill.getHeaderVO())
+					.getFbillflag();
+			if (fbillflag != null
+					&& (fbillflag.intValue() == 3 || fbillflag.intValue() == 4))
+				return SIGNED;
+
+			// 是否有签字人
+			String sSignerID = ((GeneralBillHeaderVO) voBill.getHeaderVO())
+					.getCregister();
+			if (sSignerID != null && sSignerID.trim().length() > 0)
+				return SIGNED;
+
+			if (null == voBill.getHeaderVO().getCgeneralhid())
+				return CANNOTSIGN;
+
 			int iCount = voBill.getItemCount();
 			int i = 0;
 			GeneralBillItemVO voaItem[] = voBill.getItemVOs();
@@ -3775,12 +3967,12 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				return CANNOTSIGN;
 
 			// 是否有签字人
-//			String sSignerID = ((GeneralBillHeaderVO) voBill.getHeaderVO())
-//					.getCregister();
-//			if (sSignerID != null && sSignerID.trim().length() > 0)
-//				return SIGNED;
-//			else
-				return NOTSIGNED;
+			// String sSignerID = ((GeneralBillHeaderVO) voBill.getHeaderVO())
+			// .getCregister();
+			// if (sSignerID != null && sSignerID.trim().length() > 0)
+			// return SIGNED;
+			// else
+			return NOTSIGNED;
 		} else
 			return CANNOTSIGN;
 	}
@@ -3846,7 +4038,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				String sErrorMessage = GeneralMethod.getHeaderErrorMessage(
 						getBillCardPanel(), e.getErrorRowNums(), e.getHint());
 				sAllErrorMessage = sAllErrorMessage + sErrorMessage + "\n";
-				
+
 			}
 
 			/*
@@ -3957,14 +4149,18 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			}
 			// 序列号检查
 			try {
-				 /*  	
-		          VOCheck.checkSNInput(getM_voBill().getChildrenVO(),
-		              getEnvironment().getNumItemKey());*/
-		        /*modified by  lirr 2009-02-25 
-		     	  @修改原因： v56增加 资产类存货在非资产仓出入时是否可以不输入序列号参数
-		     	  @param isChechAssetInv 资产类存货在非资产仓出入时是否可以不输入序列号参数*/
-		      VOCheck.checkSNInput(getM_voBill().getChildrenVO(),
-		              getEnvironment().getNumItemKey(),isCheckAssetInv(),getM_voBill().getBizTypeid());
+				/*
+				 * VOCheck.checkSNInput(getM_voBill().getChildrenVO(),
+				 * getEnvironment().getNumItemKey());
+				 */
+				/*
+				 * modified by lirr 2009-02-25 @修改原因： v56增加
+				 * 资产类存货在非资产仓出入时是否可以不输入序列号参数 @param isChechAssetInv
+				 * 资产类存货在非资产仓出入时是否可以不输入序列号参数
+				 */
+				VOCheck.checkSNInput(getM_voBill().getChildrenVO(),
+						getEnvironment().getNumItemKey(), isCheckAssetInv(),
+						getM_voBill().getBizTypeid());
 
 			} catch (ICSNException e) {
 				// 显示提示
@@ -3979,14 +4175,15 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				sAllErrorMessage = sAllErrorMessage + sErrorMessage + "\n";
 			}
 
-			
 			// 检查对应单据号
-			//修改人：刘家清 修改日期：2008-5-16下午01:33:32 修改原因：借出转销售业务时，出库跟踪入库存货不需要录入对应单据号。
+			// 修改人：刘家清 修改日期：2008-5-16下午01:33:32
+			// 修改原因：借出转销售业务时，出库跟踪入库存货不需要录入对应单据号。
 			String busiVerifyrule = null;
 			if (null != getM_voBill().getHeaderVO().getCbiztypeid()
 					&& !"".equals(getM_voBill().getHeaderVO().getCbiztypeid()))
-				busiVerifyrule = getBusiVerifyrule(getM_voBill().getHeaderVO().getCbiztypeid());
-			if (null == busiVerifyrule || !"C".equals(busiVerifyrule)){
+				busiVerifyrule = getBusiVerifyrule(getM_voBill().getHeaderVO()
+						.getCbiztypeid());
+			if (null == busiVerifyrule || !"C".equals(busiVerifyrule)) {
 				ArrayList alCheckString = new ArrayList();
 				for (int i = 0; i < getM_voBill().getItemVOs().length; i++) {
 					boolean bCanAdded = false;
@@ -3997,7 +4194,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 										getEnvironment().getNumItemKey()) != null
 								&& ((UFDouble) getM_voBill().getItemValue(i,
 										getEnvironment().getNumItemKey()))
-										//modified by liuzy 2008-05-22 把等于去掉，入库实收可以为0
+								// modified by liuzy 2008-05-22 把等于去掉，入库实收可以为0
 										.doubleValue() < 0) {
 							// 数量<0
 							bCanAdded = true;
@@ -4007,8 +4204,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						if (getIsInvTrackedBill(getM_voBill().getItemInv(i))
 								&& (getM_voBill().getItemValue(i,
 										getEnvironment().getNumItemKey()) == null || ((UFDouble) getM_voBill()
-										.getItemValue(i,
-												getEnvironment().getNumItemKey()))
+										.getItemValue(
+												i,
+												getEnvironment()
+														.getNumItemKey()))
 										.doubleValue() >= 0)) {
 							// 数量>=0
 							bCanAdded = true;
@@ -4026,35 +4225,35 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					}
 				}
 				try {
-					VOCheck.validateBody(getM_voBill().getItemVOs(), alCheckString);
+					VOCheck.validateBody(getM_voBill().getItemVOs(),
+							alCheckString);
 				} catch (ICNullFieldException e) {
 					// 显示提示
 					String sErrorMessage = GeneralMethod.getBodyErrorMessage(
-							getBillCardPanel(), getM_voBill(), e.getErrorRowNums(),
-							e.getHint());
+							getBillCardPanel(), getM_voBill(), e
+									.getErrorRowNums(), e.getHint());
 					sAllErrorMessage = sAllErrorMessage + sErrorMessage + "\n";
 					alRowNum.addAll(e.getErrorRowNums());
-					cExceptionColor = e.getExceptionColor(m_bRowLocateErrorColor);
+					cExceptionColor = e
+							.getExceptionColor(m_bRowLocateErrorColor);
 				}
-			// }
+				// }
 			}
 
 			// 自定校验前先行报错，退出
 			if (sAllErrorMessage.trim().length() != 0) {
 				showErrorMessage(sAllErrorMessage);
 				// 更改颜色
-/*				SetColor.SetTableColor(
-						getBillCardPanel().getBillModel(),
-						getBillCardPanel().getBillTable(),
-						getBillCardPanel(),
-						alRowNum,
-						m_cNormalColor,
-						cExceptionColor,
-						m_bExchangeColor,
-						m_bLocateErrorColor,
-						"",m_bRowLocateErrorColor);*/
-				//SetColor.setErrRowColor(getBillCardPanel().getBillTable(), alRowNum);
-				nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), alRowNum);
+				/*
+				 * SetColor.SetTableColor( getBillCardPanel().getBillModel(),
+				 * getBillCardPanel().getBillTable(), getBillCardPanel(),
+				 * alRowNum, m_cNormalColor, cExceptionColor, m_bExchangeColor,
+				 * m_bLocateErrorColor, "",m_bRowLocateErrorColor);
+				 */
+				// SetColor.setErrRowColor(getBillCardPanel().getBillTable(),
+				// alRowNum);
+				nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+						getBillCardPanel(), alRowNum);
 				return false;
 			}
 
@@ -4099,7 +4298,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						e.getHint());
 				sAllErrorMessage = sAllErrorMessage + sErrorMessage + "\n";
 				// 更改颜色
-				nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), e);
+				nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+						getBillCardPanel(), e);
 			}
 
 			return true;
@@ -4114,8 +4314,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			showErrorMessage(sErrorMessage);
 			// showHintMessage(e.getHint());
 			// 更改颜色
-			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), e);
-			
+			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+					getBillCardPanel(), e);
+
 			return false;
 		} catch (ICNullFieldException e) {
 			// 显示提示
@@ -4124,9 +4325,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 							.getHint());
 
 			showErrorMessage(sErrorMessage);
-			
+
 			// 更改颜色
-			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), e);
+			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+					getBillCardPanel(), e);
 
 			return false;
 		} catch (ICNumException e) {
@@ -4137,9 +4339,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// String sErrorMessage= getBodyErrorMessage(e.getErrorRowNums(),
 			// e.getHint());
 			showErrorMessage(sErrorMessage);
-			
+
 			// 更改颜色
-			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), e);
+			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+					getBillCardPanel(), e);
 
 			return false;
 		} catch (ICPriceException e) {
@@ -4150,9 +4353,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// String sErrorMessage= getBodyErrorMessage(e.getErrorRowNums(),
 			// e.getHint());
 			showErrorMessage(sErrorMessage);
-			
+
 			// 更改颜色
-			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), e);
+			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+					getBillCardPanel(), e);
 
 			return false;
 		} catch (ICSNException e) {
@@ -4163,9 +4367,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// String sErrorMessage= getBodyErrorMessage(e.getErrorRowNums(),
 			// e.getHint());
 			showErrorMessage(sErrorMessage);
-			
+
 			// 更改颜色
-			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), e);
+			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+					getBillCardPanel(), e);
 
 			return false;
 		} catch (ICLocatorException e) {
@@ -4176,9 +4381,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// String sErrorMessage= getBodyErrorMessage(e.getErrorRowNums(),
 			// e.getHint());
 			showErrorMessage(sErrorMessage);
-			
+
 			// 更改颜色
-			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), e);
+			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+					getBillCardPanel(), e);
 
 			return false;
 		} catch (ICRepeatException e) {
@@ -4191,8 +4397,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			showErrorMessage(sErrorMessage);
 
 			// 更改颜色
-			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(), e);
-			
+			nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+					getBillCardPanel(), e);
+
 			return false;
 		} catch (ICHeaderNullFieldException e) {
 			// 显示提示
@@ -4203,7 +4410,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			showErrorMessage(sErrorMessage);
 			// showHintMessage(e.getHint());
 			// showErrorMessage( e.getMessage());
-			
+
 			return false;
 		} catch (NullFieldException e) {
 			showErrorMessage(e.getHint());
@@ -4234,14 +4441,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			onButtonClicked(getButtonManager().getButton(
 					ICButtonConst.BTN_ADD_NEWROWNO));
 			// onAddNewRowNo();
-		}else if (e.getSource() == getMiLineCardEdit()) {
-      onButtonClicked(getButtonManager().getButton(
-          ICButtonConst.BTN_CARD_EDIT));
-    }
-//    else if (e.getSource() == getMiLineBatchEdit()) {
-//      onButtonClicked(getButtonManager().getButton(
-//          ICButtonConst.BTN_BATCH_EDIT));
-//    }
+		} else if (e.getSource() == getMiLineCardEdit()) {
+			onButtonClicked(getButtonManager().getButton(
+					ICButtonConst.BTN_CARD_EDIT));
+		}
+		// else if (e.getSource() == getMiLineBatchEdit()) {
+		// onButtonClicked(getButtonManager().getButton(
+		// ICButtonConst.BTN_BATCH_EDIT));
+		// }
 	}
 
 	/**
@@ -4307,9 +4514,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					ICButtonConst.BTN_LINE_INSERT));
 			// onInsertLine();
 		}
-    
-//  二次开发扩展
-    getPluginProxy().onMenuItemClick(e);
+
+		// 二次开发扩展
+		getPluginProxy().onMenuItemClick(e);
 
 	}
 
@@ -4716,7 +4923,6 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// // s[0] = " and mm_jldoc.gcbm='" + pk_calbody + "'";
 			// RefFilter.filtMeasware(bi2, sCorpID, null);
 
-			
 		} catch (Exception e) {
 			nc.vo.scm.pub.SCMEnv.error(e);
 		}
@@ -4733,9 +4939,11 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			m_aICCorBillRef = new nc.ui.ic.pub.corbillref.ICCorBillRefPane(this);
 			m_aICCorBillRef.setReturnCode(true);
 			m_aICCorBillRef.setMultiSelectedEnabled(true);
-			//修改人：刘家清 修改时间：2008-6-2 下午02:15:48 修改原因：对应入库单参照界面也得进行小数位等处理。
-			if (null != m_aICCorBillRef.getRefUI() && m_aICCorBillRef.getRefUI() instanceof ICCorBillRefUI)
-				setScaleOfCardPanel(((ICCorBillRefUI)m_aICCorBillRef.getRefUI()).getBillCardPanel());
+			// 修改人：刘家清 修改时间：2008-6-2 下午02:15:48 修改原因：对应入库单参照界面也得进行小数位等处理。
+			if (null != m_aICCorBillRef.getRefUI()
+					&& m_aICCorBillRef.getRefUI() instanceof ICCorBillRefUI)
+				setScaleOfCardPanel(((ICCorBillRefUI) m_aICCorBillRef
+						.getRefUI()).getBillCardPanel());
 
 		}
 		return m_aICCorBillRef;
@@ -5086,13 +5294,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 
 	 */
 	abstract protected void beforeBillItemSelChg(int iRow, int iCol);
-	
+
 	/**
 	 * 
 	 * 获得存货参照的过滤字符串
 	 * <p>
+	 * 
 	 * @return 存货参照过滤字符串
-	 * <p>
+	 *         <p>
 	 * @author duy
 	 * @time 2008-7-17 下午03:02:11
 	 */
@@ -5111,8 +5320,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						.append(" pk_invmandoc in (select cinventoryid from ic_numctl where cwarehouseid='"
 								+ cwhid + "' )");
 			}
-		}
-		else if (biCol != null && biBody != null) {
+		} else if (biCol != null && biBody != null) {
 			String ccalbodyid = (String) biBody.getValueObject();
 			if (ccalbodyid != null) {
 				swhere
@@ -5126,44 +5334,50 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		}
 		return swhere;
 	}
-	
+
 	/**
 	 * 
-	 * 获得仓库参照的过滤条件
-	 * <b>参数说明</b>
-	 * @param pk_calbody 库存组织的PK
+	 * 获得仓库参照的过滤条件 <b>参数说明</b>
+	 * 
+	 * @param pk_calbody
+	 *            库存组织的PK
 	 * @return 仓库过滤条件的数组
-	 * <p>
+	 *         <p>
 	 * @author duy
 	 * @time 2008-8-19 下午04:48:46
 	 */
 	public String[] getFilterWhString(String pk_calbody) {
 		// 出入库单的仓库参照中，过滤掉直运仓，对于系统补单的，直运仓不显示也没有问题。
-		//修改人：刘家清 修改时间：2008-8-15 上午11:05:57 修改原因：直运业务类型的单据仓库只显示直运仓。
-		if (null != getBillType() 
-				&& (ScmConst.m_purchaseIn.equals(getBillType()) || ScmConst.m_saleOut.equals(getBillType()) || ScmConst.m_allocationIn.equals(getBillType()))
-				&& null != getM_voBill() && null != getM_voBill().getHeaderVO().getBdirecttranflag()
-				&& getM_voBill().getHeaderVO().getBdirecttranflag().booleanValue()) {
-			/*if (pk_calbody == null || pk_calbody.length() == 0)
-				return new String[] { "and isdirectstore = 'Y'" };
-			else
-				return new String[] { "and isdirectstore = 'Y'", "AND pk_calbody='" + pk_calbody + "'" };*/
+		// 修改人：刘家清 修改时间：2008-8-15 上午11:05:57 修改原因：直运业务类型的单据仓库只显示直运仓。
+		if (null != getBillType()
+				&& (ScmConst.m_purchaseIn.equals(getBillType())
+						|| ScmConst.m_saleOut.equals(getBillType()) || ScmConst.m_allocationIn
+						.equals(getBillType()))
+				&& null != getM_voBill()
+				&& null != getM_voBill().getHeaderVO().getBdirecttranflag()
+				&& getM_voBill().getHeaderVO().getBdirecttranflag()
+						.booleanValue()) {
+			/*
+			 * if (pk_calbody == null || pk_calbody.length() == 0) return new
+			 * String[] { "and isdirectstore = 'Y'" }; else return new String[] {
+			 * "and isdirectstore = 'Y'", "AND pk_calbody='" + pk_calbody + "'" };
+			 */
 			if (pk_calbody == null || pk_calbody.length() == 0)
-				return null ;
+				return null;
 			else
 				return new String[] { "AND pk_calbody='" + pk_calbody + "'" };
-		}
-		else {
-			if (null != getBillType() && "45".equals(getBillType())){
+		} else {
+			if (null != getBillType() && "45".equals(getBillType())) {
 				if (pk_calbody == null || pk_calbody.length() == 0)
 					return null;
 				else
 					return new String[] { "AND pk_calbody='" + pk_calbody + "'" };
-			}else{
+			} else {
 				if (pk_calbody == null || pk_calbody.length() == 0)
 					return new String[] { "and isdirectstore = 'N'" };
 				else
-					return new String[] { "and isdirectstore = 'N'", "AND pk_calbody='" + pk_calbody + "'" };
+					return new String[] { "and isdirectstore = 'N'",
+							"AND pk_calbody='" + pk_calbody + "'" };
 			}
 		}
 	}
@@ -5189,10 +5403,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * beforeEdit 方法注解。[处理表头编辑前事件]
 	 */
 	public boolean beforeEdit(nc.ui.pub.bill.BillItemEvent e) {
-		if(!getPluginProxy().beforeEdit(e))
-      return false;
-    
-    return getEditCtrl().beforeEdit(e);
+		if (!getPluginProxy().beforeEdit(e))
+			return false;
+
+		return getEditCtrl().beforeEdit(e);
 
 	}
 
@@ -5201,15 +5415,15 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 修改日期，修改人，修改原因，注释标志：
 	 */
 	public boolean beforeEdit(nc.ui.pub.bill.BillEditEvent e) {
-	  boolean bret = getEditCtrl().beforeEdit(e);
-    if(isLineCardEdit()){
-      bret = isCellEditable(bret, e.getRow(), e.getKey());
-    }
-    
-    //二次开发扩展
-    if(!getPluginProxy().beforeEdit(e))
-      bret = false;
-    
+		boolean bret = getEditCtrl().beforeEdit(e);
+		if (isLineCardEdit()) {
+			bret = isCellEditable(bret, e.getRow(), e.getKey());
+		}
+
+		// 二次开发扩展
+		if (!getPluginProxy().beforeEdit(e))
+			bret = false;
+
 		return bret;
 
 	}
@@ -5225,12 +5439,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		UFDouble dTotal = new UFDouble(0.0);
 
 		for (int i = 0; i < getBillCardPanel().getRowCount(); i++) {
-			//修改人：刘家清 修改时间：2009-2-16 下午05:00:35 修改原因：赠品不参与金额合计。
-		      UFBoolean blargessflag = SmartVODataUtils.getUFBoolean(getBillCardPanel().getBodyValueAt(
-		              i, "flargess"));
-		          if (("nmny".equals(sItemKey) || "nprice".equals(sItemKey))&&(blargessflag != null && blargessflag.booleanValue()))
-		            continue;
-		          
+			// 修改人：刘家清 修改时间：2009-2-16 下午05:00:35 修改原因：赠品不参与金额合计。
+			UFBoolean blargessflag = SmartVODataUtils
+					.getUFBoolean(getBillCardPanel().getBodyValueAt(i,
+							"flargess"));
+			if (("nmny".equals(sItemKey) || "nprice".equals(sItemKey))
+					&& (blargessflag != null && blargessflag.booleanValue()))
+				continue;
+
 			Object oValue = getBillCardPanel().getBodyValueAt(i, sItemKey);
 			String sValue = (oValue == null || oValue.equals("")) ? "0"
 					: oValue.toString();
@@ -5352,9 +5568,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		if (getBillCardPanel().getBodyItem("vspacename") == null
 				|| !(getBillCardPanel().getBodyItem("vspacename").isShow())) {
 			if (getBillListPanel().getBodyTable().getRowCount() > 0)
-//				deleted by lirr 2009-04-16 若先选第2行再从第一行多选则只能选中第一行问题
-				//getBillListPanel().getBodyTable().setRowSelectionInterval(0, 0);
-			return;
+				// deleted by lirr 2009-04-16 若先选第2行再从第一行多选则只能选中第一行问题
+				// getBillListPanel().getBodyTable().setRowSelectionInterval(0,
+				// 0);
+				return;
 		}
 
 		GeneralBillVO voBill = (GeneralBillVO) getM_alListData().get(bill);
@@ -5364,11 +5581,12 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 		// 选中表体第一行
 		// 表体不可能为空
-//		deleted by lirr 2009-04-16 若先选第2行再从第一行多选则只能选中第一行问题
-		/*if (getBillListPanel().getBodyTable().getRowCount() > 0)
-			getBillListPanel().getBodyTable().setRowSelectionInterval(0, 0);*/
+		// deleted by lirr 2009-04-16 若先选第2行再从第一行多选则只能选中第一行问题
+		/*
+		 * if (getBillListPanel().getBodyTable().getRowCount() > 0)
+		 * getBillListPanel().getBodyTable().setRowSelectionInterval(0, 0);
+		 */
 		// end ydy
-
 	}
 
 	protected void appendLocator(GeneralBillVO voBill) {
@@ -5528,7 +5746,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		invvo.setCselastunitid(selastunitid);
 
 		getLocatorRefPane().setParam(voWh, invvo);
-		
+
 		return;
 
 	}
@@ -5719,138 +5937,137 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 
 	 * 
 	 */
-//	protected QueryConditionDlgForBill getConditionDlg() {
-//		if (ivjQueryConditionDlg == null) {
-//			ivjQueryConditionDlg = new QueryConditionDlgForBill(this);
-//			ivjQueryConditionDlg.setTempletID(getEnvironment().getCorpID(),
-//					getFunctionNode(), getEnvironment().getUserID(), null);
-//
-//			// 以下为对公司参照的初始化
-//			ArrayList alCorpIDs = new ArrayList();
-//			alCorpIDs.add(getEnvironment().getCorpID());
-//			ivjQueryConditionDlg.initCorpRef("head.pk_corp", getEnvironment()
-//					.getCorpID(), alCorpIDs);
-//			// 以下为对参照的初始化
-//			ivjQueryConditionDlg.initQueryDlgRef();
-//
-//			// 隐藏常用条件
-//			ivjQueryConditionDlg.hideNormal();
-//			// 条码是否关闭查询条件body.bbarcodeclose
-//			ivjQueryConditionDlg.setCombox("body.bbarcodeclose",
-//					new String[][] {
-//							{ " ", " " },
-//							{
-//									"N",
-//									nc.ui.ml.NCLangRes.getInstance()
-//											.getStrByID("SCMCOMMON",
-//													"UPPSCMCommon-000108") /*
-//																			 * @res
-//																			 * "否"
-//																			 */},
-//							{
-//									"Y",
-//									nc.ui.ml.NCLangRes.getInstance()
-//											.getStrByID("SCMCOMMON",
-//													"UPPSCMCommon-000244") /*
-//																			 * @res
-//																			 * "是"
-//																			 */} });
-//
-//			// 设置下拉框显示
-//			ivjQueryConditionDlg.setCombox("qbillstatus", new String[][] {
-//					{
-//							"2",
-//							nc.ui.ml.NCLangRes.getInstance().getStrByID(
-//									"4008bill", "UPP4008bill-000313") /*
-//																		 * @res
-//																		 * "制单"
-//																		 */},
-//					{
-//							"3",
-//							nc.ui.ml.NCLangRes.getInstance().getStrByID(
-//									"40080402", "UPT40080402-000013") /*
-//																		 * @res
-//																		 * "签字"
-//																		 */},
-//					{
-//							"A",
-//							nc.ui.ml.NCLangRes.getInstance().getStrByID(
-//									"SCMCOMMON", "UPPSCMCommon-000217") /*
-//																		 * @res
-//																		 * "全部"
-//																		 */} });
-//			// set default logon date into query condiotn dlg
-//			// modified by liuzy 2008-03-28 5.03需求，单据查询增加起止日期
-//			ivjQueryConditionDlg.setInitDate("head.dbilldate.from",
-//					getEnvironment().getLogDate());
-//			ivjQueryConditionDlg.setInitDate("head.dbilldate.end",
-//					getEnvironment().getLogDate());
-//			ivjQueryConditionDlg.setInitDate("dbilldate.from", getEnvironment()
-//					.getLogDate());
-//			ivjQueryConditionDlg.setInitDate("dbilldate.end", getEnvironment()
-//					.getLogDate());
-//			ivjQueryConditionDlg.setInOutFlag(getInOutFlag());
-//
-//			// 查询对话框显示打印次数页签。
-//			ivjQueryConditionDlg.setShowPrintStatusPanel(true);
-//
-//			// 修改自定义项目 add by hanwei 2003-12-09
-//			DefSetTool.updateQueryConditionClientUserDef(ivjQueryConditionDlg,
-//					getEnvironment().getCorpID(), ICConst.BILLTYPE_IC,
-//					"head.vuserdef", "body.vuserdef");
-//			getConDlginitself(ivjQueryConditionDlg);
-//
-//			// 过滤库存组织，仓库,废品库,客户,供应商的数据权限，部门，业务员
-//			// zhy2005-06-10 客户和供应商不需要在普通单上过滤，（客户在销售出库单上过滤，供应商在采购入库单上过滤）
-//			// zhy2007-02-12 V51新需求:3、
-//			// 客商、地区分类、库存组织、项目受数据权限控制，部门、仓库、存货分类、存货受已定义的库管员匹配纪录的控制；
-//			/**
-//			 * 库管员:head.cwhsmanagerid 客商:head.cproviderid 库存组织:head.pk_calbody
-//			 * 仓库:head.cwarehouseid,head.cwastewarehouseid 项目:body.cprojectid
-//			 * 部门:head.cdptid 存货分类:invcl.invclasscode 存货:inv.invcode
-//			 */
-//			// ivjQueryConditionDlg.setCorpRefs("head.pk_corp", new String[] {
-//			// "head.cproviderid","head.pk_calbody", "head.cwarehouseid",
-//			// "head.cwastewarehouseid","body.cprojectid"
-//			// //, "head.cdptid", "head.cbizid"
-//			// });
-//			// ivjQueryConditionDlg.setDataPower(true,
-//			// getEnvironment().getCorpID());
-//			if (BillTypeConst.m_allocationIn.equals(getBillTypeCode())
-//					|| BillTypeConst.m_allocationOut.equals(getBillTypeCode()))
-//				ivjQueryConditionDlg.setCorpRefs("head.pk_corp",
-//						nc.ui.ic.pub.tools.GenMethod
-//								.getDataPowerFieldFromDlg(ivjQueryConditionDlg,
-//										false, new String[] {
-//												"head.cothercorpid",
-//												"head.coutcorpid",
-//												"body.creceieveid",
-//												"head.cothercalbodyid",
-//												"head.cotherwhid",
-//												"head.coutcalbodyid" }));
-//			else
-//				ivjQueryConditionDlg
-//						.setCorpRefs(
-//								"head.pk_corp",
-//								nc.ui.ic.pub.tools.GenMethod
-//										.getDataPowerFieldFromDlgNotByProp(ivjQueryConditionDlg));
-//
-//			// zhy205-05-19 加可还回数量条件
-//			// 借出单
-//			ivjQueryConditionDlg
-//					.setCombox(
-//							"coalesce(body.noutnum,0)-coalesce(body.nretnum,0)-coalesce(body.ntranoutnum,0)",
-//							new Integer[][] { { new Integer(0), new Integer(0) } });
-//			// 借入单
-//			ivjQueryConditionDlg
-//					.setCombox(
-//							"coalesce(body.ninnum,0)-coalesce(body.nretnum,0)-coalesce(body.ntranoutnum,0)",
-//							new Integer[][] { { new Integer(0), new Integer(0) } });
-//
-//		}
-//		return ivjQueryConditionDlg;
-//	}
-
+	// protected QueryConditionDlgForBill getConditionDlg() {
+	// if (ivjQueryConditionDlg == null) {
+	// ivjQueryConditionDlg = new QueryConditionDlgForBill(this);
+	// ivjQueryConditionDlg.setTempletID(getEnvironment().getCorpID(),
+	// getFunctionNode(), getEnvironment().getUserID(), null);
+	//
+	// // 以下为对公司参照的初始化
+	// ArrayList alCorpIDs = new ArrayList();
+	// alCorpIDs.add(getEnvironment().getCorpID());
+	// ivjQueryConditionDlg.initCorpRef("head.pk_corp", getEnvironment()
+	// .getCorpID(), alCorpIDs);
+	// // 以下为对参照的初始化
+	// ivjQueryConditionDlg.initQueryDlgRef();
+	//
+	// // 隐藏常用条件
+	// ivjQueryConditionDlg.hideNormal();
+	// // 条码是否关闭查询条件body.bbarcodeclose
+	// ivjQueryConditionDlg.setCombox("body.bbarcodeclose",
+	// new String[][] {
+	// { " ", " " },
+	// {
+	// "N",
+	// nc.ui.ml.NCLangRes.getInstance()
+	// .getStrByID("SCMCOMMON",
+	// "UPPSCMCommon-000108") /*
+	// * @res
+	// * "否"
+	// */},
+	// {
+	// "Y",
+	// nc.ui.ml.NCLangRes.getInstance()
+	// .getStrByID("SCMCOMMON",
+	// "UPPSCMCommon-000244") /*
+	// * @res
+	// * "是"
+	// */} });
+	//
+	// // 设置下拉框显示
+	// ivjQueryConditionDlg.setCombox("qbillstatus", new String[][] {
+	// {
+	// "2",
+	// nc.ui.ml.NCLangRes.getInstance().getStrByID(
+	// "4008bill", "UPP4008bill-000313") /*
+	// * @res
+	// * "制单"
+	// */},
+	// {
+	// "3",
+	// nc.ui.ml.NCLangRes.getInstance().getStrByID(
+	// "40080402", "UPT40080402-000013") /*
+	// * @res
+	// * "签字"
+	// */},
+	// {
+	// "A",
+	// nc.ui.ml.NCLangRes.getInstance().getStrByID(
+	// "SCMCOMMON", "UPPSCMCommon-000217") /*
+	// * @res
+	// * "全部"
+	// */} });
+	// // set default logon date into query condiotn dlg
+	// // modified by liuzy 2008-03-28 5.03需求，单据查询增加起止日期
+	// ivjQueryConditionDlg.setInitDate("head.dbilldate.from",
+	// getEnvironment().getLogDate());
+	// ivjQueryConditionDlg.setInitDate("head.dbilldate.end",
+	// getEnvironment().getLogDate());
+	// ivjQueryConditionDlg.setInitDate("dbilldate.from", getEnvironment()
+	// .getLogDate());
+	// ivjQueryConditionDlg.setInitDate("dbilldate.end", getEnvironment()
+	// .getLogDate());
+	// ivjQueryConditionDlg.setInOutFlag(getInOutFlag());
+	//
+	// // 查询对话框显示打印次数页签。
+	// ivjQueryConditionDlg.setShowPrintStatusPanel(true);
+	//
+	// // 修改自定义项目 add by hanwei 2003-12-09
+	// DefSetTool.updateQueryConditionClientUserDef(ivjQueryConditionDlg,
+	// getEnvironment().getCorpID(), ICConst.BILLTYPE_IC,
+	// "head.vuserdef", "body.vuserdef");
+	// getConDlginitself(ivjQueryConditionDlg);
+	//
+	// // 过滤库存组织，仓库,废品库,客户,供应商的数据权限，部门，业务员
+	// // zhy2005-06-10 客户和供应商不需要在普通单上过滤，（客户在销售出库单上过滤，供应商在采购入库单上过滤）
+	// // zhy2007-02-12 V51新需求:3、
+	// // 客商、地区分类、库存组织、项目受数据权限控制，部门、仓库、存货分类、存货受已定义的库管员匹配纪录的控制；
+	// /**
+	// * 库管员:head.cwhsmanagerid 客商:head.cproviderid 库存组织:head.pk_calbody
+	// * 仓库:head.cwarehouseid,head.cwastewarehouseid 项目:body.cprojectid
+	// * 部门:head.cdptid 存货分类:invcl.invclasscode 存货:inv.invcode
+	// */
+	// // ivjQueryConditionDlg.setCorpRefs("head.pk_corp", new String[] {
+	// // "head.cproviderid","head.pk_calbody", "head.cwarehouseid",
+	// // "head.cwastewarehouseid","body.cprojectid"
+	// // //, "head.cdptid", "head.cbizid"
+	// // });
+	// // ivjQueryConditionDlg.setDataPower(true,
+	// // getEnvironment().getCorpID());
+	// if (BillTypeConst.m_allocationIn.equals(getBillTypeCode())
+	// || BillTypeConst.m_allocationOut.equals(getBillTypeCode()))
+	// ivjQueryConditionDlg.setCorpRefs("head.pk_corp",
+	// nc.ui.ic.pub.tools.GenMethod
+	// .getDataPowerFieldFromDlg(ivjQueryConditionDlg,
+	// false, new String[] {
+	// "head.cothercorpid",
+	// "head.coutcorpid",
+	// "body.creceieveid",
+	// "head.cothercalbodyid",
+	// "head.cotherwhid",
+	// "head.coutcalbodyid" }));
+	// else
+	// ivjQueryConditionDlg
+	// .setCorpRefs(
+	// "head.pk_corp",
+	// nc.ui.ic.pub.tools.GenMethod
+	// .getDataPowerFieldFromDlgNotByProp(ivjQueryConditionDlg));
+	//
+	// // zhy205-05-19 加可还回数量条件
+	// // 借出单
+	// ivjQueryConditionDlg
+	// .setCombox(
+	// "coalesce(body.noutnum,0)-coalesce(body.nretnum,0)-coalesce(body.ntranoutnum,0)",
+	// new Integer[][] { { new Integer(0), new Integer(0) } });
+	// // 借入单
+	// ivjQueryConditionDlg
+	// .setCombox(
+	// "coalesce(body.ninnum,0)-coalesce(body.nretnum,0)-coalesce(body.ntranoutnum,0)",
+	// new Integer[][] { { new Integer(0), new Integer(0) } });
+	//
+	// }
+	// return ivjQueryConditionDlg;
+	// }
 	/**
 	 * 创建者：余大英 功能：得到当前已录入的存货ID 参数： 返回： 例外： 日期：(2001-5-9 9:23:32)
 	 * 修改日期，修改人，修改原因，注释标志：
@@ -5912,7 +6129,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			m_dataSource.setBillData(bd);
 			m_dataSource.setModuleName(getFunctionNode());
 			m_dataSource.setTotalLinesInOnePage(getPrintEntry().getBreakPos());
-			m_dataSource.setFormulaJudge(new DefaultFormulaJudge(getFunctionNode(), getEnvironment().getCorpID()));
+			m_dataSource.setFormulaJudge(new DefaultFormulaJudge(
+					getFunctionNode(), getEnvironment().getCorpID()));
 		}
 		return m_dataSource;
 	}
@@ -5934,116 +6152,117 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		return m_dictrl;
 	}
 
-//	/**
-//	 * 创建者：王乃军 功能：得到用户输入的额外查询条件 参数：//查询条件数组 返回： 例外： 日期：(2001-5-9 9:23:32)
-//	 * 修改日期，修改人，修改原因，注释标志：
-//	 * 
-//	 * 
-//	 * 
-//	 * 
-//	 */
-//	public String getExtendQryCond(nc.vo.pub.query.ConditionVO[] voaCond) {
-//		// 单据状态条件,缺省无
-//		String sBillStatusSql = " (1=1) ";
-//		try {
-//			// -------- 查询条件字段 itemkey ---------
-//			String sFieldCode = null;
-//			// 从条件中查找最大最小日期
-//			// 单据状态
-//			String sBillStatus = "A";
-//			String sFreplenishflag = null;
-//			if (voaCond != null) {
-//				for (int i = 0; i < voaCond.length; i++) {
-//					if (voaCond[i] != null && voaCond[i].getFieldCode() != null) {
-//						sFieldCode = voaCond[i].getFieldCode().trim();
-//						if ("qbillstatus".equals(voaCond[i].getFieldCode()
-//								.trim())) {
-//							if (voaCond[i].getValue() != null
-//									&& voaCond[i].getRefResult() != null)
-//								sBillStatus = voaCond[i].getRefResult()
-//										.getRefPK();
-//						} else if ("boutnumnull".equals(sFieldCode)) {
-//
-//							voaCond[i].setFieldCode("body.noutnum");
-//							voaCond[i].setOperaCode(" is ");
-//
-//							voaCond[i].setDataType(ConditionVO.INTEGER);
-//
-//							if (voaCond[i].getValue() != null
-//									&& "Y".equals(voaCond[i].getValue())) {
-//
-//								voaCond[i].setValue(" not null ");
-//								m_sBnoutnumnull = "Y";
-//							} else {
-//
-//								voaCond[i].setValue("  null ");
-//								m_sBnoutnumnull = "N";
-//
-//							}
-//						}
-//
-//						if ("freplenishflag".equals(voaCond[i].getFieldCode()
-//								.trim())) {
-//							if (voaCond[i].getValue() != null
-//									&& voaCond[i].getRefResult() != null)
-//								sFreplenishflag = voaCond[i].getRefResult()
-//										.getRefPK();
-//						}
-//
-//						if ("like".equals(voaCond[i].getOperaCode().trim())
-//								&& voaCond[i].getFieldCode() != null) {
-//							// String sFeildCode = voaCond[i].getFieldCode()
-//							// .trim();
-//							if (sFieldCode.equals("invcl.invclasscode")
-//									&& voaCond[i].getValue() != null) {
-//								voaCond[i]
-//										.setValue(voaCond[i].getValue() + "%");
-//							} else if (sFieldCode.equals("dept.deptcode")
-//									&& voaCond[i].getValue() != null) {
-//								voaCond[i]
-//										.setValue(voaCond[i].getValue() + "%");
-//							} else if (voaCond[i].getValue() != null)
-//								voaCond[i].setValue("%" + voaCond[i].getValue()
-//										+ "%");
-//						}
-//					}
-//				}
-//			}
-//			// 缺省是A
-//			if ("2".equals(sBillStatus)) // 自由
-//				sBillStatusSql = " fbillflag="
-//						+ nc.vo.ic.pub.bill.BillStatus.FREE;
-//			else if ("3".equals(sBillStatus)) // 签字的
-//				sBillStatusSql = " ( fbillflag="
-//						+ nc.vo.ic.pub.bill.BillStatus.SIGNED
-//						+ " OR fbillflag="
-//						+ nc.vo.ic.pub.bill.BillStatus.AUDITED + ") ";
-//
-//			// 退库查询 add by hanwei 2003-10-10
-//			if (nc.vo.ic.pub.BillTypeConst.BILLNORMAL
-//					.equalsIgnoreCase(sFreplenishflag)) {
-//				sBillStatusSql += " AND ( COALESCE(freplenishflag,'N') = 'N' and COALESCE(boutretflag,'N') = 'N' )";
-//			} else if (nc.vo.ic.pub.BillTypeConst.BILLSENDBACK
-//					.equalsIgnoreCase(sFreplenishflag)) {
-//				sBillStatusSql += " AND ( freplenishflag='Y' or boutretflag = 'Y' )";
-//			} else if (nc.vo.ic.pub.BillTypeConst.BILLALL
-//					.equalsIgnoreCase(sFreplenishflag)) {
-//				sBillStatusSql += "  ";
-//			}
-//
-//			// 去掉freplenishflag 是否退库
-//			String saItemKey[] = new String[] { "qbillstatus", "freplenishflag" };
-//			filterCondVO2(voaCond, saItemKey);
-//			// 其他条件
-//			String sOtherCond = getConditionDlg().getWhereSQL(voaCond);
-//			if (sOtherCond != null)
-//				sBillStatusSql += " AND ( " + sOtherCond + " )";
-//		} catch (Exception e) {
-//			handleException(e);
-//		}
-//
-//		return sBillStatusSql;
-//	}
+	// /**
+	// * 创建者：王乃军 功能：得到用户输入的额外查询条件 参数：//查询条件数组 返回： 例外： 日期：(2001-5-9 9:23:32)
+	// * 修改日期，修改人，修改原因，注释标志：
+	// *
+	// *
+	// *
+	// *
+	// */
+	// public String getExtendQryCond(nc.vo.pub.query.ConditionVO[] voaCond) {
+	// // 单据状态条件,缺省无
+	// String sBillStatusSql = " (1=1) ";
+	// try {
+	// // -------- 查询条件字段 itemkey ---------
+	// String sFieldCode = null;
+	// // 从条件中查找最大最小日期
+	// // 单据状态
+	// String sBillStatus = "A";
+	// String sFreplenishflag = null;
+	// if (voaCond != null) {
+	// for (int i = 0; i < voaCond.length; i++) {
+	// if (voaCond[i] != null && voaCond[i].getFieldCode() != null) {
+	// sFieldCode = voaCond[i].getFieldCode().trim();
+	// if ("qbillstatus".equals(voaCond[i].getFieldCode()
+	// .trim())) {
+	// if (voaCond[i].getValue() != null
+	// && voaCond[i].getRefResult() != null)
+	// sBillStatus = voaCond[i].getRefResult()
+	// .getRefPK();
+	// } else if ("boutnumnull".equals(sFieldCode)) {
+	//
+	// voaCond[i].setFieldCode("body.noutnum");
+	// voaCond[i].setOperaCode(" is ");
+	//
+	// voaCond[i].setDataType(ConditionVO.INTEGER);
+	//
+	// if (voaCond[i].getValue() != null
+	// && "Y".equals(voaCond[i].getValue())) {
+	//
+	// voaCond[i].setValue(" not null ");
+	// m_sBnoutnumnull = "Y";
+	// } else {
+	//
+	// voaCond[i].setValue(" null ");
+	// m_sBnoutnumnull = "N";
+	//
+	// }
+	// }
+	//
+	// if ("freplenishflag".equals(voaCond[i].getFieldCode()
+	// .trim())) {
+	// if (voaCond[i].getValue() != null
+	// && voaCond[i].getRefResult() != null)
+	// sFreplenishflag = voaCond[i].getRefResult()
+	// .getRefPK();
+	// }
+	//
+	// if ("like".equals(voaCond[i].getOperaCode().trim())
+	// && voaCond[i].getFieldCode() != null) {
+	// // String sFeildCode = voaCond[i].getFieldCode()
+	// // .trim();
+	// if (sFieldCode.equals("invcl.invclasscode")
+	// && voaCond[i].getValue() != null) {
+	// voaCond[i]
+	// .setValue(voaCond[i].getValue() + "%");
+	// } else if (sFieldCode.equals("dept.deptcode")
+	// && voaCond[i].getValue() != null) {
+	// voaCond[i]
+	// .setValue(voaCond[i].getValue() + "%");
+	// } else if (voaCond[i].getValue() != null)
+	// voaCond[i].setValue("%" + voaCond[i].getValue()
+	// + "%");
+	// }
+	// }
+	// }
+	// }
+	// // 缺省是A
+	// if ("2".equals(sBillStatus)) // 自由
+	// sBillStatusSql = " fbillflag="
+	// + nc.vo.ic.pub.bill.BillStatus.FREE;
+	// else if ("3".equals(sBillStatus)) // 签字的
+	// sBillStatusSql = " ( fbillflag="
+	// + nc.vo.ic.pub.bill.BillStatus.SIGNED
+	// + " OR fbillflag="
+	// + nc.vo.ic.pub.bill.BillStatus.AUDITED + ") ";
+	//
+	// // 退库查询 add by hanwei 2003-10-10
+	// if (nc.vo.ic.pub.BillTypeConst.BILLNORMAL
+	// .equalsIgnoreCase(sFreplenishflag)) {
+	// sBillStatusSql += " AND ( COALESCE(freplenishflag,'N') = 'N' and
+	// COALESCE(boutretflag,'N') = 'N' )";
+	// } else if (nc.vo.ic.pub.BillTypeConst.BILLSENDBACK
+	// .equalsIgnoreCase(sFreplenishflag)) {
+	// sBillStatusSql += " AND ( freplenishflag='Y' or boutretflag = 'Y' )";
+	// } else if (nc.vo.ic.pub.BillTypeConst.BILLALL
+	// .equalsIgnoreCase(sFreplenishflag)) {
+	// sBillStatusSql += " ";
+	// }
+	//
+	// // 去掉freplenishflag 是否退库
+	// String saItemKey[] = new String[] { "qbillstatus", "freplenishflag" };
+	// filterCondVO2(voaCond, saItemKey);
+	// // 其他条件
+	// String sOtherCond = getConditionDlg().getWhereSQL(voaCond);
+	// if (sOtherCond != null)
+	// sBillStatusSql += " AND ( " + sOtherCond + " )";
+	// } catch (Exception e) {
+	// handleException(e);
+	// }
+	//
+	// return sBillStatusSql;
+	// }
 
 	/**
 	 * 创建日期：(2003-3-4 17:13:59) 作者：韩卫 修改日期： 修改人： 修改原因： 方法说明：
@@ -6082,7 +6301,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				ivjLocatorRefPane.setName("LocatorRefPane");
 				ivjLocatorRefPane.setLocation(209, 4);
 				// user code begin {1}
-				//ivjLocatorRefPane.setInOutFlag(InOutFlag.IN);
+				// ivjLocatorRefPane.setInOutFlag(InOutFlag.IN);
 
 				// user code end
 			} catch (java.lang.Throwable ivjExc) {
@@ -6115,8 +6334,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 */
 	protected nc.ui.pub.print.PrintEntry getPrintEntry() {
 		if (null == m_print) {
-			//m_print = new nc.ui.pub.print.PrintEntry(null, null);
-			//modified by lirr 2009-05-22 修改原因：联查打印 不能直接关闭问题
+			// m_print = new nc.ui.pub.print.PrintEntry(null, null);
+			// modified by lirr 2009-05-22 修改原因：联查打印 不能直接关闭问题
 			m_print = new nc.ui.pub.print.PrintEntry(this, null);
 			m_print.setTemplateID(getEnvironment().getCorpID(),
 					getFunctionNode(), getEnvironment().getUserID(), null);
@@ -6125,10 +6344,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	}
 
 	protected nc.ui.pub.print.PrintEntry getPrintEntryNew() {
-//		nc.ui.pub.print.PrintEntry pe = new nc.ui.pub.print.PrintEntry(null,
-//				null);
-//		modified by lirr 2009-05-22 修改原因：联查打印 不能直接关闭问题
-		
+		// nc.ui.pub.print.PrintEntry pe = new nc.ui.pub.print.PrintEntry(null,
+		// null);
+		// modified by lirr 2009-05-22 修改原因：联查打印 不能直接关闭问题
+
 		nc.ui.pub.print.PrintEntry pe = new nc.ui.pub.print.PrintEntry(this,
 				null);
 		pe.setTemplateID(getEnvironment().getCorpID(), getFunctionNode(),
@@ -6295,7 +6514,6 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		return voMyBill;
 	}
 
-
 	public IButtonManager getButtonManager() {
 		if (m_buttonManager == null) {
 			try {
@@ -6388,14 +6606,16 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// BD505 采购/销售单价小数位 2
 
 			String[] saParam = new String[] { // "IC028", "IC010",
-			"BD501", "BD502", "BD503", "BD504", "BD301",// "IC060",
+			"BD501", "BD502", "BD503", "BD504",
+					"BD301",// "IC060",
 					"IC030",
 					// "IC062",
-					"IC0621", "IC0641", "IC0642", "IC050", "BD505" ,"IC026","IC040"// modify by
-			// liuzy
-			// 2007-04-10
-			//ADDED by lirr 2009-02-25    
-			 ,"IC104"
+					"IC0621", "IC0641", "IC0642", "IC050", "BD505", "IC026",
+					"IC040"// modify by
+					// liuzy
+					// 2007-04-10
+					// ADDED by lirr 2009-02-25
+					, "IC104"
 
 			};
 
@@ -6409,10 +6629,13 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// 查用户对应公司的必须参数
 			alAllParam.add(getEnvironment().getUserID());
 
-			/*ArrayList alRetData = null;
-			alRetData = (ArrayList) ICReportHelper.queryInfo(new Integer(
-					QryInfoConst.INIT_PARAM), alAllParam);*/
-			String[] saParamValue = nc.ui.ic.pub.tools.GenMethod.getSysParams(getEnvironment().getCorpID(), saParam);
+			/*
+			 * ArrayList alRetData = null; alRetData = (ArrayList)
+			 * ICReportHelper.queryInfo(new Integer( QryInfoConst.INIT_PARAM),
+			 * alAllParam);
+			 */
+			String[] saParamValue = nc.ui.ic.pub.tools.GenMethod.getSysParams(
+					getEnvironment().getCorpID(), saParam);
 			// 目前读两个。
 			if (saParamValue == null || saParamValue.length <= 0) {
 				showErrorMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
@@ -6420,8 +6643,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				return;
 			}
 			// 读回的参数值
-			//String[] saParamValue = (String[]) alRetData.get(0);
-			
+			// String[] saParamValue = (String[]) alRetData.get(0);
+
 			// 追踪到单据参数,默认设置为"N"
 			if (saParamValue != null
 					&& saParamValue.length >= alAllParam.size()) {
@@ -6494,10 +6717,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					nc.ui.pub.bill.BillItem billItem = null;
 
 					String[] saColumns = { "nsaleprice", "ntaxprice",
-							"npprice", "nquoteprice" ,"nquotentprice"};
-          int scalepriceso = Integer.parseInt(saParamValue[10]);
+							"npprice", "nquoteprice", "nquotentprice" };
+					int scalepriceso = Integer.parseInt(saParamValue[10]);
 					for (int i = 0, j = saColumns.length; i < j; i++) {
-						billItem = getBillCardPanel().getBodyItem(saColumns[i]); 
+						billItem = getBillCardPanel().getBodyItem(saColumns[i]);
 						if (billItem != null)
 							billItem.setDecimalDigits(scalepriceso);
 						// modify by yangb 2007-11-08
@@ -6506,36 +6729,35 @@ protected void removeBillsOfList(int[] iaDelLines) {
 							billItem.setDecimalDigits(scalepriceso);
 					}
 				}
-				//IC026
+				// IC026
 				if (saParamValue[11] != null) {
 					m_sIC026 = saParamValue[11];
 				}
 				if (saParamValue[12] != null) {
 					m_sIC040 = saParamValue[12];
 				}
-				 if (saParamValue[13] != null
-			                && "Y".equalsIgnoreCase(saParamValue[13].trim()))
-			        	m_bCheckAssetInv = true;
-			        else
-			        	m_bCheckAssetInv = false;
-
+				if (saParamValue[13] != null
+						&& "Y".equalsIgnoreCase(saParamValue[13].trim()))
+					m_bCheckAssetInv = true;
+				else
+					m_bCheckAssetInv = false;
 
 				SCMEnv.out("-------------- <mny>=========="
 						+ m_ScaleValue.getMnyScale());
 			}
 
-			m_sStartDate = nc.ui.ic.pub.tools.GenMethod.getICStartDate(getEnvironment().getCorpID());
+			m_sStartDate = nc.ui.ic.pub.tools.GenMethod
+					.getICStartDate(getEnvironment().getCorpID());
 			// 系统起用日期
 			if (null == m_sStartDate)
 				m_sStartDate = getEnvironment().getLogDate();
 
-/*			if (alRetData.size() > 2) {
-				m_sStartDate = (String) alRetData.get(2);
-
-			}*/
+			/*
+			 * if (alRetData.size() > 2) { m_sStartDate = (String)
+			 * alRetData.get(2); }
+			 */
 
 			//
-
 			// 修改人：刘家清 修改日期：2007-9-5上午10:22:36
 			// 修改原因：增加'可开票数量','累计途损数量','累计开票数量','累计对冲数量','可对冲数量'
 			// modified by liuzy 2007-11-28 增加表尾数量字段
@@ -6552,24 +6774,24 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					"naccumwastnum", "nrushnum", "ncanrushnum", "naccountnum1",
 					"naccoutnum", "naccumoutbacknum", IItemKey.nordcanoutnum,
 					"nquoteunitnum", "bkxcl", "xczl", "nmaxstocknum",
-					"nminstocknum", "nsafestocknum" ,"nonhandnum",
-					"nadjustnum","nlasterr","ncurerr","nerr","nadjustgrossnum",IItemKey.naccumoutsignnum
-					});
+					"nminstocknum", "nsafestocknum", "nonhandnum",
+					"nadjustnum", "nlasterr", "ncurerr", "nerr",
+					"nadjustgrossnum", IItemKey.naccumoutsignnum });
 
-			m_ScaleKey
-					.setAssistNumKeys(new String[] { "ninassistnum",
-							"nleftastnum", "nneedinassistnum", "noutassistnum",
-							"nretastnum", "nshouldoutassistnum",
-							"ntranoutastnum", "naccountassistnum2",
-							"naccountassistnum1", "nsignassistnum",
-							"ncorrespondastnum", "nreplenishedastnum" ,"nonhandastnum","nadjustastnum"});
+			m_ScaleKey.setAssistNumKeys(new String[] { "ninassistnum",
+					"nleftastnum", "nneedinassistnum", "noutassistnum",
+					"nretastnum", "nshouldoutassistnum", "ntranoutastnum",
+					"naccountassistnum2", "naccountassistnum1",
+					"nsignassistnum", "ncorrespondastnum",
+					"nreplenishedastnum", "nonhandastnum", "nadjustastnum" });
 			m_ScaleKey.setPriceKeys(new String[] { "nprice", "nplannedprice",/*
-																				  "nsaleprice",
-																				  "ntaxprice",
-																				  "npprice",
-																				  "nquoteprice",
-                                          "nquotentprice"*/
-																				 });
+																				 * "nsaleprice",
+																				 * "ntaxprice",
+																				 * "npprice",
+																				 * "nquoteprice",
+																				 * "nquotentprice"
+																				 */
+			});
 			m_ScaleKey
 					.setMnyKeys(new String[] { "nmny", "nplannedmny",
 							"nsalemny", "ntaxmny", "ndiscountmny", "nnetmny",
@@ -6694,11 +6916,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		else
 			return false;
 	}
-	//修改人：刘家清 修改时间：2009-1-8 上午10:07:02 修改原因：只有一些单据才可以使用此方法。
+
+	// 修改人：刘家清 修改时间：2009-1-8 上午10:07:02 修改原因：只有一些单据才可以使用此方法。
 	public boolean isNeedBillRefWithBillType() {
-		if (null != getBillTypeCode() &&
-				(ScmConst.m_saleOut.equals(getBillTypeCode()) || ScmConst.m_Pickup.equals(getBillTypeCode())
-						||ScmConst.m_purchaseIn.equals(getBillTypeCode()) ||ScmConst.m_consignMachiningIn.equals(getBillTypeCode())))
+		if (null != getBillTypeCode()
+				&& (ScmConst.m_saleOut.equals(getBillTypeCode())
+						|| ScmConst.m_Pickup.equals(getBillTypeCode())
+						|| ScmConst.m_purchaseIn.equals(getBillTypeCode()) || ScmConst.m_consignMachiningIn
+						.equals(getBillTypeCode())))
 			return true;
 		else
 			return false;
@@ -6784,7 +7009,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			return;
 		}
 		m_sBizTypeRef = sBizType;
-		
+
 		m_alRefBillsBak = getM_alListData();
 
 		// 处理行号
@@ -6875,15 +7100,16 @@ protected void removeBillsOfList(int[] iaDelLines) {
 														 * @res
 														 * "正在准备打印数据，请稍候..."
 														 */);
-			if ((double) iIntegralBillNum / alListData.size() < 0.60 && getQryDlgHelp().getVoLastQryCond()!=null) {
+			if ((double) iIntegralBillNum / alListData.size() < 0.60
+					&& getQryDlgHelp().getVoLastQryCond() != null) {
 				// 如果大于阀值的单据未读出，干脆重新查询
-				QryConditionVO voCond = (QryConditionVO) getQryDlgHelp().getVoLastQryCond()
-						.clone();
+				QryConditionVO voCond = (QryConditionVO) getQryDlgHelp()
+						.getVoLastQryCond().clone();
 				// 查询完整单据
 				voCond.setIntParam(0, GeneralBillVO.QRY_FULL_BILL);
 				SCMEnv.out("重新查所有数据，准备打印。。。");
-				setM_alListData((ArrayList<GeneralBillVO>) GeneralBillHelper.queryBills(
-						getBillType(), voCond));
+				setM_alListData((ArrayList<GeneralBillVO>) GeneralBillHelper
+						.queryBills(getBillType(), voCond));
 			} else { // 否则只读剩下的表体即可。
 
 				// 读单据pk，用于查询，不在前面的循环读。
@@ -6969,7 +7195,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 				// DUYONG 此处需要同时传递库存组织和仓库的ID（为了从成本域库存组织中读取计划价格）
 				getInvoInfoBYFormula().getProductPrice(invVOs, sCalID, sWhID);
-				IBillType billType = BillTypeFactory.getInstance().getBillType(voaItem[0].getCsourcetype());
+				IBillType billType = BillTypeFactory.getInstance().getBillType(
+						voaItem[0].getCsourcetype());
 				if (astsoilvos.size() > 0
 						&& voaItem[0].getCsourcetype() != null
 						&& billType.typeOf(ModuleCode.PO))
@@ -7000,7 +7227,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			for (int i = 0; i < voBillItems.length; i++) {
 				// Object oBatchcode = voBillItems[i].getVbatchcode();
 				InvVO voInv = voBillItems[i].getInv();
-				if (voInv != null && voInv.getIsAstUOMmgt()!=null&&voInv.getIsAstUOMmgt().intValue() != 1) {
+				if (voInv != null && voInv.getIsAstUOMmgt() != null
+						&& voInv.getIsAstUOMmgt().intValue() != 1) {
 					voBillItems[i].setHsl(null);
 					voBillItems[i].setNshouldoutassistnum(null);
 					voBillItems[i].setNneedinassistnum(null);
@@ -7017,78 +7245,99 @@ protected void removeBillsOfList(int[] iaDelLines) {
 									.compareTo(voBillItems[i].getHsl()) != 0)) {
 						voBillItems[i].setHsl(voInv.getHsl());
 					}
-          if(voInv != null && voInv.getIsAstUOMmgt() != null
-              && voInv.getIsAstUOMmgt().intValue() == 1 
-              && voBillItems[i].getHsl()==null){
-            voBillItems[i].setHsl(SmartVOUtilExt.div((UFDouble)voBillItems[i].getAttributeValue(getEnvironment().getShouldNumItemKey()), 
-                (UFDouble)voBillItems[i].getAttributeValue(getEnvironment().getShouldAssistNumItemKey())));
-          }
-            
+					if (voInv != null && voInv.getIsAstUOMmgt() != null
+							&& voInv.getIsAstUOMmgt().intValue() == 1
+							&& voBillItems[i].getHsl() == null) {
+						voBillItems[i].setHsl(SmartVOUtilExt.div(
+								(UFDouble) voBillItems[i]
+										.getAttributeValue(getEnvironment()
+												.getShouldNumItemKey()),
+								(UFDouble) voBillItems[i]
+										.getAttributeValue(getEnvironment()
+												.getShouldAssistNumItemKey())));
+					}
+
 					// 修改人：刘家清 修改日期：2008-5-12下午01:31:53
 					// 修改原因：当有换算率时，如果有主数量并且辅数量为空时，就计算辅数量。
 					if (null != voBillItems[i].getHsl()
 							&& GenMethod.ZERO
-									.compareTo(voBillItems[i].getHsl()) != 0){
-            
-						if(null != voBillItems[i].getNoutnum()
-							&& GenMethod.isEQZeroOrNull(voBillItems[i].getNoutassistnum())) {
-            
-  						voBillItems[i].setNoutassistnum(voBillItems[i]
-  								.getNoutnum().div(voBillItems[i].getHsl()));
-  						if (null != voBillItems[i].getLocator())
-  							for (LocatorVO locVO : voBillItems[i].getLocator())
-  								if (null != locVO
-  										&& null != locVO.getNoutspacenum()
-  										&& null == locVO
-  												.getNoutspaceassistnum())
-  									locVO.setNoutspaceassistnum(locVO
-  											.getNoutspacenum().div(
-  													voBillItems[i].getHsl()));
-            }
-            
-            if(null != voBillItems[i].getNinnum()
-                && GenMethod.isEQZeroOrNull(voBillItems[i].getNinassistnum())) {
-              
-                voBillItems[i].setNinassistnum(voBillItems[i]
-                    .getNinnum().div(voBillItems[i].getHsl()));
-                if (null != voBillItems[i].getLocator())
-                  for (LocatorVO locVO : voBillItems[i].getLocator())
-                    if (null != locVO
-                        && null != locVO.getNinspacenum()
-                        && null == locVO
-                            .getNinspaceassistnum())
-                      locVO.setNinspaceassistnum(locVO
-                          .getNinspacenum().div(
-                              voBillItems[i].getHsl()));
-            }
-            
-            
-            if(voBillItems[i].getAttributeValue(getEnvironment().getShouldNumItemKey())!=null
-                && GenMethod.isEQZeroOrNull((UFDouble)voBillItems[i].getAttributeValue(getEnvironment().getShouldAssistNumItemKey())) ) {
-              voBillItems[i].setAttributeValue(getEnvironment().getShouldAssistNumItemKey(),
-              SmartVOUtilExt.div((UFDouble)voBillItems[i].getAttributeValue(getEnvironment().getShouldNumItemKey()), 
-                      voBillItems[i].getHsl() ) );
-            }
+									.compareTo(voBillItems[i].getHsl()) != 0) {
+
+						if (null != voBillItems[i].getNoutnum()
+								&& GenMethod.isEQZeroOrNull(voBillItems[i]
+										.getNoutassistnum())) {
+
+							voBillItems[i].setNoutassistnum(voBillItems[i]
+									.getNoutnum().div(voBillItems[i].getHsl()));
+							if (null != voBillItems[i].getLocator())
+								for (LocatorVO locVO : voBillItems[i]
+										.getLocator())
+									if (null != locVO
+											&& null != locVO.getNoutspacenum()
+											&& null == locVO
+													.getNoutspaceassistnum())
+										locVO.setNoutspaceassistnum(locVO
+												.getNoutspacenum()
+												.div(voBillItems[i].getHsl()));
+						}
+
+						if (null != voBillItems[i].getNinnum()
+								&& GenMethod.isEQZeroOrNull(voBillItems[i]
+										.getNinassistnum())) {
+
+							voBillItems[i].setNinassistnum(voBillItems[i]
+									.getNinnum().div(voBillItems[i].getHsl()));
+							if (null != voBillItems[i].getLocator())
+								for (LocatorVO locVO : voBillItems[i]
+										.getLocator())
+									if (null != locVO
+											&& null != locVO.getNinspacenum()
+											&& null == locVO
+													.getNinspaceassistnum())
+										locVO.setNinspaceassistnum(locVO
+												.getNinspacenum()
+												.div(voBillItems[i].getHsl()));
+						}
+
+						if (voBillItems[i].getAttributeValue(getEnvironment()
+								.getShouldNumItemKey()) != null
+								&& GenMethod
+										.isEQZeroOrNull((UFDouble) voBillItems[i]
+												.getAttributeValue(getEnvironment()
+														.getShouldAssistNumItemKey()))) {
+							voBillItems[i]
+									.setAttributeValue(
+											getEnvironment()
+													.getShouldAssistNumItemKey(),
+											SmartVOUtilExt
+													.div(
+															(UFDouble) voBillItems[i]
+																	.getAttributeValue(getEnvironment()
+																			.getShouldNumItemKey()),
+															voBillItems[i]
+																	.getHsl()));
+						}
 
 					}
 				}
 
 			}
 			// added by lirr 2009-11-14下午02:42:24 资产入资产出需要执行自定义项公式
-			if(getBillTypeCode().equals("4401") || getBillTypeCode().equals("4451")){
-			    setBillVO(voBill, false, true);
+			if (getBillTypeCode().equals("4401")
+					|| getBillTypeCode().equals("4451")) {
+				setBillVO(voBill, false, true);
+			} else {
+				setBillVO(voBill, false, false);
 			}
-			else{
-			    setBillVO(voBill, false, false);
-			}
-			
+
 			SCMEnv.showTime(lTime, "resetAllInvInfo:setBillVO");
 
 			lTime = System.currentTimeMillis();
 			for (int i = 0; i < voBillItems.length; i++) {
 				// Object oBatchcode = voBillItems[i].getVbatchcode();
 				InvVO voInv = voBillItems[i].getInv();
-				if (voInv != null && voInv.getIsAstUOMmgt()!=null&&voInv.getIsAstUOMmgt().intValue() != 1) {
+				if (voInv != null && voInv.getIsAstUOMmgt() != null
+						&& voInv.getIsAstUOMmgt().intValue() != 1) {
 					voBillItems[i].setHsl(null);
 					voBillItems[i].setNshouldoutassistnum(null);
 					voBillItems[i].setNneedinassistnum(null);
@@ -7100,9 +7349,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			}
 			SCMEnv.showTime(lTime, "批次号加载数据时间");
 
-			// modified by liuzy 2009-9-21 上午10:16:48 该方法（resetAllInvInfo）只在转但是调用，因此转单后统一计算合计
-//			getBillCardPanel().getBillModel().setNeedCalculate(true);
-//			getBillCardPanel().getBillModel().reCalcurateAll();
+			// modified by liuzy 2009-9-21 上午10:16:48
+			// 该方法（resetAllInvInfo）只在转但是调用，因此转单后统一计算合计
+			// getBillCardPanel().getBillModel().setNeedCalculate(true);
+			// getBillCardPanel().getBillModel().reCalcurateAll();
 		} catch (Exception e2) {
 			nc.vo.scm.pub.SCMEnv.error(e2);
 		}
@@ -7110,23 +7360,16 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 	/**
 	 * 创建者：王乃军 功能：根据设定的按钮初始化菜单。 参数： 返回： 例外： 日期：(2001-11-23 18:11:18)
-	 * 修改日期，修改人，修改原因，注释标志：
-	 * 修改人：刘家清 修改时间：2008-12-31 上午11:29:12 修改原因：删除此方法。
+	 * 修改日期，修改人，修改原因，注释标志： 修改人：刘家清 修改时间：2008-12-31 上午11:29:12 修改原因：删除此方法。
+	 * 
 	 * @deprecated
 	 */
-/*	protected void resetButtons() {
-		try {
-			initButtonsData();
-			initDevInputButtons();
-			setButtons();
-		} catch (Exception e) {
-			handleException(e);
-		}
+	/*
+	 * protected void resetButtons() { try { initButtonsData();
+	 * initDevInputButtons(); setButtons(); } catch (Exception e) {
+	 * handleException(e); } }
+	 */
 
-	}*/
-
-	
-	
 	/**
 	 * 创建者：王乃军 功能：读仓库属性数据，放到m_voBill 参数： 返回： 例外： 日期：(2001-5-8 19:08:05)
 	 * 修改日期，修改人，修改原因，注释标志：
@@ -7147,10 +7390,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// 读仓库数据
 			// 查，返回WhVO
 			WhVO voWh;
-			if(!hm_whid_vo.containsKey(sWhID)){
-			  voWh = (WhVO) GeneralBillHelper.queryInfo(new Integer(
-					QryInfoConst.WH), sWhID);
-			  hm_whid_vo.put(sWhID, voWh);
+			if (!hm_whid_vo.containsKey(sWhID)) {
+				voWh = (WhVO) GeneralBillHelper.queryInfo(new Integer(
+						QryInfoConst.WH), sWhID);
+				hm_whid_vo.put(sWhID, voWh);
 			}
 			voWh = hm_whid_vo.get(sWhID);
 
@@ -7177,45 +7420,40 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	protected void beforeSave(GeneralBillVO voBill) {
 
 	}
-	
+
 	/**
 	 * 
 	 * 获得提交（保存）的单据动作名称
 	 * <p>
 	 * <p>
 	 * <b>参数说明</b>
+	 * 
 	 * @return 提交（保存）的单据动作名称
-	 * <p>
+	 *         <p>
 	 * @author duy
 	 * @time 2008-7-17 上午09:42:34
 	 */
 	protected String getCommitActionName() {
 		return "WRITE";
 	}
-	
-	private void setOID( String pk_corp ) throws Exception {
-		if ( tempHeaderID == null ) {	
-			tempHeaderID = (String)nc.ui.ic.pub.tools.GenMethod.callICEJBService(
-				"nc.bs.ic.pub.bill.GeneralBillDMO", 
-				"getOID", 
-				new Class[]{
-						String.class
-				},
-				new Object[]{
-						pk_corp
-			    }
-			); 
+
+	private void setOID(String pk_corp) throws Exception {
+		if (tempHeaderID == null) {
+			tempHeaderID = (String) nc.ui.ic.pub.tools.GenMethod
+					.callICEJBService("nc.bs.ic.pub.bill.GeneralBillDMO",
+							"getOID", new Class[] { String.class },
+							new Object[] { pk_corp });
 		}
 	}
-	
-	private String getOID() {	
+
+	private String getOID() {
 		return tempHeaderID;
 	}
-	
+
 	public void clearOID() {
 		tempHeaderID = null;
 	}
-	
+
 	/**
 	 * 创建者：王乃军 功能：保存新增的单据 有错误需要以异常抛出，影响主流程
 	 * 
@@ -7297,42 +7535,42 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				// add by liuzy 2007-11-02 10:16 压缩数据
 				// ObjectUtils.objectReference(voTempBill);
 				voTempBill.compressBodyWhenSave();
-				
+
 				// songhy, 2009-11-16，start，解决保存时，拔掉网线导致数据重复的问题
-				if ( getOID() == null ) {
-					setOID( getEnvironment().getCorpID() );
+				if (getOID() == null) {
+					setOID(getEnvironment().getCorpID());
 				}
-				voTempBill.getHeaderVO().setAttributeValue("cgeneralhid_temp", getOID());
+				voTempBill.getHeaderVO().setAttributeValue("cgeneralhid_temp",
+						getOID());
 				// songhy, 2009-11-16，end.
-				
+
 				alPK = (ArrayList) nc.ui.pub.pf.PfUtilClient.processAction(
-						getCommitActionName(), getBillType(), getEnvironment().getLogDate(),
-						voTempBill);
-				
+						getCommitActionName(), getBillType(), getEnvironment()
+								.getLogDate(), voTempBill);
+
 				if(((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getCgeneralhid()!=null&&((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getCgeneralhid().length()!=0){
-				//InfoCOstVO保存动作
-				 InformationCostVO[] infoCostVOs = (InformationCostVO[])getBillCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());			      
-				    //add by QuSida 2010-8-31 (佛山骏杰)  --- begin
-					//function:当订单保存成功后,将费用信息VO保存到数据库中	
-				      if(infoCostVOs!=null&&infoCostVOs.length!=0){
-				    	  
-							//将单据主键射入vo数组中
-				    	  String pk_bill = ((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getPrimaryKey();
-						//String pk_bill = saveVO.getParentVO().getPrimaryKey();
-							for (int i = 0; i < infoCostVOs.length; i++) {
-								infoCostVOs[i].setCbillid(pk_bill);
+					//InfoCOstVO保存动作
+					 InformationCostVO[] infoCostVOs = (InformationCostVO[])getBillCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());			      
+					    //add by QuSida 2010-8-31 (佛山骏杰)  --- begin
+						//function:当订单保存成功后,将费用信息VO保存到数据库中	
+					      if(infoCostVOs!=null&&infoCostVOs.length!=0){
+					    	  
+								//将单据主键射入vo数组中
+					    	  String pk_bill = ((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getPrimaryKey();
+							//String pk_bill = saveVO.getParentVO().getPrimaryKey();
+								for (int i = 0; i < infoCostVOs.length; i++) {
+									infoCostVOs[i].setCbillid(pk_bill);
+								}
+							JJIcScmPubHelper.insertSmartVOs(infoCostVOs);
 							}
-						JJIcScmPubHelper.insertSmartVOs(infoCostVOs);
-						}
-				}
-				    //add by QuSida 2010-8-31 (佛山骏杰)  --- end
+					}
+					    //add by QuSida 2010-8-31 (佛山骏杰)  --- end
 				
 				// songhy, 2009-11-16，start，解决保存时，拔掉网线导致数据重复的问题
 				clearOID();
 				// songhy, 2009-11-16，end.
 
-			}
-			finally {
+			} finally {
 				voTempBill.setChildrenVO(bakbvos);
 			}
 
@@ -7391,8 +7629,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 							getBillCardPanel(), voNewBill, getM_voBill());
 					getGenBillUICtl().refreshLocFromSMVO(smbillvo,
 							getBillCardPanel(), m_alLocatorData, getM_voBill());
-					/*getGenBillUICtl().refreshBatchcodeAfterSave(
-							getBillCardPanel(), getM_voBill());*/
+					/*
+					 * getGenBillUICtl().refreshBatchcodeAfterSave(
+					 * getBillCardPanel(), getM_voBill());
+					 */
 
 					timer.showExecuteTime("@@设置表头和表体PK时间：");
 					getM_voBill().clearAccreditBarcodeUserID();
@@ -7545,11 +7785,11 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// (GeneralBillVO)voOriginalBill.clone();
 			GeneralBillItemVO[] bakcurbodyvos = voBill.getItemVOs();
 			GeneralBillItemVO[] bakoldbodyvos = voOriginalBill.getItemVOs();
-      
-//     帐期、信用信息
-      voBill.m_iActionInt = nc.vo.scm.pub.bill.CreditConst.ICREDIT_ACT_MODIFY;
-      voBill.m_sActionCode = "SAVEBASE";
-      voBill.m_voOld = voOriginalBill;
+
+			// 帐期、信用信息
+			voBill.m_iActionInt = nc.vo.scm.pub.bill.CreditConst.ICREDIT_ACT_MODIFY;
+			voBill.m_sActionCode = "SAVEBASE";
+			voBill.m_voOld = voOriginalBill;
 
 			try {
 
@@ -7557,16 +7797,17 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				// ObjectUtils.objectReference(new GeneralBillVO[]{
 				// voBill,voOriginalBill});
 				// ObjectUtils.objectReference(voOriginalBill);
-				//修改人：刘家清 修改时间：2008-8-15 下午02:27:03 修改原因：后台判断单据号有没有修改用。
-				voBill.getHeaderVO().setAttributeValue("oldVBillCode", voOriginalBill.getVBillCode());
-				
+				// 修改人：刘家清 修改时间：2008-8-15 下午02:27:03 修改原因：后台判断单据号有没有修改用。
+				voBill.getHeaderVO().setAttributeValue("oldVBillCode",
+						voOriginalBill.getVBillCode());
+
 				voBill.compressBodyWhenSave();
 				voOriginalBill.setTransNotFullVo();
 
-				
 				alRetData = (ArrayList) nc.ui.pub.pf.PfUtilClient
-						.processAction(getCommitActionName(), getBillType(), getEnvironment()
-								.getLogDate(), voBill, voOriginalBill);
+						.processAction(getCommitActionName(), getBillType(),
+								getEnvironment().getLogDate(), voBill,
+								voOriginalBill);
 			} finally {
 				voBill.setChildrenVO(bakcurbodyvos);
 				voOriginalBill.setChildrenVO(bakoldbodyvos);
@@ -7614,12 +7855,15 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						voUpdatedBill, getM_voBill());
 				getGenBillUICtl().refreshLocFromSMVO(smbillvo,
 						getBillCardPanel(), m_alLocatorData, getM_voBill());
-				/*getGenBillUICtl().refreshBatchcodeAfterSave(getBillCardPanel(),
-						getM_voBill());*/
+				/*
+				 * getGenBillUICtl().refreshBatchcodeAfterSave(getBillCardPanel(),
+				 * getM_voBill());
+				 */
 
 				// 添加by hanwei 2004-9-23
-        GeneralBillVO.setBillBCVOStatus(getM_voBill(), nc.vo.pub.VOStatus.UNCHANGED);
-				// ################################################### 
+				GeneralBillVO.setBillBCVOStatus(getM_voBill(),
+						nc.vo.pub.VOStatus.UNCHANGED);
+				// ###################################################
 
 				getBillCardPanel().updateValue();
 
@@ -7713,7 +7957,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			return;
 
 		LocatorVO[] voaLoc = (LocatorVO[]) m_alLocatorData.get(row);
-		SerialVO[] sns = (SerialVO[])m_alSerialData.get(row);
+		SerialVO[] sns = (SerialVO[]) m_alSerialData.get(row);
 
 		if (voaLoc != null && voaLoc.length == 1 && voaLoc[0] != null) {
 			getBillCardPanel().setBodyValueAt(voaLoc[0].getVspacename(), row,
@@ -7721,13 +7965,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			getBillCardPanel().setBodyValueAt(voaLoc[0].getCspaceid(), row,
 					"cspaceid");
 		}
-		
+
 		if (sns != null && sns.length == 1 && sns[0] != null) {
-			getBillCardPanel().setBodyValueAt(sns[0].getVserialcode(), row, "vserialcode");
+			getBillCardPanel().setBodyValueAt(sns[0].getVserialcode(), row,
+					"vserialcode");
 		}
 	}
-	
-	//boolean isSetButtons = false;
+
+	// boolean isSetButtons = false;
 
 	/**
 	 * 创建者：王乃军 功能：根据设定的按钮初始化菜单。 参数： 返回： 例外： 日期：(2001-11-23 18:11:18)
@@ -7735,39 +7980,29 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 
 	 */
 	protected void setButtons() {
-/*		if (isSetButtons){
-			SCMEnv.out("刘家清测试跟踪，已经设置过了，设定的按钮初始化菜单时的按钮: "+getBillTypeCode()+" 失败");
-			return;
-		}
-		isSetButtons = true;*/
-		//修改人：刘家清 修改时间：2008-12-24 下午04:30:20 修改原因：为了捕捉按钮没有的问题而做暂时的日志输出。
-		//int inum = 0;
-		ButtonObject[] buttonArray = getButtonManager().getButtonTree().getButtonArray();
-/*		if (null != getBillTypeCode() && ("4D".equals(getBillTypeCode()) || "4401".equals(getBillTypeCode()))){
-			SCMEnv.out("设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
-			for (ButtonObject bo : buttonArray){
-				SCMEnv.out("按钮："+bo.getName());
-				inum = inum +1;
-				if (null != bo.getChildren() && 0 < bo.getChildren().size())
-					for (int i = 0 ; i<bo.getChildren().size() ;i++){
-						ButtonObject bb = (ButtonObject)bo.getChildren().get(i);
-						SCMEnv.out("按钮："+bo.getName() + "的子按钮："+bb.getName());
-						inum = inum +1;
-					}
-			}
-		}
-		
-		SCMEnv.out("查询出节点"+getBillTypeCode()+"的按钮总数: "+inum);*/
-		if(getExtendBtns()!=null){
-			ButtonObject[] bos = new ButtonObject[buttonArray.length+getExtendBtns().length] ;
-			
-			System.arraycopy(buttonArray, 0, bos, 0,  buttonArray.length);
-			System.arraycopy(getExtendBtns(), 0, bos, buttonArray.length, getExtendBtns().length);
-			
-			setButtons(bos);
-		}
-		
-		else		setButtons(buttonArray);
+
+		/*
+		 * if (isSetButtons){ SCMEnv.out("刘家清测试跟踪，已经设置过了，设定的按钮初始化菜单时的按钮:
+		 * "+getBillTypeCode()+" 失败"); return; } isSetButtons = true;
+		 */
+		// 修改人：刘家清 修改时间：2008-12-24 下午04:30:20 修改原因：为了捕捉按钮没有的问题而做暂时的日志输出。
+		// int inum = 0;
+		ButtonObject[] buttonArray = getButtonManager().getButtonTree()
+				.getButtonArray();
+		/*
+		 * if (null != getBillTypeCode() && ("4D".equals(getBillTypeCode()) ||
+		 * "4401".equals(getBillTypeCode()))){ SCMEnv.out("设定的按钮初始化菜单时的按钮:
+		 * "+getBillTypeCode()); for (ButtonObject bo : buttonArray){
+		 * SCMEnv.out("按钮："+bo.getName()); inum = inum +1; if (null !=
+		 * bo.getChildren() && 0 < bo.getChildren().size()) for (int i = 0 ; i<bo.getChildren().size()
+		 * ;i++){ ButtonObject bb = (ButtonObject)bo.getChildren().get(i);
+		 * SCMEnv.out("按钮："+bo.getName() + "的子按钮："+bb.getName()); inum = inum
+		 * +1; } } }
+		 * 
+		 * SCMEnv.out("查询出节点"+getBillTypeCode()+"的按钮总数: "+inum);
+		 */
+
+		setButtons(buttonArray);
 
 	}
 
@@ -7819,7 +8054,6 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			nc.vo.scm.pub.SCMEnv.error(e);
 		}
 	}
-	
 
 	/**
 	 * 创建者：王乃军 功能：在表单设置显示VO,不更新界面状态updateValue() 参数： 返回： 例外： 日期：(2001-5-9
@@ -7843,9 +8077,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 
 	 */
 	public void setListBodyData(GeneralBillItemVO voi[]) {
-    
-    getPluginProxy().beforeSetBillVOsToListBody(voi);
-    
+
+		getPluginProxy().beforeSetBillVOsToListBody(voi);
+
 		if (voi != null) {
 			try {
 				getBillListPanel().getBodyTable().getModel()
@@ -7861,9 +8095,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						.addTableModelListener(this);
 			}
 		}
-    
-    getPluginProxy().afterSetBillVOsToListBody(voi);
-    
+
+		getPluginProxy().afterSetBillVOsToListBody(voi);
+
 	}
 
 	/**
@@ -7917,9 +8151,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 
 	 */
 	public void setListHeadData(GeneralBillHeaderVO voh[]) {
-    
-    getPluginProxy().beforeSetBillVOsToListHead(voh);
-    
+
+		getPluginProxy().beforeSetBillVOsToListHead(voh);
+
 		if (voh != null && voh.length > 0) {
 			try {
 				getBillListPanel().getHeadBillModel().setSortColumn(null);
@@ -7935,8 +8169,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				nc.vo.scm.pub.SCMEnv.error(e2);
 			}
 		}
-    
-    getPluginProxy().afterSetBillVOsToListHead(voh);
+
+		getPluginProxy().afterSetBillVOsToListHead(voh);
 	}
 
 	/**
@@ -8119,13 +8353,12 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 
 	 */
 	public void showWarningMessage(String sMsg) {
-		if (m_bUserDefaultErrDlg){
+		if (m_bUserDefaultErrDlg) {
 			// added by lirr 2009-11-5下午03:35:29
 			showHintMessage(sMsg);
 			super.showWarningMessage(sMsg);
 
-		}
-		else
+		} else
 			nc.ui.pub.beans.MessageDialog.showHintDlg(this, nc.ui.ml.NCLangRes
 					.getInstance().getStrByID("SCMCOMMON",
 							"UPPSCMCommon-000270")/* @res "提示" */, sMsg);
@@ -8506,7 +8739,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 							"csourcetype");
 					/** 判断单据类型是否为外部单据 */
 					// 没有来源单据，并且浏览状态下，复制可用
-					IBillType billType = BillTypeFactory.getInstance().getBillType(sSourceBillType);
+					IBillType billType = BillTypeFactory.getInstance()
+							.getBillType(sSourceBillType);
 					if (sSourceBillType != null
 							&& billType.typeOf(ModuleCode.IC)) {
 						// 内部生成单据
@@ -8615,7 +8849,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 */
 	protected void ctrlSourceBillButtons(boolean bUpdateButtons) {
 		String sSourceBillType = getSourBillTypeCode();
-		IBillType billType = BillTypeFactory.getInstance().getBillType(sSourceBillType);
+		IBillType billType = BillTypeFactory.getInstance().getBillType(
+				sSourceBillType);
 		/** 判断单据类型是否为外部单据 */
 		// 没有来源单据，并且浏览状态下，复制可用
 		if ((sSourceBillType == null || sSourceBillType.trim().length() == 0)) {
@@ -8653,20 +8888,21 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				// getBillCardPanel().getBodyMenuItems()[m_Menu_AddNewRowNO_Index])
 				// getBillCardPanel().getBodyMenuItems()[m_Menu_AddNewRowNO_Index].setEnabled(false);
 
-			} else{
+			} else {
 				// 浏览状态下只是不让复制单据
 				getButtonManager().getButton(ICButtonConst.BTN_BILL_COPY)
-						.setEnabled(false);	
-				
+						.setEnabled(false);
+
 				// 修改人：陈倪娜 上午10:53:36_2009-10-17 修改原因 转单退库不可用并且是转多个入库单
-				if(m_bRefBills){
-				getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN)
+				if (m_bRefBills) {
+					getButtonManager().getButton(
+							ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN)
 							.setEnabled(false);
-				getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
+					getButtonManager().getButton(
+							ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 							.setEnabled(false);
 				}
 
-			
 			}
 			// boolean bisdispensebill = isDispensedBill(null);
 			// if (bisdispensebill) {
@@ -8802,11 +9038,12 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	protected void ctrlSourceBillUI(boolean bUpdateButtons) {
 		try {
 			String sSourceBillType = getSourBillTypeCode();
-			IBillType billType = BillTypeFactory.getInstance().getBillType(sSourceBillType);
+			IBillType billType = BillTypeFactory.getInstance().getBillType(
+					sSourceBillType);
 			/** 判断单据类型是否为外部单据 */
 			// 没有来源单据，并且浏览状态下，复制可用
 			if ((sSourceBillType == null || sSourceBillType.trim().length() == 0)) {
-				if (getM_iMode() == BillMode.Browse&& m_iBillQty > 0
+				if (getM_iMode() == BillMode.Browse && m_iBillQty > 0
 						&& getM_iLastSelListHeadRow() >= 0) {
 					// 浏览状态下可以复制单据
 					getButtonManager().getButton(ICButtonConst.BTN_BILL_COPY)
@@ -8863,8 +9100,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 							.setEnabled(false);
 				}
 
-			}
-			else {
+			} else {
 				// 内部生成单据,特殊单据，销售出库，采购入库的配套生成的其它入，出。
 				/** 判断单据类型否为转库单 */
 				if (sSourceBillType != null
@@ -8909,13 +9145,13 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						String[] saNotEditableHeadKey2 = null;
 						if (sHeadItemKey == null)
 							saNotEditableHeadKey2 = new String[] {
-									IItemKey.WAREHOUSE,IItemKey.COTHERWHID, IItemKey.CALBODY,
-									IItemKey.WASTEWAREHOUSE,
+									IItemKey.WAREHOUSE, IItemKey.COTHERWHID,
+									IItemKey.CALBODY, IItemKey.WASTEWAREHOUSE,
 									IItemKey.WASTECALBODY };
 						else
 							saNotEditableHeadKey2 = new String[] {
-									IItemKey.WAREHOUSE,IItemKey.COTHERWHID, IItemKey.CALBODY,
-									IItemKey.WASTEWAREHOUSE,
+									IItemKey.WAREHOUSE, IItemKey.COTHERWHID,
+									IItemKey.CALBODY, IItemKey.WASTEWAREHOUSE,
 									IItemKey.WASTECALBODY, sHeadItemKey };
 
 						for (int i = 0; i < saNotEditableHeadKey2.length; i++) {
@@ -9253,10 +9489,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				"vrevcustname", "pk_cubasdocrev" };
 		arylistItemField.add(aryItemField18);
 
-//		// 来源单据类型, 为减少链接数，去掉此处公式加载，放到后台完成，songhy
-//		String[] aryItemField9 = new String[] { "billtypename",
-//				"csourcetypename", "csourcetype" };
-//		arylistItemField.add(aryItemField9);
+		// // 来源单据类型, 为减少链接数，去掉此处公式加载，放到后台完成，songhy
+		// String[] aryItemField9 = new String[] { "billtypename",
+		// "csourcetypename", "csourcetype" };
+		// arylistItemField.add(aryItemField9);
 
 		// 成本对象 基本档案
 		// ccostobjectbasid
@@ -9268,11 +9504,11 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				"ccostobjectbasid" };
 		arylistItemField.add(aryItemField33);
 
-//		// 源头单据号, 为减少链接数，去掉此处公式加载，放到后台完成，songhy
-//		String[] aryItemField10 = new String[] { "billtypename",
-//				"cfirsttypename", "cfirsttype" };
-//		arylistItemField.add(aryItemField10);
-		
+		// // 源头单据号, 为减少链接数，去掉此处公式加载，放到后台完成，songhy
+		// String[] aryItemField10 = new String[] { "billtypename",
+		// "cfirsttypename", "cfirsttype" };
+		// arylistItemField.add(aryItemField10);
+
 		// //部门
 		String[] aryItemField19 = new String[] { "deptname", "vdeptname",
 				"cdptid" };
@@ -9442,30 +9678,29 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 
 	 * @return nc.vo.ic.pub.bill.QryConditionVO
 	 */
-//	protected QryConditionVO getQryConditionVO() {
-//		// 添加查询
-//		nc.vo.pub.query.ConditionVO[] voaCond = getConditionDlg()
-//				.getConditionVO();
-//		// 处理跨公司部门业务员条件
-//		voaCond = nc.ui.ic.pub.tools.GenMethod.procMultCorpDeptBizDP(voaCond,
-//				getBillTypeCode(), getCorpPrimaryKey());
-//		// 过滤null为 is null 或 is not null add by hanwei 2004-03-31.01
-//		nc.ui.ic.pub.report.IcBaseReportComm.fixContionVONullsql(voaCond);
-//		QryConditionVO voCond = new QryConditionVO(" head.cbilltypecode='"
-//				+ getBillType() + "' AND " + getExtendQryCond(voaCond));
-//
-//		// addied by liuzy 2008-03-28 V5.03需求：单据查询增加起止日期
-//		for (int i = 0; i < voaCond.length; i++) {
-//			if (null != voaCond[i]
-//					&& (voaCond[i].getFieldCode().equals("head.dbilldate.from") || voaCond[i]
-//							.getFieldCode().equals("head.dbilldate.end"))) {
-//				voaCond[i].setFieldCode("head.dbilldate");
-//			}
-//		}
-//
-//		return voCond;
-//	}
-
+	// protected QryConditionVO getQryConditionVO() {
+	// // 添加查询
+	// nc.vo.pub.query.ConditionVO[] voaCond = getConditionDlg()
+	// .getConditionVO();
+	// // 处理跨公司部门业务员条件
+	// voaCond = nc.ui.ic.pub.tools.GenMethod.procMultCorpDeptBizDP(voaCond,
+	// getBillTypeCode(), getCorpPrimaryKey());
+	// // 过滤null为 is null 或 is not null add by hanwei 2004-03-31.01
+	// nc.ui.ic.pub.report.IcBaseReportComm.fixContionVONullsql(voaCond);
+	// QryConditionVO voCond = new QryConditionVO(" head.cbilltypecode='"
+	// + getBillType() + "' AND " + getExtendQryCond(voaCond));
+	//
+	// // addied by liuzy 2008-03-28 V5.03需求：单据查询增加起止日期
+	// for (int i = 0; i < voaCond.length; i++) {
+	// if (null != voaCond[i]
+	// && (voaCond[i].getFieldCode().equals("head.dbilldate.from") || voaCond[i]
+	// .getFieldCode().equals("head.dbilldate.end"))) {
+	// voaCond[i].setFieldCode("head.dbilldate");
+	// }
+	// }
+	//
+	// return voCond;
+	// }
 	/**
 	 * 此处插入方法说明。 创建日期：(2004-3-12 21:25:15)
 	 * 
@@ -9483,7 +9718,37 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 */
 	/* 警告：此方法将重新生成。 */
 	protected void initialize(String sBiztypeid) {
-
+		// 添加按钮,zhoujie 2010-09-03 09:28:42
+		if (getButtonManager().getButtonTree().getButton(MDUtils.MDINFO_BUTTON)
+				.getCode().equals(MDUtils.MDINFO_BUTTON)) {
+			System.out.println("");
+			try {
+				getButtonManager().getButtonTree().removeChildMenu(
+						getButtonManager().getButtonTree().getButton(
+								MDUtils.MDINFO_BUTTON));
+				getButtonManager().getButtonTree().removeMenu(
+						getButtonManager().getButtonTree().getButton(
+								MDUtils.MDINFO_BUTTON));
+			} catch (BusinessException e) {
+				e.printStackTrace();
+			}
+		}
+		if (MDUtils.getBillNameByBilltype(getBillType()) != null) {
+			try {
+				getButtonManager().getButtonTree().addChildMenu(
+						getButtonManager().getButtonTree().getButton(
+								ICButtonConst.BTN_BILL), mdinfo);
+			} catch (BusinessException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		//毛边计算
+		if(getBillType()=="45"){
+			getButtonManager().getButtonTree().addMenu(new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON));
+		}
+		
+		
 		try {
 			// 界面管理器
 			m_layoutManager = new ToftLayoutManager(this);
@@ -9501,8 +9766,6 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// 初始化缺省菜单。
 			// initButtonsData();
 
-
-
 			// user code end
 			setName("ClientUI");
 
@@ -9515,15 +9778,16 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					new String[] { "nprice", "hsl", "nsaleprice", "ntaxprice",
 							"nquoteunitrate" }, 0,
 					nc.vo.scm.pub.bill.SCMDoubleScale.MAXVALUE);
-			
-			//SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
+
+			// SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
+
 			// 设置菜单
 			setButtons();
 
 			// 初始化编辑前控制器
 			getBillCardPanel().getBillModel().setCellEditableController(this);
-			
-//			得到当前的表体中系统默认的背景色
+
+			// 得到当前的表体中系统默认的背景色
 			m_cNormalColor = getBillCardPanel().getBillTable().getBackground();
 
 		} catch (java.lang.Throwable ivjExc) {
@@ -9598,7 +9862,9 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 		}
 
-		if (isNeedBillRefWithBillType() && getButtonManager().getButton(ICButtonConst.BTN_BUSINESS_TYPE) != null
+		if (isNeedBillRefWithBillType()
+				&& getButtonManager()
+						.getButton(ICButtonConst.BTN_BUSINESS_TYPE) != null
 				&& getButtonManager()
 						.getButton(ICButtonConst.BTN_BUSINESS_TYPE)
 						.getChildButtonGroup() != null
@@ -9610,8 +9876,11 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						.getChildButtonGroup()[0] != null) {
 			getButtonManager().getButton(ICButtonConst.BTN_BUSINESS_TYPE)
 					.getChildButtonGroup()[0].setSelected(true);
-			//SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
-			//SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getButtonManager().getButton(ICButtonConst.BTN_BUSINESS_TYPE).getCode() + ":"+getButtonManager().getButton(ICButtonConst.BTN_BUSINESS_TYPE).getName()+":"+getButtonManager().getButton(ICButtonConst.BTN_BUSINESS_TYPE).getTag());
+			// SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
+			// SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮:
+			// "+getButtonManager().getButton(ICButtonConst.BTN_BUSINESS_TYPE).getCode()
+			// +
+			// ":"+getButtonManager().getButton(ICButtonConst.BTN_BUSINESS_TYPE).getName()+":"+getButtonManager().getButton(ICButtonConst.BTN_BUSINESS_TYPE).getTag());
 			onJointAdd(getButtonManager().getButton(
 					ICButtonConst.BTN_BUSINESS_TYPE).getChildButtonGroup()[0]);
 		}
@@ -9623,14 +9892,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			for (UIMenuItem oldUIMenuItem : oldUIMenuItems)
 				newMenuList.add(oldUIMenuItem);
 			newMenuList.add(getAddNewRowNoItem());
-      newMenuList.add(getMiLineCardEdit());
-      //newMenuList.add(getMiLineBatchEdit());
+			newMenuList.add(getMiLineCardEdit());
+			// newMenuList.add(getMiLineBatchEdit());
 			getAddNewRowNoItem().removeActionListener(this);
 			getAddNewRowNoItem().addActionListener(this);
-      getMiLineCardEdit().removeActionListener(this);
-      getMiLineCardEdit().addActionListener(this);
-      //getMiLineBatchEdit().removeActionListener(this);
-      //getMiLineBatchEdit().addActionListener(this);
+			getMiLineCardEdit().removeActionListener(this);
+			getMiLineCardEdit().addActionListener(this);
+			// getMiLineBatchEdit().removeActionListener(this);
+			// getMiLineBatchEdit().addActionListener(this);
 			UIMenuItem[] newUIMenuItems = new UIMenuItem[newMenuList.size()];
 			m_Menu_AddNewRowNO_Index = newMenuList.size() - 1;
 			newMenuList.toArray(newUIMenuItems);
@@ -9640,14 +9909,13 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			getBillCardPanel().getBodyPanel().addTableBodyMenu();
 
 		}
-    
-    GeneralBillUICtl.setBillCardPaneSelectMode(getBillCardPanel());
-    GeneralBillUICtl.setBillListPaneSelectMode(getBillListPanel());
+
+		GeneralBillUICtl.setBillCardPaneSelectMode(getBillCardPanel());
+		GeneralBillUICtl.setBillListPaneSelectMode(getBillListPanel());
 		showBtnSwitch();
 		m_layoutManager.show();
 
 	}
-
 
 	protected void setIsImportData(boolean isImportData) {
 		m_bIsImportData = isImportData;
@@ -9704,8 +9972,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * 
 	 */
 	protected void onJointAdd(ButtonObject bo) {
-	
-		if (isNeedBillRefWithBillType()){
+
+		if (isNeedBillRefWithBillType()) {
 			// 当前是列表形式时，首先切换到表单形式
 			if (BillMode.List == getM_iCurPanel())
 				onButtonClicked(getButtonManager().getButton(
@@ -9716,8 +9984,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					getBillType(), bo);
 			showSelBizType(bo);
 			// updateButtons();
-			//SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
-			//isSetButtons = false;
+			// SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
+			// isSetButtons = false;
 			setButtons();
 		}
 
@@ -9737,26 +10005,25 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID("common",
 				"UCH044")/* @res "正在保存" */);
 
-//		if(!getBillCardPanel().getBillData().execBodyValidateFormulas())
-//      return false;
-		//支持验证公式 陈倪娜 090909
-		if(!getBillCardPanel().getBillData().execValidateFormulas())
-	           return false;
-
+		// if(!getBillCardPanel().getBillData().execBodyValidateFormulas())
+		// return false;
+		// 支持验证公式 陈倪娜 090909
+		if (!getBillCardPanel().getBillData().execValidateFormulas())
+			return false;
 
 		boolean bSave = false;
 		bSave = onSaveBase();
 		// 基类中保存后的动作
 		if (bSave) {
-			
-      GeneralBillVO.setBillBCVOStatus(getM_voBill(), nc.vo.pub.VOStatus.UNCHANGED);
-      
+
+			GeneralBillVO.setBillBCVOStatus(getM_voBill(),
+					nc.vo.pub.VOStatus.UNCHANGED);
+
 			GeneralBillUICtl.processOrdItem(getBillCardPanel(), false);
-			
+
 			getM_utfBarCode().setText(null);
-			
+
 		}
-		
 		if (m_bOnhandShowHidden) {
 			m_pnlQueryOnHand.clearCache();
 			m_pnlQueryOnHand.fresh();
@@ -9765,29 +10032,28 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		if (m_bRefBills && bSave) {
 			// 删除列表下的对应单据
 			// delBillOfList(m_iLastSelListHeadRow);
-			
+
 			if (null == m_alRefBillsBak)
 				m_alRefBillsBak = new ArrayList();
 			m_alRefBillsBak.add(getM_voBill());
-			
+
 			if (getM_iLastSelListHeadRow() >= 0)
-				removeBillsOfList(new int[] { getM_iLastSelListHeadRow() },true);
+				removeBillsOfList(new int[] { getM_iLastSelListHeadRow() },
+						true);
 			updateHeadTsWhenMutiBillSave(getM_voBill());
-			
+
 			if ((getM_alListData() == null || getM_alListData().size() == 0)
-					&& null != m_alRefBillsBak && 0< m_alRefBillsBak.size()){
+					&& null != m_alRefBillsBak && 0 < m_alRefBillsBak.size()) {
 				m_bRefBills = false;
 				setM_iMode(BillMode.Browse);
-				setDataOnList(m_alRefBillsBak,false);
+				setDataOnList(m_alRefBillsBak, false);
 				m_alRefBillsBak = null;
-				
 
-			}
-			else{
+			} else {
 				for (GeneralBillVO billVO : getM_alListData())
 					updateHeadTsWhenMutiBillSave(billVO);
 				onButtonClicked(getButtonManager().getButton(
-				ICButtonConst.BTN_SWITCH));
+						ICButtonConst.BTN_SWITCH));
 			}
 			// onSwitch();
 		}
@@ -9894,38 +10160,28 @@ protected void removeBillsOfList(int[] iaDelLines) {
 	 * @time 2008-4-28 下午03:51:47
 	 * @deprecated
 	 */
-/*	private void fillItemNullValue() {
-		GeneralBillHeaderVO header = getM_voBill().getHeaderVO();
-		GeneralBillItemVO[] items = getM_voBill().getItemVOs();
-
-		// 仓库
-		if (header.getCwarehouseid() == null
-				|| header.getCwarehouseid().length() == 0)
-			header.setCwarehouseid(GenMethod.STRING_NULL);
-		// 部门
-		if (header.getCdptid() == null || header.getCdptid().length() == 0)
-			header.setCdptid(GenMethod.STRING_NULL);
-		// 收发类别
-		if (header.getCdispatcherid() == null
-				|| header.getCdispatcherid().length() == 0)
-			header.setCdispatcherid(GenMethod.STRING_NULL);
-		// 库存组织
-		if (header.getPk_calbody() == null
-				|| header.getPk_calbody().length() == 0)
-			header.setPk_calbody(GenMethod.STRING_NULL);
-		// 库管员
-		if (header.getCwhsmanagerid() == null
-				|| header.getCwhsmanagerid().length() == 0)
-			header.setCwhsmanagerid(GenMethod.STRING_NULL);
-
-		for (GeneralBillItemVO item : items) {
-			item.setAttributeValue(IItemKey.PKCORP, header.getPk_corp());
-			item.setCbodywarehouseid(header.getCwarehouseid());
-			item.setPk_bodycalbody(header.getPk_calbody());
-			item.setPk_calbody(header.getPk_calbody());
-			item.setCbodybilltypecode(header.getCbilltypecode());
-		}
-	}*/
+	/*
+	 * private void fillItemNullValue() { GeneralBillHeaderVO header =
+	 * getM_voBill().getHeaderVO(); GeneralBillItemVO[] items =
+	 * getM_voBill().getItemVOs(); // 仓库 if (header.getCwarehouseid() == null ||
+	 * header.getCwarehouseid().length() == 0)
+	 * header.setCwarehouseid(GenMethod.STRING_NULL); // 部门 if
+	 * (header.getCdptid() == null || header.getCdptid().length() == 0)
+	 * header.setCdptid(GenMethod.STRING_NULL); // 收发类别 if
+	 * (header.getCdispatcherid() == null || header.getCdispatcherid().length() ==
+	 * 0) header.setCdispatcherid(GenMethod.STRING_NULL); // 库存组织 if
+	 * (header.getPk_calbody() == null || header.getPk_calbody().length() == 0)
+	 * header.setPk_calbody(GenMethod.STRING_NULL); // 库管员 if
+	 * (header.getCwhsmanagerid() == null || header.getCwhsmanagerid().length() ==
+	 * 0) header.setCwhsmanagerid(GenMethod.STRING_NULL);
+	 * 
+	 * for (GeneralBillItemVO item : items) {
+	 * item.setAttributeValue(IItemKey.PKCORP, header.getPk_corp());
+	 * item.setCbodywarehouseid(header.getCwarehouseid());
+	 * item.setPk_bodycalbody(header.getPk_calbody());
+	 * item.setPk_calbody(header.getPk_calbody());
+	 * item.setCbodybilltypecode(header.getCbilltypecode()); } }
+	 */
 
 	/**
 	 * 创建者：王乃军 功能：确认（保存）处理 参数：无 返回： true: 成功 false: 失败
@@ -10033,7 +10289,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			getM_voBill().setIsRwtPuUserConfirmFlag(false);
 
 			// 补充空值
-			//fillItemNullValue();
+			// fillItemNullValue();
 
 			while (true) {
 				try {
@@ -10042,13 +10298,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 							.getUserID());
 					break;
 
-				}
-				catch ( nc.bs.framework.exception.ConnectorSocketException e ) {
+				} catch (nc.bs.framework.exception.ConnectorSocketException e) {
 					SCMEnv.out(e.getMessage());
-					showErrorMessage( nc.ui.ml.NCLangRes.getInstance().getStrByID(
-							"4008busi","UPP4008busi-000403")/* @res "当前网络异常，请检查网络！" */ );
-				}
-				catch (Exception ee1) {
+					showErrorMessage(nc.ui.ml.NCLangRes.getInstance()
+							.getStrByID("4008busi", "UPP4008busi-000403")/*
+																			 * @res
+																			 * "当前网络异常，请检查网络！"
+																			 */);
+				} catch (Exception ee1) {
 
 					BusinessException realbe = nc.ui.ic.pub.tools.GenMethod
 							.handleException(null, null, ee1);
@@ -10065,10 +10322,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					} else if (realbe != null
 							&& realbe.getClass() == CreditNotEnoughException.class) {
 						// 错误信息显示，并询问用户“是否继续？”
-						// 是否继续？ 改为多语形式 modify by qinchao  20081225 圣诞节，共3处替换
+						// 是否继续？ 改为多语形式 modify by qinchao 20081225 圣诞节，共3处替换
 						int iFlag = showYesNoMessage(realbe.getMessage()
-								+ " \r\n" + 
-								nc.ui.ml.NCLangRes.getInstance().getStrByID("40080802","ClientUI-000001")/* @res "是否继续" */);
+								+ " \r\n"
+								+ nc.ui.ml.NCLangRes.getInstance().getStrByID(
+										"40080802", "ClientUI-000001")/*
+																		 * @res
+																		 * "是否继续"
+																		 */);
 						// 如果用户选择继续
 						if (iFlag == nc.ui.pub.beans.MessageDialog.ID_YES) {
 							getM_voBill().setIsCheckCredit(false);
@@ -10079,8 +10340,12 @@ protected void removeBillsOfList(int[] iaDelLines) {
 							&& realbe.getClass() == PeriodNotEnoughException.class) {
 						// 错误信息显示，并询问用户“是否继续？”
 						int iFlag = showYesNoMessage(realbe.getMessage()
-								+ " \r\n" + 
-								nc.ui.ml.NCLangRes.getInstance().getStrByID("40080802","ClientUI-000001")/* @res "是否继续" */);
+								+ " \r\n"
+								+ nc.ui.ml.NCLangRes.getInstance().getStrByID(
+										"40080802", "ClientUI-000001")/*
+																		 * @res
+																		 * "是否继续"
+																		 */);
 						// 如果用户选择继续
 						if (iFlag == nc.ui.pub.beans.MessageDialog.ID_YES) {
 							getM_voBill().setIsCheckPeriod(false);
@@ -10096,8 +10361,13 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						} else {
 							// 错误信息显示，并询问用户“是否继续？”
 							int iFlag = showYesNoMessage(atpe.getMessage()
-									+ " \r\n" + 
-									nc.ui.ml.NCLangRes.getInstance().getStrByID("40080802","ClientUI-000001")/* @res "是否继续" */);
+									+ " \r\n"
+									+ nc.ui.ml.NCLangRes.getInstance()
+											.getStrByID("40080802",
+													"ClientUI-000001")/*
+																		 * @res
+																		 * "是否继续"
+																		 */);
 							// 如果用户选择继续
 							if (iFlag == nc.ui.pub.beans.MessageDialog.ID_YES) {
 								getM_voBill().setIsCheckAtp(false);
@@ -10114,8 +10384,6 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					}
 				}
 			}
-			
-			
 
 			// 是普通新增、或修改
 			if (BillMode.New == getM_iMode() || BillMode.Update == getM_iMode()) {
@@ -10124,7 +10392,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				m_timer.showExecuteTime("updateValue");
 				// coperatorid
 				setM_iMode(BillMode.Browse);
-				
+
 				getEditCtrl().resetCardEditFlag(getBillCardPanel());
 				// 不可编辑
 				getBillCardPanel().setEnabled(false);
@@ -10136,23 +10404,26 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				// 屏蔽 by hanwei 2003-11-13 避免保存后界面选择出现存量为空
 				// m_voBill.clearInvQtyInfo();
 				// 选中第一行
-				//getBillCardPanel().getBillTable().setRowSelectionInterval(0, 0);
+				// getBillCardPanel().getBillTable().setRowSelectionInterval(0,
+				// 0);
 				// 重置序列号是否可用
 				setBtnStatusSN(0, false);
 				// 刷新第一行现存量显示
-				//setTailValue(0);
+				// setTailValue(0);
 				m_timer.showExecuteTime("刷新第一行现存量显示");
 			}
 
-//			if (m_sBillStatus != null && !m_sBillStatus.equals(BillStatus.FREE)
-//					&& !m_sBillStatus.equals(BillStatus.DELETED)) {
-//				SCMEnv.out("**** saved and signed ***");
-//				freshAfterSignedOK(m_sBillStatus);
-//				m_timer.showExecuteTime("freshAfterSignedOK");
-//			}
-      
-      m_sBillStatus = getM_voBill().getHeaderVO().getFbillflag().toString();
-      
+			// if (m_sBillStatus != null &&
+			// !m_sBillStatus.equals(BillStatus.FREE)
+			// && !m_sBillStatus.equals(BillStatus.DELETED)) {
+			// SCMEnv.out("**** saved and signed ***");
+			// freshAfterSignedOK(m_sBillStatus);
+			// m_timer.showExecuteTime("freshAfterSignedOK");
+			// }
+
+			m_sBillStatus = getM_voBill().getHeaderVO().getFbillflag()
+					.toString();
+
 			showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
 					"common", "UCH005")/* @res "保存成功" */);
 
@@ -10166,7 +10437,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			OffLineCtrl ctrl = new OffLineCtrl(this);
 			ctrl.saveExcelFile(getM_voBill(), getCorpPrimaryKey());
 			m_timer.showExecuteTime("执行保存条码文件结束");
-			nc.ui.ic.pub.tools.GenMethod.reSetRowColorWhenNOException(getBillCardPanel());
+			nc.ui.ic.pub.tools.GenMethod
+					.reSetRowColorWhenNOException(getBillCardPanel());
 			return true;
 
 		} catch (java.net.ConnectException ex1) {
@@ -10181,8 +10453,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						ICButtonConst.BTN_EXPORT_TO_DIRECTORY));
 				// onBillExcel(1);// 保存单据信息到默认目录
 			}
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 
 			if (e instanceof nc.vo.ic.ic009.PackCheckBusException) {
 
@@ -10200,14 +10471,13 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 				getpackCheckBusDialog().showModal();
 
-			} 
+			}
 			// added by lirr 20092009-7-2下午01:31:53
 
-			else if (e instanceof nc.vo.scm.ic.exp.ICSNException){
-				String sErrorMessage = ((ICSNException)e).getHint();
-		        showErrorMessage(sErrorMessage);
-			}
-			else {
+			else if (e instanceof nc.vo.scm.ic.exp.ICSNException) {
+				String sErrorMessage = ((ICSNException) e).getHint();
+				showErrorMessage(sErrorMessage);
+			} else {
 
 				handleException(e);
 				showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
@@ -10220,11 +10490,12 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				}
 				showErrorMessage(se);
 			}
-			
-			if (e instanceof ICBusinessException){
+
+			if (e instanceof ICBusinessException) {
 				ICBusinessException ee = (ICBusinessException) e;
 				// 更改颜色
-				nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getBillCardPanel(),ee);
+				nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(
+						getBillCardPanel(), ee);
 			}
 
 		}
@@ -10242,20 +10513,21 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		try {
 			nc.vo.sm.log.OperatelogVO log = getNormalOperateLog();
 
-
 			if (BillMode.New == getM_iMode()) {
 				voBill.setStatus(nc.vo.pub.VOStatus.NEW);
 				voBill.setHeaderValue("coperatorid", getEnvironment()
 						.getUserID());
-//				voBill.setHeaderValue("time", m_dTime);
+				// voBill.setHeaderValue("time", m_dTime);
 				voBill.setAccreditUserID(sAccreditUserID);
 				voBill.setOperatelogVO(log);
-			      
-				//二次开发扩展
-	      getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.SAVE, new GeneralBillVO[]{voBill});
+
+				// 二次开发扩展
+				getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.SAVE,
+						new GeneralBillVO[] { voBill });
 				saveNewBill(voBill);
-				//二次开发扩展
-			      getPluginProxy().afterAction(nc.vo.scm.plugin.Action.SAVE, new GeneralBillVO[]{voBill});
+				// 二次开发扩展
+				getPluginProxy().afterAction(nc.vo.scm.plugin.Action.SAVE,
+						new GeneralBillVO[] { voBill });
 			} else // 修改
 			if (BillMode.Update == getM_iMode()) {
 				// 得到修改后的单据VO
@@ -10265,11 +10537,14 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				voUpdatedBill.setOperatelogVO(log);
 				// 执行修改保存...有错误抛出异常
 				// 执行修改保存
-			      
-				//二次开发扩展
-	      getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.SAVE, new GeneralBillVO[]{voUpdatedBill});
+
+				// 二次开发扩展
+				getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.SAVE,
+						new GeneralBillVO[] { voUpdatedBill });
 				saveUpdatedBill(voUpdatedBill);
-				//费用信息的修改
+				
+				
+//				费用信息的修改
 				InformationCostVO[] vos = (InformationCostVO[])getBillCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());
 				
 				String cbillid = voUpdatedBill.getHeaderVO().getPrimaryKey();
@@ -10285,10 +10560,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					}
 		        }
 				
-					
 				
-				//二次开发扩展
-			      getPluginProxy().afterAction(nc.vo.scm.plugin.Action.SAVE, new GeneralBillVO[]{voUpdatedBill});
+				// 二次开发扩展
+				getPluginProxy().afterAction(nc.vo.scm.plugin.Action.SAVE,
+						new GeneralBillVO[] { voUpdatedBill });
 			} else {
 				SCMEnv.out("status invalid...");
 				throw new Exception(nc.ui.ml.NCLangRes.getInstance()
@@ -10297,9 +10572,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 																		 * "状态错误。 "
 																		 */);
 			}
-      
-	
-      
+
 		} catch (RightcheckException e) {
 			showErrorMessage(e.getMessage()
 					+ nc.ui.ml.NCLangRes.getInstance().getStrByID("4008bill",
@@ -10480,8 +10753,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			long lTime = System.currentTimeMillis();
 			showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
 					"4008bill", "UPP4008bill-000012")/* @res "正在查询，请稍候..." */);
-			ArrayList<GeneralBillVO> alListData = (ArrayList) GeneralBillHelper.queryBills(
-					getBillType(), voCond);
+			ArrayList<GeneralBillVO> alListData = (ArrayList) GeneralBillHelper
+					.queryBills(getBillType(), voCond);
 
 			showTime(lTime, "查询");
 			// 执行扩展公式.目前只被销售出库单UI重载.
@@ -10992,7 +11265,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			if (getM_voBill() != null)
 				getM_voBill().setHeaderValue("cdilivertypename", sName);
 		}
-    
+
 	}
 
 	/**
@@ -11067,11 +11340,11 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			BarCodeParseVO[] barCodeParseVOs, boolean bBox,
 			String[] sPrimaryKeyItems) throws Exception {
 		try {
-			
+
 			Boolean isNeedAppend = false;
 			if (sPrimaryKeyItems != null)
-				for (BarCodeParseVO barCodeParseVO : barCodeParseVOs){
-					for (String sPrimaryKeyItem : sPrimaryKeyItems){
+				for (BarCodeParseVO barCodeParseVO : barCodeParseVOs) {
+					for (String sPrimaryKeyItem : sPrimaryKeyItems) {
 						if (null == barCodeParseVO
 								.getAttributeValue(sPrimaryKeyItem))
 							throw new BusinessException(nc.ui.ml.NCLangRes
@@ -11079,59 +11352,67 @@ protected void removeBillsOfList(int[] iaDelLines) {
 											"UPP4008bill-000537")/*
 																	 * @res
 																	 * "条码解析失败，请检查条码联合关键字有无对应档案"
-																	 */);				
+																	 */);
 					}
-					
+
 				}
 			// 取当前行
 			int iRow = getBillCardPanel().getBillTable().getSelectedRow();
-			 
-			
-			
-			
-			
+
 			if (sRowPrimaryKey != null && barCodeParseVOs != null
 					&& sRowPrimaryKey.length() > 4
 					&& !sRowPrimaryKey.startsWith("NULL")) // 箱条码中存在存货信息
 			{
-				
-				
+
 				String checkInvManId = null;
 				String checkInvcastunitid = null;
 				if (sPrimaryKeyItems != null)
-					for (BarCodeParseVO barCodeParseVO : barCodeParseVOs){
-						for (String sPrimaryKeyItem : sPrimaryKeyItems){
-							if (BarcodeparseCtrl.InvManKey.equals(sPrimaryKeyItem))
-								checkInvManId = (String)barCodeParseVO.getAttributeValue(sPrimaryKeyItem);
-							if (BarcodeparseCtrl.InvcastunitidKey.equals(sPrimaryKeyItem))
-								checkInvcastunitid = (String)barCodeParseVO.getAttributeValue(sPrimaryKeyItem);	
-							
-	
+					for (BarCodeParseVO barCodeParseVO : barCodeParseVOs) {
+						for (String sPrimaryKeyItem : sPrimaryKeyItems) {
+							if (BarcodeparseCtrl.InvManKey
+									.equals(sPrimaryKeyItem))
+								checkInvManId = (String) barCodeParseVO
+										.getAttributeValue(sPrimaryKeyItem);
+							if (BarcodeparseCtrl.InvcastunitidKey
+									.equals(sPrimaryKeyItem))
+								checkInvcastunitid = (String) barCodeParseVO
+										.getAttributeValue(sPrimaryKeyItem);
+
 						}
-						
-						if (null != checkInvManId && !"".equals(checkInvManId) 
-								&& null != checkInvcastunitid && !"".equals(checkInvcastunitid)){
-							nc.vo.bd.b15.MeasureRateVO measureVO = m_voInvMeas.getMeasureRateDirect(getEnvironment().getCorpID(), checkInvManId, checkInvcastunitid);
+
+						if (null != checkInvManId && !"".equals(checkInvManId)
+								&& null != checkInvcastunitid
+								&& !"".equals(checkInvcastunitid)) {
+							nc.vo.bd.b15.MeasureRateVO measureVO = m_voInvMeas
+									.getMeasureRateDirect(getEnvironment()
+											.getCorpID(), checkInvManId,
+											checkInvcastunitid);
 							if (null == measureVO)
 								throw new BusinessException(nc.ui.ml.NCLangRes
 										.getInstance().getStrByID("4008bill",
-										"UPP4008bill-000557")/*
-																 * @res
-																 * "条码对应的辅单位不合法"
-																 */);
-							
+												"UPP4008bill-000557")/*
+																		 * @res
+																		 * "条码对应的辅单位不合法"
+																		 */);
+
 						}
-						
+
 					}
 
 				// 到单据中查找行符合条件的行arraylist ,优先处理选中行
 				ArrayList alResultTemp = getBarcodeCtrl().scanBillCardItem(
 						sRowPrimaryKey, getM_voBill(), iRow, sPrimaryKeyItems);
-				
-				if (!bBox && (alResultTemp == null || alResultTemp.size() == 0) && null != getBillType() && ("45".equals(getBillType())||"4C".equals(getBillType())||"4Y".equals(getBillType()))){
-					
+
+				if (!bBox
+						&& (alResultTemp == null || alResultTemp.size() == 0)
+						&& null != getBillType()
+						&& ("45".equals(getBillType())
+								|| "4C".equals(getBillType()) || "4Y"
+								.equals(getBillType()))) {
+
 					alResultTemp = getBarcodeCtrl().scanBillCardItem(
-							sRowPrimaryKey, getM_voBill(), iRow, sPrimaryKeyItems,barCodeParseVOs);
+							sRowPrimaryKey, getM_voBill(), iRow,
+							sPrimaryKeyItems, barCodeParseVOs);
 					if (null != alResultTemp && 0 < alResultTemp.size())
 						isNeedAppend = true;
 				}
@@ -11432,93 +11713,134 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					getBillCardPanel().getBillTable().getSelectionModel()
 							.setSelectionInterval(icurline, icurline);
 					scanUpdateLine(barCodeParseVOs, alResult);
-					
-					if (!bBox && isNeedAppend && null != getBillType() && ("45".equals(getBillType())||"4C".equals(getBillType())||"4Y".equals(getBillType()))){
-						if (getBillCardPanel().getBillModel().getRowState(icurline) == BillModel.NORMAL)
-							getBillCardPanel().getBillModel().setRowState(icurline,
-									BillModel.MODIFICATION);
-						for(String key:sPrimaryKeyItems){
-							if (null ==getBillCardPanel().getBodyValueAt(icurline, key) ){
 
-								
+					if (!bBox
+							&& isNeedAppend
+							&& null != getBillType()
+							&& ("45".equals(getBillType())
+									|| "4C".equals(getBillType()) || "4Y"
+									.equals(getBillType()))) {
+						if (getBillCardPanel().getBillModel().getRowState(
+								icurline) == BillModel.NORMAL)
+							getBillCardPanel().getBillModel().setRowState(
+									icurline, BillModel.MODIFICATION);
+						for (String key : sPrimaryKeyItems) {
+							if (null == getBillCardPanel().getBodyValueAt(
+									icurline, key)) {
+
 								nc.ui.pub.bill.BillEditEvent event = null;
-								if (key.startsWith("vfree")){
+								if (key.startsWith("vfree")) {
 									// 自由项
-									/*if (0 == getFreeItemRefPane().getFreeItemValueAll().size())
-										isCellEditable(true, icurline, "vfree0");*/
-									
-		/*							InvVO invvo = getM_voBill().getItemInv(icurline);
-									if (null!= invvo && invvo.getIsFreeItemMgt() != null
-											&& invvo.getIsFreeItemMgt().intValue() == 1) {
-										FreeVO freevo = getM_voBill().getItemVOs()[icurline].getFreeItemVO();
-										if (freevo != null && freevo.getVfree0() != null) {
-											
-											 * if (freevo != null && freevo.getVfree0() != null &&
-											 * freevo.getVfree0() != null && !"".equals(freevo.getVfree0())) {
-											 
-											
-											if (invvo != null)
-												invvo.setFreeItemVO(freevo);
-											//getFreeItemRefPane().setFreeItemParam(ivoVO)
-											getBillCardPanel().setBodyValueAt(freevo.getVfree0(), icurline,
-													"vfree0");
-											for (int i= 1; i <= 10; i++) {
-												if (("vfree" + Integer.toString(i).trim()).equals(key)){
-													if (0 == getFreeItemRefPane().getFreeItemValueAll().size()){
-														InvVO voInv = getM_voBill().getItemInv(icurline);
-														for(int j = 1 ;j<=10;j++)
-															voInv.setFreeItemValue("vfree" + Integer.toString(j).trim(), null);
-														getFreeItemRefPane().setFreeItemParam(voInv);
-														for(int j = 1 ;j<=10;j++)
-															getFreeItemRefPane().getFreeItemValueAll().add(null);
-													}
-													getFreeItemRefPane().getFreeItemValueAll().set(i-1,barCodeParseVOs[0].getAttributeValue(key));
-												}
-														
-											}
-											
-										
-											
-											for (int i = 1; i <= FreeVO.FREE_ITEM_NUM; i++) {
-												if (getBillCardPanel().getBodyItem("vfree" + i) != null)
+									/*
+									 * if (0 ==
+									 * getFreeItemRefPane().getFreeItemValueAll().size())
+									 * isCellEditable(true, icurline, "vfree0");
+									 */
 
-													getBillCardPanel().setBodyValueAt(
-															freevo.getAttributeValue("vfree" + i), icurline,
-															"vfree" + i);
-												else
-													getBillCardPanel().setBodyValueAt(null, icurline,
-															"vfree" + i);
-											}
-											// 修改人：刘家清 修改日期：2007-12-28下午04:49:54 修改原因：同步备份VO和界面上的invvo
-											getBillCardPanel().setBodyValueAt(invvo, irow, "invvo");
-
-										}
-										
-										//getM_voBill().setItemFreeVO(irow, freevo);
-									}*/
+									/*
+									 * InvVO invvo =
+									 * getM_voBill().getItemInv(icurline); if
+									 * (null!= invvo && invvo.getIsFreeItemMgt() !=
+									 * null &&
+									 * invvo.getIsFreeItemMgt().intValue() == 1) {
+									 * FreeVO freevo =
+									 * getM_voBill().getItemVOs()[icurline].getFreeItemVO();
+									 * if (freevo != null && freevo.getVfree0() !=
+									 * null) {
+									 * 
+									 * if (freevo != null && freevo.getVfree0() !=
+									 * null && freevo.getVfree0() != null &&
+									 * !"".equals(freevo.getVfree0())) {
+									 * 
+									 * 
+									 * if (invvo != null)
+									 * invvo.setFreeItemVO(freevo);
+									 * //getFreeItemRefPane().setFreeItemParam(ivoVO)
+									 * getBillCardPanel().setBodyValueAt(freevo.getVfree0(),
+									 * icurline, "vfree0"); for (int i= 1; i <=
+									 * 10; i++) { if (("vfree" +
+									 * Integer.toString(i).trim()).equals(key)){
+									 * if (0 ==
+									 * getFreeItemRefPane().getFreeItemValueAll().size()){
+									 * InvVO voInv =
+									 * getM_voBill().getItemInv(icurline);
+									 * for(int j = 1 ;j<=10;j++)
+									 * voInv.setFreeItemValue("vfree" +
+									 * Integer.toString(j).trim(), null);
+									 * getFreeItemRefPane().setFreeItemParam(voInv);
+									 * for(int j = 1 ;j<=10;j++)
+									 * getFreeItemRefPane().getFreeItemValueAll().add(null); }
+									 * getFreeItemRefPane().getFreeItemValueAll().set(i-1,barCodeParseVOs[0].getAttributeValue(key)); } }
+									 * 
+									 * 
+									 * 
+									 * for (int i = 1; i <=
+									 * FreeVO.FREE_ITEM_NUM; i++) { if
+									 * (getBillCardPanel().getBodyItem("vfree" +
+									 * i) != null)
+									 * 
+									 * getBillCardPanel().setBodyValueAt(
+									 * freevo.getAttributeValue("vfree" + i),
+									 * icurline, "vfree" + i); else
+									 * getBillCardPanel().setBodyValueAt(null,
+									 * icurline, "vfree" + i); } // 修改人：刘家清
+									 * 修改日期：2007-12-28下午04:49:54
+									 * 修改原因：同步备份VO和界面上的invvo
+									 * getBillCardPanel().setBodyValueAt(invvo,
+									 * irow, "invvo"); }
+									 * 
+									 * //getM_voBill().setItemFreeVO(irow,
+									 * freevo); }
+									 */
 									isCellEditable(true, icurline, "vfree0");
-									getBillCardPanel().setBodyValueAt(barCodeParseVOs[0].getAttributeValue(key), icurline, key);
-									getM_voBill().getItemVOs()[icurline].setAttributeValue(key, barCodeParseVOs[0].getAttributeValue(key));
-									for (int i= 1; i <= 10; i++) {
-										if (("vfree" + Integer.toString(i).trim()).equals(key)){
-											getFreeItemRefPane().getFreeItemValueAll().set(i-1,barCodeParseVOs[0].getAttributeValue(key));
+									getBillCardPanel().setBodyValueAt(
+											barCodeParseVOs[0]
+													.getAttributeValue(key),
+											icurline, key);
+									getM_voBill().getItemVOs()[icurline]
+											.setAttributeValue(
+													key,
+													barCodeParseVOs[0]
+															.getAttributeValue(key));
+									for (int i = 1; i <= 10; i++) {
+										if (("vfree" + Integer.toString(i)
+												.trim()).equals(key)) {
+											getFreeItemRefPane()
+													.getFreeItemValueAll()
+													.set(
+															i - 1,
+															barCodeParseVOs[0]
+																	.getAttributeValue(key));
 										}
-												
+
 									}
-									FreeVO freevo = getFreeItemRefPane().getFreeVO();
-									getBillCardPanel().setBodyValueAt(freevo.getVfree0(), icurline,
-									"vfree0");
+									FreeVO freevo = getFreeItemRefPane()
+											.getFreeVO();
+									getBillCardPanel().setBodyValueAt(
+											freevo.getVfree0(), icurline,
+											"vfree0");
 
 									event = new nc.ui.pub.bill.BillEditEvent(
-											getBillCardPanel().getBodyItem("vfree0"),
-											barCodeParseVOs[0].getAttributeValue(key), "vfree0",icurline);
-								}
-								else{
-									getBillCardPanel().setBodyValueAt(barCodeParseVOs[0].getAttributeValue(key), icurline, key);
-									getM_voBill().getItemVOs()[icurline].setAttributeValue(key, barCodeParseVOs[0].getAttributeValue(key));
+											getBillCardPanel().getBodyItem(
+													"vfree0"),
+											barCodeParseVOs[0]
+													.getAttributeValue(key),
+											"vfree0", icurline);
+								} else {
+									getBillCardPanel().setBodyValueAt(
+											barCodeParseVOs[0]
+													.getAttributeValue(key),
+											icurline, key);
+									getM_voBill().getItemVOs()[icurline]
+											.setAttributeValue(
+													key,
+													barCodeParseVOs[0]
+															.getAttributeValue(key));
 									event = new nc.ui.pub.bill.BillEditEvent(
 											getBillCardPanel().getBodyItem(key),
-											barCodeParseVOs[0].getAttributeValue(key), key,icurline);
+											barCodeParseVOs[0]
+													.getAttributeValue(key),
+											key, icurline);
 								}
 								afterEdit(event);
 							}
@@ -11542,8 +11864,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 							|| getM_voBill().getItemVOs()[iRow] == null
 							|| getM_voBill().getItemVOs()[iRow]
 									.getCinventorycode() == null
-									|| getM_voBill().getItemVOs()[iRow]
-																	.getCinventoryid() == null) {
+							|| getM_voBill().getItemVOs()[iRow]
+									.getCinventoryid() == null) {
 
 						throw new BusinessException(nc.ui.ml.NCLangRes
 								.getInstance().getStrByID("4008bill",
@@ -11553,36 +11875,43 @@ protected void removeBillsOfList(int[] iaDelLines) {
 																 */);
 
 					}
-					
-					
+
 					String checkInvManId = null;
 					String checkInvcastunitid = null;
 					if (sPrimaryKeyItems != null)
-						for (BarCodeParseVO barCodeParseVO : barCodeParseVOs){
-							checkInvManId = getM_voBill().getItemVOs()[iRow].getCinventoryid();
-							for (String sPrimaryKeyItem : sPrimaryKeyItems){
+						for (BarCodeParseVO barCodeParseVO : barCodeParseVOs) {
+							checkInvManId = getM_voBill().getItemVOs()[iRow]
+									.getCinventoryid();
+							for (String sPrimaryKeyItem : sPrimaryKeyItems) {
 
-								if (BarcodeparseCtrl.InvcastunitidKey.equals(sPrimaryKeyItem))
-									checkInvcastunitid = (String)barCodeParseVO.getAttributeValue(sPrimaryKeyItem);	
-								
-		
+								if (BarcodeparseCtrl.InvcastunitidKey
+										.equals(sPrimaryKeyItem))
+									checkInvcastunitid = (String) barCodeParseVO
+											.getAttributeValue(sPrimaryKeyItem);
+
 							}
-							
-							if (null != checkInvManId && !"".equals(checkInvManId) 
-									&& null != checkInvcastunitid && !"".equals(checkInvcastunitid)){
-								nc.vo.bd.b15.MeasureRateVO measureVO = m_voInvMeas.getMeasureRateDirect(getEnvironment().getCorpID(), checkInvManId, checkInvcastunitid);
+
+							if (null != checkInvManId
+									&& !"".equals(checkInvManId)
+									&& null != checkInvcastunitid
+									&& !"".equals(checkInvcastunitid)) {
+								nc.vo.bd.b15.MeasureRateVO measureVO = m_voInvMeas
+										.getMeasureRateDirect(getEnvironment()
+												.getCorpID(), checkInvManId,
+												checkInvcastunitid);
 								if (null == measureVO)
-									throw new BusinessException(nc.ui.ml.NCLangRes
-											.getInstance().getStrByID("4008bill",
-											"UPP4008bill-000557")/*
-																	 * @res
-																	 * "条码对应的辅单位不合法"
-																	 */);
-								
+									throw new BusinessException(
+											nc.ui.ml.NCLangRes
+													.getInstance()
+													.getStrByID("4008bill",
+															"UPP4008bill-000557")/*
+																					 * @res
+																					 * "条码对应的辅单位不合法"
+																					 */);
+
 							}
-							
+
 						}
-					
 
 					if ((barCodeParseVOs[0]
 							.getAttributeValue(BarcodeparseCtrl.VBARCODESUB) != null)
@@ -11772,20 +12101,17 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				return;
 			String ccustomerid = (String) bicu.getValueObject();
 
-			
-			BillItem bmaddr = getBillCardPanel().getBodyItem(
-					"vreceiveaddress");
+			BillItem bmaddr = getBillCardPanel().getBodyItem("vreceiveaddress");
 			if (bmaddr != null) {
 				nc.ui.pub.beans.UIRefPane vdlvr = (nc.ui.pub.beans.UIRefPane) bmaddr
 						.getComponent();
 				if (vdlvr != null) {
-					if (ccustomerid == null
-							|| ccustomerid.trim().length() <= 0) {
-						 ((nc.ui.scm.ref.prm.CustAddrRefModel)
-						 vdlvr.getRefModel()).setCustId(null);
+					if (ccustomerid == null || ccustomerid.trim().length() <= 0) {
+						((nc.ui.scm.ref.prm.CustAddrRefModel) vdlvr
+								.getRefModel()).setCustId(null);
 					} else {
-						 ((nc.ui.scm.ref.prm.CustAddrRefModel)
-						 vdlvr.getRefModel()).setCustId(ccustomerid);
+						((nc.ui.scm.ref.prm.CustAddrRefModel) vdlvr
+								.getRefModel()).setCustId(ccustomerid);
 					}
 
 				}
@@ -11846,7 +12172,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 		// 保存条码
 		getBarcodeCtrl().scanfixline_save(barCodeParseVOs, iCurFixLine,
-				iNumUsed, iNumforUse, getM_voBill().getItemVOs(),true); // 本次填充条码的数量
+				iNumUsed, iNumforUse, getM_voBill().getItemVOs(), true); // 本次填充条码的数量
 
 		return iNumforUse;
 	}
@@ -12242,221 +12568,234 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			}
 		}
 	}
-	
-	
+
 	protected void transBillDataDeal(GeneralBillVO vo) throws BusinessException {
 
-    if (null == vo || null == vo.getItemVOs() || vo.getItemVOs().length == 0)
-      return;
+		if (null == vo || null == vo.getItemVOs()
+				|| vo.getItemVOs().length == 0)
+			return;
 
-    HashMap<String, ArrayList> hm_paras = new HashMap<String, ArrayList>();
+		HashMap<String, ArrayList> hm_paras = new HashMap<String, ArrayList>();
 
-    // 补全订单信息
-    String cbilltypecode = vo.getHeaderVO().getCbilltypecode();
-    String cfirsttype = null;
-    if (BillTypeConst.m_saleOut.equals(cbilltypecode)
-        || BillTypeConst.m_allocationOut.equals(cbilltypecode)) {
-      cfirsttype = vo.getItemVOs()[0].getCfirsttype();
-      if (cfirsttype != null) {
-        IBillType billType = BillTypeFactory.getInstance().getBillType(
-            cfirsttype);
-        if (cfirsttype.equals(BillTypeConst.SO_Order)
-            || cfirsttype.equals(BillTypeConst.SO5_ReturnApp)
-            || billType.typeOf(ModuleCode.TO)) {
-          ArrayList<String> al_para = new ArrayList<String>();
-          al_para.add(0, cfirsttype);
-          String bid = null, firstbid = null;
-          int i = 1;
-          for (GeneralBillItemVO item : vo.getItemVOs()) {
-            firstbid = item.getCfirstbillbid();
-            if (null == firstbid || "".equals(firstbid.trim()))
-              continue;
-            al_para.add(i, firstbid);
-            i++;
-          }
-          if (al_para.size() > 1)
-            hm_paras.put(IICParaConst.GetOrderInfoPara, al_para);
-        }
-      }
-    }
+		// 补全订单信息
+		String cbilltypecode = vo.getHeaderVO().getCbilltypecode();
+		String cfirsttype = null;
+		if (BillTypeConst.m_saleOut.equals(cbilltypecode)
+				|| BillTypeConst.m_allocationOut.equals(cbilltypecode)) {
+			cfirsttype = vo.getItemVOs()[0].getCfirsttype();
+			if (cfirsttype != null) {
+				IBillType billType = BillTypeFactory.getInstance().getBillType(
+						cfirsttype);
+				if (cfirsttype.equals(BillTypeConst.SO_Order)
+						|| cfirsttype.equals(BillTypeConst.SO5_ReturnApp)
+						|| billType.typeOf(ModuleCode.TO)) {
+					ArrayList<String> al_para = new ArrayList<String>();
+					al_para.add(0, cfirsttype);
+					String bid = null, firstbid = null;
+					int i = 1;
+					for (GeneralBillItemVO item : vo.getItemVOs()) {
+						firstbid = item.getCfirstbillbid();
+						if (null == firstbid || "".equals(firstbid.trim()))
+							continue;
+						al_para.add(i, firstbid);
+						i++;
+					}
+					if (al_para.size() > 1)
+						hm_paras.put(IICParaConst.GetOrderInfoPara, al_para);
+				}
+			}
+		}
 
-    // 获得批次档案处理需要的参数
-    ArrayList<String> al_qBat = BatchCodeDefSetTool.getQueryParas(vo
-        .getItemVOs());
-    if (null != al_qBat && al_qBat.size() > 0
-        && !hm_paras.containsKey(IICParaConst.BatchCodePara))
-      hm_paras.put(IICParaConst.BatchCodePara, al_qBat);
+		// 获得批次档案处理需要的参数
+		ArrayList<String> al_qBat = BatchCodeDefSetTool.getQueryParas(vo
+				.getItemVOs());
+		if (null != al_qBat && al_qBat.size() > 0
+				&& !hm_paras.containsKey(IICParaConst.BatchCodePara))
+			hm_paras.put(IICParaConst.BatchCodePara, al_qBat);
 
-    // 获得根据操作员带出部门、业务员需要的参数
-    ArrayList<String> al_qDptBizer = new ArrayList<String>();
-    al_qDptBizer.add(0, ClientEnvironment.getInstance().getCorporation()
-        .getPrimaryKey());// 公司PK
-    al_qDptBizer.add(1, ClientEnvironment.getInstance().getUser()
-        .getPrimaryKey());// 操作员ID
-    hm_paras.put(IICParaConst.DptBizerPara, al_qDptBizer);
+		// 获得根据操作员带出部门、业务员需要的参数
+		ArrayList<String> al_qDptBizer = new ArrayList<String>();
+		al_qDptBizer.add(0, ClientEnvironment.getInstance().getCorporation()
+				.getPrimaryKey());// 公司PK
+		al_qDptBizer.add(1, ClientEnvironment.getInstance().getUser()
+				.getPrimaryKey());// 操作员ID
+		hm_paras.put(IICParaConst.DptBizerPara, al_qDptBizer);
 
-    // 获得重设仓库信息的参数
-    if (vo.getHeaderValue(IItemKey.WAREHOUSE) != null) {
-      ArrayList<String> al_qWhInfo = new ArrayList<String>();
-      String sWhID = vo.getHeaderValue(IItemKey.WAREHOUSE).toString().trim();
-      al_qWhInfo.add(sWhID);
-      hm_paras.put(IICParaConst.ReSetWHInfoPara, al_qWhInfo);
-    }
+		// 获得重设仓库信息的参数
+		if (vo.getHeaderValue(IItemKey.WAREHOUSE) != null) {
+			ArrayList<String> al_qWhInfo = new ArrayList<String>();
+			String sWhID = vo.getHeaderValue(IItemKey.WAREHOUSE).toString()
+					.trim();
+			al_qWhInfo.add(sWhID);
+			hm_paras.put(IICParaConst.ReSetWHInfoPara, al_qWhInfo);
+		}
 
-    // 根据库存组织、仓库取成本域
-    String sCalID = null;
-    String sWhID = null;
-    String sCorpID = null;
-    if (vo.getHeaderValue(IItemKey.CALBODY) != null
-        || vo.getHeaderValue(IItemKey.WAREHOUSE) != null) {
-      sCalID = (String) vo.getHeaderValue(IItemKey.CALBODY);
-      sWhID = (String) vo.getHeaderValue(IItemKey.WAREHOUSE);
-      sCorpID = (String) vo.getHeaderValue(IItemKey.PKCORP);
-      if (null == sCorpID)
-    	  sCorpID = ClientEnvironment.getInstance().getCorporation()
-          .getPrimaryKey();
-      ArrayList<String> al_qCostCal = new ArrayList<String>();
-      al_qCostCal.add(0, sCalID);
-      al_qCostCal.add(1, sWhID);
-      al_qCostCal.add(2, sCorpID);
-      hm_paras.put(IICParaConst.CostLandPara, al_qCostCal);
-    }
+		// 根据库存组织、仓库取成本域
+		String sCalID = null;
+		String sWhID = null;
+		String sCorpID = null;
+		if (vo.getHeaderValue(IItemKey.CALBODY) != null
+				|| vo.getHeaderValue(IItemKey.WAREHOUSE) != null) {
+			sCalID = (String) vo.getHeaderValue(IItemKey.CALBODY);
+			sWhID = (String) vo.getHeaderValue(IItemKey.WAREHOUSE);
+			sCorpID = (String) vo.getHeaderValue(IItemKey.PKCORP);
+			if (null == sCorpID)
+				sCorpID = ClientEnvironment.getInstance().getCorporation()
+						.getPrimaryKey();
+			ArrayList<String> al_qCostCal = new ArrayList<String>();
+			al_qCostCal.add(0, sCalID);
+			al_qCostCal.add(1, sWhID);
+			al_qCostCal.add(2, sCorpID);
+			hm_paras.put(IICParaConst.CostLandPara, al_qCostCal);
+		}
 
-    // 根据存货管理档案和库存组织取计划价、计量XX
-    ArrayList<String> al_qJHJ = new ArrayList<String>();
-    for (GeneralBillItemVO item : vo.getItemVOs()) {
-      if (!al_qJHJ.contains(item.getCinventoryid()))
-        al_qJHJ.add(item.getCinventoryid());
-    }
-    if (al_qJHJ.size() > 0)
-      hm_paras.put(IICParaConst.ProduceJHJPara, al_qJHJ);
+		// 根据存货管理档案和库存组织取计划价、计量XX
+		ArrayList<String> al_qJHJ = new ArrayList<String>();
+		for (GeneralBillItemVO item : vo.getItemVOs()) {
+			if (!al_qJHJ.contains(item.getCinventoryid()))
+				al_qJHJ.add(item.getCinventoryid());
+		}
+		if (al_qJHJ.size() > 0)
+			hm_paras.put(IICParaConst.ProduceJHJPara, al_qJHJ);
 
-    try {
-      HashMap<String, Object> hmRet = GeneralBillHelper
-          .transBillDataDeal(hm_paras);
-      // 处理订单信息
-      if (hmRet.containsKey(IICParaConst.GetOrderInfoPara)) {
-        String[] itemkeys = (String[]) hmRet
-            .get(IICParaConst.ICBillOrderItemsPara);
-        ICDataSet ds = (ICDataSet) hmRet.get(IICParaConst.GetOrderInfoPara);
-        String cfirstbillbid = null;
-        if (null != ds) {
-          GeneralBillItemVO[] voi = vo.getItemVOs();
-          for (GeneralBillItemVO item : voi) {
-            cfirstbillbid = item.getCfirstbillbid();
-            ds.fillVOByPk(new String[] {
-              cfirstbillbid
-            }, itemkeys, itemkeys, item);
-          }
+		try {
+			HashMap<String, Object> hmRet = GeneralBillHelper
+					.transBillDataDeal(hm_paras);
+			// 处理订单信息
+			if (hmRet.containsKey(IICParaConst.GetOrderInfoPara)) {
+				String[] itemkeys = (String[]) hmRet
+						.get(IICParaConst.ICBillOrderItemsPara);
+				ICDataSet ds = (ICDataSet) hmRet
+						.get(IICParaConst.GetOrderInfoPara);
+				String cfirstbillbid = null;
+				if (null != ds) {
+					GeneralBillItemVO[] voi = vo.getItemVOs();
+					for (GeneralBillItemVO item : voi) {
+						cfirstbillbid = item.getCfirstbillbid();
+						ds.fillVOByPk(new String[] { cfirstbillbid }, itemkeys,
+								itemkeys, item);
+					}
 
-          UFDouble d100 = new UFDouble(100);
-          UFDouble nrate = null;
-          if (cfirsttype.equals(BillTypeConst.SO_Order)
-              || cfirsttype.equals(BillTypeConst.SO5_ReturnApp)) {
-            UFDouble SO29 = CheckTools
-                .toUFDouble(nc.ui.pub.para.SysInitBO_Client.getParaString(
-                    ClientEnvironment.getInstance().getCorporation()
-                        .getPrimaryKey(), "SO29"));
-            if (nc.vo.ic.pub.GenMethod.isEQZeroOrNull(SO29))
-              SO29 = null;
-            else
-              SO29 = SO29.div(d100);
-            for (int i = 0; i < voi.length; i++) {
-              nrate = CheckTools.toUFDouble(voi[i]
-                  .getAttributeValue(IItemKey.nordcloserate));
-              if (nrate == null)
-                voi[i].setAttributeValue(IItemKey.nordcloserate, SO29);
-              else
-                voi[i].setAttributeValue(IItemKey.nordcloserate, nrate
-                    .div(d100));
-              voi[i].setAttributeValue(IItemKey.bcloseord, voi[i]
-                  .getAttributeValue(IItemKey.bcloseyetord));
-            }
-          }
-          else {
-            for (int i = 0; i < voi.length; i++) {
-              nrate = CheckTools.toUFDouble(voi[i]
-                  .getAttributeValue(IItemKey.nordcloserate));
-              if (!nc.vo.ic.pub.GenMethod.isEQZeroOrNull(nrate))
-                voi[i].setAttributeValue(IItemKey.nordcloserate, nrate
-                    .div(d100));
-              voi[i].setAttributeValue(IItemKey.bcloseord, voi[i]
-                  .getAttributeValue(IItemKey.bcloseyetord));
-            }
-          }
-        }
-      }
+					UFDouble d100 = new UFDouble(100);
+					UFDouble nrate = null;
+					if (cfirsttype.equals(BillTypeConst.SO_Order)
+							|| cfirsttype.equals(BillTypeConst.SO5_ReturnApp)) {
+						UFDouble SO29 = CheckTools
+								.toUFDouble(nc.ui.pub.para.SysInitBO_Client
+										.getParaString(ClientEnvironment
+												.getInstance().getCorporation()
+												.getPrimaryKey(), "SO29"));
+						if (nc.vo.ic.pub.GenMethod.isEQZeroOrNull(SO29))
+							SO29 = null;
+						else
+							SO29 = SO29.div(d100);
+						for (int i = 0; i < voi.length; i++) {
+							nrate = CheckTools.toUFDouble(voi[i]
+									.getAttributeValue(IItemKey.nordcloserate));
+							if (nrate == null)
+								voi[i].setAttributeValue(
+										IItemKey.nordcloserate, SO29);
+							else
+								voi[i]
+										.setAttributeValue(
+												IItemKey.nordcloserate, nrate
+														.div(d100));
+							voi[i].setAttributeValue(IItemKey.bcloseord, voi[i]
+									.getAttributeValue(IItemKey.bcloseyetord));
+						}
+					} else {
+						for (int i = 0; i < voi.length; i++) {
+							nrate = CheckTools.toUFDouble(voi[i]
+									.getAttributeValue(IItemKey.nordcloserate));
+							if (!nc.vo.ic.pub.GenMethod.isEQZeroOrNull(nrate))
+								voi[i]
+										.setAttributeValue(
+												IItemKey.nordcloserate, nrate
+														.div(d100));
+							voi[i].setAttributeValue(IItemKey.bcloseord, voi[i]
+									.getAttributeValue(IItemKey.bcloseyetord));
+						}
+					}
+				}
+			}
 
-      // 取批次号结果
-      if (hmRet.containsKey(IICParaConst.BatchCodePara)) {
-        ICDataSet ds = (ICDataSet) hmRet.get(IICParaConst.BatchCodePara);
-        String sPk_invbasdoc = null;
-        String sVbatchCode = null;
-        for (GeneralBillItemVO item : vo.getItemVOs()) {
-          sPk_invbasdoc = (String) item.getAttributeValue("pk_invbasdoc");
-          sVbatchCode = (String) item.getAttributeValue("vbatchcode");
-          if (null == sPk_invbasdoc || "".equals(sPk_invbasdoc.trim())
-              || null == sVbatchCode || "".equals(sVbatchCode.trim()))
-            continue;
-          ds.fillVOByPk(new String[] {
-              sPk_invbasdoc, sVbatchCode
-          }, IItemKey.batchcodeDocFiels, IItemKey.batchcodeDocFiels, item);
-          //设置界面VO的质量等级名称
-          String qualitylevelName=(String)ds.getValuesByPk(new String[]{sPk_invbasdoc, sVbatchCode},53);
-          item.setAttributeValue("cqualitylevelname", qualitylevelName);
-        }
-      }
-      // 取部门、业务员结果
-      if (hmRet.containsKey(IICParaConst.DptBizerPara))
-        ICCommonBusi.getHm_userid_psndocvo().put(
-            ClientEnvironment.getInstance().getCorporation().getPrimaryKey()
-                + ClientEnvironment.getInstance().getUser().getPrimaryKey(),
-            (PsndocVO) hmRet.get(IICParaConst.DptBizerPara));
-      // 取重设仓库结果
-      if (hmRet.containsKey(IICParaConst.ReSetWHInfoPara)) {
-        WhVO whvo = (WhVO) hmRet.get(IICParaConst.ReSetWHInfoPara);
-        hm_whid_vo.put(whvo.getCwarehouseid(), whvo);
-      }
-      // 取成本域
-      if (hmRet.containsKey(IICParaConst.CostLandPara)) {
-        String sCostLand = (String) hmRet.get(IICParaConst.CostLandPara);
-        getInvoInfoBYFormula().getHm_calwhid_costid().put(sCalID + sWhID,
-            sCostLand);
-      }
-      // 取存货计划价、计量XX
-      if (hmRet.containsKey(IICParaConst.ProduceJHJPara)) {
-        HashMap<String, Object> hm_qJHJ = (HashMap<String, Object>) hmRet
-            .get(IICParaConst.ProduceJHJPara);
-        String key = null;
-        for (Map.Entry<String, Object> entry : hm_qJHJ.entrySet()) {
-          key = entry.getKey();
-          if (!getInvoInfoBYFormula().getHm_invmanCal_obj().containsKey(key))
-            getInvoInfoBYFormula().getHm_invmanCal_obj().put(key,
-                entry.getValue());
-        }
-      }
-     
-    }
-    catch (Exception e) {
-      // 日志异常
-      nc.vo.scm.pub.SCMEnv.out(e);
-      throw GenMethod.handleException(e.getMessage(), e);
-    }
+			// 取批次号结果
+			if (hmRet.containsKey(IICParaConst.BatchCodePara)) {
+				ICDataSet ds = (ICDataSet) hmRet
+						.get(IICParaConst.BatchCodePara);
+				String sPk_invbasdoc = null;
+				String sVbatchCode = null;
+				for (GeneralBillItemVO item : vo.getItemVOs()) {
+					sPk_invbasdoc = (String) item
+							.getAttributeValue("pk_invbasdoc");
+					sVbatchCode = (String) item.getAttributeValue("vbatchcode");
+					if (null == sPk_invbasdoc
+							|| "".equals(sPk_invbasdoc.trim())
+							|| null == sVbatchCode
+							|| "".equals(sVbatchCode.trim()))
+						continue;
+					ds.fillVOByPk(new String[] { sPk_invbasdoc, sVbatchCode },
+							IItemKey.batchcodeDocFiels,
+							IItemKey.batchcodeDocFiels, item);
+					// 设置界面VO的质量等级名称
+					String qualitylevelName = (String) ds.getValuesByPk(
+							new String[] { sPk_invbasdoc, sVbatchCode }, 53);
+					item.setAttributeValue("cqualitylevelname",
+							qualitylevelName);
+				}
+			}
+			// 取部门、业务员结果
+			if (hmRet.containsKey(IICParaConst.DptBizerPara))
+				ICCommonBusi.getHm_userid_psndocvo().put(
+						ClientEnvironment.getInstance().getCorporation()
+								.getPrimaryKey()
+								+ ClientEnvironment.getInstance().getUser()
+										.getPrimaryKey(),
+						(PsndocVO) hmRet.get(IICParaConst.DptBizerPara));
+			// 取重设仓库结果
+			if (hmRet.containsKey(IICParaConst.ReSetWHInfoPara)) {
+				WhVO whvo = (WhVO) hmRet.get(IICParaConst.ReSetWHInfoPara);
+				hm_whid_vo.put(whvo.getCwarehouseid(), whvo);
+			}
+			// 取成本域
+			if (hmRet.containsKey(IICParaConst.CostLandPara)) {
+				String sCostLand = (String) hmRet
+						.get(IICParaConst.CostLandPara);
+				getInvoInfoBYFormula().getHm_calwhid_costid().put(
+						sCalID + sWhID, sCostLand);
+			}
+			// 取存货计划价、计量XX
+			if (hmRet.containsKey(IICParaConst.ProduceJHJPara)) {
+				HashMap<String, Object> hm_qJHJ = (HashMap<String, Object>) hmRet
+						.get(IICParaConst.ProduceJHJPara);
+				String key = null;
+				for (Map.Entry<String, Object> entry : hm_qJHJ.entrySet()) {
+					key = entry.getKey();
+					if (!getInvoInfoBYFormula().getHm_invmanCal_obj()
+							.containsKey(key))
+						getInvoInfoBYFormula().getHm_invmanCal_obj().put(key,
+								entry.getValue());
+				}
+			}
 
-  }
-	
-	
+		} catch (Exception e) {
+			// 日志异常
+			nc.vo.scm.pub.SCMEnv.out(e);
+			throw GenMethod.handleException(e.getMessage(), e);
+		}
+
+	}
 
 	/**
-   * 此处插入方法说明。 把拉式订单上的数据加载到库存单据界面上 BusiTypeID：业务类型ID,如果没有为null
-   * vos:单据的AggregatedValueObject[]，实际数据VO是普通单据的VO 目前该方法被普通单据基本类和采购入库、委外加工入库所引用
-   * 创建日期：(2003-10-14 14:29:30)
-   * 
-   * @param BusiTypeID
-   *          java.lang.String
-   * @param vos
-   *          nc.vo.pub.AggregatedValueObject[]
-   */
+	 * 此处插入方法说明。 把拉式订单上的数据加载到库存单据界面上 BusiTypeID：业务类型ID,如果没有为null
+	 * vos:单据的AggregatedValueObject[]，实际数据VO是普通单据的VO
+	 * 目前该方法被普通单据基本类和采购入库、委外加工入库所引用 创建日期：(2003-10-14 14:29:30)
+	 * 
+	 * @param BusiTypeID
+	 *            java.lang.String
+	 * @param vos
+	 *            nc.vo.pub.AggregatedValueObject[]
+	 */
 	protected void setBillRefResultVO(String sBusiTypeID,
 			nc.vo.pub.AggregatedValueObject[] vos) throws Exception {
 
@@ -12487,7 +12826,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			getFormulaBillContainer().formulaHeaders(getFormulaItemHeader(),
 					voRet.getHeaderVO());
 			transBillDataDeal(voRet);
-//			BatchCodeDefSetTool.execFormulaForBatchCode(voRet.getItemVOs());
+			// BatchCodeDefSetTool.execFormulaForBatchCode(voRet.getItemVOs());
 
 			// 保存传入的单据VO，向替换件参照传入的存货ID始终是该单据VO中存货ID。
 			m_voBillRefInput = voRet;
@@ -12517,8 +12856,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 
 			// 重设所有存货数据
 			resetAllInvInfo(voRet);
-			
-			for(int i = 0 ;i < voRet.getItemVOs().length ; i++){
+
+			for (int i = 0; i < voRet.getItemVOs().length; i++) {
 				setBodyInSpace(i, voRet.getItemVOs()[i].getInv());
 			}
 
@@ -12542,7 +12881,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				m_voBillRefInput.setChildrenVO(itemvo);
 
 			}
-			
+
 			// 重设所有所有条形码状态 修改人:刘家清 修改日期:2007-04-04
 			if (itemvo != null) {
 
@@ -12579,8 +12918,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						getEnvironment().getNumItemKey()) != null)
 					getBillCardPanel().getBillModel().execEditFormulaByKey(i,
 							getEnvironment().getNumItemKey());
-				if (getBillCardPanel().getBodyValueAt(i,"vfirstbillcode") == null)
-					getBillCardPanel().setBodyValueAt(getBillCardPanel().getBodyValueAt(i,"vsourcebillcode"), i, "vfirstbillcode");
+				if (getBillCardPanel().getBodyValueAt(i, "vfirstbillcode") == null)
+					getBillCardPanel().setBodyValueAt(
+							getBillCardPanel().getBodyValueAt(i,
+									"vsourcebillcode"), i, "vfirstbillcode");
 			}
 			// end set user selected 业务类型
 
@@ -12594,10 +12935,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 														 * "请双击选择参照录入单据的表头，表体行！"
 														 */);
 		}
-		
+
 		// modified by liuzy 2009-9-21 上午10:15:09 转单后统一计算合计
-    getBillCardPanel().getBillModel().setNeedCalculate(true);
-    getBillCardPanel().getBillModel().reCalcurateAll();
+		getBillCardPanel().getBillModel().setNeedCalculate(true);
+		getBillCardPanel().getBillModel().reCalcurateAll();
 
 	}
 
@@ -12680,10 +13021,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			getBillCardPanel().updateValue();
 			return;
 		}
-    
-//  二次开发扩展
-    getPluginProxy().beforeSetBillVOToCard(bvo);
-    
+
+		// 二次开发扩展
+		getPluginProxy().beforeSetBillVOToCard(bvo);
+
 		try {
 			long lTime = System.currentTimeMillis();
 			getBillCardPanel().getBillModel().removeTableModelListener(this);
@@ -12715,36 +13056,36 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			// 设置数据
 			lTime = System.currentTimeMillis();
 			// modified by liuzy 2009-11-5 下午04:38:21 应该放在这里，因为如果转单前界面经过某列排序了
-			//那么应该先设置货位、序列号的缓存数据，这样向界面放置数据的时候才能跟着bodyvo一同进行排序处理
-		// 整理货位数据，序列号。
-//      lTime = System.currentTimeMillis();
-      int iRowCount = bvo.getItemCount();
-      m_alLocatorDataBackup = m_alLocatorData;
-      m_alSerialDataBackup = m_alSerialData;
-      if (iRowCount > 0) {
-        m_alLocatorData = new ArrayList();
-        m_alSerialData = new ArrayList();
-        for (int i = 0; i < iRowCount; i++) {
-          m_alLocatorData.add(bvo.getItemValue(i, "locator"));
-          m_alSerialData.add(bvo.getItemValue(i, "serial"));
-          // m_alLocatorData.add(null);
-          // m_alSerialData.add(null);
-        }
-      } else
-        SCMEnv.out("--->W:row is null");
-      SCMEnv.showTime(lTime, "setBillVO:4");
+			// 那么应该先设置货位、序列号的缓存数据，这样向界面放置数据的时候才能跟着bodyvo一同进行排序处理
+			// 整理货位数据，序列号。
+			// lTime = System.currentTimeMillis();
+			int iRowCount = bvo.getItemCount();
+			m_alLocatorDataBackup = m_alLocatorData;
+			m_alSerialDataBackup = m_alSerialData;
+			if (iRowCount > 0) {
+				m_alLocatorData = new ArrayList();
+				m_alSerialData = new ArrayList();
+				for (int i = 0; i < iRowCount; i++) {
+					m_alLocatorData.add(bvo.getItemValue(i, "locator"));
+					m_alSerialData.add(bvo.getItemValue(i, "serial"));
+					// m_alLocatorData.add(null);
+					// m_alSerialData.add(null);
+				}
+			} else
+				SCMEnv.out("--->W:row is null");
+			SCMEnv.showTime(lTime, "setBillVO:4");
 			getBillCardPanel().setBillValueVO(bvo);
-      for(int i = 1; i <= 20; i++)
-      {
-          String key = "vuserdef" + i;
-          BillItem item = getBillCardPanel().getHeadItem(key);
-          if(item != null && item.getDataType() == 7)
-          {
-              String pk = (String)m_voBill.getHeaderValue("pk_defdoc" + i);
-              if(pk != null && pk.length() > 0)
-                  ((UIRefPane)item.getComponent()).setPK(bvo.getHeaderValue("pk_defdoc" + i));
-          }
-      }
+			for (int i = 1; i <= 20; i++) {
+				String key = "vuserdef" + i;
+				BillItem item = getBillCardPanel().getHeadItem(key);
+				if (item != null && item.getDataType() == 7) {
+					String pk = (String) m_voBill.getHeaderValue("pk_defdoc"
+							+ i);
+					if (pk != null && pk.length() > 0)
+						((UIRefPane) item.getComponent()).setPK(bvo
+								.getHeaderValue("pk_defdoc" + i));
+				}
+			}
 
 			SCMEnv.showTime(lTime, "setBillVO:setBillValueVO");
 			// 执行公式
@@ -12760,20 +13101,17 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			bvo.clearInvQtyInfo();
 			// 选中第一行，光标移到表体
 			// modified by liuzy 2009-8-18 下午05:00:51 取消选中第一行，为了降连接数
-//			getBillCardPanel().getBillTable().setRowSelectionInterval(0, 0);
+			// getBillCardPanel().getBillTable().setRowSelectionInterval(0, 0);
 			// modified by liuzy 2009-8-18 下午05:02:02 取消选中第一行，为了降连接数
-//			getBillCardPanel().transferFocusTo(1);
+			// getBillCardPanel().transferFocusTo(1);
 			// 重置序列号是否可用
 			setBtnStatusSN(0, false);
 
 			SCMEnv.showTime(lTime, "setBillVO:3");
 			// 刷新现存量显示
 			// modified by liuzy 2009-8-18 下午05:02:15 取消选中第一行，为了降连接数
-//			setTailValue(0);
-			
-			
-	
-			
+			// setTailValue(0);
+
 		} catch (Exception e) {
 			showErrorMessage(e.getMessage());
 			SCMEnv.out(e.getMessage());
@@ -12786,10 +13124,10 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		/** 当单据的来源单据为转库单时, 进行界面控制 */
 		long lTime = System.currentTimeMillis();
 		ctrlSourceBillUI(bUpdateBotton);
-    
-//  二次开发扩展
-    getPluginProxy().afterSetBillVOToCard(bvo);
-    
+
+		// 二次开发扩展
+		getPluginProxy().afterSetBillVOToCard(bvo);
+
 		SCMEnv.showTime(lTime, "setBillVO:ctrlSourceBillUI");
 
 	}
@@ -12832,7 +13170,7 @@ protected void removeBillsOfList(int[] iaDelLines) {
 				voItem = voBill.getItemVOs()[row];
 				if (voItem != null
 						&& voItem.getBarcodeManagerflag().booleanValue()
-						&&isSigned() != SIGNED) {
+						&& isSigned() != SIGNED) {
 					// 可以条码编辑
 					getButtonManager()
 							.getButton(ICButtonConst.BTN_LINE_BARCODE)
@@ -13018,9 +13356,11 @@ protected void removeBillsOfList(int[] iaDelLines) {
 					.setEnabled(false);
 			getButtonManager().getButton(ICButtonConst.BTN_BILL_DELETE)
 					.setEnabled(false);
-			getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_SETTLE_PATH).setEnabled(
-					false);
-			getButtonManager().getButton(ICButtonConst.BTN_ASSIST_CANCEL_SETTLE_PATH).setEnabled(
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_SETTLE_PATH)
+					.setEnabled(false);
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_CANCEL_SETTLE_PATH).setEnabled(
 					false);
 
 		} else if (NOTSIGNED == iSignFlag) {
@@ -13210,28 +13550,27 @@ protected void removeBillsOfList(int[] iaDelLines) {
 		boolean bUseable = true;
 		// 直运
 		if (voBill != null) {
-/*			WhVO voWh = null;
-			voWh = voBill.getWh();
-			if (voWh != null && voWh.getIsdirectstore() != null
-					&& voWh.getIsdirectstore().booleanValue()) {
-				bUseable = false;
-			}
-			if (voBill.getHeaderVO() != null
-					&& voBill.getHeaderVO().getBdirecttranflag() != null
-					&& voBill.getHeaderVO().getBdirecttranflag().booleanValue()) {
-				bUseable = false;
-			}*/
+			/*
+			 * WhVO voWh = null; voWh = voBill.getWh(); if (voWh != null &&
+			 * voWh.getIsdirectstore() != null &&
+			 * voWh.getIsdirectstore().booleanValue()) { bUseable = false; } if
+			 * (voBill.getHeaderVO() != null &&
+			 * voBill.getHeaderVO().getBdirecttranflag() != null &&
+			 * voBill.getHeaderVO().getBdirecttranflag().booleanValue()) {
+			 * bUseable = false; }
+			 */
 
 			if (bOnlyFalse) {
-				//修改人：刘家清 修改时间：2008-8-25 下午04:39:09 修改原因：直运仓库、直接调拨,可编辑
-/*				if (!bUseable) {
-					getButtonManager().getButton(ICButtonConst.BTN_BILL_COPY)
-							.setEnabled(false);
-					getButtonManager().getButton(ICButtonConst.BTN_BILL_DELETE)
-							.setEnabled(false);
-					getButtonManager().getButton(ICButtonConst.BTN_BILL_EDIT)
-							.setEnabled(false);
-				}*/
+				// 修改人：刘家清 修改时间：2008-8-25 下午04:39:09 修改原因：直运仓库、直接调拨,可编辑
+				/*
+				 * if (!bUseable) {
+				 * getButtonManager().getButton(ICButtonConst.BTN_BILL_COPY)
+				 * .setEnabled(false);
+				 * getButtonManager().getButton(ICButtonConst.BTN_BILL_DELETE)
+				 * .setEnabled(false);
+				 * getButtonManager().getButton(ICButtonConst.BTN_BILL_EDIT)
+				 * .setEnabled(false); }
+				 */
 			} else {
 				if (getM_iMode() != BillMode.New) {
 					getButtonManager().getButton(ICButtonConst.BTN_BILL_COPY)
@@ -13311,7 +13650,8 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			getButtonManager().getButton(ICButtonConst.BTN_ADD_NEWROWNO)
 					.setEnabled(true);
 
-			getButtonManager().getButton(ICButtonConst.BTN_LINE_SPACE).setEnabled(true);
+			getButtonManager().getButton(ICButtonConst.BTN_LINE_SPACE)
+					.setEnabled(true);
 			// getButtonManager().getButton(ICButtonConst.BTN_LINE_SERIAL).setEnabled(true);
 
 			getButtonManager().getButton(ICButtonConst.BTN_SIGN).setEnabled(
@@ -13353,14 +13693,17 @@ protected void removeBillsOfList(int[] iaDelLines) {
 			getButtonManager()
 					.getButton(ICButtonConst.BTN_ASSIST_QUERY_RELATED)
 					.setEnabled(false);
-      getButtonManager()
-      .getButton(ICButtonConst.BTN_ASSIST_QUERY_RELATED)
-      .setEnabled(false);
-      
-			if(getButtonManager().getButton(ICButtonConst.BTN_DMStateQry)!=null)
-        getButtonManager().getButton(ICButtonConst.BTN_DMStateQry).setEnabled(false);
-			if(null != getButtonManager().getButton(ICButtonConst.BTN_ASSIST_COOP_45))
-				getButtonManager().getButton(ICButtonConst.BTN_ASSIST_COOP_45).setEnabled(false);
+			getButtonManager()
+					.getButton(ICButtonConst.BTN_ASSIST_QUERY_RELATED)
+					.setEnabled(false);
+
+			if (getButtonManager().getButton(ICButtonConst.BTN_DMStateQry) != null)
+				getButtonManager().getButton(ICButtonConst.BTN_DMStateQry)
+						.setEnabled(false);
+			if (null != getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_COOP_45))
+				getButtonManager().getButton(ICButtonConst.BTN_ASSIST_COOP_45)
+						.setEnabled(false);
 
 			// 在新增情况下和修改情况条码框可以编辑
 			if (m_utfBarCode != null)
@@ -13379,17 +13722,20 @@ protected void removeBillsOfList(int[] iaDelLines) {
 						true);
 			}
 			getButtonManager().getButton(ICButtonConst.BTN_OUT_RETURN)
-			.setEnabled(false);
-	getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_ASSEMBLY)
-			.setEnabled(false);
-	getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
-			.setEnabled(false);
-	
-	getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN)
-	.setEnabled(false);
-getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
-	.setEnabled(false);
-	
+					.setEnabled(false);
+			getButtonManager()
+					.getButton(ICButtonConst.BTN_ASSIST_FUNC_ASSEMBLY)
+					.setEnabled(false);
+			getButtonManager()
+					.getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
+					.setEnabled(false);
+
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN).setEnabled(
+					false);
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN).setEnabled(false);
+
 			break;
 		case BillMode.Update:
 			getButtonManager().getButton(ICButtonConst.BTN_ADD).setEnabled(
@@ -13419,8 +13765,9 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 					.setEnabled(false);
 			getButtonManager().getButton(ICButtonConst.BTN_SWITCH).setEnabled(
 					false);
-			
-			getButtonManager().getButton(ICButtonConst.BTN_LINE_SPACE).setEnabled(true);
+
+			getButtonManager().getButton(ICButtonConst.BTN_LINE_SPACE)
+					.setEnabled(true);
 
 			getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC)
 					.setEnabled(true);
@@ -13493,10 +13840,13 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 			getButtonManager().getButton(
 					ICButtonConst.BTN_ASSIST_CANCEL_SETTLE_PATH).setEnabled(
 					false);
-      if(getButtonManager().getButton(ICButtonConst.BTN_DMStateQry)!=null)
-        getButtonManager().getButton(ICButtonConst.BTN_DMStateQry).setEnabled(false);
-			if(null != getButtonManager().getButton(ICButtonConst.BTN_ASSIST_COOP_45))
-				getButtonManager().getButton(ICButtonConst.BTN_ASSIST_COOP_45).setEnabled(false);
+			if (getButtonManager().getButton(ICButtonConst.BTN_DMStateQry) != null)
+				getButtonManager().getButton(ICButtonConst.BTN_DMStateQry)
+						.setEnabled(false);
+			if (null != getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_COOP_45))
+				getButtonManager().getButton(ICButtonConst.BTN_ASSIST_COOP_45)
+						.setEnabled(false);
 
 			// 在新增情况下和修改情况条码框可以编辑
 			if (m_utfBarCode != null)
@@ -13510,9 +13860,12 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 				String sBillTypecode = getM_voBill().getHeaderVO()
 						.getCbilltypecode();
 				if (sBillTypecode != null
-						&& (sBillTypecode.equalsIgnoreCase(nc.vo.ic.pub.BillTypeConst.m_otherIn)
-								|| sBillTypecode.equalsIgnoreCase(nc.vo.ic.pub.BillTypeConst.m_otherOut)
-								|| sBillTypecode.equalsIgnoreCase(nc.vo.ic.pub.BillTypeConst.m_allocationOut) || sBillTypecode
+						&& (sBillTypecode
+								.equalsIgnoreCase(nc.vo.ic.pub.BillTypeConst.m_otherIn)
+								|| sBillTypecode
+										.equalsIgnoreCase(nc.vo.ic.pub.BillTypeConst.m_otherOut)
+								|| sBillTypecode
+										.equalsIgnoreCase(nc.vo.ic.pub.BillTypeConst.m_allocationOut) || sBillTypecode
 								.equalsIgnoreCase(nc.vo.ic.pub.BillTypeConst.m_allocationIn))) {
 					// 符合规则：其他出入库单，调拨出入库单，可以导入单据条码
 					// 卡片状态，单据类型，
@@ -13529,15 +13882,18 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 				setBtnStatusImportBarcode(0);
 			}
 			getButtonManager().getButton(ICButtonConst.BTN_OUT_RETURN)
-			.setEnabled(false);
-	getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_ASSEMBLY)
-			.setEnabled(false);
-	getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
-			.setEnabled(false);
-	getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN)
-	.setEnabled(false);
-getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
-	.setEnabled(false);
+					.setEnabled(false);
+			getButtonManager()
+					.getButton(ICButtonConst.BTN_ASSIST_FUNC_ASSEMBLY)
+					.setEnabled(false);
+			getButtonManager()
+					.getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
+					.setEnabled(false);
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN).setEnabled(
+					false);
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN).setEnabled(false);
 			break;
 		case BillMode.Browse: // 在浏览情况下条码框不可以编辑
 			if (m_utfBarCode != null)
@@ -13548,10 +13904,11 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 						.setEnabled(false);
 				// added by lirr 2009-10-31上午10:38:32 查询后列表下，条码关闭、打开不可用
 				getButtonManager().getButton(
-						ICButtonConst.BTN_EXECUTE_BARCODE_CLOSE).setEnabled(false);
-				getButtonManager()
-						.getButton(ICButtonConst.BTN_EXECUTE_BARCODE_OPEN)
-						.setEnabled(false);
+						ICButtonConst.BTN_EXECUTE_BARCODE_CLOSE).setEnabled(
+						false);
+				getButtonManager().getButton(
+						ICButtonConst.BTN_EXECUTE_BARCODE_OPEN).setEnabled(
+						false);
 			} else {
 				setBtnStatusBC(0);
 				// add by ljun
@@ -13584,20 +13941,24 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 						ICButtonConst.BTN_ASSIST_QUERY_RELATED)
 						.setEnabled(true);
 				getButtonManager().getButton(ICButtonConst.BTN_OUT_RETURN)
-				.setEnabled(true);
-		getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_ASSEMBLY)
-				.setEnabled(true);
-		getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
-				.setEnabled(true);
+						.setEnabled(true);
+				getButtonManager().getButton(
+						ICButtonConst.BTN_ASSIST_FUNC_ASSEMBLY)
+						.setEnabled(true);
+				getButtonManager().getButton(
+						ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
+						.setEnabled(true);
 				getButtonManager().getButton(
 						ICButtonConst.BTN_ASSIST_FUNC_SETTLE_PATH).setEnabled(
 						true);
 				getButtonManager().getButton(
-						ICButtonConst.BTN_ASSIST_CANCEL_SETTLE_PATH).setEnabled(
-						true);
-				if(null != getButtonManager().getButton(ICButtonConst.BTN_ASSIST_COOP_45))
-					getButtonManager().getButton(ICButtonConst.BTN_ASSIST_COOP_45).setEnabled(true);
-        
+						ICButtonConst.BTN_ASSIST_CANCEL_SETTLE_PATH)
+						.setEnabled(true);
+				if (null != getButtonManager().getButton(
+						ICButtonConst.BTN_ASSIST_COOP_45))
+					getButtonManager().getButton(
+							ICButtonConst.BTN_ASSIST_COOP_45).setEnabled(true);
+
 				// 如果不是和本节点相同的单据类型(如借入单上查出的期初单)，不能删除.
 				try {
 					// 当前选中的单据
@@ -13633,15 +13994,17 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 						ICButtonConst.BTN_ASSIST_FUNC_SETTLE_PATH).setEnabled(
 						false);
 				getButtonManager().getButton(
-						ICButtonConst.BTN_ASSIST_CANCEL_SETTLE_PATH).setEnabled(
-						false);
+						ICButtonConst.BTN_ASSIST_CANCEL_SETTLE_PATH)
+						.setEnabled(false);
 				getButtonManager().getButton(ICButtonConst.BTN_OUT_RETURN)
 						.setEnabled(false);
-				getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_ASSEMBLY)
-						.setEnabled(false);
-				getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
-						.setEnabled(false);
-        
+				getButtonManager().getButton(
+						ICButtonConst.BTN_ASSIST_FUNC_ASSEMBLY).setEnabled(
+						false);
+				getButtonManager().getButton(
+						ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT).setEnabled(
+						false);
+
 			}
 
 			getButtonManager().getButton(ICButtonConst.BTN_SAVE).setEnabled(
@@ -13687,10 +14050,11 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 						.setEnabled(true);
 				getButtonManager().getButton(ICButtonConst.BTN_PRINT_SUM)
 						.setEnabled(true);
-        
-        if(getButtonManager().getButton(ICButtonConst.BTN_DMStateQry)!=null)
-          getButtonManager().getButton(ICButtonConst.BTN_DMStateQry).setEnabled(true);
-        
+
+				if (getButtonManager().getButton(ICButtonConst.BTN_DMStateQry) != null)
+					getButtonManager().getButton(ICButtonConst.BTN_DMStateQry)
+							.setEnabled(true);
+
 			} else {
 				getButtonManager().getButton(ICButtonConst.BTN_PRINT)
 						.setEnabled(false);
@@ -13702,10 +14066,11 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 						.setEnabled(false);
 				getButtonManager().getButton(ICButtonConst.BTN_PRINT_SUM)
 						.setEnabled(false);
-        
-        if(getButtonManager().getButton(ICButtonConst.BTN_DMStateQry)!=null)
-          getButtonManager().getButton(ICButtonConst.BTN_DMStateQry).setEnabled(false);
-        
+
+				if (getButtonManager().getButton(ICButtonConst.BTN_DMStateQry) != null)
+					getButtonManager().getButton(ICButtonConst.BTN_DMStateQry)
+							.setEnabled(false);
+
 			} // 还应进一步判断当前的单据是否已签字
 			// 同时判断修改、删除是否可用，所以应放在它们的后面。
 			getButtonManager().getButton(ICButtonConst.BTN_LINE).setEnabled(
@@ -13717,9 +14082,11 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 					.setEnabled(false);
 			getButtonManager().getButton(
 					ICButtonConst.BTN_ASSIST_FUNC_INV_CHECK).setEnabled(true);
-/*			getButtonManager()
-					.getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
-					.setEnabled(true);*/
+			/*
+			 * getButtonManager()
+			 * .getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)
+			 * .setEnabled(true);
+			 */
 			// 导入条码
 			if (getButtonManager().getButton(
 					ICButtonConst.BTN_IMPORT_SOURCE_BARCODE) != null)
@@ -13751,17 +14118,18 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 				getButtonManager().getButton(ICButtonConst.BTN_LINE_BARCODE)
 						.setEnabled(false);
 			}
-			
-			getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN)
-			.setEnabled(true);
-		getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
-			.setEnabled(true);
+
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_MANUAL_RETURN).setEnabled(
+					true);
+			getButtonManager().getButton(
+					ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN).setEnabled(true);
 
 			break;
 		}
-		
-		getButtonManager().getButton(ICButtonConst.BTN_LINE_SPACE)
-		.setEnabled(false);
+
+		getButtonManager().getButton(ICButtonConst.BTN_LINE_SPACE).setEnabled(
+				false);
 		SCMEnv.showTime(lTime, "setEnable:");
 		// 当前选中行
 		lTime = System.currentTimeMillis();
@@ -13825,9 +14193,9 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 		if (bUpdateButtons)
 			updateButtons();
 		SCMEnv.showTime(lTime, "updateButtons();");
-		
-		//added by lirr 2009-02-13	  二次开发扩展
-	    getPluginProxy().setButtonStatus();
+
+		// added by lirr 2009-02-13 二次开发扩展
+		getPluginProxy().setButtonStatus();
 	}
 
 	/**
@@ -13946,17 +14314,16 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 
 			String oldvalue = (String) getBillCardPanel().getBodyValueAt(irow,
 					"castunitid");// refCastunit.getRefPK();
-			//陈倪娜 修正辅数量自动清空BUG 2009-07-08
-			if(voLot.getCastunitid()!=null){
-			    getM_voBill().setItemValue(irow, "cselastunitid",
-					voLot.getCastunitid());
-			    
-			}
-			else{
+			// 陈倪娜 修正辅数量自动清空BUG 2009-07-08
+			if (voLot.getCastunitid() != null) {
+				getM_voBill().setItemValue(irow, "cselastunitid",
+						voLot.getCastunitid());
+
+			} else {
 				voLot.setCastunitid(oldvalue);
-//				  getM_voBill().setItemValue(irow, "cselastunitid",
-//						  oldvalue);
-				
+				// getM_voBill().setItemValue(irow, "cselastunitid",
+				// oldvalue);
+
 			}
 			nc.vo.ic.pub.DesassemblyVO voDesa = (nc.vo.ic.pub.DesassemblyVO) getM_voBill()
 					.getItemValue(irow, "desainfo");
@@ -13971,10 +14338,10 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 					new Integer(voDesa.getDesaType()));
 			getBillCardPanel().setBodyValueAt(
 					new Integer(voDesa.getDesaType()), irow, "idesatype");
-			//陈倪娜 修正辅数量自动清空BUG 2009-07-08
-			if(voLot.getCastunitid()!=null){
-			getBillCardPanel().setBodyValueAt(voLot.getCastunitid(), irow,
-					"cselastunitid");
+			// 陈倪娜 修正辅数量自动清空BUG 2009-07-08
+			if (voLot.getCastunitid() != null) {
+				getBillCardPanel().setBodyValueAt(voLot.getCastunitid(), irow,
+						"cselastunitid");
 			}
 			// 如果不是拆解，那么执行以前的代码。
 			if (voDesa.getDesaType() == nc.vo.ic.pub.DesassemblyVO.TYPE_NO
@@ -14030,7 +14397,7 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 						irow, "scrq");
 			}
 		}
-    
+
 		// 自由项
 		if (voInv.getIsFreeItemMgt() != null
 				&& voInv.getIsFreeItemMgt().intValue() == 1) {
@@ -14065,8 +14432,10 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 		// 同步改变m_voBill
 		getM_voBill().setItemValue(irow, "vbatchcode", voLot.getVbatchcode());
 		getM_voBill().setItemValue(irow, "dvalidate", voLot.getDvalidate());
-    getM_voBill().setItemValue(irow, "cqualitylevelid", voLot.getCqualitylevelid());
-    getM_voBill().setItemValue(irow, "cqualitylevelname", voLot.getCqualitylevelname());
+		getM_voBill().setItemValue(irow, "cqualitylevelid",
+				voLot.getCqualitylevelid());
+		getM_voBill().setItemValue(irow, "cqualitylevelname",
+				voLot.getCqualitylevelname());
 
 	}
 
@@ -14132,15 +14501,17 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 					sWarehouseid, m_alLocatorData);
 		}
 	}
-  
-  /**
-   * 创建者：yangb 功能：add insert line 参数： 返回： 例外： 日期：(2001-6-26 下午 9:32) 修改日期，修改人，修改原因，注释标志：
-   */
-  protected void voBillAddLine(int row) {
-    if(row>=0 && row<getBillCardPanel().getRowCount()){
-      getM_voBill().setItemValue(row, "crowno", getBillCardPanel().getBodyValueAt(row, "crowno"));
-    }
-  }
+
+	/**
+	 * 创建者：yangb 功能：add insert line 参数： 返回： 例外： 日期：(2001-6-26 下午 9:32)
+	 * 修改日期，修改人，修改原因，注释标志：
+	 */
+	protected void voBillAddLine(int row) {
+		if (row >= 0 && row < getBillCardPanel().getRowCount()) {
+			getM_voBill().setItemValue(row, "crowno",
+					getBillCardPanel().getBodyValueAt(row, "crowno"));
+		}
+	}
 
 	/**
 	 * 创建者：仲瑞庆 功能：粘贴行 参数： 返回： 例外： 日期：(2001-6-26 下午 9:32) 修改日期，修改人，修改原因，注释标志：
@@ -14215,15 +14586,14 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 		nc.ui.pub.ClientEnvironment ce = getClientEnvironment();
 		nc.vo.sm.log.OperatelogVO log = new nc.vo.sm.log.OperatelogVO();
 		log.setCompanyname(ce.getCorporation().getUnitname());
-		//修改人：陈倪娜 日期：2009-04-20 功能：取消判断，写入IP      
-//		if (!nc.ui.pub.ClientEnvironment.getInstance().isInDebug()){
-			log.setEnterip(nc.ui.sm.cmenu.Desktop.getApplet().getParameter(
-					"USER_IP"));
-			
-//			}
-				
-		log.setPKCorp(getEnvironment().getCorpID());
+		// 修改人：陈倪娜 日期：2009-04-20 功能：取消判断，写入IP
+		// if (!nc.ui.pub.ClientEnvironment.getInstance().isInDebug()){
+		log.setEnterip(nc.ui.sm.cmenu.Desktop.getApplet().getParameter(
+				"USER_IP"));
 
+		// }
+
+		log.setPKCorp(getEnvironment().getCorpID());
 
 		return log;
 	}
@@ -14524,9 +14894,9 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 					"vfree0");
 		}
 
-		if (((null != getFunctionNode() && "40080602".equals(getFunctionNode())) ||
-        GeneralBillUICtl.isChangePrice()
-        )&& getBillCardPanel().getBodyItem("nprice") != null) {
+		if (((null != getFunctionNode() && "40080602".equals(getFunctionNode())) || GeneralBillUICtl
+				.isChangePrice())
+				&& getBillCardPanel().getBodyItem("nprice") != null) {
 			UFDouble uinprice = CheckTools.toUFDouble(getBillCardPanel()
 					.getBodyValueAt(iSelrow, "nprice"));
 			UFDouble vonprice = vo.getNprice();
@@ -14640,25 +15010,27 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 		 * "40080602".equals(getFunctionNode()))
 		 * getM_voBill().setItemValue(iSelrow, "nprice",vo.getNprice());
 		 */
-		//修改人：刘家清 修改时间：2008-7-24 下午03:32:53 修改原因：出库跟踪入库时，如果入库单货位只有一个，则出库单中输入对应入库单号后将入库单"货位"自动带入出库单的"货位"中；
+		// 修改人：刘家清 修改时间：2008-7-24 下午03:32:53
+		// 修改原因：出库跟踪入库时，如果入库单货位只有一个，则出库单中输入对应入库单号后将入库单"货位"自动带入出库单的"货位"中；
 		if (getBillCardPanel().getBodyItem("vspacename") != null
 				&& null != getM_voBill().getItemInv(iSelrow).getOuttrackin()
-				&& getM_voBill().getItemInv(iSelrow).getOuttrackin().booleanValue()
+				&& getM_voBill().getItemInv(iSelrow).getOuttrackin()
+						.booleanValue()
 				&& getM_voBill().getItemInv(iSelrow).getInOutFlag() != InOutFlag.IN) {
 			filterSpace(iSelrow);
 			nc.ui.pub.beans.UIRefPane refSpace = ((nc.ui.pub.beans.UIRefPane) getBillCardPanel()
 					.getBodyItem("vspacename").getComponent());
-      if(refSpace.getRefModel()!=null){
-  			java.util.Vector refdata = refSpace.getRefModel().getData();
-  			if (refdata != null && refdata.size() == 1){
-  				refSpace.setSelectedData(refdata);
-  				refSpace.getRefModel().setSelectedData(refdata);
-  				String cspaceid = refSpace.getRefPK();
-  				String csname = refSpace.getRefName();
-  				getEditCtrl().setRowSpaceData(iSelrow, cspaceid, csname);
-  			}
-      }
-			
+			if (refSpace.getRefModel() != null) {
+				java.util.Vector refdata = refSpace.getRefModel().getData();
+				if (refdata != null && refdata.size() == 1) {
+					refSpace.setSelectedData(refdata);
+					refSpace.getRefModel().setSelectedData(refdata);
+					String cspaceid = refSpace.getRefPK();
+					String csname = refSpace.getRefName();
+					getEditCtrl().setRowSpaceData(iSelrow, cspaceid, csname);
+				}
+			}
+
 		}
 
 	}
@@ -14943,14 +15315,15 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 
 			GeneralBillHeaderVO voHead = voBill.getHeaderVO();
 			// 签字人
-			//voHead.setCregister(getEnvironment().getUserID());
+			// voHead.setCregister(getEnvironment().getUserID());
 			// --------------------------------------------可以不是当前登录单位的单据，所以不需要修改单位。
 			voHead.setPk_corp(getEnvironment().getCorpID());
 			// 因为登录日期和单据日期是可以不同的，所以必须要登录日期。
 			voHead.setDaccountdate(new nc.vo.pub.lang.UFDate(getEnvironment()
 					.getLogDate()));
 			// vo可能要传给平台，所以要做成和签字后的单据
-			//voHead.setFbillflag(new Integer(nc.vo.ic.pub.bill.BillStatus.SIGNED));
+			// voHead.setFbillflag(new
+			// Integer(nc.vo.ic.pub.bill.BillStatus.SIGNED));
 			voHead.setCoperatoridnow(getEnvironment().getUserID()); // 当前操作员2002-04-10.wnj
 			voHead.setAttributeValue("clogdatenow", getEnvironment()
 					.getLogDate()); // 当前登录日期2003-01-05
@@ -15090,9 +15463,11 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 			voUpdatedBill.setSmallBillVO(smbillvo);
 			// ###################################################
 			// 更新条码状态
-      GeneralBillVO.setBillBCVOStatus(getM_voBill(), nc.vo.pub.VOStatus.UNCHANGED);
+			GeneralBillVO.setBillBCVOStatus(getM_voBill(),
+					nc.vo.pub.VOStatus.UNCHANGED);
 			// hanwei 2004-0916
-      GeneralBillVO.setBillBCVOStatus(voUpdatedBill, nc.vo.pub.VOStatus.UNCHANGED);
+			GeneralBillVO.setBillBCVOStatus(voUpdatedBill,
+					nc.vo.pub.VOStatus.UNCHANGED);
 
 			// 添加此方法，避免条码VO为空后，没有清空m_voBill对应的条码VO
 			getM_voBill().setIDClearBarcodeItems(voUpdatedBill);
@@ -15193,7 +15568,8 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 		ds.setBillData(bd);
 		ds.setModuleName(getFunctionNode());
 		ds.setTotalLinesInOnePage(getPrintEntry().getBreakPos());
-		ds.setFormulaJudge(new DefaultFormulaJudge(getFunctionNode(), getEnvironment().getCorpID()));
+		ds.setFormulaJudge(new DefaultFormulaJudge(getFunctionNode(),
+				getEnvironment().getCorpID()));
 		// }
 		return ds;
 	}
@@ -15207,11 +15583,14 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 					ICButtonConst.BTN_SWITCH));
 			// onSwitch();
 		}
-    
-//  二次开发扩展
-    getPluginProxy().mouse_doubleclick(e);
+
+		// 二次开发扩展
+		getPluginProxy().mouse_doubleclick(e);
 
 	}
+
+	ButtonObject mdinfo = new ButtonObject(MDUtils.MDINFO_BUTTON, "编辑码单信息", 2,
+			MDUtils.MDINFO_BUTTON);
 
 	/*
 	 * （非 Javadoc）
@@ -15219,6 +15598,7 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	 * @see nc.ui.scm.pub.bill.IBillExtendFun#getExtendBtns()
 	 */
 	public ButtonObject[] getExtendBtns() {
+		// return new ButtonObject[]{mdinfo};
 		return null;
 	}
 
@@ -15228,7 +15608,30 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	 * @see nc.ui.scm.pub.bill.IBillExtendFun#onExtendBtnsClick(nc.ui.pub.ButtonObject)
 	 */
 	public void onExtendBtnsClick(ButtonObject bo) {
-
+		if (bo.equals(mdinfo)) {
+			if (getBillType().equals("4C") || getBillType().equals("4I")) {
+				MdwhDlg dlg;
+				try {
+					dlg = new MdwhDlg(this);
+					dlg.showModal();
+					if (dlg.getNoutassistnum() == null
+							|| dlg.getNoutnum() == null)
+						return;
+					GeneralBillVO billvo = dlg.getUpdateUIVO();
+					setBillVO(billvo);
+					updateBillToList(billvo);
+					getBillCardPanel().updateValue();
+					getBillCardPanel().updateUI();
+					getBillListPanel().updateUI();
+				} catch (BusinessException e) {
+					e.printStackTrace();
+					showErrorMessage(e.getMessage());
+				}
+			} else if (getBillType().equals("45") || getBillType().equals("4A")) {
+				MDioDialog dialog = new MDioDialog(this);
+				dialog.showModal();
+			}
+		}
 	}
 
 	/*
@@ -15312,7 +15715,8 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	 */
 	public void afterSortEvent(boolean iscard, boolean ishead, String key) {
 		if (ishead) {
-			setM_alListData((ArrayList<GeneralBillVO>) getListHeadSortCtl().getRelaSortData(0));
+			setM_alListData((ArrayList<GeneralBillVO>) getListHeadSortCtl()
+					.getRelaSortData(0));
 		} else {
 			if (iscard) {
 				if (getM_voBill() != null) {
@@ -15519,56 +15923,60 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	 * @see nc.ui.pub.linkoperate.ILinkQuery#doQueryAction(nc.ui.pub.linkoperate.ILinkQueryData)
 	 */
 	public void doQueryAction(ILinkQueryData querydata) {
-		if(querydata instanceof OutDetailDlg.QueryData){
+		if (querydata instanceof OutDetailDlg.QueryData) {
 			String swhere = querydata.getBillID();
-			ConditionVO[] convos = getPowerCons(querydata.getPkOrg(), querydata.getBillType());
-			if(convos!=null)
+			ConditionVO[] convos = getPowerCons(querydata.getPkOrg(), querydata
+					.getBillType());
+			if (convos != null)
 				swhere += " and " + convos[0].getWhereSQL(convos);
 			try {
 				ArrayList listvo = getQryDlgHelp().queryData(swhere);
 				setDataOnList(listvo, true);
 			} catch (BusinessException e) {
 				SCMEnv.out(e.getMessage());
-				nc.ui.pub.beans.MessageDialog.showHintDlg(this, nc.ui.ml.NCLangRes
-						.getInstance().getStrByID("SCMCOMMON",
-								"UPPSCMCommon-000270")/* @res "提示" */,
-						nc.ui.ml.NCLangRes.getInstance().getStrByID("4008bill",
-								"UPP4008bill-000062")/* @res "没有符合查询条件的单据！" */);
+				nc.ui.pub.beans.MessageDialog.showHintDlg(this,
+						nc.ui.ml.NCLangRes.getInstance().getStrByID(
+								"SCMCOMMON", "UPPSCMCommon-000270")/*
+																	 * @res "提示"
+																	 */, nc.ui.ml.NCLangRes.getInstance().getStrByID(
+								"4008bill", "UPP4008bill-000062")/*
+																	 * @res
+																	 * "没有符合查询条件的单据！"
+																	 */);
 			}
-			
-		}else{
+
+		} else {
 			queryForLinkOper(querydata.getPkOrg(), querydata.getBillType(),
 					querydata.getBillID());
 		}
 	}
 
-
 	public ConditionVO[] getPowerCons(String pk_corp, String billtype) {
 		QueryConditionDlgForBill qrydlg = new QueryConditionDlgForBill(this);
-		qrydlg.setTempletID(pk_corp, getFunctionNode(),
-				getEnvironment().getUserID(), null);
+		qrydlg.setTempletID(pk_corp, getFunctionNode(), getEnvironment()
+				.getUserID(), null);
 		String[] refcodes = null;
 		if (BillTypeConst.m_allocationOut.equals(billtype)
 				|| BillTypeConst.m_allocationIn.equals(billtype))
-			refcodes = nc.ui.ic.pub.tools.GenMethod
-					.getDataPowerFieldFromDlg(qrydlg, false, new String[] {
-							"head.cothercorpid", "head.coutcorpid",
-							"body.creceieveid", "head.cothercalbodyid",
-							"head.cotherwhid", "head.coutcalbodyid" });
+			refcodes = nc.ui.ic.pub.tools.GenMethod.getDataPowerFieldFromDlg(
+					qrydlg, false, new String[] { "head.cothercorpid",
+							"head.coutcorpid", "body.creceieveid",
+							"head.cothercalbodyid", "head.cotherwhid",
+							"head.coutcalbodyid" });
 		else
-			refcodes = nc.ui.ic.pub.tools.GenMethod
-					.getDataPowerFieldFromDlg(qrydlg, false, null);
+			refcodes = nc.ui.ic.pub.tools.GenMethod.getDataPowerFieldFromDlg(
+					qrydlg, false, null);
 
 		qrydlg.setCorpRefs("head.pk_corp", refcodes);
 		ConditionVO[] convos = null;
 		if (getClientEnvironment().getCorporation().getPrimaryKey().equals(
 				pk_corp)) {
 			convos = ICCommonBusi.getDataPowerConsFromDlg(qrydlg,
-					getFunctionNode(), pk_corp, getEnvironment()
-							.getUserID(), refcodes);
+					getFunctionNode(), pk_corp, getEnvironment().getUserID(),
+					refcodes);
 			// 处理跨公司部门业务员条件
-			convos = nc.ui.ic.pub.tools.GenMethod.procMultCorpDeptBizDP(
-					convos, billtype, pk_corp);
+			convos = nc.ui.ic.pub.tools.GenMethod.procMultCorpDeptBizDP(convos,
+					billtype, pk_corp);
 		}
 		return convos;
 	}
@@ -15579,155 +15987,149 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	 * @see nc.ui.pub.linkoperate.ILinkQuery#doQueryAction(nc.ui.pub.linkoperate.ILinkQueryData)
 	 */
 	public void queryForLinkOper(String PkOrg, String billtype, String billid) {
-	  GeneralBillVO voBill = null;
-	  HashMap<String,Object> retHM = null;
-	  String cbillpkcorp = null;
-	  try {
-	    retHM = GeneralBillHelper.getBillVOByLinkOpen(PkOrg, billtype, billid,
-          getEnvironment().getUserID(), getFunctionNode(), getClientEnvironment()
-              .getCorporation().getPrimaryKey());
-	    if(null == retHM)
-	      return;
-	    ArrayList<GeneralBillVO> alListData = (ArrayList<GeneralBillVO>)retHM.get(IICParaConst.LinkQryBillPara);
-	    cbillpkcorp = (String)retHM.get(IICParaConst.LinkBillCorpPara);
-      if (alListData != null && alListData.size() > 0) {
-        //
-//        setAlistDataByFormula(GeneralBillVO.QRY_FIRST_ITEM_NUM,
-//            alListData);
-        SCMEnv.out("0存货公式解析成功！");
-        //
-        setM_alListData(alListData);
+		GeneralBillVO voBill = null;
+		HashMap<String, Object> retHM = null;
+		String cbillpkcorp = null;
+		try {
+			retHM = GeneralBillHelper.getBillVOByLinkOpen(PkOrg, billtype,
+					billid, getEnvironment().getUserID(), getFunctionNode(),
+					getClientEnvironment().getCorporation().getPrimaryKey());
+			if (null == retHM)
+				return;
+			ArrayList<GeneralBillVO> alListData = (ArrayList<GeneralBillVO>) retHM
+					.get(IICParaConst.LinkQryBillPara);
+			cbillpkcorp = (String) retHM.get(IICParaConst.LinkBillCorpPara);
+			if (alListData != null && alListData.size() > 0) {
+				//
+				// setAlistDataByFormula(GeneralBillVO.QRY_FIRST_ITEM_NUM,
+				// alListData);
+				SCMEnv.out("0存货公式解析成功！");
+				//
+				setM_alListData(alListData);
 
-        voBill = (GeneralBillVO) alListData.get(0);
+				voBill = (GeneralBillVO) alListData.get(0);
 
-      }
-    }
-    catch (Exception e) {
-      // 日志异常
-      nc.vo.scm.pub.SCMEnv.out(e);
-      showErrorMessage(e.getMessage());
-    }
-    // modified by liuzy 2009-9-1 下午02:04:22 
-		/*// 查单据
-		ICDataSet datas = nc.ui.ic.pub.tools.GenMethod.queryData(
-				"ic_general_h", "cgeneralhid", new String[] { "pk_corp" },
-				new int[] { SmartFieldMeta.JAVATYPE_STRING },
-				new String[] { billid }, " dr=0 ");
-		String cbillpkcorp = datas == null ? null : (String) datas.getValueAt(
-				0, 0);
-
-		if (cbillpkcorp == null || cbillpkcorp.trim().length() <= 0)
+			}
+		} catch (Exception e) {
+			// 日志异常
+			nc.vo.scm.pub.SCMEnv.out(e);
+			showErrorMessage(e.getMessage());
+		}
+		// modified by liuzy 2009-9-1 下午02:04:22
+		/*
+		 * // 查单据 ICDataSet datas = nc.ui.ic.pub.tools.GenMethod.queryData(
+		 * "ic_general_h", "cgeneralhid", new String[] { "pk_corp" }, new int[] {
+		 * SmartFieldMeta.JAVATYPE_STRING }, new String[] { billid }, " dr=0 ");
+		 * String cbillpkcorp = datas == null ? null : (String)
+		 * datas.getValueAt( 0, 0);
+		 * 
+		 * if (cbillpkcorp == null || cbillpkcorp.trim().length() <= 0)
+		 * nc.ui.pub.beans.MessageDialog.showHintDlg(this, nc.ui.ml.NCLangRes
+		 * .getInstance().getStrByID("SCMCOMMON", "UPPSCMCommon-000270") @res
+		 * "提示" , nc.ui.ml.NCLangRes.getInstance().getStrByID("4008bill",
+		 * "UPP4008bill-000062") @res "没有符合查询条件的单据！" ); else {
+		 * QueryConditionDlgForBill qrydlg = new QueryConditionDlgForBill(this);
+		 * qrydlg.setTempletID(cbillpkcorp, getFunctionNode(),
+		 * getEnvironment().getUserID(), null); String[] refcodes = null; if
+		 * (BillTypeConst.m_allocationOut.equals(billtype) ||
+		 * BillTypeConst.m_allocationIn.equals(billtype)) refcodes =
+		 * nc.ui.ic.pub.tools.GenMethod .getDataPowerFieldFromDlg(qrydlg, false,
+		 * new String[] { "head.cothercorpid", "head.coutcorpid",
+		 * "body.creceieveid", "head.cothercalbodyid", "head.cotherwhid",
+		 * "head.coutcalbodyid" }); else refcodes = nc.ui.ic.pub.tools.GenMethod
+		 * .getDataPowerFieldFromDlg(qrydlg, false, null);
+		 * 
+		 * qrydlg.setCorpRefs("head.pk_corp", refcodes); ConditionVO[] convos =
+		 * null; if
+		 * (getClientEnvironment().getCorporation().getPrimaryKey().equals(
+		 * cbillpkcorp)) { convos = ICCommonBusi.getDataPowerConsFromDlg(qrydlg,
+		 * getFunctionNode(), cbillpkcorp, getEnvironment() .getUserID(),
+		 * refcodes); // 处理跨公司部门业务员条件 convos =
+		 * nc.ui.ic.pub.tools.GenMethod.procMultCorpDeptBizDP( convos, billtype,
+		 * cbillpkcorp); } GeneralBillVO voBill = qryBill(cbillpkcorp, billtype,
+		 * null, getEnvironment().getUserID(), billid, convos);
+		 */
+		if (voBill == null) {
 			nc.ui.pub.beans.MessageDialog.showHintDlg(this, nc.ui.ml.NCLangRes
 					.getInstance().getStrByID("SCMCOMMON",
-							"UPPSCMCommon-000270") @res "提示" ,
-					nc.ui.ml.NCLangRes.getInstance().getStrByID("4008bill",
-							"UPP4008bill-000062") @res "没有符合查询条件的单据！" );
-		else {
-			QueryConditionDlgForBill qrydlg = new QueryConditionDlgForBill(this);
-			qrydlg.setTempletID(cbillpkcorp, getFunctionNode(),
-					getEnvironment().getUserID(), null);
-			String[] refcodes = null;
-			if (BillTypeConst.m_allocationOut.equals(billtype)
-					|| BillTypeConst.m_allocationIn.equals(billtype))
-				refcodes = nc.ui.ic.pub.tools.GenMethod
-						.getDataPowerFieldFromDlg(qrydlg, false, new String[] {
-								"head.cothercorpid", "head.coutcorpid",
-								"body.creceieveid", "head.cothercalbodyid",
-								"head.cotherwhid", "head.coutcalbodyid" });
-			else
-				refcodes = nc.ui.ic.pub.tools.GenMethod
-						.getDataPowerFieldFromDlg(qrydlg, false, null);
-
-			qrydlg.setCorpRefs("head.pk_corp", refcodes);
-			ConditionVO[] convos = null;
-			if (getClientEnvironment().getCorporation().getPrimaryKey().equals(
-					cbillpkcorp)) {
-				convos = ICCommonBusi.getDataPowerConsFromDlg(qrydlg,
-						getFunctionNode(), cbillpkcorp, getEnvironment()
-								.getUserID(), refcodes);
-				// 处理跨公司部门业务员条件
-				convos = nc.ui.ic.pub.tools.GenMethod.procMultCorpDeptBizDP(
-						convos, billtype, cbillpkcorp);
-			}
-			GeneralBillVO voBill = qryBill(cbillpkcorp, billtype, null,
-					getEnvironment().getUserID(), billid, convos);*/
-			if (voBill == null) {
-				nc.ui.pub.beans.MessageDialog.showHintDlg(this,
-						nc.ui.ml.NCLangRes.getInstance().getStrByID(
-								"SCMCOMMON", "UPPSCMCommon-000270")/*
-																	 * @res "提示"
-																	 */, nc.ui.ml.NCLangRes.getInstance().getStrByID(
-								"4008bill", "UPP4008bill-000062")/*
-																	 * @res
-																	 * "没有符合查询条件的单据！"
-																	 */);
-				return;
-			}
-
-			if (!getClientEnvironment().getCorporation().getPrimaryKey()
-					.equals(cbillpkcorp)) {
-				setButtons(new ButtonObject[] {});
-				// 修改人：刘家清 修改日期：2007-9-24上午10:49:59 修改原因：联查时，就单据公司来filter界面参照
-				filterRef(cbillpkcorp);
-
-				// 修改人：刘家清 修改日期：2007-9-25上午10:17:35 修改原因：过滤仓库参照
-				nc.ui.pub.bill.BillItem bi = getBillCardPanel().getHeadItem(
-						IItemKey.WAREHOUSE);
-				// 出入库单的仓库参照中，不过滤掉直运仓，对于跨公司的，直运仓也要显示。
-				RefFilter.filtWh(bi, cbillpkcorp, null);
-				
-				//修改人：刘家清 修改时间：2008-12-29 下午03:31:59 修改原因：联查时根据单据公司处理业务类型档案。
-				bi = getBillCardPanel().getHeadItem("cbiztype");
-				if (null != bi && null != bi.getComponent() && bi.getComponent() instanceof UIRefPane){
-					UIRefPane ref = (UIRefPane) bi.getComponent();
-					if (null != ref.getRefModel()){
-						if (ref.getRefModel().getGroupCode().equals(cbillpkcorp)){
-							ref.getRefModel().setWherePart(" pk_corp='@@@@' " );
-						}else{
-							ref.getRefModel().setWherePart("(pk_corp='" + cbillpkcorp + "' or pk_corp='@@@@') " );
-						}		
-					}
-				}
-				
-				bi = getBillCardPanel().getHeadItem("cbiztypename");
-				if (null != bi && null != bi.getComponent() && bi.getComponent() instanceof UIRefPane){
-					UIRefPane ref = (UIRefPane) bi.getComponent();
-					if (null != ref.getRefModel()){
-						if (ref.getRefModel().getGroupCode().equals(cbillpkcorp)){
-							ref.getRefModel().setWherePart(" pk_corp='@@@@' " );
-						}else{
-							ref.getRefModel().setWherePart("(pk_corp='" + cbillpkcorp + "' or pk_corp='@@@@') " );
-						}	
-					}
-						
-				}
-				
-			}else{
-				//SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
-				//isSetButtons = false;
-				setButtons();
-			}
-
-			// 初始化界面
-			setM_alListData(new ArrayList<GeneralBillVO>());
-			getM_alListData().add(voBill);
-
-			ArrayList alListData = new ArrayList();
-			alListData.add(voBill);
-			setDataOnList(alListData, true);
-			
-			
-			//设置卡片模式下的 第一条选中  qinchao  2009-04-29
-			getBillListPanel().getHeadTable().setRowSelectionInterval(0, 0);
-			// modified by liuzy 2009-9-1 下午02:57:32 连接数问题，切换为卡片会增加一次批次查询的连接
-//			onButtonClicked(getButtonManager().getButton(
-//					ICButtonConst.BTN_SWITCH));
-			// onSwitch();
-
-			// setButtons(new
-			// ButtonObject[]{getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)});
-
+							"UPPSCMCommon-000270")/*
+													 * @res "提示"
+													 */, nc.ui.ml.NCLangRes.getInstance().getStrByID("4008bill",
+					"UPP4008bill-000062")/*
+											 * @res "没有符合查询条件的单据！"
+											 */);
+			return;
 		}
+
+		if (!getClientEnvironment().getCorporation().getPrimaryKey().equals(
+				cbillpkcorp)) {
+			setButtons(new ButtonObject[] {});
+			// 修改人：刘家清 修改日期：2007-9-24上午10:49:59 修改原因：联查时，就单据公司来filter界面参照
+			filterRef(cbillpkcorp);
+
+			// 修改人：刘家清 修改日期：2007-9-25上午10:17:35 修改原因：过滤仓库参照
+			nc.ui.pub.bill.BillItem bi = getBillCardPanel().getHeadItem(
+					IItemKey.WAREHOUSE);
+			// 出入库单的仓库参照中，不过滤掉直运仓，对于跨公司的，直运仓也要显示。
+			RefFilter.filtWh(bi, cbillpkcorp, null);
+
+			// 修改人：刘家清 修改时间：2008-12-29 下午03:31:59 修改原因：联查时根据单据公司处理业务类型档案。
+			bi = getBillCardPanel().getHeadItem("cbiztype");
+			if (null != bi && null != bi.getComponent()
+					&& bi.getComponent() instanceof UIRefPane) {
+				UIRefPane ref = (UIRefPane) bi.getComponent();
+				if (null != ref.getRefModel()) {
+					if (ref.getRefModel().getGroupCode().equals(cbillpkcorp)) {
+						ref.getRefModel().setWherePart(" pk_corp='@@@@' ");
+					} else {
+						ref.getRefModel().setWherePart(
+								"(pk_corp='" + cbillpkcorp
+										+ "' or pk_corp='@@@@') ");
+					}
+				}
+			}
+
+			bi = getBillCardPanel().getHeadItem("cbiztypename");
+			if (null != bi && null != bi.getComponent()
+					&& bi.getComponent() instanceof UIRefPane) {
+				UIRefPane ref = (UIRefPane) bi.getComponent();
+				if (null != ref.getRefModel()) {
+					if (ref.getRefModel().getGroupCode().equals(cbillpkcorp)) {
+						ref.getRefModel().setWherePart(" pk_corp='@@@@' ");
+					} else {
+						ref.getRefModel().setWherePart(
+								"(pk_corp='" + cbillpkcorp
+										+ "' or pk_corp='@@@@') ");
+					}
+				}
+
+			}
+
+		} else {
+			// SCMEnv.out("刘家清测试跟踪，重新设定的按钮初始化菜单时的按钮: "+getBillTypeCode());
+			// isSetButtons = false;
+			setButtons();
+		}
+
+		// 初始化界面
+		setM_alListData(new ArrayList<GeneralBillVO>());
+		getM_alListData().add(voBill);
+
+		ArrayList alListData = new ArrayList();
+		alListData.add(voBill);
+		setDataOnList(alListData, true);
+
+		// 设置卡片模式下的 第一条选中 qinchao 2009-04-29
+		getBillListPanel().getHeadTable().setRowSelectionInterval(0, 0);
+		// modified by liuzy 2009-9-1 下午02:57:32 连接数问题，切换为卡片会增加一次批次查询的连接
+		// onButtonClicked(getButtonManager().getButton(
+		// ICButtonConst.BTN_SWITCH));
+		// onSwitch();
+
+		// setButtons(new
+		// ButtonObject[]{getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_DOCUMENT)});
+
+	}
 
 	/**
 	 * UI关联操作-新增
@@ -15807,26 +16209,29 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 								.getPrimaryKey(), null);
 
 			} else if (ScmConst.PO_Arrive.equals(billtype.trim())) {
-				/**add by qinchao 2009-02-20  
-				 **修改部分： else if{}块   
-				 **作用：    联查PO采购到货单  ***/
-				
-				boolean m_bQcEnabled = false; 
-			    //质量管理模块启用
-				nc.itf.uap.sf.ICreateCorpQueryService tt = (nc.itf.uap.sf.ICreateCorpQueryService) NCLocator
-			        .getInstance().lookup(nc.itf.uap.sf.ICreateCorpQueryService.class.getName());
-			   
-				m_bQcEnabled = tt.isEnabled(getCorpPrimaryKey(), nc.vo.pub.ProductCode.PROD_QC);
-				
-				nc.itf.po.outer.IQueryForIc qrypo = (nc.itf.po.outer.IQueryForIc) NCLocator
-				.getInstance().lookup(
-						nc.itf.po.outer.IQueryForIc.class.getName());
-		      srcvos = qrypo.queryArriveBillVOForLinkAdd(adddata
-				.getSourcePkOrg(), adddata.getSourceBillID(), billtype,
-				ClientEnvironment.getInstance().getCorporation()
-						.getPrimaryKey(), null,m_bQcEnabled);
+				/***************************************************************
+				 * add by qinchao 2009-02-20 *修改部分： else if{}块 作用： 联查PO采购到货单 *
+				 **************************************************************/
 
-	        } else if (BillTypeConst.TO_ORDER3.equals(billtype.trim())
+				boolean m_bQcEnabled = false;
+				// 质量管理模块启用
+				nc.itf.uap.sf.ICreateCorpQueryService tt = (nc.itf.uap.sf.ICreateCorpQueryService) NCLocator
+						.getInstance().lookup(
+								nc.itf.uap.sf.ICreateCorpQueryService.class
+										.getName());
+
+				m_bQcEnabled = tt.isEnabled(getCorpPrimaryKey(),
+						nc.vo.pub.ProductCode.PROD_QC);
+
+				nc.itf.po.outer.IQueryForIc qrypo = (nc.itf.po.outer.IQueryForIc) NCLocator
+						.getInstance().lookup(
+								nc.itf.po.outer.IQueryForIc.class.getName());
+				srcvos = qrypo.queryArriveBillVOForLinkAdd(adddata
+						.getSourcePkOrg(), adddata.getSourceBillID(), billtype,
+						ClientEnvironment.getInstance().getCorporation()
+								.getPrimaryKey(), null, m_bQcEnabled);
+
+			} else if (BillTypeConst.TO_ORDER3.equals(billtype.trim())
 					|| BillTypeConst.TO_ORDER2.equals(billtype.trim())
 					|| BillTypeConst.TO_ORDER1.equals(billtype.trim())
 					|| BillTypeConst.TO_ORDER4.equals(billtype.trim())
@@ -15848,11 +16253,11 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 				srcvos = new BillVO[] { billvo };
 
 			} else {
-        Object obj = adddata.getUserObject();
-        if(obj!=null && obj instanceof AggregatedValueObject[])
-          srcvos = (AggregatedValueObject[])obj;
-        else
-          return null;
+				Object obj = adddata.getUserObject();
+				if (obj != null && obj instanceof AggregatedValueObject[])
+					srcvos = (AggregatedValueObject[]) obj;
+				else
+					return null;
 			}
 		} catch (Exception e) {
 			nc.ui.ic.pub.tools.GenMethod.handleException(this, null, e);
@@ -15901,12 +16306,14 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	public void doMaintainAction(ILinkMaintainData maintaindata) {
 		queryForLinkOper(getClientEnvironment().getCorporation()
 				.getPrimaryKey(), getBillTypeCode(), maintaindata.getBillID());
-//    if(getM_voBill()!=null && getM_voBill().getHeaderVO().getFbillflag()!=null && getM_voBill().getHeaderVO().getFbillflag().intValue()==BillStatus.IFREE)
-      // modified by liuzy 2009-1-19 下午06:10:46 为什么要已编辑状态打开呢？单据是自由状态的，用户自己点
-      //修改按钮不就可以了？！这样导致SES查询出来的单据就是编辑状态的。还有不解的是SES打开节点时为什么要以ILinkType.LINK_TYPE_MAINTAIN方式打开？
-      //暂时注掉，如果有问题那么只能让SES修改打开单据的方式了
-//      onButtonClicked(getButtonManager().getButton(
-//          ICButtonConst.BTN_BILL_EDIT));
+		// if(getM_voBill()!=null &&
+		// getM_voBill().getHeaderVO().getFbillflag()!=null &&
+		// getM_voBill().getHeaderVO().getFbillflag().intValue()==BillStatus.IFREE)
+		// modified by liuzy 2009-1-19 下午06:10:46 为什么要已编辑状态打开呢？单据是自由状态的，用户自己点
+		// 修改按钮不就可以了？！这样导致SES查询出来的单据就是编辑状态的。还有不解的是SES打开节点时为什么要以ILinkType.LINK_TYPE_MAINTAIN方式打开？
+		// 暂时注掉，如果有问题那么只能让SES修改打开单据的方式了
+		// onButtonClicked(getButtonManager().getButton(
+		// ICButtonConst.BTN_BILL_EDIT));
 	}
 
 	/**
@@ -15937,7 +16344,7 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 		try {
 			ArrayList alListData = (ArrayList) GeneralBillHelper.queryBills(
 					getBillType(), voCond);
-			getM_alListData().set(selrow, (GeneralBillVO)alListData.get(0));
+			getM_alListData().set(selrow, (GeneralBillVO) alListData.get(0));
 			setDataOnList(getM_alListData(), true);
 			selectListBill(selrow);
 
@@ -16037,7 +16444,7 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	protected void setM_voBill(GeneralBillVO m_voBill) {
 		this.m_voBill = m_voBill;
 		// 需要初始化参照过滤, 为点击取消后的新增操作. 20021225
-		//filterRef(getEnvironment().getCorpID());
+		// filterRef(getEnvironment().getCorpID());
 	}
 
 	/*
@@ -16122,13 +16529,14 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	protected UIMenuItem getAddNewRowNoItem() {
 		return miAddNewRowNo;
 	}
-  
-  protected UIMenuItem getMiLineCardEdit() {
-    return miLineCardEdit;
-  }
-//  protected UIMenuItem getMiLineBatchEdit() {
-//    return miLineBatchEdit;
-//  }
+
+	protected UIMenuItem getMiLineCardEdit() {
+		return miLineCardEdit;
+	}
+
+	// protected UIMenuItem getMiLineBatchEdit() {
+	// return miLineBatchEdit;
+	// }
 
 	public EditCtrl getEditCtrl() {
 		if (null == m_editCtrl) {
@@ -16144,7 +16552,7 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	protected void setM_alSerialData(ArrayList serialData) {
 		m_alSerialData = serialData;
 	}
-	
+
 	protected void setM_alLocatorDataBackup(ArrayList locatorDataBackup) {
 		m_alLocatorDataBackup = locatorDataBackup;
 	}
@@ -16201,338 +16609,336 @@ getButtonManager().getButton(ICButtonConst.BTN_ASSIST_FUNC_PO_RETURN)
 	public nc.ui.scm.extend.IFuncExtend getM_funcExtend() {
 		return m_funcExtend;
 	}
-  
-  public void setSortEnable(boolean isenable) {
-    if(!isenable){
-      getBillCardPanel().getBillTable().setSortEnabled(false);
-      getBillCardPanel().getBillTable().removeSortListener();
-    }else{
-      getBillCardPanel().getBillTable().setSortEnabled(true);
-      getBillCardPanel().getBillTable().addSortListener();
-    }
-  }
-  
-  /**
-   * 创建者：仲瑞庆 功能： 参数： 返回： 例外： 日期：(2001-11-8 19:47:29) 修改日期，修改人，修改原因，注释标志：
-   * 
-   * @return nc.ui.pub.bill.BillData
-   * @param oldBillData
-   *            nc.ui.pub.bill.BillData
-   */
-  protected BillData changeBillDataByUserDef(DefVO[] defHead,
-      DefVO[] defBody, BillData oldBillData) {
-    try {
-        String codeColumn;
-        String nameColumn;
-      // 进行自定义项定义用
-      if (defHead != null) {
-        oldBillData.updateItemByDef(defHead, "vuserdef", true);
-        for (int i = 1; i <= 20; i++) {
-                        
-          nc.ui.pub.bill.BillItem item = oldBillData
-              .getHeadItem("vuserdef" + i);
-          
-         
-          if (item != null
-              && item.getDataType() == nc.ui.pub.bill.BillItem.USERDEF) {
-            ((nc.ui.pub.beans.UIRefPane) item.getComponent())
-                .setAutoCheck(true);
-          }
-        }
-      }
 
-      // 表体
-      if ((defBody != null)) {
-        oldBillData.updateItemByDef(defBody, "vuserdef", false);
-        if (ScmConst.m_assetOut.equals(getBillType()) || ScmConst.m_assetIn.equals(getBillType())){
-	        for (int i = 1; i <= 20; i++) {
-	          nc.ui.pub.bill.BillItem item = oldBillData
-	              .getBodyItem("vuserdef" + i);
-	          nc.ui.pub.bill.BillItem itemPK = oldBillData
-	          .getBodyItem("pk_defdoc" + i);
-	          
-	          codeColumn = "vuserdef" + i;
-	          String formular = null;
-	          String [] ss = null;
-	          if(defBody[i-1] != null && defBody[i-1].getDefdef()!= null && defBody[i-1].getDefdef().getPk_bdinfo() != null){
-	              formular= nc.ui.ic.pub.tools.GenMethod.getCodeFieldEditFormular(defBody[i-1].getDefdef().getPk_bdinfo(),itemPK.getKey(),null,codeColumn);
-	              ss = formular.split(";");  
-	          }
-	                 
-	          if (item != null
-	              && item.getDataType() == nc.ui.pub.bill.BillItem.USERDEF) {
-	            ((nc.ui.pub.beans.UIRefPane) item.getComponent())
-	                .setAutoCheck(true);
-	          }          
-	          if (null != itemPK && ss!= null){
-	              itemPK.setEditFormula(ss);
-	              itemPK.setLoadFormula(ss);
-	          }
-	          
-	          if(item!=null && item.getComponent()!=null)
-	            ((nc.ui.pub.beans.UIRefPane) item.getComponent()).setEditable(item.isEdit());
-	        }
-        }
-      }
-    } catch (Exception e) {
+	public void setSortEnable(boolean isenable) {
+		if (!isenable) {
+			getBillCardPanel().getBillTable().setSortEnabled(false);
+			getBillCardPanel().getBillTable().removeSortListener();
+		} else {
+			getBillCardPanel().getBillTable().setSortEnabled(true);
+			getBillCardPanel().getBillTable().addSortListener();
+		}
+	}
 
-        nc.vo.scm.pub.SCMEnv.error(e);
-    }
+	/**
+	 * 创建者：仲瑞庆 功能： 参数： 返回： 例外： 日期：(2001-11-8 19:47:29) 修改日期，修改人，修改原因，注释标志：
+	 * 
+	 * @return nc.ui.pub.bill.BillData
+	 * @param oldBillData
+	 *            nc.ui.pub.bill.BillData
+	 */
+	protected BillData changeBillDataByUserDef(DefVO[] defHead,
+			DefVO[] defBody, BillData oldBillData) {
+		try {
+			String codeColumn;
+			String nameColumn;
+			// 进行自定义项定义用
+			if (defHead != null) {
+				oldBillData.updateItemByDef(defHead, "vuserdef", true);
+				for (int i = 1; i <= 20; i++) {
 
-    return oldBillData;
-  }
+					nc.ui.pub.bill.BillItem item = oldBillData
+							.getHeadItem("vuserdef" + i);
 
-  /**
-   * 创建者：仲瑞庆 功能： 参数： 返回： 例外： 日期：(2001-11-8 19:47:29) 修改日期，修改人，修改原因，注释标志：
-   * 
-   * @return nc.ui.pub.bill.BillData
-   * @param oldBillData
-   *            nc.ui.pub.bill.BillData
-   */
-  protected BillListData changeBillListDataByUserDef(DefVO[] defHead,
-      DefVO[] defBody, BillListData oldBillData) {
-    try {
-      if (defHead != null)
-
-        oldBillData.updateItemByDef(defHead, "vuserdef", true);
-
-      if (defBody != null){
-        oldBillData.updateItemByDef(defBody, "vuserdef", false);
-        if (ScmConst.m_assetOut.equals(getBillType()) || ScmConst.m_assetIn.equals(getBillType())){
-	        // added by lirr 2009-11-17下午02:12:13 资产入资产出需要执行自定义项公式
-	        String codeColumn ;
-	        for (int i = 1; i <= 20; i++) {
-	            nc.ui.pub.bill.BillItem item = oldBillData
-	                .getBodyItem("vuserdef" + i);
-	            nc.ui.pub.bill.BillItem itemPK = oldBillData
-	            .getBodyItem("pk_defdoc" + i);
-	            
-	            codeColumn = "vuserdef" + i;
-	            String formular = null;
-	            String [] ss = null;
-	            if(defBody[i-1] != null && defBody[i-1].getDefdef()!= null && defBody[i-1].getDefdef().getPk_bdinfo() != null){
-	                formular= nc.ui.ic.pub.tools.GenMethod.getCodeFieldEditFormular(defBody[i-1].getDefdef().getPk_bdinfo(),itemPK.getKey(),null,codeColumn);
-	                ss = formular.split(";");  
-	            }
-	                   
-	            if (item != null
-	                && item.getDataType() == nc.ui.pub.bill.BillItem.USERDEF) {
-	              ((nc.ui.pub.beans.UIRefPane) item.getComponent())
-	                  .setAutoCheck(true);
-	            }          
-	            if (null != itemPK && ss!= null){
-	                itemPK.setEditFormula(ss);
-	                itemPK.setLoadFormula(ss);
-	            }
-	            
-	            if(item!=null && item.getComponent()!=null)
-	              ((nc.ui.pub.beans.UIRefPane) item.getComponent()).setEditable(item.isEdit());
-	          }
-        }
-      }
-
-      return oldBillData;
-    } catch (Exception e) {
-      nc.vo.scm.pub.SCMEnv.error(e);
-    }
-    return oldBillData;
-  }
-
-  /**
-   * ?user> 功能： 参数： 返回： 例外： 日期：(2004-6-30 17:57:26) 修改日期，修改人，修改原因，注释标志：
-   * 
-   * @return nc.vo.bd.def.DefVO[]
-   * @param pk_corp
-   *            java.lang.String
-   * @param isHead
-   *            boolean
-   */
-  public DefVO[] getDefHeadVO() {
-    if (m_defHead == null) {
-      try {
-        m_defHead = DefSetTool.getDefHead(getCorpPrimaryKey(), ICConst.BILLTYPE_IC);
-      } catch (Exception e) {
-        nc.vo.scm.pub.SCMEnv.error(e);
-      }
-    }
-    return m_defHead;
-  }
-
-
-  /**
-   * ?user> 功能： 参数： 返回： 例外： 日期：(2004-6-30 17:57:26) 修改日期，修改人，修改原因，注释标志：
-   * 
-   * @return nc.vo.bd.def.DefVO[]
-   * @param pk_corp
-   *            java.lang.String
-   * @param isHead
-   *            boolean
-   */
-  public DefVO[] getDefBodyVO() {
-
-    if (m_defBody == null) {
-      try {
-        m_defBody = DefSetTool.getDefBody(getCorpPrimaryKey(), ICConst.BILLTYPE_IC);
-      } catch (Exception e) {
-        nc.vo.scm.pub.SCMEnv.error(e);
-      }
-    }
-    return m_defBody;
-  }
-  
-  public QueryDlgHelp getQryDlgHelp() {
-    if(m_qryDlgHelp==null)
-      m_qryDlgHelp = new QueryDlgHelp(this);
-    return m_qryDlgHelp;
-  }
-  
-  public boolean isBQuery() {
-    return m_bQuery;
-  }
-  
-  public boolean isLineCardEdit() {
-    return isLineCardEdit;
-  }
-
-  public void setLineCardEdit(boolean isLineCardEdit) {
-    this.isLineCardEdit = isLineCardEdit;
-  }
-  
-  /**
-   * 创建者：王乃军 功能：复制当前单据 参数： 返回： 例外： 日期：(2001-5-9 9:23:32) 修改日期，修改人，修改原因，注释标志：
-   * 
-   * 
-   * 
-   * 
-   */
-  public String afterAuditFrushData(GeneralBillVO billvo,boolean isSaveAfter) {
-    if(billvo==null)
-      return null;
-    String sBillStatus = billvo.getHeaderVO().getFbillflag()+"";
-    if(isSaveAfter){
-      GeneralBillUICtl.fillHeadVOFromHead(billvo.getHeaderVO(), new String[]{IItemKey.fbillflag});
-      sBillStatus = billvo.getHeaderVO().getFbillflag()+"";
-      if (sBillStatus.equals(BillStatus.FREE) || sBillStatus.equals(BillStatus.DELETED)) 
-        return sBillStatus;
-    }
-    //showTime(lTime, "签字");
-    sBillStatus = GeneralBillUICtl.updateDataAfterAudit(
-        this, billvo);
-
-    if (sBillStatus != null && !sBillStatus.equals(BillStatus.FREE)
-        && !sBillStatus.equals(BillStatus.DELETED)) {
-      freshAfterSignedOK(sBillStatus);
-    } 
-    return sBillStatus;
-    
-  }
- /**
-  * 创建人：刘家清 创建时间：2008-7-16 下午03:43:33 创建原因： 错误信息提示，如果涉及到某些行的数据，行背景色变为黄色
-  * @param e
-  */ 
-/*  public void setRowColorWhenException(ICException e){
-		// 更改颜色
-		SetColor.SetTableColor(
-				getBillCardPanel().getBillModel(),
-				getBillCardPanel().getBillTable(),
-				getBillCardPanel(),
-				e.getErrorRowNums(),
-				m_cNormalColor,
-				e.getExceptionColor(m_bRowLocateErrorColor),
-				m_bExchangeColor,
-				m_bLocateErrorColor,
-				e.getHint(),m_bRowLocateErrorColor);
-		SetColor.setErrRowColor(getBillCardPanel().getBillTable(), e.getErrorRowNums());
-  }*/
-  /**
-   * 创建人：刘家清 创建时间：2008-7-16 下午03:43:33 创建原因： 错误信息提示，如果涉及到某些行的数据，行背景色变为黄色
-   * @param e
-   */  
-/*  public void setRowColorWhenException(ICBusinessException e){
-		// 更改颜色
-		SetColor.SetTableColor(
-				getBillCardPanel().getBillModel(),
-				getBillCardPanel().getBillTable(),
-				getBillCardPanel(),
-				e.getErrorRowNums(),
-				m_cNormalColor,
-				e.getExceptionColor(m_bRowLocateErrorColor),
-				m_bExchangeColor,
-				m_bLocateErrorColor,
-				e.getMessage(),m_bRowLocateErrorColor);
-	  
-	  ArrayList<Integer> errRowNums = new ArrayList<Integer>();
-	  Boolean isRight = false;
-	  ArrayList alerr = e.getErrorRowNums();
-	  if (alerr != null && alerr.size() > 0) {
-			int iLen = alerr.size();
-			for (int i = 0; i < iLen; i++) {
-				if (alerr.get(i) instanceof ArrayList
-						&& (((ArrayList) alerr.get(i)).get(0)) instanceof Integer){
-					errRowNums.add(((Integer)(((ArrayList) alerr.get(i)).get(0)))-1);
-					isRight = true;
+					if (item != null
+							&& item.getDataType() == nc.ui.pub.bill.BillItem.USERDEF) {
+						((nc.ui.pub.beans.UIRefPane) item.getComponent())
+								.setAutoCheck(true);
+					}
 				}
 			}
+
+			// 表体
+			if ((defBody != null)) {
+				oldBillData.updateItemByDef(defBody, "vuserdef", false);
+				if (ScmConst.m_assetOut.equals(getBillType())
+						|| ScmConst.m_assetIn.equals(getBillType())) {
+					for (int i = 1; i <= 20; i++) {
+						nc.ui.pub.bill.BillItem item = oldBillData
+								.getBodyItem("vuserdef" + i);
+						nc.ui.pub.bill.BillItem itemPK = oldBillData
+								.getBodyItem("pk_defdoc" + i);
+
+						codeColumn = "vuserdef" + i;
+						String formular = null;
+						String[] ss = null;
+						if (defBody[i - 1] != null
+								&& defBody[i - 1].getDefdef() != null
+								&& defBody[i - 1].getDefdef().getPk_bdinfo() != null) {
+							formular = nc.ui.ic.pub.tools.GenMethod
+									.getCodeFieldEditFormular(defBody[i - 1]
+											.getDefdef().getPk_bdinfo(), itemPK
+											.getKey(), null, codeColumn);
+							ss = formular.split(";");
+						}
+
+						if (item != null
+								&& item.getDataType() == nc.ui.pub.bill.BillItem.USERDEF) {
+							((nc.ui.pub.beans.UIRefPane) item.getComponent())
+									.setAutoCheck(true);
+						}
+						if (null != itemPK && ss != null) {
+							itemPK.setEditFormula(ss);
+							itemPK.setLoadFormula(ss);
+						}
+
+						if (item != null && item.getComponent() != null)
+							((nc.ui.pub.beans.UIRefPane) item.getComponent())
+									.setEditable(item.isEdit());
+					}
+				}
+			}
+		} catch (Exception e) {
+
+			nc.vo.scm.pub.SCMEnv.error(e);
 		}
-	  if (isRight)
-		  SetColor.setErrRowColor(getBillCardPanel().getBillTable(), errRowNums);
-	  else
-		  SetColor.setErrRowColor(getBillCardPanel().getBillTable(), e.getErrorRowNums());
-		
-  }*/
-  /**
-   * 创建人：刘家清 创建时间：2008-7-16 下午03:43:33 创建原因： 恢复所有的数据行背景色为默认色
-   * @param e
-   */ 
-/*  public void reSetRowColorWhenNOException(){
-		// 更改颜色
-	  ArrayList alRowNum = new ArrayList();
-		SetColor.SetTableColor(
-				getBillCardPanel().getBillModel(),
-				getBillCardPanel().getBillTable(),
-				getBillCardPanel(),
-				alRowNum,
-				m_cNormalColor,
-				m_cNormalColor,
-				m_bExchangeColor,
-				m_bLocateErrorColor,
-				"",m_bRowLocateErrorColor);
-	  SetColor.resetColor(getBillCardPanel().getBillTable());
-}*/
 
-public ArrayList getM_alRefBillsBak() {
-	return m_alRefBillsBak;
-}
-
-public void setM_alRefBillsBak(ArrayList refBillsBak) {
-	m_alRefBillsBak = refBillsBak;
-}
-  
-
-/**
- * 创建人：刘家清 创建时间：2008-10-30 下午08:16:52 创建原因：如果单据上有实发或者实收数量，则不允许编辑仓库。 
- *
- */
-public void freshWHEditable(){
-	boolean isEditable = true;
-	if (0 < getBillCardPanel().getRowCount()){
-		for(int i = 0 ;i< getBillCardPanel().getRowCount();i++)
-			if (null != getBillCardPanel().getBodyValueAt(i, "noutnum") || null != getBillCardPanel().getBodyValueAt(i, "ninnum"))
-				isEditable = false;
+		return oldBillData;
 	}
-	if (BillMode.Update == getM_iMode() && getBillCardPanel().getHeadItem(IItemKey.WAREHOUSE) != null
-			&& null != getBillCardPanel().getHeadItem(IItemKey.WAREHOUSE).getValue())
-		getBillCardPanel().getHeadItem(IItemKey.WAREHOUSE).setEnabled(isEditable);
-	/*if (getBillCardPanel().getHeadItem(m_sWasteWhItemKey) != null)
-		getBillCardPanel().getHeadItem(m_sWasteWhItemKey).setEnabled(isEditable);*/
-}
-//added by lirr 2009-02-25
-public boolean isCheckAssetInv() {
-    return m_bCheckAssetInv;
-  }
 
+	/**
+	 * 创建者：仲瑞庆 功能： 参数： 返回： 例外： 日期：(2001-11-8 19:47:29) 修改日期，修改人，修改原因，注释标志：
+	 * 
+	 * @return nc.ui.pub.bill.BillData
+	 * @param oldBillData
+	 *            nc.ui.pub.bill.BillData
+	 */
+	protected BillListData changeBillListDataByUserDef(DefVO[] defHead,
+			DefVO[] defBody, BillListData oldBillData) {
+		try {
+			if (defHead != null)
 
+				oldBillData.updateItemByDef(defHead, "vuserdef", true);
 
+			if (defBody != null) {
+				oldBillData.updateItemByDef(defBody, "vuserdef", false);
+				if (ScmConst.m_assetOut.equals(getBillType())
+						|| ScmConst.m_assetIn.equals(getBillType())) {
+					// added by lirr 2009-11-17下午02:12:13 资产入资产出需要执行自定义项公式
+					String codeColumn;
+					for (int i = 1; i <= 20; i++) {
+						nc.ui.pub.bill.BillItem item = oldBillData
+								.getBodyItem("vuserdef" + i);
+						nc.ui.pub.bill.BillItem itemPK = oldBillData
+								.getBodyItem("pk_defdoc" + i);
 
+						codeColumn = "vuserdef" + i;
+						String formular = null;
+						String[] ss = null;
+						if (defBody[i - 1] != null
+								&& defBody[i - 1].getDefdef() != null
+								&& defBody[i - 1].getDefdef().getPk_bdinfo() != null) {
+							formular = nc.ui.ic.pub.tools.GenMethod
+									.getCodeFieldEditFormular(defBody[i - 1]
+											.getDefdef().getPk_bdinfo(), itemPK
+											.getKey(), null, codeColumn);
+							ss = formular.split(";");
+						}
+
+						if (item != null
+								&& item.getDataType() == nc.ui.pub.bill.BillItem.USERDEF) {
+							((nc.ui.pub.beans.UIRefPane) item.getComponent())
+									.setAutoCheck(true);
+						}
+						if (null != itemPK && ss != null) {
+							itemPK.setEditFormula(ss);
+							itemPK.setLoadFormula(ss);
+						}
+
+						if (item != null && item.getComponent() != null)
+							((nc.ui.pub.beans.UIRefPane) item.getComponent())
+									.setEditable(item.isEdit());
+					}
+				}
+			}
+
+			return oldBillData;
+		} catch (Exception e) {
+			nc.vo.scm.pub.SCMEnv.error(e);
+		}
+		return oldBillData;
+	}
+
+	/**
+	 * ?user> 功能： 参数： 返回： 例外： 日期：(2004-6-30 17:57:26) 修改日期，修改人，修改原因，注释标志：
+	 * 
+	 * @return nc.vo.bd.def.DefVO[]
+	 * @param pk_corp
+	 *            java.lang.String
+	 * @param isHead
+	 *            boolean
+	 */
+	public DefVO[] getDefHeadVO() {
+		if (m_defHead == null) {
+			try {
+				m_defHead = DefSetTool.getDefHead(getCorpPrimaryKey(),
+						ICConst.BILLTYPE_IC);
+			} catch (Exception e) {
+				nc.vo.scm.pub.SCMEnv.error(e);
+			}
+		}
+		return m_defHead;
+	}
+
+	/**
+	 * ?user> 功能： 参数： 返回： 例外： 日期：(2004-6-30 17:57:26) 修改日期，修改人，修改原因，注释标志：
+	 * 
+	 * @return nc.vo.bd.def.DefVO[]
+	 * @param pk_corp
+	 *            java.lang.String
+	 * @param isHead
+	 *            boolean
+	 */
+	public DefVO[] getDefBodyVO() {
+
+		if (m_defBody == null) {
+			try {
+				m_defBody = DefSetTool.getDefBody(getCorpPrimaryKey(),
+						ICConst.BILLTYPE_IC);
+			} catch (Exception e) {
+				nc.vo.scm.pub.SCMEnv.error(e);
+			}
+		}
+		return m_defBody;
+	}
+
+	public QueryDlgHelp getQryDlgHelp() {
+		if (m_qryDlgHelp == null)
+			m_qryDlgHelp = new QueryDlgHelp(this);
+		return m_qryDlgHelp;
+	}
+
+	public boolean isBQuery() {
+		return m_bQuery;
+	}
+
+	public boolean isLineCardEdit() {
+		return isLineCardEdit;
+	}
+
+	public void setLineCardEdit(boolean isLineCardEdit) {
+		this.isLineCardEdit = isLineCardEdit;
+	}
+
+	/**
+	 * 创建者：王乃军 功能：复制当前单据 参数： 返回： 例外： 日期：(2001-5-9 9:23:32) 修改日期，修改人，修改原因，注释标志：
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
+	public String afterAuditFrushData(GeneralBillVO billvo, boolean isSaveAfter) {
+		if (billvo == null)
+			return null;
+		String sBillStatus = billvo.getHeaderVO().getFbillflag() + "";
+		if (isSaveAfter) {
+			GeneralBillUICtl.fillHeadVOFromHead(billvo.getHeaderVO(),
+					new String[] { IItemKey.fbillflag });
+			sBillStatus = billvo.getHeaderVO().getFbillflag() + "";
+			if (sBillStatus.equals(BillStatus.FREE)
+					|| sBillStatus.equals(BillStatus.DELETED))
+				return sBillStatus;
+		}
+		// showTime(lTime, "签字");
+		sBillStatus = GeneralBillUICtl.updateDataAfterAudit(this, billvo);
+
+		if (sBillStatus != null && !sBillStatus.equals(BillStatus.FREE)
+				&& !sBillStatus.equals(BillStatus.DELETED)) {
+			freshAfterSignedOK(sBillStatus);
+		}
+		return sBillStatus;
+
+	}
+
+	/**
+	 * 创建人：刘家清 创建时间：2008-7-16 下午03:43:33 创建原因： 错误信息提示，如果涉及到某些行的数据，行背景色变为黄色
+	 * 
+	 * @param e
+	 */
+	/*
+	 * public void setRowColorWhenException(ICException e){ // 更改颜色
+	 * SetColor.SetTableColor( getBillCardPanel().getBillModel(),
+	 * getBillCardPanel().getBillTable(), getBillCardPanel(),
+	 * e.getErrorRowNums(), m_cNormalColor,
+	 * e.getExceptionColor(m_bRowLocateErrorColor), m_bExchangeColor,
+	 * m_bLocateErrorColor, e.getHint(),m_bRowLocateErrorColor);
+	 * SetColor.setErrRowColor(getBillCardPanel().getBillTable(),
+	 * e.getErrorRowNums()); }
+	 */
+	/**
+	 * 创建人：刘家清 创建时间：2008-7-16 下午03:43:33 创建原因： 错误信息提示，如果涉及到某些行的数据，行背景色变为黄色
+	 * 
+	 * @param e
+	 */
+	/*
+	 * public void setRowColorWhenException(ICBusinessException e){ // 更改颜色
+	 * SetColor.SetTableColor( getBillCardPanel().getBillModel(),
+	 * getBillCardPanel().getBillTable(), getBillCardPanel(),
+	 * e.getErrorRowNums(), m_cNormalColor,
+	 * e.getExceptionColor(m_bRowLocateErrorColor), m_bExchangeColor,
+	 * m_bLocateErrorColor, e.getMessage(),m_bRowLocateErrorColor);
+	 * 
+	 * ArrayList<Integer> errRowNums = new ArrayList<Integer>(); Boolean
+	 * isRight = false; ArrayList alerr = e.getErrorRowNums(); if (alerr != null &&
+	 * alerr.size() > 0) { int iLen = alerr.size(); for (int i = 0; i < iLen;
+	 * i++) { if (alerr.get(i) instanceof ArrayList && (((ArrayList)
+	 * alerr.get(i)).get(0)) instanceof Integer){
+	 * errRowNums.add(((Integer)(((ArrayList) alerr.get(i)).get(0)))-1); isRight =
+	 * true; } } } if (isRight)
+	 * SetColor.setErrRowColor(getBillCardPanel().getBillTable(), errRowNums);
+	 * else SetColor.setErrRowColor(getBillCardPanel().getBillTable(),
+	 * e.getErrorRowNums()); }
+	 */
+	/**
+	 * 创建人：刘家清 创建时间：2008-7-16 下午03:43:33 创建原因： 恢复所有的数据行背景色为默认色
+	 * 
+	 * @param e
+	 */
+	/*
+	 * public void reSetRowColorWhenNOException(){ // 更改颜色 ArrayList alRowNum =
+	 * new ArrayList(); SetColor.SetTableColor(
+	 * getBillCardPanel().getBillModel(), getBillCardPanel().getBillTable(),
+	 * getBillCardPanel(), alRowNum, m_cNormalColor, m_cNormalColor,
+	 * m_bExchangeColor, m_bLocateErrorColor, "",m_bRowLocateErrorColor);
+	 * SetColor.resetColor(getBillCardPanel().getBillTable()); }
+	 */
+
+	public ArrayList getM_alRefBillsBak() {
+		return m_alRefBillsBak;
+	}
+
+	public void setM_alRefBillsBak(ArrayList refBillsBak) {
+		m_alRefBillsBak = refBillsBak;
+	}
+
+	/**
+	 * 创建人：刘家清 创建时间：2008-10-30 下午08:16:52 创建原因：如果单据上有实发或者实收数量，则不允许编辑仓库。
+	 * 
+	 */
+	public void freshWHEditable() {
+		boolean isEditable = true;
+		if (0 < getBillCardPanel().getRowCount()) {
+			for (int i = 0; i < getBillCardPanel().getRowCount(); i++)
+				if (null != getBillCardPanel().getBodyValueAt(i, "noutnum")
+						|| null != getBillCardPanel().getBodyValueAt(i,
+								"ninnum"))
+					isEditable = false;
+		}
+		if (BillMode.Update == getM_iMode()
+				&& getBillCardPanel().getHeadItem(IItemKey.WAREHOUSE) != null
+				&& null != getBillCardPanel().getHeadItem(IItemKey.WAREHOUSE)
+						.getValue())
+			getBillCardPanel().getHeadItem(IItemKey.WAREHOUSE).setEnabled(
+					isEditable);
+		/*
+		 * if (getBillCardPanel().getHeadItem(m_sWasteWhItemKey) != null)
+		 * getBillCardPanel().getHeadItem(m_sWasteWhItemKey).setEnabled(isEditable);
+		 */
+	}
+
+	// added by lirr 2009-02-25
+	public boolean isCheckAssetInv() {
+		return m_bCheckAssetInv;
+	}
 
 }
