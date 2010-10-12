@@ -232,6 +232,16 @@ junjie/develop/proj/newmodules/so/.classpath -text
 junjie/develop/proj/newmodules/so/.module_prj -text
 junjie/develop/proj/newmodules/so/.project -text
 junjie/develop/proj/newmodules/so/META-INF/module.xml -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/MdsdBean.class -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/MdsdBean.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SaleOrderAdminUI.class -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SaleOrderAdminUI.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhDlg.class -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhDlg.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhPanel.class -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhPanel.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.class -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceBtn.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceUI.java -text
 junjie/develop/proj/newmodules/uap/.classpath -text
