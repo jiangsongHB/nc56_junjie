@@ -67,6 +67,7 @@ junjie/develop/proj/modules/ic/src/public/nc/vo/ic/xcl/XclBillVO.java -text
 junjie/develop/proj/modules/newuap/.classpath -text
 junjie/develop/proj/modules/newuap/.module_prj -text
 junjie/develop/proj/modules/newuap/.project -text
+junjie/develop/proj/modules/newuap/META-INF/JJ_queryservice.upm -text
 junjie/develop/proj/modules/newuap/META-INF/module.xml -text
 junjie/develop/proj/modules/newuap/src/client/nc/ui/bd/bd1001/ClientCtrl.java -text
 junjie/develop/proj/modules/newuap/src/client/nc/ui/bd/bd1001/ClientEH.java -text
