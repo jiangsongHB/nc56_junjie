@@ -60,7 +60,9 @@ public class JJUAPServiceImpl implements nc.itf.uap.pub.jj.IJJUAPService {
 	 */
 	public Object queryBurrcoefficient(String pk_invbasdoc) throws Exception {
 		BaseDAO dao = new BaseDAO();
-		String sql = "select nflash from jj_bd_additionalvalue where pk_invbasdoc ='"+pk_invbasdoc+"'" ;
+		//2010-10-12 MeiChao 修改内容: 将此查询毛边系数sql的表名jj_bd_additionalvalue修改为正确的表名jj_bd_burrcoefficient
+//		String sql = "select nflash from jj_bd_additionalvalue where pk_invbasdoc ='"+pk_invbasdoc+"'" ;
+		String sql = "select nflash from jj_bd_burrcoefficient where pk_invbasdoc ='"+pk_invbasdoc+"'" ;
 		Object o = null ;
 		o = dao.executeQuery(sql, new ColumnProcessor());
 	     return o;
