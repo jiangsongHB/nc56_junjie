@@ -376,10 +376,6 @@ junjie/patches/modules/pu/client/classes/nc/ui/pu/jj/JJPuScmPubHelper.class -tex
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InfoCostPanel.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pub/pf/PfUtilClient$1.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pub/pf/PfUtilClient.class -text
-junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IBillRelaSortListener2Body.class -text
-junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IMenuItemListener.class -text
-junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
-junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/MdsdBean.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/MdsdBean.java -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SaleOrderAdminUI.class -text
