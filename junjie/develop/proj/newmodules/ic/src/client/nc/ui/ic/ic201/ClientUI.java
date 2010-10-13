@@ -87,13 +87,14 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		 return boInfoCost;
 	}
 	
+	
 	/**
 	 * ClientUI2 构造子注解。
 	 */
 	public ClientUI() {
 		super();
 		initialize();
-		   getBoInfoCost().setEnabled(false);
+		getBoInfoCost().setEnabled(false);
 	}
   
   /**
@@ -407,8 +408,12 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 	 * 此处插入方法说明。 创建日期：(2003-11-19 9:10:04)
 	 */
 	public void initialize() {
-		super.initialize();
+		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. begin 
+		this.getButtonManager().getButtonTree().addMenu(this.getBoInfoCost());
 		
+		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. end
+		super.initialize();
+
 		long lTime = System.currentTimeMillis();
 
 		getBillCardPanel().addBodyEditListener2(this);		
@@ -1371,7 +1376,10 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 //		case BillMode.Update:getBoInfoCost().setEnabled(true);
 //		case BillMode.Browse:getBoInfoCost().setEnabled(false);
 //		}
+		
 		setExtendBtnsStat(iBillMode);
+		
+		
 		// 浏览模式下，有单据并且已经签字才可用
 		long lTime = System.currentTimeMillis();
 		// in card browser status, can use dispense button.
@@ -1835,6 +1843,10 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		bi = getBillCardPanel().getHeadItem("cdptid");
 		RefFilter.filterDept(bi, null, null);
 	}
+	/**
+	 *费用录入按钮的事件响应方法
+	 *
+	 */
 	private void onBoInfoCost() {
 		InformationCostVO[] vos = (InformationCostVO[] )getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
 		ArrayList voList = new ArrayList();
@@ -1925,7 +1937,12 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		    }
 	}
 
-
+/**
+ * 
+ * (设置费用录入按钮的可见/可用状态)
+ * MeiChao  补充注释   ,原代码由Qusida编写.
+ * @see nc.ui.ic.pub.bill.GeneralBillClientUI#setExtendBtnsStat(int)
+ */
 	public void setExtendBtnsStat(int iState) {
 		switch (iState) {
 		case BillMode.New:
