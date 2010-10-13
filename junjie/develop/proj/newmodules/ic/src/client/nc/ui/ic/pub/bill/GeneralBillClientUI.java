@@ -1865,17 +1865,24 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 *            ButtonObject
 	 */
 	public void onButtonClicked(nc.ui.pub.ButtonObject bo) {
-		// 2010-10-12 heyq add
-		/*
-		if (getM_iCurPanel() == BillMode.Card)
-			getButtonManager().getButton(MDUtils.MDINFO_BUTTON)
-					.setEnabled(true);
-		else
-			getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
-					false);
-		*/
-		// 2010-10-12 heyq add
 		try {
+			// 2010-10-13 heyq add
+			if (bo.getCode().equals(ICButtonConst.BTN_SWITCH)) {
+				if (BillMode.List == getM_iCurPanel()) {
+					getButtonManager().getButton(MDUtils.MDINFO_BUTTON)
+							.setEnabled(true);
+					getButtonManager().getButton(MDUtils.MBJS_BUTTON)
+							.setEnabled(true);
+				} else {
+					getButtonManager().getButton(MDUtils.MDINFO_BUTTON)
+							.setEnabled(false);
+					getButtonManager().getButton(MDUtils.MBJS_BUTTON)
+							.setEnabled(false);
+				}
+
+			}
+			// heyq end
+
 			// 二次开发扩展
 			getPluginProxy().beforeButtonClicked(bo);
 
@@ -1933,6 +1940,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					throw new BusinessException("请选择需要维护码单的单据！");
 				MDioDialog dialog = new MDioDialog(this);
 				dialog.showModal();
+
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
@@ -9825,8 +9833,10 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			getButtonManager().getButtonTree().addMenu(
 					new ButtonObject(MDUtils.MDINFO_BUTTON,
 							MDUtils.MDINFO_BUTTON, MDUtils.MDINFO_BUTTON));
-			//getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
-			//		false);
+			getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
+					false);
+			getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
+					false);
 			// heyq 2010-10-12 end
 		}
 
