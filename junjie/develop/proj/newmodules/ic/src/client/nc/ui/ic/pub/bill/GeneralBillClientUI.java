@@ -1865,7 +1865,16 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 *            ButtonObject
 	 */
 	public void onButtonClicked(nc.ui.pub.ButtonObject bo) {
-
+		// 2010-10-12 heyq add
+		/*
+		if (getM_iCurPanel() == BillMode.Card)
+			getButtonManager().getButton(MDUtils.MDINFO_BUTTON)
+					.setEnabled(true);
+		else
+			getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
+					false);
+		*/
+		// 2010-10-12 heyq add
 		try {
 			// 二次开发扩展
 			getPluginProxy().beforeButtonClicked(bo);
@@ -1874,144 +1883,207 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 			getPluginProxy().afterButtonClicked(bo);
 
-			 /**
-		       * edit by zengyugao 
-		       */
-		      if(bo.getName().equals(MDUtils.MBJS_BUTTON)){
-		    	     getGrouss();
-		      }
-			
+			/**
+			 * edit by zengyugao
+			 */
+			if (bo.getName().equals(MDUtils.MBJS_BUTTON)) {
+				getGrouss();
+			}
+
+			// 2010-10-12 heyq add
+			if (bo.getName().equals(MDUtils.MDINFO_BUTTON)) {
+				getMdwf();
+			}
+
+			// 2010-10-12 heyq add
 		} catch (Exception e) {
 			nc.ui.ic.pub.tools.GenMethod.handleException(null, null, e);
 			return;
 		}
 
 	}
-	
+
+	// 2010-10-12 heyq add
+	private void getMdwf() {
+		if (getBillType().equals("4C") || getBillType().equals("4I")) {
+			MdwhDlg dlg;
+			try {
+				dlg = new MdwhDlg(this);
+				dlg.showModal();
+				if (dlg.getNoutassistnum() == null || dlg.getNoutnum() == null)
+					return;
+				GeneralBillVO billvo = dlg.getUpdateUIVO();
+				setBillVO(billvo);
+				updateBillToList(billvo);
+				getBillCardPanel().updateValue();
+				getBillCardPanel().updateUI();
+				getBillListPanel().updateUI();
+			} catch (BusinessException e) {
+				e.printStackTrace();
+				showErrorMessage(e.getMessage());
+			}
+		} else if (getBillType().equals("45") || getBillType().equals("4A")) {
+			try {
+				GeneralBillVO billvo = getM_voBill();
+				if (billvo == null)
+					throw new BusinessException("请选择单据！");
+				GeneralBillHeaderVO hvo = (GeneralBillHeaderVO) billvo
+						.getParentVO();
+				if (hvo == null)
+					throw new BusinessException("请选择需要维护码单的单据！");
+				MDioDialog dialog = new MDioDialog(this);
+				dialog.showModal();
+			} catch (BusinessException e) {
+				e.printStackTrace();
+				showErrorMessage(e.getMessage());
+			}
+		}
+	}
+
+	// 2010-10-12 heyq add
+
 	/**
 	 * edit by zengyugao
 	 */
-	private  void getGrouss(){
-		if(getM_iMode()==BillMode.Update||getM_iMode()==BillMode.New){
+	private void getGrouss() {
+		if (getM_iMode() == BillMode.Update || getM_iMode() == BillMode.New) {
 			showHintMessage("正在进行毛边计算....");
-		}else{
+		} else {
 			showHintMessage("在单据修改状态时,该按钮才有用....");
 			return;
 		}
-			
-	    HashMap<String, UFDouble> hmpfrom = new HashMap<String, UFDouble>();
-	    HashMap<String, UFDouble> hmpResult = new HashMap<String, UFDouble>();
-		int j=getBillCardPanel().getBillTable().getSelectedRow();
-		if(j<0){
+
+		HashMap<String, UFDouble> hmpfrom = new HashMap<String, UFDouble>();
+		HashMap<String, UFDouble> hmpResult = new HashMap<String, UFDouble>();
+		int j = getBillCardPanel().getBillTable().getSelectedRow();
+		if (j < 0) {
 			showHintMessage("请选择需要计算的表体行....");
-			return ;
+			return;
 		}
-		UFDouble stuffprice=UFDouble.ZERO_DBL;
-		UFDouble stuffweight=UFDouble.ZERO_DBL;
-		UFDouble stuffsumny=UFDouble.ZERO_DBL;
-		
-		UFDouble grossprice=UFDouble.ZERO_DBL;
-		UFDouble grossweight=UFDouble.ZERO_DBL;
-		UFDouble grosssumny=UFDouble.ZERO_DBL;
+		UFDouble stuffprice = UFDouble.ZERO_DBL;
+		UFDouble stuffweight = UFDouble.ZERO_DBL;
+		UFDouble stuffsumny = UFDouble.ZERO_DBL;
+
+		UFDouble grossprice = UFDouble.ZERO_DBL;
+		UFDouble grossweight = UFDouble.ZERO_DBL;
+		UFDouble grosssumny = UFDouble.ZERO_DBL;
 
 		Object cinvbasid = getBillCardPanel().getBodyValueAt(j, "cinvbasid");
-		Object cproviderid = getBillCardPanel().getBodyValueAt(j, "pk_cubasdoc");
-		
-		if(getBillCardPanel().getBodyValueAt(j, "grossprice")!=null){
-			grossprice = new UFDouble(getBillCardPanel().getBodyValueAt(j, "grossprice").toString());
+		Object cproviderid = getBillCardPanel()
+				.getBodyValueAt(j, "pk_cubasdoc");
+
+		if (getBillCardPanel().getBodyValueAt(j, "grossprice") != null) {
+			grossprice = new UFDouble(getBillCardPanel().getBodyValueAt(j,
+					"grossprice").toString());
 		}
-		if(getBillCardPanel().getBodyValueAt(j, "grosssumny")!=null){
-			grosssumny = new UFDouble(getBillCardPanel().getBodyValueAt(j, "grosssumny").toString());
+		if (getBillCardPanel().getBodyValueAt(j, "grosssumny") != null) {
+			grosssumny = new UFDouble(getBillCardPanel().getBodyValueAt(j,
+					"grosssumny").toString());
 		}
-		if(getBillCardPanel().getBodyValueAt(j, "grossweight")!=null){
-			grossweight = new UFDouble(getBillCardPanel().getBodyValueAt(j, "grossweight").toString());
+		if (getBillCardPanel().getBodyValueAt(j, "grossweight") != null) {
+			grossweight = new UFDouble(getBillCardPanel().getBodyValueAt(j,
+					"grossweight").toString());
 		}
-		
-		
-		if(getBillCardPanel().getBodyValueAt(j, "stuffprice")!=null&&getBillCardPanel().getBodyValueAt(j, "stuffsumny")!=null){
-			stuffprice=new UFDouble(getBillCardPanel().getBodyValueAt(j, "stuffprice").toString());
-			stuffweight=new UFDouble(getBillCardPanel().getBodyValueAt(j, "nshouldinnum").toString());
-			stuffsumny=new UFDouble(getBillCardPanel().getBodyValueAt(j, "stuffsumny").toString());
+
+		if (getBillCardPanel().getBodyValueAt(j, "stuffprice") != null
+				&& getBillCardPanel().getBodyValueAt(j, "stuffsumny") != null) {
+			stuffprice = new UFDouble(getBillCardPanel().getBodyValueAt(j,
+					"stuffprice").toString());
+			stuffweight = new UFDouble(getBillCardPanel().getBodyValueAt(j,
+					"nshouldinnum").toString());
+			stuffsumny = new UFDouble(getBillCardPanel().getBodyValueAt(j,
+					"stuffsumny").toString());
+		} else {
+			stuffprice = (UFDouble) getBillCardPanel().getBodyValueAt(j,
+					"nprice");
+			stuffweight = (UFDouble) getBillCardPanel().getBodyValueAt(j,
+					"nshouldinnum");
+			stuffsumny = (UFDouble) getBillCardPanel()
+					.getBodyValueAt(j, "nmny");
 		}
-		else{
-			stuffprice=(UFDouble)getBillCardPanel().getBodyValueAt(j, "nprice");
-			stuffweight= (UFDouble)getBillCardPanel().getBodyValueAt(j, "nshouldinnum"); 
-			stuffsumny= (UFDouble)getBillCardPanel().getBodyValueAt(j, "nmny"); 
-		}
-		
-		stuffsumny = stuffsumny==null?UFDouble.ZERO_DBL:stuffsumny;
-		stuffweight = stuffweight==null?UFDouble.ZERO_DBL:stuffweight;
-		stuffprice = stuffprice==null?UFDouble.ZERO_DBL:stuffprice;
-		
-//		hmpfrom.put("cinvbasid", cinvbasid);
-//		hmpfrom.put("cproviderid", cproviderid);
-//		
+
+		stuffsumny = stuffsumny == null ? UFDouble.ZERO_DBL : stuffsumny;
+		stuffweight = stuffweight == null ? UFDouble.ZERO_DBL : stuffweight;
+		stuffprice = stuffprice == null ? UFDouble.ZERO_DBL : stuffprice;
+
+		// hmpfrom.put("cinvbasid", cinvbasid);
+		// hmpfrom.put("cproviderid", cproviderid);
+		//		
 		hmpfrom.put("grossprice", grossprice);
 		hmpfrom.put("grossweight", grossweight);
 		hmpfrom.put("grosssumny", grosssumny);
-		
+
 		hmpfrom.put("stuffprice", stuffprice);
 		hmpfrom.put("stuffweight", stuffweight);
 		hmpfrom.put("stuffsumny", stuffsumny);
-		
-		MBJSDialog ui=new MBJSDialog(this,hmpfrom,cinvbasid,cproviderid);
+
+		MBJSDialog ui = new MBJSDialog(this, hmpfrom, cinvbasid, cproviderid);
 		ui.showModal();
-		if(ui.getResult()==UIDialog.ID_OK){
-			hmpResult=ui.gethmpResult();
-			
-			getBillCardPanel().setBodyValueAt(hmpResult.get("grossprice"), j, "grossprice");
-			getBillCardPanel().setBodyValueAt(hmpResult.get("grossweight"), j, "grossweight");
-			getBillCardPanel().setBodyValueAt(hmpResult.get("grosssumny"), j, "grosssumny");
-			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffprice"), j, "stuffprice");
-			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffweight"), j, "stuffweight");
-			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffsumny"), j, "stuffsumny");
-			
-			UFDouble nmny=hmpResult.get("grosssumny").add(hmpResult.get("stuffsumny"),4);
-			UFDouble ninnum=hmpResult.get("grossweight").add(hmpResult.get("stuffweight"),4);
-			
-			
+		if (ui.getResult() == UIDialog.ID_OK) {
+			hmpResult = ui.gethmpResult();
+
+			getBillCardPanel().setBodyValueAt(hmpResult.get("grossprice"), j,
+					"grossprice");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("grossweight"), j,
+					"grossweight");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("grosssumny"), j,
+					"grosssumny");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffprice"), j,
+					"stuffprice");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffweight"), j,
+					"stuffweight");
+			getBillCardPanel().setBodyValueAt(hmpResult.get("stuffsumny"), j,
+					"stuffsumny");
+
+			UFDouble nmny = hmpResult.get("grosssumny").add(
+					hmpResult.get("stuffsumny"), 4);
+			UFDouble ninnum = hmpResult.get("grossweight").add(
+					hmpResult.get("stuffweight"), 4);
+
 			getBillCardPanel().setBodyValueAt(ninnum, j, "ninnum");
 			getBillCardPanel().setBodyValueAt(nmny, j, "nmny");
-			
-			UFDouble nprice=nmny.div(ninnum,4);
+
+			UFDouble nprice = nmny.div(ninnum, 4);
 			getBillCardPanel().setBodyValueAt(nprice, j, "nprice");
-			
-//			getBillCardPanel().getBillModel().getRowAttribute(j).setRowState(VOStatus.UPDATED);
-			BillEditEvent e = new BillEditEvent(getBillCardPanel().getBodyItem("nprice"), nprice, "nprice", j, BillItem.BODY);
+
+			// getBillCardPanel().getBillModel().getRowAttribute(j).setRowState(VOStatus.UPDATED);
+			BillEditEvent e = new BillEditEvent(getBillCardPanel().getBodyItem(
+					"nprice"), nprice, "nprice", j, BillItem.BODY);
 			this.afterEdit(e);
-			
-			for (String key : new String[]{"grossprice","grossweight","grosssumny","stuffprice","stuffweight","stuffsumny"}) {
+
+			for (String key : new String[] { "grossprice", "grossweight",
+					"grosssumny", "stuffprice", "stuffweight", "stuffsumny" }) {
 				getM_voBill().setItemValue(j, key, hmpResult.get(key));// 像VO里头附值
-				BillEditEvent e1 = new BillEditEvent(getBillCardPanel().getBodyItem(key), nprice, key, j, BillItem.BODY);
+				BillEditEvent e1 = new BillEditEvent(getBillCardPanel()
+						.getBodyItem(key), nprice, key, j, BillItem.BODY);
 				this.afterEdit(e1);
 			}
-			
-			getBillCardPanel().getBillModel().setRowState(j, BillModel.MODIFICATION);
-			
-			
+
+			getBillCardPanel().getBillModel().setRowState(j,
+					BillModel.MODIFICATION);
+
 		}
 		showHintMessage("计算完成....");
-		
-//
-//	    GeneralBillItemVO[] voItem=null;
-//	    if(getM_voBill().getHeaderVO().getVbillcode()!=null){
-//	    	voItem=getM_voBill().getItemVOs();
-//	    	voItem[j].setNprice(nprice);
-//	    	voItem[j].setNmny(nmny);
-//	    	voItem[j].setNinnum(ninnum);
-//	    	voItem[j].setStuffsumny(hmpResult.get("stuffsumny"));
-//	    	voItem[j].setStuffweight(hmpResult.get("stuffweight"));
-//	    	voItem[j].setStuffprice(hmpResult.get("stuffprice"));      
-//	    	voItem[j].setGrosssumny(hmpResult.get("grosssumny"));
-//	    	voItem[j].setGrossweight(hmpResult.get("grossweight"));
-//	    	voItem[j].setGrossprice(hmpResult.get("grossprice"));
-//	    }
-//	   getM_voBill().setChildrenVO(voItem);
-//	    IVOPersistence persit=
-//	    	(IVOPersistence)NCLocator.getInstance().lookup(IVOPersistence.class.getName());
-//	    persit.insertObject(voItem, new GeneralBillItemVOMeta());
-	    
-		
+
+		//
+		// GeneralBillItemVO[] voItem=null;
+		// if(getM_voBill().getHeaderVO().getVbillcode()!=null){
+		// voItem=getM_voBill().getItemVOs();
+		// voItem[j].setNprice(nprice);
+		// voItem[j].setNmny(nmny);
+		// voItem[j].setNinnum(ninnum);
+		// voItem[j].setStuffsumny(hmpResult.get("stuffsumny"));
+		// voItem[j].setStuffweight(hmpResult.get("stuffweight"));
+		// voItem[j].setStuffprice(hmpResult.get("stuffprice"));
+		// voItem[j].setGrosssumny(hmpResult.get("grosssumny"));
+		// voItem[j].setGrossweight(hmpResult.get("grossweight"));
+		// voItem[j].setGrossprice(hmpResult.get("grossprice"));
+		// }
+		// getM_voBill().setChildrenVO(voItem);
+		// IVOPersistence persit=
+		// (IVOPersistence)NCLocator.getInstance().lookup(IVOPersistence.class.getName());
+		// persit.insertObject(voItem, new GeneralBillItemVOMeta());
+
 	}
 
 	/**
@@ -2568,28 +2640,31 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		if (m_utfBarCode != null)
 			m_utfBarCode.setCurBillItem(voi);
 
-		
-		 //add by QuSida 2010-9-11 (佛山骏杰)  --- begin
-		  //function:查询相关费用信息
-		  String pk = voBill.getPrimaryKey();
-			String sql = "cbillid = '"+pk+"' and dr = 0";
-			InformationCostVO[] vos = null;
+		// add by QuSida 2010-9-11 (佛山骏杰) --- begin
+		// function:查询相关费用信息
+		String pk = voBill.getPrimaryKey();
+		String sql = "cbillid = '" + pk + "' and dr = 0";
+		InformationCostVO[] vos = null;
 
-			 try {
-				vos = (InformationCostVO[])JJIcScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				SCMEnv.out(e);
-			}
-		if(vos!=null&&vos.length!=0){
-			 getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos);
-			 getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
-		}else{
-			//2010-10-10 Meichao 当费用信息为空时,将费用页签清空.
-			getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null);
+		try {
+			vos = (InformationCostVO[]) JJIcScmPubHelper.querySmartVOs(
+					InformationCostVO.class, null, sql);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			SCMEnv.out(e);
 		}
-		//add by QuSida 2010-9-11 (佛山骏杰)  --- end
-		
+		if (vos != null && vos.length != 0) {
+			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
+					.setBodyDataVO(vos);
+			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
+					.execLoadFormula();
+		} else {
+			// 2010-10-10 Meichao 当费用信息为空时,将费用页签清空.
+			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
+					.setBodyDataVO(null);
+		}
+		// add by QuSida 2010-9-11 (佛山骏杰) --- end
+
 		timer.showExecuteTime("@@方法selectListBill时间");
 
 	}
@@ -7548,24 +7623,32 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						getCommitActionName(), getBillType(), getEnvironment()
 								.getLogDate(), voTempBill);
 
-				if(((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getCgeneralhid()!=null&&((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getCgeneralhid().length()!=0){
-					//InfoCOstVO保存动作
-					 InformationCostVO[] infoCostVOs = (InformationCostVO[])getBillCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());			      
-					    //add by QuSida 2010-8-31 (佛山骏杰)  --- begin
-						//function:当订单保存成功后,将费用信息VO保存到数据库中	
-					      if(infoCostVOs!=null&&infoCostVOs.length!=0){
-					    	  
-								//将单据主键射入vo数组中
-					    	  String pk_bill = ((SMGeneralBillVO)alPK.get(2)).getHeaderVO().getPrimaryKey();
-							//String pk_bill = saveVO.getParentVO().getPrimaryKey();
-								for (int i = 0; i < infoCostVOs.length; i++) {
-									infoCostVOs[i].setCbillid(pk_bill);
-								}
-							JJIcScmPubHelper.insertSmartVOs(infoCostVOs);
-							}
+				if (((SMGeneralBillVO) alPK.get(2)).getHeaderVO()
+						.getCgeneralhid() != null
+						&& ((SMGeneralBillVO) alPK.get(2)).getHeaderVO()
+								.getCgeneralhid().length() != 0) {
+					// InfoCOstVO保存动作
+					InformationCostVO[] infoCostVOs = (InformationCostVO[]) getBillCardPanel()
+							.getBillData().getBodyValueVOs(
+									"jj_scm_informationcost",
+									InformationCostVO.class.getName());
+					// add by QuSida 2010-8-31 (佛山骏杰) --- begin
+					// function:当订单保存成功后,将费用信息VO保存到数据库中
+					if (infoCostVOs != null && infoCostVOs.length != 0) {
+
+						// 将单据主键射入vo数组中
+						String pk_bill = ((SMGeneralBillVO) alPK.get(2))
+								.getHeaderVO().getPrimaryKey();
+						// String pk_bill =
+						// saveVO.getParentVO().getPrimaryKey();
+						for (int i = 0; i < infoCostVOs.length; i++) {
+							infoCostVOs[i].setCbillid(pk_bill);
+						}
+						JJIcScmPubHelper.insertSmartVOs(infoCostVOs);
 					}
-					    //add by QuSida 2010-8-31 (佛山骏杰)  --- end
-				
+				}
+				// add by QuSida 2010-8-31 (佛山骏杰) --- end
+
 				// songhy, 2009-11-16，start，解决保存时，拔掉网线导致数据重复的问题
 				clearOID();
 				// songhy, 2009-11-16，end.
@@ -9719,36 +9802,41 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	/* 警告：此方法将重新生成。 */
 	protected void initialize(String sBiztypeid) {
 		// 添加按钮,zhoujie 2010-09-03 09:28:42
-		if (getButtonManager().getButtonTree().getButton(MDUtils.MDINFO_BUTTON)
-				.getCode().equals(MDUtils.MDINFO_BUTTON)) {
-			System.out.println("");
-			try {
-				getButtonManager().getButtonTree().removeChildMenu(
-						getButtonManager().getButtonTree().getButton(
-								MDUtils.MDINFO_BUTTON));
-				getButtonManager().getButtonTree().removeMenu(
-						getButtonManager().getButtonTree().getButton(
-								MDUtils.MDINFO_BUTTON));
-			} catch (BusinessException e) {
-				e.printStackTrace();
-			}
-		}
+		/*
+		 * if
+		 * (getButtonManager().getButtonTree().getButton(MDUtils.MDINFO_BUTTON)
+		 * .getCode().equals(MDUtils.MDINFO_BUTTON)) { System.out.println("");
+		 * try { getButtonManager().getButtonTree().removeChildMenu(
+		 * getButtonManager().getButtonTree().getButton(
+		 * MDUtils.MDINFO_BUTTON));
+		 * getButtonManager().getButtonTree().removeMenu(
+		 * getButtonManager().getButtonTree().getButton(
+		 * MDUtils.MDINFO_BUTTON)); } catch (BusinessException e) {
+		 * e.printStackTrace(); } }
+		 */
 		if (MDUtils.getBillNameByBilltype(getBillType()) != null) {
-			try {
-				getButtonManager().getButtonTree().addChildMenu(
-						getButtonManager().getButtonTree().getButton(
-								ICButtonConst.BTN_BILL), mdinfo);
-			} catch (BusinessException e) {
-				e.printStackTrace();
-			}
+			/*
+			 * try { getButtonManager().getButtonTree().addChildMenu(
+			 * getButtonManager().getButtonTree().getButton(
+			 * ICButtonConst.BTN_BILL), mdinfo); } catch (BusinessException e) {
+			 * e.printStackTrace(); }
+			 */
+			// heyq 2010-10-12 add
+			getButtonManager().getButtonTree().addMenu(
+					new ButtonObject(MDUtils.MDINFO_BUTTON,
+							MDUtils.MDINFO_BUTTON, MDUtils.MDINFO_BUTTON));
+			//getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
+			//		false);
+			// heyq 2010-10-12 end
 		}
-		
-		//毛边计算
-		if(getBillType()=="45"){
-			getButtonManager().getButtonTree().addMenu(new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON));
+
+		// 毛边计算
+		if (getBillType() == "45") {
+			getButtonManager().getButtonTree().addMenu(
+					new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON,
+							MDUtils.MBJS_BUTTON));
 		}
-		
-		
+
 		try {
 			// 界面管理器
 			m_layoutManager = new ToftLayoutManager(this);
@@ -10542,25 +10630,26 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.SAVE,
 						new GeneralBillVO[] { voUpdatedBill });
 				saveUpdatedBill(voUpdatedBill);
-				
-				
-//				费用信息的修改
-				InformationCostVO[] vos = (InformationCostVO[])getBillCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());
-				
+
+				// 费用信息的修改
+				InformationCostVO[] vos = (InformationCostVO[]) getBillCardPanel()
+						.getBillData().getBodyValueVOs(
+								"jj_scm_informationcost",
+								InformationCostVO.class.getName());
+
 				String cbillid = voUpdatedBill.getHeaderVO().getPrimaryKey();
-				if(vos!=null&&vos.length!=0){
-		        	for (int i = 0; i < vos.length; i++) {
-		        		vos[i].setCbillid(cbillid);
+				if (vos != null && vos.length != 0) {
+					for (int i = 0; i < vos.length; i++) {
+						vos[i].setCbillid(cbillid);
 					}
-		        	try {
-						JJIcScmPubHelper.updateSmartVOs(vos,cbillid);
+					try {
+						JJIcScmPubHelper.updateSmartVOs(vos, cbillid);
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						SCMEnv.out(e);
 					}
-		        }
-				
-				
+				}
+
 				// 二次开发扩展
 				getPluginProxy().afterAction(nc.vo.scm.plugin.Action.SAVE,
 						new GeneralBillVO[] { voUpdatedBill });
@@ -15602,6 +15691,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		return null;
 	}
 
+	// add heyiqiu 2010-10-12
 	/*
 	 * （非 Javadoc）
 	 * 
@@ -15634,6 +15724,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		}
 	}
 
+	// end heyiqiu
 	/*
 	 * （非 Javadoc）
 	 * 
