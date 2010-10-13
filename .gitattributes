@@ -393,8 +393,8 @@ junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceBtn.class -te
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$1.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$2.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI.class -text
-junjie/patches/modules/uap/META-INF/classes/bs/uap/pub/jj/JJUAPServiceImpl.class -text
-junjie/patches/modules/uap/META-INF/classes/bs/uap/pub/jj/JJUAPServiceImpl.java -text
+junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.class -text
+junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1001/AdjustmentCoefficientVO.class -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1003/AdditionalValueVO.class -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1003/MyBillVO.class -text
