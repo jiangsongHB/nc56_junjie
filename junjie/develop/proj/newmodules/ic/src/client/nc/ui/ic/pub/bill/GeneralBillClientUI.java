@@ -1915,22 +1915,35 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		if (getBillType().equals("4C") || getBillType().equals("4I")) {
 			MdwhDlg dlg;
 			try {
+				int j = this.getBillCardPanel().getBillTable().getSelectedRow(); // 行数
 				dlg = new MdwhDlg(this);
 				dlg.showModal();
 				if (dlg.getNoutassistnum() == null || dlg.getNoutnum() == null)
 					return;
-				GeneralBillVO billvo = dlg.getUpdateUIVO();
-				setBillVO(billvo);
-				updateBillToList(billvo);
-				getBillCardPanel().updateValue();
-				getBillCardPanel().updateUI();
-				getBillListPanel().updateUI();
+				// 调用修改方法
+				onButtonClicked(getButtonManager().getButton(
+						ICButtonConst.BTN_BILL_EDIT));
+				getBillCardPanel().setBodyValueAt(dlg.getNoutnum(), j,
+						"noutnum");
+				BillEditEvent e = new BillEditEvent(getBillCardPanel()
+						.getBodyItem("noutnum").getComponent(),
+						getBillCardPanel().getBodyValueAt(j, "noutnum"),
+						"noutnum", j, BillItem.BODY);
+				// 编辑后事件
+				afterEdit(e);
+				if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
+					getBillCardPanel().getBillModel().setRowState(j,
+							BillModel.MODIFICATION);
+				// 调用保存方法
+				onButtonClicked(getButtonManager().getButton(
+						ICButtonConst.BTN_SAVE));
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
 			}
 		} else if (getBillType().equals("45") || getBillType().equals("4A")) {
 			try {
+				int j = this.getBillCardPanel().getBillTable().getSelectedRow(); // 行数
 				GeneralBillVO billvo = getM_voBill();
 				if (billvo == null)
 					throw new BusinessException("请选择单据！");
@@ -1938,9 +1951,27 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						.getParentVO();
 				if (hvo == null)
 					throw new BusinessException("请选择需要维护码单的单据！");
+				if(j<0)
+					throw new BusinessException("没有选择表体行！");
 				MDioDialog dialog = new MDioDialog(this);
 				dialog.showModal();
-
+				// 调用修改方法
+				onButtonClicked(getButtonManager().getButton(
+						ICButtonConst.BTN_BILL_EDIT));
+				getBillCardPanel()
+						.setBodyValueAt(dialog.getSssl(), j, "ninnum");
+				BillEditEvent e = new BillEditEvent(getBillCardPanel()
+						.getBodyItem("ninnum").getComponent(),
+						getBillCardPanel().getBodyValueAt(j, "ninnum"),
+						"ninnum", j, BillItem.BODY);
+				// 编辑后事件
+				afterEdit(e);
+				if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
+					getBillCardPanel().getBillModel().setRowState(j,
+							BillModel.MODIFICATION);
+				// 调用保存方法
+				onButtonClicked(getButtonManager().getButton(
+						ICButtonConst.BTN_SAVE));
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
@@ -9833,10 +9864,13 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			getButtonManager().getButtonTree().addMenu(
 					new ButtonObject(MDUtils.MDINFO_BUTTON,
 							MDUtils.MDINFO_BUTTON, MDUtils.MDINFO_BUTTON));
-			getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
-					false);
-			getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
-					false);
+			if (BillMode.List == getM_iCurPanel())
+				getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
+						false);
+			else
+				getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
+						true);
+
 			// heyq 2010-10-12 end
 		}
 
@@ -9845,6 +9879,12 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			getButtonManager().getButtonTree().addMenu(
 					new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON,
 							MDUtils.MBJS_BUTTON));
+			if (BillMode.List == getM_iCurPanel())
+				getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
+						false);
+			else
+				getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
+						true);
 		}
 
 		try {
@@ -15709,9 +15749,10 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 */
 	public void onExtendBtnsClick(ButtonObject bo) {
 		if (bo.equals(mdinfo)) {
-			if (getBillType().equals("4C") || getBillType().equals("4I")) {
-				MdwhDlg dlg;
-				try {
+			try {
+				if (getBillType().equals("4C") || getBillType().equals("4I")) {
+					MdwhDlg dlg;
+
 					dlg = new MdwhDlg(this);
 					dlg.showModal();
 					if (dlg.getNoutassistnum() == null
@@ -15723,13 +15764,14 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					getBillCardPanel().updateValue();
 					getBillCardPanel().updateUI();
 					getBillListPanel().updateUI();
-				} catch (BusinessException e) {
-					e.printStackTrace();
-					showErrorMessage(e.getMessage());
+				} else if (getBillType().equals("45")
+						|| getBillType().equals("4A")) {
+					MDioDialog dialog = new MDioDialog(this);
+					dialog.showModal();
 				}
-			} else if (getBillType().equals("45") || getBillType().equals("4A")) {
-				MDioDialog dialog = new MDioDialog(this);
-				dialog.showModal();
+			} catch (BusinessException e) {
+				e.printStackTrace();
+				showErrorMessage(e.getMessage());
 			}
 		}
 	}
