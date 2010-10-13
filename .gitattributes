@@ -291,9 +291,6 @@ junjie/patches/modules/ic/classes/nc/vo/ic/xcl/MdxclVO.class -text
 junjie/patches/modules/ic/classes/nc/vo/ic/xcl/MdxclVO.java -text
 junjie/patches/modules/ic/classes/nc/vo/ic/xcl/XclBillVO.class -text
 junjie/patches/modules/ic/classes/nc/vo/ic/xcl/XclBillVO.java -text
-junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI$1.class -text
-junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI$ButtonManager201.class -text
-junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/ClientUI.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/MdDetailDialog$1.class -text
