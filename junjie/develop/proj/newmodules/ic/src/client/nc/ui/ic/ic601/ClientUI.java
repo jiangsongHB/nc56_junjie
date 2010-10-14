@@ -96,7 +96,7 @@ public class ClientUI extends nc.ui.ic.pub.report.IcBaseReport implements
 	 */
 	// 按钮组
 	private ButtonObject[] m_MainButtonGroup = { m_boQuery, m_boShowSN,
-			m_boShowBarCode, m_boShowDetails, m_boMdcs };
+			m_boShowBarCode, m_boShowDetails };
 
 	/**
 	 * 何意求 修改 结束 2010-08-31

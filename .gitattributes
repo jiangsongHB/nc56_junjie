@@ -159,6 +159,7 @@ junjie/develop/proj/newmodules/ic/.classpath -text
 junjie/develop/proj/newmodules/ic/.module_prj -text
 junjie/develop/proj/newmodules/ic/.project -text
 junjie/develop/proj/newmodules/ic/META-INF/module.xml -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic008/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic201/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/MdDetailDialog.java -text
