@@ -741,7 +741,7 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 	 * 2002-06-05 王印芬 修改函数onDoubleClick()
 	 */
 	public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
-		getPoCardPanel().getBodyTabbedPane().setSelectedIndex(0);//重置列表表体页签显示顺序!
+		getPoCardPanel().getBodyTabbedPane().setSelectedIndex(0);//2010-10-13 MeiChao重置列表表体页签显示顺序!
 		
 		if (e.getPos() == BillItem.HEAD) {
 			if(!onDoubleClick(e.getRow())) return;
