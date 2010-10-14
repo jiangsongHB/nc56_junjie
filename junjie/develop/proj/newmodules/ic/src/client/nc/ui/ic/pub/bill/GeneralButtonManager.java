@@ -611,7 +611,14 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
   	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
   	        getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
   	        getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+              }else{
+            	  //2010-10-11 MeiChao 将卡片及列表中的费用页签中的信息清空
+            	  getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+      	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+      	        
               }
+              
+              
 		} catch (Exception e) {
 			nc.vo.scm.pub.SCMEnv.error(e);
 			showErrorMessage(e.getMessage());
