@@ -829,6 +829,10 @@ private void afterEditWhenNum(BillEditEvent e) {
         if(d.doubleValue() > 0){
           getBillCardPanel().setBodyValueAt(e.getOldValue(), e.getRow(), "narrvnum");
           MessageDialog.showErrorDlg(this,m_lanResTool.getStrByID("SCMCOMMON","UPPSCMCommon-000059")/*@res "错误"*/,m_lanResTool.getStrByID("40040301","UPP40040301-000275")/*@res"退货单数量必须为负!"*/);
+          //2010-10-13 MeiChao (佛山-骏杰) ----begin  
+          //修改当界面中实到数量被修改时.根据是否固定换算率,修改对应实到辅数量,(当前BUG为实到数量修改,对应实到辅数量不变化)
+          //2010-10-13 MeiChao (佛山-骏杰) ----end  
+          
           return;
         }
       }
@@ -925,6 +929,7 @@ private void afterEditWhenNum(BillEditEvent e) {
   //convert = nc.ui.pu.pub.PuTool.getInvConvRateValue(sBaseID, sCassId);
   //是否固定换算率
   isfixed = new UFBoolean(PuTool.isFixedConvertRate(sBaseID, sCassId));
+  
   //自动计算：到货数量，辅数量，换算率，合格数量，不合格数量，单价，金额
   if ((e.getKey().equals("convertrate")
     || e.getKey().equals("nassistnum")
