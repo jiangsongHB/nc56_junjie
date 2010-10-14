@@ -3612,6 +3612,9 @@ public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
 if(vos!=null&&vos.length!=0){
 	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+}else{
+	//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
+	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 }
     } else {
       //如果没有单据体，则认为并发并返回
@@ -3699,6 +3702,9 @@ private void onAudit(ButtonObject bo) {
     	if(vos!=null&&vos.length!=0){
      		 getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
       		 getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+      		 }else{
+      			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+      			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
       		 }
     } catch (Exception e) {
       showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000120")/*@res "审批成功,但加载单据时出现异常,请刷新界面再进行其它操作"*/);
@@ -4247,13 +4253,19 @@ private void onButtonClickedList(ButtonObject bo){
       if(vos!=null&&vos.length!=0){
     	  getBillCardPanel().getBillData().setBodyValueVO("jj_scm_informationcost", vos);//add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
           getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-      }
+      }else{
+			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+		 }
     } else {
       onModifyList();
       if(vos!=null&&vos.length!=0){
     	  getBillCardPanel().getBillData().setBodyValueVO("jj_scm_informationcost", vos);//add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
 
-      }
+      }else{
+			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+		 }
     }
     //置光标到表头第一个可编辑项目
     getBillCardPanel().transferFocusTo(BillCardPanel.HEAD);
@@ -4716,7 +4728,10 @@ try {
 if(vos!=null&&vos.length!=0){
 	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-}
+}else{
+		 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+		getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+	 }
 //add by QuSida 2010-9-11 (佛山骏杰) --- end
   showHintMessage(m_lanResTool.getStrByID("common","UCH021")/*@res "卡片显示"*/);
 }
@@ -6696,7 +6711,10 @@ private void onUnAudit(ButtonObject bo) {
   	if(vos!=null&&vos.length!=0){
   		 getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
   		 getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-  	}
+  	}else{
+			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+		 }
     } catch (Exception e) {
       showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000188")/*@res "弃审成功,但加载单据时出现异常,请刷新界面再进行其它操作"*/);
     }
