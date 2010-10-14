@@ -16,7 +16,7 @@ import nc.bs.ic.pub.ICDbVisitor;
 import nc.bs.ic.pub.tools.BillDataFillingUtil;
 import nc.bs.ic.pub.vmi.ICSmartToolsDmo;
 import nc.bs.ml.NCLangResOnserver;
-//import nc.bs.pu.pr.PraybillDMO;
+import nc.bs.pu.pr.PraybillDMO;
 import nc.bs.pub.SystemException;
 import nc.bs.scm.pub.smart.SmartDMO;
 import nc.itf.ic.pub.IGeneralBill;

@@ -268,6 +268,7 @@ junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1003/AdditionalValueVO.
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1003/MyBillVO.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1005/BurrCoefficientVO.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1005/MyBillVO.java -text
+junjie/patches/modules/.project -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/bill/GeneralBillImpl.class -text
@@ -343,10 +344,19 @@ junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/estimate/EstimateImpl.class 
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pu/mm/AdapterPuToMm.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pu/pr/PraybillDMO.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pub/action/N_25_FEEAPPROVE.class -text
+junjie/patches/modules/pu/classes/itf/ps/estimate/IEstimate.class -text
+junjie/patches/modules/pu/classes/itf/ps/estimate/IEstimate.java -text
+junjie/patches/modules/pu/classes/itf/pu/mm/ISrvPUToMM.class -text
+junjie/patches/modules/pu/classes/itf/pu/mm/ISrvPUToMM.java -text
 junjie/patches/modules/pu/classes/nc/itf/ps/estimate/IEstimate.class -text
 junjie/patches/modules/pu/classes/nc/itf/pu/mm/ISrvPUToMM.class -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVO.class -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVOMeta.class -text
+junjie/patches/modules/pu/classes/ui/pu/jjpanel/InfoCostPanel.class -text
+junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVO.class -text
+junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVO.java -text
+junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVOMeta.class -text
+junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVOMeta.java -text
 junjie/patches/modules/pu/client/classes/nc/ui/invoice/InvoiceUI$1.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/invoice/InvoiceUI$2.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/invoice/InvoiceUI$IMenuItemListener.class -text
@@ -392,7 +402,6 @@ junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceBtn.class -te
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$1.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$2.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI.class -text
-junjie/patches/modules/uap/META-INF/JJ_queryservice.upm -text
 junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.class -text
 junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text
 junjie/patches/modules/uap/classes/nc/itf/uap/pub/jj/IJJUAPService.class -text

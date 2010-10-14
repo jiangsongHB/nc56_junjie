@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import javax.naming.NamingException;
 
-import nc.bs.pr.pary.PraybillImpl;
+import nc.bs.pr.pray.PraybillImpl;
 import nc.bs.pu.pr.PraybillDMO;
 import nc.bs.pub.SystemException;
 import nc.bs.scm.pub.ScmPubDMO;

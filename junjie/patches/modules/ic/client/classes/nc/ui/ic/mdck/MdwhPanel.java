@@ -345,7 +345,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				throw new BusinessException("保存失败，没有码单明细！");
 			if (rsvos == null && ders == true) {
 				bean.updateSdbs(infoVO, "0");// 还原码单锁定数据
-				//bean.updateBillNull(infoVO);// 将数据实出库数量、支数清空
+				bean.updateBillNull(infoVO);// 将数据实出库数量、支数清空
 				dlg.setNoutnum(new UFDouble(0));
 				dlg.setNoutassistnum(new UFDouble(0));
 				// buttonState(true, true, false, true, false);
@@ -361,7 +361,6 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			// getUIButtonCan().setText("关 闭");
 			// buttonState(true, true, false, true, false);
 			MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
-			onBtnCan();
 		} catch (BusinessException e) {
 			e.printStackTrace();
 			MessageDialog.showWarningDlg(dlg, "提示", e.getMessage());

@@ -410,6 +410,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 	public void initialize() {
 		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. begin 
 		this.getButtonManager().getButtonTree().addMenu(this.getBoInfoCost());
+		
 		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. end
 		super.initialize();
 
@@ -1850,9 +1851,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		InformationCostVO[] vos = (InformationCostVO[] )getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
 		ArrayList voList = new ArrayList();
 		for (int i = 0; i < vos.length; i++) {
-			//modify by 付世超 2010-10-13 原判断条件错误  
-			if(vos[i] != null){
-//			if(vos[i].getPrimaryKey() == null||vos[i].getPrimaryKey().length() == 0){
+			if(vos[i].getPrimaryKey() == null||vos[i].getPrimaryKey().length() == 0){
 				voList.add(vos[i]);
 			}
 		}

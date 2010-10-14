@@ -38,7 +38,6 @@ public class MdProcessBean {
 		List tempList = new ArrayList();
 		List jbhList = new ArrayList();
 		String jbh = null;
-		UFDouble sumCkzs = new UFDouble(0, 2);
 		for (int i = 0; i < vos.length; i++) {
 			jbh = vos[i].getJbh();
 			if (jbh == null || jbh.equals(""))
@@ -63,12 +62,8 @@ public class MdProcessBean {
 			vos[i].setDef1(null);
 			vos[i].setDef2(null);
 			vos[i].setSfbj(infoVO.getSfbj());
-			sumCkzs = sumCkzs.add(vos[i].getSrkzs());// 实出库支数
 			tempList.add(vos[i]);
 		}
-		if (sumCkzs.doubleValue() != infoVO.getNoutassistnum().doubleValue())
-			throw new BusinessException("码单出库总支数" + sumCkzs.doubleValue()
-					+ "不等于实出库辅数量" + infoVO.getNoutassistnum().doubleValue());
 		if (tempList.size() == 0)
 			return null;
 		MdcrkVO[] rs = new MdcrkVO[tempList.size()];
@@ -231,12 +226,14 @@ public class MdProcessBean {
 		dlg.setNoutassistnum(zhishu);
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
-		/*
-		 * try { iUAPQueryBS.executeQuery("update ic_general_b set noutnum=" +
-		 * zhongliang.doubleValue() + ",noutassistnum=" + zhishu.doubleValue() + "
-		 * where cgeneralbid='" + pk_ptzj + "'", new ArrayListProcessor()); }
-		 * catch (BusinessException e) { e.printStackTrace(); }
-		 */
+		try {
+			iUAPQueryBS.executeQuery("update ic_general_b set noutnum="
+					+ zhongliang.doubleValue() + ",noutassistnum="
+					+ zhishu.doubleValue() + " where cgeneralbid='" + pk_ptzj
+					+ "'", new ArrayListProcessor());
+		} catch (BusinessException e) {
+			e.printStackTrace();
+		}
 	}
 
 	// 码单全部删除后，将实出库支数、重量清空

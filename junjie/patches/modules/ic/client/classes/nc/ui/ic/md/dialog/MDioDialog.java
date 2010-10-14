@@ -60,15 +60,11 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	boolean edited = false;
 
-	public UFDouble ssfsl = new UFDouble(0);// 实收辅数量
-
-	public UFDouble sssl = new UFDouble(0);// 实收数量
-
-	public MDioDialog(GeneralBillClientUI ui) throws BusinessException {
+	public MDioDialog(GeneralBillClientUI ui) {
 		super(ui, MDUtils.getBillNameByBilltype(ui.getBillType()) + "－码单信息");
 		this.ui = ui;
 		this.setSize(700, 400);
-		init();
+		 init();
 	}
 
 	GeneralBillVO getGeneralBillVO() {
@@ -98,7 +94,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	/**
 	 * 初始化表头数据
 	 */
-	private void initHeadData() throws BusinessException {
+	private void initHeadData() {
 		// voname nc.vo.ic.pub.bill.GeneralBillItemVO
 		GeneralBillVO nowVObill = getGeneralBillVO();
 		// String WhID = "";
@@ -112,15 +108,6 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		getBillCardPanel().getHeadItem("realWeight").setValue(
 				getGeneralBillVO().getItemValue(getGenSelectRowID(), "ninnum"));// 实收数量
 		getBillCardPanel().execHeadLoadFormulas();
-
-		// 实入数量
-		// this.setSssl((UFDouble) (getGeneralBillVO().getItemValue(
-		// getGenSelectRowID(), "ninnum")));
-		// 实入辅数量
-		this.setSsfsl((UFDouble) (getGeneralBillVO().getItemValue(
-				getGenSelectRowID(), "ninassistnum")));
-		if (this.getSsfsl() == null || this.getSsfsl().doubleValue() == 0)
-			throw new BusinessException("实收辅数量为空，不能维护码单！");
 
 		String gg = (String) getBillCardPanel().getHeadItem("thickness")
 				.getValueObject();// 规格
@@ -147,7 +134,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	/**
 	 * 初始化
 	 */
-	private void init() throws BusinessException {
+	private void init() {
 		this.add(getBillCardPanel(), BorderLayout.CENTER);
 		this.add(getButtonPanel(), BorderLayout.NORTH);
 		this.add(getBottomPanel(), BorderLayout.SOUTH);
@@ -166,7 +153,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	/**
 	 * 初始化数据
 	 */
-	private void initData() throws BusinessException {
+	private void initData() {
 		this.initPanelStatus();
 		this.initHeadData();
 		this.initBodyData();
@@ -211,12 +198,15 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	/*
-	 * /** 重写窗口关闭按钮 使之失效
+	/**
+	 * 重写窗口关闭按钮 使之失效
 	 */
 	/*
-	 * @Override protected void processWindowEvent(WindowEvent e) { }
-	 */
-
+	@Override
+	protected void processWindowEvent(WindowEvent e) {
+	}
+*/
+	
 	/**
 	 * 初始化表体数据
 	 */
@@ -412,15 +402,6 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		if (mdvos.length < 1) {
 			throw new BusinessException("码单表体没有数据！");
 		}
-		// 较验数据
-		UFDouble sum_srkzs = new UFDouble(0);
-		for (int i = 0; i < mdvos.length; i++) {
-			sum_srkzs = sum_srkzs.add(mdvos[i].getSrkzs());
-		}
-		if(sum_srkzs.doubleValue()!=this.getSsfsl().doubleValue())
-			throw new BusinessException("码单入库总支数" + sum_srkzs.doubleValue()
-					+ "不等于实入库辅数量" + this.getSsfsl().doubleValue());
-
 		UFDouble num = new UFDouble((String) getBillCardPanel().getHeadItem(
 				"realWeight").getValueObject());
 		String ispj = (String) getBillCardPanel().getHeadItem("ispj")
@@ -433,6 +414,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		getBillCardPanel().getBillData().setBodyValueVO(mdvos);
 		getBillCardPanel().getBillModel().execLoadFormula();
 		setMessage("计算成功...");
+
 		edited = true;
 	}
 
@@ -458,16 +440,10 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			IMDTools tools = NCLocator.getInstance().lookup(IMDTools.class);
 			tools.saveMDrk(mdvos, mdxclvo, (String) getGeneralBillVO()
 					.getItemValue(getGenSelectRowID(), "cgeneralbid"));
-			UFDouble sum_sssl=new UFDouble(0);
-			for(int i=0;i<mdvos.length;i++){
-				sum_sssl=sum_sssl.add(mdvos[i].getSrkzl());
-			}
-			// 设置实收数量
-			this.setSssl(sum_sssl);
 			setMessage("保存成功...");
 			setStatus(MDUtils.INIT_CANEDIT);
 			initBodyData();
-			closeCancel();
+
 			// ui.getButtonManager().onButtonClicked(ui.getButtonManager().getButton(ICButtonConst.BTN_BROWSE_REFRESH));
 		}
 	}
@@ -595,21 +571,4 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	public boolean beforeEdit(BillEditEvent billeditevent) {
 		return true;
 	}
-
-	public UFDouble getSsfsl() {
-		return ssfsl;
-	}
-
-	public void setSsfsl(UFDouble ssfsl) {
-		this.ssfsl = ssfsl;
-	}
-
-	public UFDouble getSssl() {
-		return sssl;
-	}
-
-	public void setSssl(UFDouble sssl) {
-		this.sssl = sssl;
-	}
-
 }

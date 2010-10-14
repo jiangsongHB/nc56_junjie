@@ -3081,10 +3081,6 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
     return true;
   }
   
-  
-  
-  
-  
   private void onCostDistribute(){
 	  EstimateVO[] emvos = (EstimateVO[])getBillCardPanel().getBillData().getBodyValueChangeVOs(EstimateVO.class.getName());
 	  ArrayList rowList = new ArrayList();
@@ -3166,6 +3162,6 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 //	 getBillCardPanel().getBillData().setBodyValueVO(emvos);
 	 getBillCardPanel().getBillModel().execLoadFormula();
 	 feeFlag = true;
-	 SCMEnv.out("-------分摊费用成功--------");  
+	  
   }
 }
