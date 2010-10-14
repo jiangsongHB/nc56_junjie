@@ -795,7 +795,10 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				if(vos!=null&&vos.length!=0){
 					getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 					getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-				}
+				}else{
+	      			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+	      			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+	      		 }
 				//add by QuSida 2010-9-11 (佛山骏杰) --- end
 			}
 		} else {
