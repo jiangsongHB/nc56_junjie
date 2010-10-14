@@ -1850,7 +1850,9 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		InformationCostVO[] vos = (InformationCostVO[] )getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
 		ArrayList voList = new ArrayList();
 		for (int i = 0; i < vos.length; i++) {
-			if(vos[i].getPrimaryKey() == null||vos[i].getPrimaryKey().length() == 0){
+			//modify by 付世超 2010-10-13 原判断条件错误  
+			if(vos[i] != null){
+//			if(vos[i].getPrimaryKey() == null||vos[i].getPrimaryKey().length() == 0){
 				voList.add(vos[i]);
 			}
 		}

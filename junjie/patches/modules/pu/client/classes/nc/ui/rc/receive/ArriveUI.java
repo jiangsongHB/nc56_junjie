@@ -818,7 +818,7 @@ private void afterEditWhenInv(BillEditEvent e) {
  * @param e nc.ui.pub.bill.BillEditEvent
  */
 private void afterEditWhenNum(BillEditEvent e) {
-  if(e.getKey().equals("narrvnum")||e.getKey().equals("nassistnum")){//2010-10-14 MeiChao 增加对nassistnum-实到辅数量编辑事件的监听
+  if(e.getKey().equals("narrvnum")){
     BillItem item = getBillCardPanel().getHeadItem("bisback");
     UFBoolean bBack = new UFBoolean(false);
     if(item != null) bBack = new UFBoolean(item.getValue());
@@ -830,7 +830,7 @@ private void afterEditWhenNum(BillEditEvent e) {
           getBillCardPanel().setBodyValueAt(e.getOldValue(), e.getRow(), "narrvnum");
           MessageDialog.showErrorDlg(this,m_lanResTool.getStrByID("SCMCOMMON","UPPSCMCommon-000059")/*@res "错误"*/,m_lanResTool.getStrByID("40040301","UPP40040301-000275")/*@res"退货单数量必须为负!"*/);
           //2010-10-13 MeiChao (佛山-骏杰) ----begin  
-          //修改当界面中实到辅数量
+          //修改当界面中实到数量被修改时.根据是否固定换算率,修改对应实到辅数量,(当前BUG为实到数量修改,对应实到辅数量不变化)
           //2010-10-13 MeiChao (佛山-骏杰) ----end  
           
           return;
