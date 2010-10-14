@@ -415,9 +415,12 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		// 较验数据
 		UFDouble sum_srkzs = new UFDouble(0);
 		for (int i = 0; i < mdvos.length; i++) {
+			if (mdvos[i].getSrkzs() == null
+					|| mdvos[i].getSrkzs().doubleValue() == 0)
+				throw new BusinessException("第" + (i + 1) + "行，支数不能为空！");
 			sum_srkzs = sum_srkzs.add(mdvos[i].getSrkzs());
 		}
-		if(sum_srkzs.doubleValue()!=this.getSsfsl().doubleValue())
+		if (sum_srkzs.doubleValue() != this.getSsfsl().doubleValue())
 			throw new BusinessException("码单入库总支数" + sum_srkzs.doubleValue()
 					+ "不等于实入库辅数量" + this.getSsfsl().doubleValue());
 
@@ -458,9 +461,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			IMDTools tools = NCLocator.getInstance().lookup(IMDTools.class);
 			tools.saveMDrk(mdvos, mdxclvo, (String) getGeneralBillVO()
 					.getItemValue(getGenSelectRowID(), "cgeneralbid"));
-			UFDouble sum_sssl=new UFDouble(0);
-			for(int i=0;i<mdvos.length;i++){
-				sum_sssl=sum_sssl.add(mdvos[i].getSrkzl());
+			UFDouble sum_sssl = new UFDouble(0);
+			for (int i = 0; i < mdvos.length; i++) {
+				sum_sssl = sum_sssl.add(mdvos[i].getSrkzl());
 			}
 			// 设置实收数量
 			this.setSssl(sum_sssl);
