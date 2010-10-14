@@ -10,6 +10,8 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
 import nc.vo.ic.jjvo.InformationCostVO;
+import nc.vo.ic.md.MdcrkVO;
+
 import javax.swing.JFileChooser;
 
 import nc.bs.framework.common.NCLocator;
@@ -18,6 +20,7 @@ import nc.ui.ic.ic001.BatchCodeDefSetTool;
 import nc.ui.ic.ic001.BatchcodeHelper;
 import nc.ui.ic.ic009.PackCheckBusDialog;
 import nc.ui.ic.jj.JJIcScmPubHelper;
+import nc.ui.ic.md.MDPlugin;
 import nc.ui.ic.md.dialog.MDUtils;
 import nc.ui.ic.md.dialog.MDioDialog;
 import nc.ui.ic.mdck.MdwhDlg;
@@ -79,6 +82,8 @@ import nc.ui.scm.pub.AccreditLoginDialog;
 import nc.ui.scm.pub.bill.IBillExtendFun;
 import nc.ui.scm.pub.def.DefSetTool;
 import nc.ui.scm.pub.print.DefaultFormulaJudge;
+import nc.ui.trade.business.HYPubBO_Client;
+import nc.uif.pub.exception.UifException;
 import nc.vo.bd.b06.PsndocVO;
 import nc.vo.bd.def.DefVO;
 import nc.vo.bill.pub.BillUtil;
@@ -118,6 +123,7 @@ import nc.vo.ic.pub.sn.SerialVO;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.NullFieldException;
+import nc.vo.pub.SuperVO;
 import nc.vo.pub.VOStatus;
 import nc.vo.pub.ValidationException;
 import nc.vo.pub.bill.BillTempletVO;
@@ -1879,7 +1885,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					getButtonManager().getButton(MDUtils.MBJS_BUTTON)
 							.setEnabled(false);
 				}
-
 			}
 			// heyq end
 
@@ -1937,6 +1942,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
+				//清空数据
+				dlg.setNoutassistnum(null);
+				dlg.setNoutnum(null);
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
@@ -1951,10 +1959,15 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						.getParentVO();
 				if (hvo == null)
 					throw new BusinessException("请选择需要维护码单的单据！");
-				if(j<0)
+				if (j < 0)
 					throw new BusinessException("没有选择表体行！");
 				MDioDialog dialog = new MDioDialog(this);
 				dialog.showModal();
+				if (dialog.getSssl() == null
+						|| dialog.getSssl().doubleValue() == 0){
+					dialog.setSsfsl(null);
+					return;
+				}
 				// 调用修改方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_BILL_EDIT));
@@ -1971,7 +1984,10 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 							BillModel.MODIFICATION);
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
-						ICButtonConst.BTN_SAVE));
+						ICButtonConst.BTN_SAVE));				
+				
+				dialog.setSsfsl(null);
+				dialog.setSssl(null);
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
@@ -1999,6 +2015,25 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			showHintMessage("请选择需要计算的表体行....");
 			return;
 		}
+		
+        //对毛边计算按钮进行控制。如果已经维护好码单信息，不允许再次进行毛边计算修改单据表体行的字段值，以避免出现数据不一致性的错误。
+		//add by 阮睿 2010-10-13 -----------begin
+		if(getM_iMode() == BillMode.Update)
+		{
+			String cgeneralbid = getBillCardPanel().getBodyValueAt(j, "cgeneralbid")==null?"":getBillCardPanel().getBodyValueAt(j, "cgeneralbid").toString();
+			try {
+				SuperVO[] vo= HYPubBO_Client.queryByCondition(MdcrkVO.class, " isnull(dr,0)=0 and cgeneralbid = '"+cgeneralbid+"' ");
+				if(vo!=null&&vo.length>0)
+				{
+					showWarningMessage("所选择的存货行已经维护有码单数据，在码单数据未清除的情况下，不允许再次进行毛边计算");	
+					return;
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+		}		
+		//add by 阮睿 2010-10-13 -----------end
+		
 		UFDouble stuffprice = UFDouble.ZERO_DBL;
 		UFDouble stuffweight = UFDouble.ZERO_DBL;
 		UFDouble stuffsumny = UFDouble.ZERO_DBL;
@@ -5537,7 +5572,28 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		// 二次开发扩展
 		if (!getPluginProxy().beforeEdit(e))
 			bret = false;
-
+		
+		//加入字段编辑前校验，如果出入库单存货行已经有码单信息，则不允许直接修改存货行的实入（出）数量与辅数量。
+		//add by 阮睿 2010-10-13 -----begin
+		if (getBillType() == "4C"||getBillType() == "4I"||getBillType() == "45"||getBillType() == "4A")
+		{
+			if(e.getKey().equals("ninnum")||e.getKey().equals("ninassistnum")||e.getKey().equals("noutnum")||e.getKey().equals("noutassistnum"))
+			{
+				String cgeneralbid = getBillCardPanel().getBodyValueAt(e.getRow(), "cgeneralbid")==null?"":getBillCardPanel().getBodyValueAt(e.getRow(), "cgeneralbid").toString();
+				try {
+					SuperVO[] vo= HYPubBO_Client.queryByCondition(MdcrkVO.class, " isnull(dr,0)=0 and cgeneralbid = '"+cgeneralbid+"' ");
+					if(vo!=null&&vo.length>0)
+					{
+						showWarningMessage("本存货已经维护有码单信息，在码单信息清除前，不能直接修改实际数量与辅数量");
+						bret = false;
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+				
+			}
+		}
+		//add by 阮睿 2010-10-13------------end
 		return bret;
 
 	}
@@ -9875,9 +9931,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		}
 
 		// 毛边计算
-
-
-		if (getBillType() == "45") {
+		if (getBillType() == "45"||getBillType() == "4A") {
 			getButtonManager().getButtonTree().addMenu(
 					new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON,
 							MDUtils.MBJS_BUTTON));
