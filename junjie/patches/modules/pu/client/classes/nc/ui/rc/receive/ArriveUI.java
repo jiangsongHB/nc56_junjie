@@ -818,7 +818,7 @@ private void afterEditWhenInv(BillEditEvent e) {
  * @param e nc.ui.pub.bill.BillEditEvent
  */
 private void afterEditWhenNum(BillEditEvent e) {
-  if(e.getKey().equals("narrvnum")){
+  if(e.getKey().equals("narrvnum")||e.getKey().equals("nassistnum")){//2010-10-14 MeiChao 增加对nassistnum-实到辅数量编辑事件的监听
     BillItem item = getBillCardPanel().getHeadItem("bisback");
     UFBoolean bBack = new UFBoolean(false);
     if(item != null) bBack = new UFBoolean(item.getValue());
@@ -830,7 +830,7 @@ private void afterEditWhenNum(BillEditEvent e) {
           getBillCardPanel().setBodyValueAt(e.getOldValue(), e.getRow(), "narrvnum");
           MessageDialog.showErrorDlg(this,m_lanResTool.getStrByID("SCMCOMMON","UPPSCMCommon-000059")/*@res "错误"*/,m_lanResTool.getStrByID("40040301","UPP40040301-000275")/*@res"退货单数量必须为负!"*/);
           //2010-10-13 MeiChao (佛山-骏杰) ----begin  
-          //修改当界面中实到数量被修改时.根据是否固定换算率,修改对应实到辅数量,(当前BUG为实到数量修改,对应实到辅数量不变化)
+          //修改当界面中实到辅数量
           //2010-10-13 MeiChao (佛山-骏杰) ----end  
           
           return;
@@ -5506,7 +5506,9 @@ private void onModify() {
   getBillCardPanel().updateValue();
   if (iCurSelectedRow >= 0)
     getBillCardPanel().getBillTable().setRowSelectionInterval(iCurSelectedRow, iCurSelectedRow);
-
+  //add by 付世超 2010-10-12 (佛山俊杰) begin
+  getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);//重置表体页签显示为首页签!
+  //add by 付世超 2010-10-12 (佛山俊杰) end
   //初始化删除集合(库位分配时用到)
   v_DeletedItems = new Vector();
 
@@ -10240,7 +10242,9 @@ private void onBoInfoCost() {
 	InformationCostVO[] ivos = (InformationCostVO[] )getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
 	ArrayList voList = new ArrayList();
 	for (int i = 0; i < ivos.length; i++) {
-		if(ivos[i].getPrimaryKey() == null||ivos[i].getPrimaryKey().length() == 0){
+		//modify by 付世超 2010-10-12 原判断条件错误  
+		if(ivos[i] != null){
+//		if(ivos[i].getPrimaryKey() == null||ivos[i].getPrimaryKey().length() == 0){
 			voList.add(ivos[i]);
 		}
 	}
@@ -10279,6 +10283,11 @@ private void onBoInfoCost() {
 					infoCostVOs[i].setNnumber(arrnumber);
 					UFBoolean ismny = (UFBoolean)infoCostVOs[i].getAttributeValue("ismny");
 					if(ismny == null || !ismny.booleanValue()){
+				//add by  付世超 2010-10-12 begin
+						if(arrnum == null){//设置累计存货数量
+							arrnum = new UFDouble(0.0);
+						}
+				//add by  付世超 2010-10-12 end
 			    	mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber);
 			    	arrmny  = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber.add(arrnum));
 //			    	taxmny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurtaxprice").toString()).multiply(arrnumber);
@@ -10291,21 +10300,22 @@ private void onBoInfoCost() {
 						infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", infoCostVOs[i].getNoriginalcurmny());	
 					}
 				}
-				
-				InformationCostVO[] newVOs = new InformationCostVO[vos.length+infoCostVOs.length];
-				if(vos.length != 0 && vos != null){
-					//int temp = vos.length>infoCostVOs.length?vos.length:infoCostVOs.length;
-					
-					System.arraycopy(vos, 0, newVOs, 0, vos.length);
-					
-					System.arraycopy(infoCostVOs, 0, newVOs, vos.length, infoCostVOs.length);
-					
-					
-						getBillCardPanel().getBillData().setBodyValueVO(
-								"jj_scm_informationcost", newVOs);
-					//	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-				}
-				else getBillCardPanel().getBillData().setBodyValueVO(
+				// by 付世超 2010-10-12 注释掉代码	
+//				InformationCostVO[] newVOs = new InformationCostVO[vos.length+infoCostVOs.length];
+//				if(vos.length != 0 && vos != null){
+//					//int temp = vos.length>infoCostVOs.length?vos.length:infoCostVOs.length;
+//					
+//					System.arraycopy(vos, 0, newVOs, 0, vos.length);
+//					
+//					System.arraycopy(infoCostVOs, 0, newVOs, vos.length, infoCostVOs.length);
+//					
+//					
+//						getBillCardPanel().getBillData().setBodyValueVO(
+//								"jj_scm_informationcost", newVOs);
+//					//	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+//				}
+//				else 
+				getBillCardPanel().getBillData().setBodyValueVO(
 						"jj_scm_informationcost", infoCostVOs);
 				getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
 			}		
