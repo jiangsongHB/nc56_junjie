@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module  name="nc.itf.fvm.ejb.FVMprivateEJB">
+ <public>
+   <component priority="0" remote="true" singleton="true" supportAlias="false" tx="NONE">
+           <interface>nc.itf.ic.md.IMDTools</interface>
+           <implementation>nc.bs.ic.md.MDToolsImpl</implementation>
+   </component>
+  </public>
+</module>

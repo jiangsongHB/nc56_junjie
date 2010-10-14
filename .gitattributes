@@ -158,6 +158,7 @@ junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/MyBillVO.class -text
 junjie/develop/proj/newmodules/ic/.classpath -text
 junjie/develop/proj/newmodules/ic/.module_prj -text
 junjie/develop/proj/newmodules/ic/.project -text
+junjie/develop/proj/newmodules/ic/META-INF/mdrkTools.upm -text
 junjie/develop/proj/newmodules/ic/META-INF/module.xml -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic008/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic201/ClientUI.java -text
