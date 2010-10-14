@@ -9,7 +9,7 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.ColumnProcessor;
-import nc.ui.am.inventory.command.ShowEqualCommand;
+//import nc.ui.am.inventory.command.ShowEqualCommand;
 import nc.ui.bd.ref.busi.InvmandocDefaultRefModel;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;

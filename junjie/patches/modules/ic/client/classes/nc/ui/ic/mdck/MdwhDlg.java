@@ -77,8 +77,12 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 		infoVO.setPk_invmandoc(itemVOa.getCinventoryid());// 存货管理档案
 		// infoVO.setNoutassistnum(itemVOa.getNoutassistnum());// 实出辅数量
 		// infoVO.setNoutnum(itemVOa.getNoutnum());// 实出数量
-		infoVO.setNoutassistnum(itemVOa.getNshouldoutassistnum());// 应出辅数量
-		infoVO.setNoutnum(itemVOa.getNshouldoutnum());// 应出数量
+		//infoVO.setNoutassistnum(itemVOa.getNshouldoutassistnum());// 应出辅数量
+		//infoVO.setNoutnum(itemVOa.getNshouldoutnum());// 应出数量
+		if(itemVOa.getNoutassistnum()==null||itemVOa.getNoutassistnum().doubleValue()==0)
+			throw new BusinessException("实发辅数量为空，不能维护码单！");
+		infoVO.setNoutassistnum(itemVOa.getNoutassistnum());// 实出辅数量
+		infoVO.setNoutnum(itemVOa.getNoutnum());// 实出数量
 		infoVO.setLydjh(itemVOa.getCfirstbillbid());// 来源单据号cfirstbillbid
 		return infoVO;
 	}
@@ -161,6 +165,8 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 		GeneralBillItemVO itemVOa = itemVOaArrays[srow];
 		itemVOa.setNoutassistnum(getNoutassistnum());
 		itemVOa.setNoutnum(getNoutnum());
+		//itemVOa.set//出库日期
+		
 		itemVOaArrays[srow] = itemVOa;
 		for (int t = 0; t < itemVOaArrays.length; t++)
 			itemVOaArrays[t].setTs(MDConstants.getCurrentDateTime());
