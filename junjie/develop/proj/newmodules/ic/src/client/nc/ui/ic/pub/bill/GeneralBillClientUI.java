@@ -1879,7 +1879,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					getButtonManager().getButton(MDUtils.MBJS_BUTTON)
 							.setEnabled(false);
 				}
-
 			}
 			// heyq end
 
@@ -1937,6 +1936,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
+				//清空数据
+				dlg.setNoutassistnum(null);
+				dlg.setNoutnum(null);
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
@@ -1951,10 +1953,15 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						.getParentVO();
 				if (hvo == null)
 					throw new BusinessException("请选择需要维护码单的单据！");
-				if(j<0)
+				if (j < 0)
 					throw new BusinessException("没有选择表体行！");
 				MDioDialog dialog = new MDioDialog(this);
 				dialog.showModal();
+				if (dialog.getSssl() == null
+						|| dialog.getSssl().doubleValue() == 0){
+					dialog.setSsfsl(null);
+					return;
+				}
 				// 调用修改方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_BILL_EDIT));
@@ -1972,6 +1979,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
+				dialog.setSsfsl(null);
+				dialog.setSssl(null);
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
@@ -9875,9 +9884,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		}
 
 		// 毛边计算
-
-
-		if (getBillType() == "45") {
+		if (getBillType() == "45"||getBillType() == "4A") {
 			getButtonManager().getButtonTree().addMenu(
 					new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON,
 							MDUtils.MBJS_BUTTON));
