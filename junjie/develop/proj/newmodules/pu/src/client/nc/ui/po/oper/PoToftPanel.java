@@ -1806,6 +1806,9 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 	if(vos!=null&&vos.length!=0){
 		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 		getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+	}else{
+		//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
+		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 	}
 
 	}
@@ -2395,6 +2398,9 @@ try {
 if(vos!=null&&vos.length!=0){
 	getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 	getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+}else{
+	//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
+	getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 }
 		showHintMessage(NCLangRes.getInstance().getStrByID("common",
 				"UCH009")/* @res "查询完成" */);
