@@ -192,7 +192,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 			}
 
 		}
-		if("ninnum".equalsIgnoreCase(sItemKey)){
+		if("ninnum".equalsIgnoreCase(sItemKey)||"ninassistnum".equalsIgnoreCase(sItemKey)){//2010-10-14 MeiChao 增加
 		    //add by QuSida 2010-9-5 (佛山骏杰)  --- begin
 		    //function 当入库数量修改后及时更新费用信息中的数量
 		    int temp = getBillCardPanel().getBillModel("table").getRowCount();
