@@ -191,9 +191,6 @@ public class MDUtils {
 			throw new BusinessException("第1行，长度/宽度/米数不能同时为空.");
 		}
 
-		UFDouble fjm = getFJM(vos[0]);
-		UFDouble lsxs = getLSXS(vos[0]);
-
 		for (int i = 0; i < vos.length; i++) {
 			MdcrkVO vo = vos[i];
 			UFDouble lenth = vo.getMd_length();// 长
@@ -205,12 +202,14 @@ public class MDUtils {
 				throw new BusinessException("第" + (i + 1) + "行，支数不能小于0");
 			}
 			if (isCG) {
+				UFDouble lsxs = getLSXS(vos[0]);
 				if (meter == null || meter.doubleValue() <= 0) {
 					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
 				}
 				// 米数*支数*理算系数/1000
 				vo.setSrkzl(lsxs.multiply(zs).multiply(meter).div(1000));
 			} else {
+				UFDouble fjm = getFJM(vos[0]);
 				if (guige == null || guige.trim().equals("")) {
 					throw new BusinessException("第" + (i + 1)
 							+ "行，系统认为该存货为 锅炉板,但其规格不合标准");
@@ -251,7 +250,7 @@ public class MDUtils {
 		try {
 			Object obj = js.queryAdditionalvalue(pk_invbasid);
 			if (obj == null)
-				throw new BusinessException("当前存货的付加值系数没有维护，计算失败！");
+				throw new BusinessException("当前存货的附加值系数没有维护，计算失败！");
 			rsDouble = new UFDouble((BigDecimal) obj);
 		} catch (Exception e) {
 			e.printStackTrace();
