@@ -259,6 +259,15 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 		IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
 				.getInstance().lookup(IVOPersistence.class.getName());
 		try {
+			UFDouble sum_sdzs = new UFDouble(0);
+			for (int i = 0; i < vos.length; i++) {
+				sum_sdzs = sum_sdzs.add(vos[i].getSdzs());
+			}
+			// npacknumber 辅数量
+			if (sum_sdzs.doubleValue() > bvo.getNpacknumber().doubleValue())
+				throw new BusinessException("锁定支数" + sum_sdzs.doubleValue()
+						+ "不能大于销售订单辅数量" + bvo.getNpacknumber().doubleValue()
+						+ "，保存失败！");
 			buttonState(true, true, false, true);
 			MdsdBean bean = new MdsdBean();
 			MdsdVO[] rsvos = bean.buliderMdcrkVOs(vos, hvo, bvo);
@@ -272,6 +281,7 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			iVOPersistence.insertVOArray(rsvos);
 			// getUIButtonCan().setText("关 闭");
 			MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
+			onBtnCan();
 		} catch (BusinessException e) {
 			e.printStackTrace();
 			MessageDialog.showWarningDlg(dlg, "提示", e.getMessage());
