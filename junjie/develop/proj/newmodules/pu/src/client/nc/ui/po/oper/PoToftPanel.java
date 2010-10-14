@@ -4463,6 +4463,7 @@ if(vos!=null&&vos.length!=0){
 	 */
 	private void onListCard() {
 		bAddNew = true;
+		this.getPoCardPanel().getBodyTabbedPane().setSelectedIndex(0);//2010-10-14 MeiChao 每次切换,均重置卡片页面的页签显示顺序
 		// 转单后切换按钮可用
 		if (getPoListPanel().getHeadSelectedRow() >= 0
 				&& getPoListPanel().getHeadBillModel().getValueAt(
