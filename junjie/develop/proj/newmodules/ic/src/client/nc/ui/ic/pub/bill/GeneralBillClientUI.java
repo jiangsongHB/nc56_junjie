@@ -8123,7 +8123,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		 * 
 		 * SCMEnv.out("查询出节点"+getBillTypeCode()+"的按钮总数: "+inum);
 		 */
-
+		
 		setButtons(buttonArray);
 
 	}
@@ -9875,6 +9875,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		}
 
 		// 毛边计算
+
+
 		if (getBillType() == "45") {
 			getButtonManager().getButtonTree().addMenu(
 					new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON,
@@ -9886,7 +9888,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
 						true);
 		}
-
 		try {
 			// 界面管理器
 			m_layoutManager = new ToftLayoutManager(this);
