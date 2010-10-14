@@ -4524,6 +4524,9 @@ if(vos!=null&&vos.length!=0){
 	if(vos!=null&&vos.length!=0){
 		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 		getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+	}else{
+		//2010-10-13 MeiChao 如果费用信息为空,则清楚费用信息页签内容
+		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 	}
 		
 		showHintMessage(NCLangRes.getInstance().getStrByID("common",
