@@ -383,7 +383,6 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
           || e.getKey().equals("ndiscountrate")
           || e.getKey().equals("nconvertrate")
           || e.getKey().equals("nassistnum")
-          || e.getKey().equals("narrvnum")//2010-10-14 MeiChao 添加对数量的处理
           || e.getKey().equals("norgtaxprice")
           || e.getKey().equals("norgnettaxprice")
           ) {
@@ -1493,7 +1492,7 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
   private void afterEditWhenBodyRelationsCal(BillEditEvent e) {
 	  //add by QuSida 2010-9-11 (佛山骏杰)  --- begin
 	  //function:数量编辑后事件处理,对费用信息的数量及金额进行处理    费用信息的数量 = 数量和    费用信息金额 = 单价*费用信息数量
-		if(e.getKey() .equals("nordernum")||e.getKey().equals("narrvnum")||e.getKey().equals("nassistnum") ){//2010-10-14 MeiChao 添加对实到数量\辅数量更改时间监听判断.
+		if(e.getKey() .equals("nordernum") ){
 			InformationCostVO[] vos = (InformationCostVO[])getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
 	   if(vos == null || vos.length == 0)
 		   return;
