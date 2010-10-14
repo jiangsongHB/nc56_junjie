@@ -410,7 +410,6 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 	public void initialize() {
 		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. begin 
 		this.getButtonManager().getButtonTree().addMenu(this.getBoInfoCost());
-		
 		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. end
 		super.initialize();
 
