@@ -9,7 +9,7 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.ColumnProcessor;
-import nc.ui.am.inventory.command.ShowEqualCommand;
+//import nc.ui.am.inventory.command.ShowEqualCommand;
 import nc.ui.bd.ref.busi.InvmandocDefaultRefModel;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
@@ -20,6 +20,7 @@ import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.BillListPanel;
+import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillModel;
 import nc.ui.pub.bill.BillScrollPane;
 import nc.ui.pub.hotkey.HotkeyUtil;
@@ -370,7 +371,6 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 				MessageDialog.showHintDlg(this, "提示",message);
 				return;
 			}
-
 //			for (int i = 0; i < icvos.length; i++) {
 //				icvos[i].setStatus(nc.vo.pub.VOStatus.NEW);
 //			}
@@ -388,6 +388,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 			int[] delRows = getBillListPanel().getHeadTable().getSelectedRows();
 			getBillListPanel().getHeadBillModel().delLine(delRows);
 		}
+		// 修改按钮动作
 		else if (e.getSource() == this.m_btnMod) {
 			getBillListPanel().getHeadBillModel().setEnabledAllItems(true);
 		}

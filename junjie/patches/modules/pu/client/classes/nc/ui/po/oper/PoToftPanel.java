@@ -741,7 +741,7 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 	 * 2002-06-05 王印芬 修改函数onDoubleClick()
 	 */
 	public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
-		getPoCardPanel().getBodyTabbedPane().setSelectedIndex(0);//重置列表表体页签显示顺序!
+		getPoCardPanel().getBodyTabbedPane().setSelectedIndex(0);//2010-10-13 MeiChao重置列表表体页签显示顺序!
 		
 		if (e.getPos() == BillItem.HEAD) {
 			if(!onDoubleClick(e.getRow())) return;
@@ -1806,6 +1806,9 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 	if(vos!=null&&vos.length!=0){
 		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 		getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+	}else{
+		//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
+		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 	}
 
 	}
@@ -2395,6 +2398,9 @@ try {
 if(vos!=null&&vos.length!=0){
 	getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 	getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+}else{
+	//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
+	getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 }
 		showHintMessage(NCLangRes.getInstance().getStrByID("common",
 				"UCH009")/* @res "查询完成" */);
@@ -4463,6 +4469,7 @@ if(vos!=null&&vos.length!=0){
 	 */
 	private void onListCard() {
 		bAddNew = true;
+		this.getPoCardPanel().getBodyTabbedPane().setSelectedIndex(0);//2010-10-14 MeiChao 每次切换,均重置卡片页面的页签显示顺序
 		// 转单后切换按钮可用
 		if (getPoListPanel().getHeadSelectedRow() >= 0
 				&& getPoListPanel().getHeadBillModel().getValueAt(
@@ -4523,6 +4530,9 @@ if(vos!=null&&vos.length!=0){
 	if(vos!=null&&vos.length!=0){
 		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 		getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+	}else{
+		//2010-10-13 MeiChao 如果费用信息为空,则清楚费用信息页签内容
+		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 	}
 		
 		showHintMessage(NCLangRes.getInstance().getStrByID("common",
