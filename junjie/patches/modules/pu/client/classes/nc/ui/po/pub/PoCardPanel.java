@@ -384,7 +384,8 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
           || e.getKey().equals("nconvertrate")
           || e.getKey().equals("nassistnum")
           || e.getKey().equals("norgtaxprice")
-          || e.getKey().equals("norgnettaxprice")) {
+          || e.getKey().equals("norgnettaxprice")
+          ) {
         // 数量、单价、金额
         afterEditWhenBodyRelationsCal(e);
       }

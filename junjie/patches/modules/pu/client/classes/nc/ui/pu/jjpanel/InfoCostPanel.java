@@ -9,7 +9,7 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.ColumnProcessor;
-import nc.ui.am.inventory.command.ShowEqualCommand;
+//import nc.ui.am.inventory.command.ShowEqualCommand;
 import nc.ui.bd.ref.busi.InvmandocDefaultRefModel;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
@@ -20,6 +20,7 @@ import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.BillListPanel;
+import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillModel;
 import nc.ui.pub.bill.BillScrollPane;
 import nc.ui.pub.hotkey.HotkeyUtil;
@@ -45,6 +46,9 @@ import nc.vo.trade.pub.HYBillVO;
  */
 public class InfoCostPanel extends UIDialog implements ActionListener,BillEditListener{
 
+	//上级卡片  by 付世超 2010-10-13
+	private BillCardPanel parentCardPanel = null;
+	
 	private BillListPanel billListPanel = null;
 	// 确定按钮
 	private nc.ui.pub.beans.UIButton m_btnOK = null;
@@ -70,6 +74,8 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	private boolean m_closeMark = false;
 	// 费用信息vo数组
 	private InformationCostVO[] icvos = null;
+	// 存货总数量  by 付世超 2010-10-13
+	private UFDouble arrnumber = null;
 
 	/**
 	 * @function 传入父容器,公司,操作员的构造函数
@@ -82,6 +88,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	public InfoCostPanel(java.awt.Container parent, String sPk_Corp,
 			String sOperatorID) {
 		super(parent);
+		setArrnumber(parent);//add by 付世超
 		m_sLoginCorp = sPk_Corp;
 		initDialog(); // 初始化对话框
 	}
@@ -96,6 +103,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	 */
 	public InfoCostPanel(java.awt.Container parent,InformationCostVO[] vos) {
 		super(parent);
+		setArrnumber(parent);//add by 付世超
 		initDialog();
 		this.getBillListPanel().setHeaderValueVO(vos);
 		this.getBillListPanel().getHeadBillModel().execLoadFormula();
@@ -105,6 +113,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	}
 	public InfoCostPanel(java.awt.Container parent) {
 		super(parent);
+		setArrnumber(parent);//add by 付世超
 		initDialog();
 		}
 
@@ -370,7 +379,6 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 				MessageDialog.showHintDlg(this, "提示",message);
 				return;
 			}
-
 //			for (int i = 0; i < icvos.length; i++) {
 //				icvos[i].setStatus(nc.vo.pub.VOStatus.NEW);
 //			}
@@ -381,13 +389,17 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		else if (e.getSource() == this.m_btnAdd) {
 			getBillListPanel().getHeadBillModel().addLine();
 			getBillListPanel().getHeadBillModel().setEnabledAllItems(true);
-			
+		//add by 付世超 2010-10-13 begin
+			int row = getBillListPanel().getHeadTable().getRowCount();
+			getBillListPanel().getHeadBillModel().setValueAt(arrnumber, row-1, "nnumber");
+		//add by 付世超 2010-10-13 end			
 		}
 		// 删除按钮动作
 		else if (e.getSource() == this.m_btnDel) {
 			int[] delRows = getBillListPanel().getHeadTable().getSelectedRows();
 			getBillListPanel().getHeadBillModel().delLine(delRows);
 		}
+		// 修改按钮动作
 		else if (e.getSource() == this.m_btnMod) {
 			getBillListPanel().getHeadBillModel().setEnabledAllItems(true);
 		}
@@ -458,6 +470,32 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		
 	}
 
+	/**
+	 * @function 设置存货总数量
+	 * 
+	 * @author 付世超
+	 * 
+	 * @return void
+	 * 
+	 * @date 2010-10-13
+	 */
+	public void setArrnumber(java.awt.Container parent) {
+		if(arrnumber == null){
+			arrnumber = new UFDouble(0.0);
+		}
+		parentCardPanel = (BillCardPanel) parent;
+		int temp = parentCardPanel.getBillModel("table").getRowCount();
+		for (int i = 0; i < temp; i++) {
+			if("21".equals(parentCardPanel.getBillType())){//采购订单存货数量
+				arrnumber = arrnumber.add(new UFDouble((parentCardPanel.getBillModel("table").getValueAt(i,"nordernum")==null?"0.0":parentCardPanel.getBillModel("table").getValueAt(i,"nordernum").toString())));	
+			}else {//到货单数量
+				arrnumber = arrnumber.add(new UFDouble(parentCardPanel.getBillModel("table").getValueAt(i,"narrvnum").toString()));    			    	  
+				
+			}
+		}
+		
+	}
+	
 	public void bodyRowChange(BillEditEvent e) {
 		// TODO Auto-generated method stub
 		

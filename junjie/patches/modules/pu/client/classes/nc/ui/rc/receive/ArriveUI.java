@@ -818,7 +818,7 @@ private void afterEditWhenInv(BillEditEvent e) {
  * @param e nc.ui.pub.bill.BillEditEvent
  */
 private void afterEditWhenNum(BillEditEvent e) {
-  if(e.getKey().equals("narrvnum")){
+  if(e.getKey().equals("narrvnum")||e.getKey().equals("nassistnum")){//2010-10-14 MeiChao 增加对nassistnum-实到辅数量编辑事件的监听
     BillItem item = getBillCardPanel().getHeadItem("bisback");
     UFBoolean bBack = new UFBoolean(false);
     if(item != null) bBack = new UFBoolean(item.getValue());
@@ -829,6 +829,10 @@ private void afterEditWhenNum(BillEditEvent e) {
         if(d.doubleValue() > 0){
           getBillCardPanel().setBodyValueAt(e.getOldValue(), e.getRow(), "narrvnum");
           MessageDialog.showErrorDlg(this,m_lanResTool.getStrByID("SCMCOMMON","UPPSCMCommon-000059")/*@res "错误"*/,m_lanResTool.getStrByID("40040301","UPP40040301-000275")/*@res"退货单数量必须为负!"*/);
+          //2010-10-13 MeiChao (佛山-骏杰) ----begin  
+          //修改当界面中实到辅数量
+          //2010-10-13 MeiChao (佛山-骏杰) ----end  
+          
           return;
         }
       }
@@ -925,6 +929,7 @@ private void afterEditWhenNum(BillEditEvent e) {
   //convert = nc.ui.pu.pub.PuTool.getInvConvRateValue(sBaseID, sCassId);
   //是否固定换算率
   isfixed = new UFBoolean(PuTool.isFixedConvertRate(sBaseID, sCassId));
+  
   //自动计算：到货数量，辅数量，换算率，合格数量，不合格数量，单价，金额
   if ((e.getKey().equals("convertrate")
     || e.getKey().equals("nassistnum")
@@ -3607,6 +3612,9 @@ public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
 if(vos!=null&&vos.length!=0){
 	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+}else{
+	//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
+	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 }
     } else {
       //如果没有单据体，则认为并发并返回
@@ -3694,6 +3702,9 @@ private void onAudit(ButtonObject bo) {
     	if(vos!=null&&vos.length!=0){
      		 getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
       		 getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+      		 }else{
+      			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+      			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
       		 }
     } catch (Exception e) {
       showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000120")/*@res "审批成功,但加载单据时出现异常,请刷新界面再进行其它操作"*/);
@@ -4046,88 +4057,8 @@ private void onButtonClickedCard(ButtonObject bo){
   } else if (bo == m_btnDiscard){
     onDiscard();
   } else if (bo.getParent() == m_btnAdds) {
-    onAdd(bo);
-    
-  } else if (bo == m_btnBackPo) {
-    onBackPo();
-  } else if (bo == m_btnBackSc) {
-    onBackSc();
-  } else if (bo == m_btnLocate) {
-    onLocate();
-  } else if (bo == m_btnPrint) {
-    //打印并计算打印次数
-    onCardPrint();
-  } else if (bo == m_btnCombin) {
-    //合并显示打印
-    onCombin();
-  } else if (bo == m_btnPrintPreview) {
-    //打印预览并计算打印次数
-    onCardPrintPreview();
-  } else if (bo == m_btnList){
-    onList();
-  } else if (bo == m_btnModify){
-    onModify();
-    //置光标到表头第一个可编辑项目
-    getBillCardPanel().transferFocusTo(BillCardPanel.HEAD);
-  } else if (bo == m_btnDelLine){
-    onDeleteLine();
-  } else if (bo == m_btnCpyLine){
-    onCopyLine();
-  } else if (bo == m_btnPstLine){
-    onPasteLine();
-  } else if (bo == m_btnSave){
-    onSave();
-  } else if (bo == m_btnCancel){
-    onCancel();
-  } else if (bo == m_btnQuery){
-    onQuery();
-  } else if (bo == m_btnFirst){
-    onFirst();
-  } else if (bo == m_btnPrev){
-    onPrevious();
-  } else if (bo == m_btnNext){
-    onNext();
-  } else if (bo == m_btnLast){
-    onLast();
-  } else if (bo == m_btnRefresh){
-    onRefresh();
-  }
-  /*以下V5支持审批流*******************************/
-  else if(bo == m_btnSendAudit){
-    onSendAudit();
-  } else if(bo == m_btnAudit){
-    onAudit(bo);
-  } else if(bo == m_btnUnAudit){
-    onUnAudit(bo);
-  } else if(bo == m_btnQueryForAudit){
-    onQueryForAudit();
-  /*以上V5支持审批流******************************/
-  } else if (bo == m_btnUsable) {
-    onQueryInvOnHand();
-  } else if (bo == m_btnQueryBOM) {
-    onQueryBOM();
-  } else if (bo == m_btnDocument){
-    onDocument();
-  } else if (bo == m_btnLookSrcBill){
-    onLnkQuery();
-  } else if(bo == m_btnQuickReceive){
-    onQuickArr();
-  } else if (bo == m_btnCreateCard){
-	  onCreateCard();
-  } else if (bo == m_btnDeleteCard){
-	  onDeleteCard();
-//  } else if (bo == m_btnSerialNO){
-//	  onSNAssign();
-  }
-  //支持产业链功能扩展
-  else{
-    onExtendBtnsClick(bo);
-  }
-}
-
-
-public void onAdd(ButtonObject bo){
-	int iIndexBillType = bo.getTag().indexOf(":");
+    //onAdd();
+    int iIndexBillType = bo.getTag().indexOf(":");
     String strBillType = bo.getTag().substring(0, iIndexBillType);
     if (strBillType.equals(ScmConst.SC_Order)) {
       if (!nc.ui.sm.user.UserPowerUI.isEnabled(getCorpPrimaryKey(), "SC")) {
@@ -4210,7 +4141,83 @@ public void onAdd(ButtonObject bo){
       getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
       getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
     }
+  } else if (bo == m_btnBackPo) {
+    onBackPo();
+  } else if (bo == m_btnBackSc) {
+    onBackSc();
+  } else if (bo == m_btnLocate) {
+    onLocate();
+  } else if (bo == m_btnPrint) {
+    //打印并计算打印次数
+    onCardPrint();
+  } else if (bo == m_btnCombin) {
+    //合并显示打印
+    onCombin();
+  } else if (bo == m_btnPrintPreview) {
+    //打印预览并计算打印次数
+    onCardPrintPreview();
+  } else if (bo == m_btnList){
+    onList();
+  } else if (bo == m_btnModify){
+    onModify();
+    //置光标到表头第一个可编辑项目
+    getBillCardPanel().transferFocusTo(BillCardPanel.HEAD);
+  } else if (bo == m_btnDelLine){
+    onDeleteLine();
+  } else if (bo == m_btnCpyLine){
+    onCopyLine();
+  } else if (bo == m_btnPstLine){
+    onPasteLine();
+  } else if (bo == m_btnSave){
+    onSave();
+  } else if (bo == m_btnCancel){
+    onCancel();
+  } else if (bo == m_btnQuery){
+    onQuery();
+  } else if (bo == m_btnFirst){
+    onFirst();
+  } else if (bo == m_btnPrev){
+    onPrevious();
+  } else if (bo == m_btnNext){
+    onNext();
+  } else if (bo == m_btnLast){
+    onLast();
+  } else if (bo == m_btnRefresh){
+    onRefresh();
+  }
+  /*以下V5支持审批流*******************************/
+  else if(bo == m_btnSendAudit){
+    onSendAudit();
+  } else if(bo == m_btnAudit){
+    onAudit(bo);
+  } else if(bo == m_btnUnAudit){
+    onUnAudit(bo);
+  } else if(bo == m_btnQueryForAudit){
+    onQueryForAudit();
+  /*以上V5支持审批流******************************/
+  } else if (bo == m_btnUsable) {
+    onQueryInvOnHand();
+  } else if (bo == m_btnQueryBOM) {
+    onQueryBOM();
+  } else if (bo == m_btnDocument){
+    onDocument();
+  } else if (bo == m_btnLookSrcBill){
+    onLnkQuery();
+  } else if(bo == m_btnQuickReceive){
+    onQuickArr();
+  } else if (bo == m_btnCreateCard){
+	  onCreateCard();
+  } else if (bo == m_btnDeleteCard){
+	  onDeleteCard();
+//  } else if (bo == m_btnSerialNO){
+//	  onSNAssign();
+  }
+  //支持产业链功能扩展
+  else{
+    onExtendBtnsClick(bo);
+  }
 }
+
 /**
  * 列表按钮事件响应。
  * <p>
@@ -4246,13 +4253,19 @@ private void onButtonClickedList(ButtonObject bo){
       if(vos!=null&&vos.length!=0){
     	  getBillCardPanel().getBillData().setBodyValueVO("jj_scm_informationcost", vos);//add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
           getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-      }
+      }else{
+			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+		 }
     } else {
       onModifyList();
       if(vos!=null&&vos.length!=0){
     	  getBillCardPanel().getBillData().setBodyValueVO("jj_scm_informationcost", vos);//add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
 
-      }
+      }else{
+			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+		 }
     }
     //置光标到表头第一个可编辑项目
     getBillCardPanel().transferFocusTo(BillCardPanel.HEAD);
@@ -4715,7 +4728,10 @@ try {
 if(vos!=null&&vos.length!=0){
 	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-}
+}else{
+		 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+		getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+	 }
 //add by QuSida 2010-9-11 (佛山骏杰) --- end
   showHintMessage(m_lanResTool.getStrByID("common","UCH021")/*@res "卡片显示"*/);
 }
@@ -6697,7 +6713,10 @@ private void onUnAudit(ButtonObject bo) {
   	if(vos!=null&&vos.length!=0){
   		 getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
   		 getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-  	}
+  	}else{
+			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
+			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+		 }
     } catch (Exception e) {
       showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000188")/*@res "弃审成功,但加载单据时出现异常,请刷新界面再进行其它操作"*/);
     }
@@ -10225,11 +10244,10 @@ private void onBoInfoCost() {
 	for (int i = 0; i < ivos.length; i++) {
 		//modify by 付世超 2010-10-12 原判断条件错误  
 		if(ivos[i] != null){
-//		if(vos[i].getPrimaryKey() == null||vos[i].getPrimaryKey().length() == 0){
+//		if(ivos[i].getPrimaryKey() == null||ivos[i].getPrimaryKey().length() == 0){
 			voList.add(ivos[i]);
 		}
 	}
-
 	InfoCostPanel c = null;
 	if(voList.size()!=0&&voList!=null){
 		InformationCostVO[]  ivos1 = new InformationCostVO[voList.size()]; 
@@ -10252,6 +10270,7 @@ private void onBoInfoCost() {
 		if (infoCostVOs != null && infoCostVOs.length != 0){
 			// 当费用录入界面的vo数组不为空时,将vo存到费用录入页签上
 			if(infoCostVOs.length!=0&&infoCostVOs!=null){
+				
 				   int temp = getBillCardPanel().getBillModel("table").getRowCount();
 				   UFDouble arrmny = null;
 				   UFDouble mny = null;
@@ -10261,7 +10280,6 @@ private void onBoInfoCost() {
 				}
 
 				for (int i = 0; i < infoCostVOs.length; i++) {
-					
 					infoCostVOs[i].setNnumber(arrnumber);
 					UFBoolean ismny = (UFBoolean)infoCostVOs[i].getAttributeValue("ismny");
 					if(ismny == null || !ismny.booleanValue()){
@@ -10282,7 +10300,7 @@ private void onBoInfoCost() {
 						infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", infoCostVOs[i].getNoriginalcurmny());	
 					}
 				}
-	// by 付世超 2010-10-12 注释掉代码	 	
+				// by 付世超 2010-10-12 注释掉代码	
 //				InformationCostVO[] newVOs = new InformationCostVO[vos.length+infoCostVOs.length];
 //				if(vos.length != 0 && vos != null){
 //					//int temp = vos.length>infoCostVOs.length?vos.length:infoCostVOs.length;
@@ -10294,6 +10312,7 @@ private void onBoInfoCost() {
 //					
 //						getBillCardPanel().getBillData().setBodyValueVO(
 //								"jj_scm_informationcost", newVOs);
+//					//	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
 //				}
 //				else 
 				getBillCardPanel().getBillData().setBodyValueVO(
