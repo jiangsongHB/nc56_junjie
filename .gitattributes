@@ -422,6 +422,7 @@ junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1003/InvtypeModel.class -te
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientCtrl.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientEH.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientUI.class -text
+junjie/patches/scripts/.project -text
 junjie/patches/scripts/码单/NC脚本/45Temp.sql -text
 junjie/patches/scripts/码单/NC脚本/mbic.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/001.sql -text
