@@ -41,6 +41,7 @@ import nc.ui.scm.print.IFreshTsListener;
 import nc.ui.scm.pub.CollectSettingDlg;
 import nc.ui.scm.pub.bill.ButtonTree;
 import nc.ui.scm.pub.sourceref.IBillReferQueryProxy;
+import nc.ui.scm.pub.sourceref.SourceRefDlg;
 import nc.vo.dm.service.delivery.SourceBillDeliveryStatus;
 import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.GenMethod;
@@ -110,11 +111,20 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	private InformationCostVO[] infovos ;
 	
 	private UFDouble arrnum ;//累计到货数量
+	private UFDouble arrnumber ;//实际到货数量
+	//存放所有费用的金额 add by 付世超 2010-10-15
+	private ArrayList  lmny = null;
+	//拉式生产的最初金额 add by 付世超 2010-10-15
+	private UFDouble pmny = null;
 	
 	public UFDouble getArrnum(){
 		return arrnum;
 	}
 	
+	public ArrayList getLmny() {
+		return lmny;
+	}
+
 	public InformationCostVO[] getInfovos(){
 		return infovos;
 	}
@@ -463,13 +473,13 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 
 			// 得到用户选择的业务类型的方法. 20021209
 			String sBusiTypeID = getClientUI().getSelBusiType();
+			nc.vo.pub.AggregatedValueObject[] vos = null;
 
 			if (!nc.ui.ic.pub.pf.ICSourceRefBaseDlg.makeFlag()) {
 				// 非自制方式
 				if (nc.ui.ic.pub.pf.ICSourceRefBaseDlg.isCloseOK()) {
 
 					long lTime = System.currentTimeMillis();
-					nc.vo.pub.AggregatedValueObject[] vos = null;
 					try {
 						vos = nc.ui.ic.pub.pf.ICSourceRefBaseDlg.getRetsVos();
 						
@@ -568,8 +578,40 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						getClientUI().setBillRefMultiVOs(sBusiTypeID, (GeneralBillVO[]) vos);
 					}
 					// end v5
-
+					// add by 付世超 2010-10-15 begin
+					 arrnum = new UFDouble((o==null?"0":o).toString());
+						CircularlyAccessibleValueObject[] a = vos[0].getChildrenVO();
+//						   int temp = getBillCardPanel().getBillModel("table").getRowCount();
+						if(infovos!=null&&infovos.length!=0){
+						   arrnumber = new UFDouble(0.0);
+									for (int i = 0; i < a.length; i++) {
+										arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("nshouldinnum").toString()));
+									}
+						//add by 付世超 2010-10-15 begin
+									lmny = new ArrayList();
+					      for (int i = 0; i < infovos.length; i++) {
+//							vos[i].setAttributeValue("ninvoriginalcursummny", vos[i].getNoriginalcursummny());
+//					    	 infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurmny().add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
+					    	  pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber.div((arrnum.add(arrnumber))));
+					    	  lmny.add(pmny);
+					    	  infovos[i].setAttributeValue("ninvoriginalcurmny", pmny.add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
+					    	  infovos[i].setAttributeValue("noriginalcurmny", pmny);
+					    	  infovos[i].setNnumber(arrnumber);
+						}
+					//add by 付世超 2010-10-15 end 
+				      getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
+		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
+		  	        getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+		  	        getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+		              }else{
+		            	  //2010-10-11 MeiChao 将卡片及列表中的费用页签中的信息清空
+		            	  getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+		      	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
+		      	        
+		              }
 				}
+				
+	              
 			} else {
 				// 自制单据
 				getClientUI().setRefBillsFlag(false);
@@ -595,29 +637,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						false);
 
 			}
-//			 arrnum = new UFDouble((o==null?"0":o).toString());
-//				CircularlyAccessibleValueObject[] a = retVOs[0].getChildrenVO();
-//				  // int temp = getBillCardPanel().getBillModel("table").getRowCount();
-//				   arrnumber = new UFDouble(0.0);
-//							for (int i = 0; i < a.length; i++) {
-//								arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("narrvnum").toString()));
-//							}
-              if(infovos!=null&&infovos.length!=0){
-//			      for (int i = 0; i < infovos.length; i++) {
-////					vos[i].setAttributeValue("ninvoriginalcursummny", vos[i].getNoriginalcursummny());
-//			    	  infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurmny().add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-//				}
-		      getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-  	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-  	        getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-  	        getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
-              }else{
-            	  //2010-10-11 MeiChao 将卡片及列表中的费用页签中的信息清空
-            	  getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null); 
-      	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
-      	        
-              }
-              
+			
               
 		} catch (Exception e) {
 			nc.vo.scm.pub.SCMEnv.error(e);

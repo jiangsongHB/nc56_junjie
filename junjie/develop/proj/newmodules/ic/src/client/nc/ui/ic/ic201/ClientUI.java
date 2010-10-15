@@ -58,7 +58,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 //					"UPT40080804-000004")/* @res "配比出库" */,
 //			nc.ui.ml.NCLangRes.getInstance().getStrByID("40080602",
 //					"UPT40080804-000004")/* @res "配比出库" */, 0, "配比出库");/*-=notranslate=-*/
-
+	
 	// 配套界面对话框
 	private nc.ui.ic.auditdlg.ClientUIInAndOut m_dlgInOut = null;
 
@@ -76,8 +76,22 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 	
 	private ButtonObject[] extendBtns ; //二次开发按钮数组  add by QuSida 2010-8-28 (佛山骏杰)
 	
+	//存放所有费用的金额 add by 付世超 2010-10-15
+	private ArrayList  lmny = null;
+	//拉式生产的最初金额 add by 付世超 2010-10-15
+	private UFDouble pmny = null;
 	
 	
+	public void setLmny(ArrayList plmny) {
+		if(lmny == null){
+			this.lmny = plmny;
+		}else{
+			lmny.clear();
+			this.lmny = plmny;
+		}
+	}
+
+
 	private ButtonObject getBoInfoCost(){
 		if(boInfoCost == null){
 			//费用录入按钮 add by QuSida 2010-8-10  （佛山骏杰）
@@ -201,12 +215,14 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 //		    UFDouble taxmny = null;
 		    UFDouble mny = null;
 		    UFDouble inmny = null;
-
+		    //add by 付世超 2010-10-15 
+		    UFDouble plannum = new UFDouble(0.0);
 		    
 		    for (int i = 0; i < temp; i++) {
 		    	number = number.add(new UFDouble((getBillCardPanel().getBodyValueAt(i,"ninnum")==null?0.0:getBillCardPanel().getBodyValueAt(i,"ninnum")).toString()));    
 //		    	plannumber = plannumber.add(new UFDouble(getBillCardPanel().getBodyValueAt(i,"nplanarrvnum").toString()));    
-		    	  
+		    	//add by 付世超 2010-10-15 
+		    	plannum = plannum.add(new UFDouble((getBillCardPanel().getBodyValueAt(i,"nshouldinnum")==null?0:getBillCardPanel().getBodyValueAt(i,"nshouldinnum")).toString()));//应到数量 
 			}
 		    temp = getBillCardPanel().getBillModel("jj_scm_informationcost").getRowCount();
 		    UFDouble innum = ((GeneralButtonManager)getButtonManager()).getArrnum(); 
@@ -217,6 +233,10 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		    for (int i = length; i < temp; i++) {
 		    	Boolean ismny = (Boolean)getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "ismny");		    	
 		    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(number, i, "nnumber");
+		    	// add by 付世超 拉式生成时 的费用初始金额 2010-10-15
+		    	if(lmny!= null){
+		    		pmny = (UFDouble) lmny.get(i);
+		    	}
 		    	if(ismny == null || !ismny){
 		    	mny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i,"noriginalcurprice").toString()).multiply(number);
 		    	inmny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i,"noriginalcurprice").toString()).multiply(number.add(innum==null?new UFDouble(0.0):innum));
@@ -228,11 +248,19 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
 		    	
 //		    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(taxmny, i, "ninvoriginalcursummny");
-		    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(inmny, i, "ninstoreoriginalcurmny");
+//		    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(inmny, i, "ninstoreoriginalcurmny");
+		    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(inmny, i, "ninvoriginalcurmny");
 		    	}else{
-		    		UFDouble price =  new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurmny").toString()).div(number);
-		    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(price, i, "noriginalcurprice");	
-		    
+//		    		UFDouble price =  new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurmny").toString()).div(number);
+//		    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(price, i, "noriginalcurprice");	
+		    		//add by 付世超 2010-10-14 begin 
+		    		mny = pmny.multiply(number.div(plannum));
+		    		inmny  = pmny.multiply(((number.add(innum)).div(plannum)));
+		    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
+		        	//累计到货金额
+		        	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(inmny, i, "ninvoriginalcurmny");
+		        	//add by 付世超 2010-10-14 end 
+		        	
 		    	}
 		    	
 		        
@@ -543,8 +571,12 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 //				onBoInfoCost();
 //			}
 
-			else
+			else{
 				super.onButtonClicked(bo);
+				//add by 付世超 2010-10-15
+				setLmny(super.getLmny());
+			}
+			
 		}
 		
 		/**
