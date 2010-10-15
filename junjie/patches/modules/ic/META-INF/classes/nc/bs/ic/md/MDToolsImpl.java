@@ -130,6 +130,7 @@ public class MDToolsImpl implements IMDTools {
 			zs = zs.add(mdcrkVO.getSrkzs());
 		}
 
+		/*
 		if (mdvos != null && mdvos.length > 0) {
 			String updateZL = " update ic_general_b set ninnum = '"
 					+ zl.doubleValue() + "' , ninassistnum = '"
@@ -139,6 +140,7 @@ public class MDToolsImpl implements IMDTools {
 			getDAO().executeUpdate(updateZL);
 			return true;
 		}
+		*/
 		return false;
 	}
 
