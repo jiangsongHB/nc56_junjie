@@ -1,0 +1,1 @@
+update pub_billtemplet_b t set t.editformula='nmny->ninnum*nprice;nplannedmny->ninnum*nplannedprice;ninassistnum->iif(hsl==null,null , ninnum/hsl)' where t.pk_billtemplet='IC_BILL_TEMPLET_0045'and t.table_name='基本信息' and t.itemkey='ninnum'
