@@ -3300,7 +3300,7 @@ public class SaleInvoiceUI extends ToftPanel implements
     	return;
     }
     //构建一个表体存货备份数组
-    SaleinvoiceBVO[] allBVOsBackup=allBVOs.clone();
+    SaleinvoiceBVO[] allBVOsBackup=(SaleinvoiceBVO[])this.getBillCardPanel().getBillModel().getBodyValueVOs(SaleinvoiceBVO.class.getName());
     //获取表体所有选中存货行
     SaleinvoiceBVO[] selectedBVOs=(SaleinvoiceBVO[])this.getBillCardPanel().getBillModel().getBodySelectedVOs(SaleinvoiceBVO.class.getName());
     //如果表体无选中行
@@ -3353,7 +3353,9 @@ public class SaleInvoiceUI extends ToftPanel implements
     for(int i=0,j=0,k=0;i<allBVOs.length;i++){
     	if(i==selectedRows[j]){
     		allBVOs[i]=null;//如果为勾选行,那么清空
+    		if(selectedRows.length>j+1){
     		j++;
+    		}
     	}else{
     		newBVOs[k]=allBVOs[i];//如果不为勾选行,那么复制其至新数组中.
     		k++;
