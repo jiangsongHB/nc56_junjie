@@ -3299,7 +3299,7 @@ public class SaleInvoiceUI extends ToftPanel implements
     	MessageDialog.showErrorDlg(this.getParent(), "错误", "对不起,该单据并无金额信息,无法合并显示.");
     	return;
     }
-    //构建一个表体存货备份数组
+    //构建一个表体存货备份数组(从Panel重新获取一次,因为如果直接用原allBVOs数组进行clone,两个数组指向的是同一组地址)
     SaleinvoiceBVO[] allBVOsBackup=(SaleinvoiceBVO[])this.getBillCardPanel().getBillModel().getBodyValueVOs(SaleinvoiceBVO.class.getName());
     //获取表体所有选中存货行
     SaleinvoiceBVO[] selectedBVOs=(SaleinvoiceBVO[])this.getBillCardPanel().getBillModel().getBodySelectedVOs(SaleinvoiceBVO.class.getName());
@@ -3393,7 +3393,7 @@ public class SaleInvoiceUI extends ToftPanel implements
 	 */
 	for (int i = 0,j=0; i < newBVOs.length; i++) {    //判断表体存货，当表体存货的应税劳务标示为N时.分摊费用.否则略过.
 		//String invbasdocid = newBVOs[i].getCinvbasdocid();
-		//Object o = execQuery(invbasdocid);//使用新机制判断新表体存货中的非费用项.
+		//Object o = execQuery(invbasdocid);//使用新机制判断新表体存货中的非费用项.提高效率.
 		//if(o!=null&&(((String)o).trim().toUpperCase()).equals("N")){
 		if(unselectedexpensenum==null||unselectedexpensenum.size()==0||i!=Integer.valueOf(unselectedexpensenum.get(j).toString())){
 			if(unselectedexpensenum==null&&unselectedexpensenum.size()==0&&j<unselectedexpensenum.size()){
@@ -3417,7 +3417,7 @@ public class SaleInvoiceUI extends ToftPanel implements
 	
     dlg.m_bodyVOs=newBVOs;
     this.getBillCardPanel().getBillData().setBodyValueVO(newBVOs);
-    //this.updateUI();
+    //this.updateUI();此时并不需要更新父UI,便注释,提高效率.
     
     
     }
@@ -3467,7 +3467,7 @@ public class SaleInvoiceUI extends ToftPanel implements
         "noriginalcurtaxprice", "noriginalcurprice"
     }, "nnumber");
     dlg.showModal();
-    //2010-10-16 17:14 MeiChao begin
+    //2010-10-16 17:14 MeiChao begin 有关费用打印的后置处理代码.
     //当界面显示完后,将原表体数组放入卡片表体并更新
     /*
      * 为什么这么设计? 因为此dlg在showModal()之前取的VO值均是从其parent的Panel中抓取,而无法直接set该dlg的值.
