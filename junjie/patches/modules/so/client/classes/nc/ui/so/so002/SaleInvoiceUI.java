@@ -2009,7 +2009,11 @@ public class SaleInvoiceUI extends ToftPanel implements
       setName("SaleInvoice");
       setSize(774, 419);
       add(getBillCardPanel(), "Center");
-  
+      //2010-10-16 MeiChao begin
+      getBillCardPanel().setBodyMultiSelect(true);//设置表体可多选.
+      //2010-10-16 MeiChao end
+      
+      
     //右键菜单增加"重排行号"
     BillTools.addReSortRowNoToPopMenu(getBillCardPanel(), null);
     //增加右键菜单中"卡片编辑"
@@ -3287,6 +3291,138 @@ public class SaleInvoiceUI extends ToftPanel implements
     
     dlg.setBilltype(SaleBillType.SaleInvoice);
     dlg.setNodecode(SaleInvoiceTools.getNodeCode());
+    //2010-10-16 MeiChao begin 获取所勾选的表体存货行,判断是否为费用,是,则进行分摊后 再合并显示.
+    //获取表体所有存货行
+    SaleinvoiceBVO[] allBVOs=(SaleinvoiceBVO[])this.getBillCardPanel().getBillModel().getBodyValueVOs(SaleinvoiceBVO.class.getName());
+    //如果表体无存货
+    if(allBVOs==null||allBVOs.length==0){
+    	MessageDialog.showErrorDlg(this.getParent(), "错误", "对不起,该单据并无金额信息,无法合并显示.");
+    	return;
+    }
+    //构建一个表体存货备份数组(从Panel重新获取一次,因为如果直接用原allBVOs数组进行clone,两个数组指向的是同一组地址)
+    SaleinvoiceBVO[] allBVOsBackup=(SaleinvoiceBVO[])this.getBillCardPanel().getBillModel().getBodyValueVOs(SaleinvoiceBVO.class.getName());
+    //获取表体所有选中存货行
+    SaleinvoiceBVO[] selectedBVOs=(SaleinvoiceBVO[])this.getBillCardPanel().getBillModel().getBodySelectedVOs(SaleinvoiceBVO.class.getName());
+    //如果表体无选中行
+    if(selectedBVOs==null||selectedBVOs.length==0){
+    	//不进行处理
+    }else{//从此到本段添加代码结束,均为在表体有选中行的情况下进行.--2010-10-16 MeiChao
+    	
+    //获取表体所有选中的行号(tnnd 以下第一行的那个方法根本不好使!!!!!!!!!!!!!!!!!)
+    int[] selectedRows=new int[selectedBVOs.length] ;	
+    for(int i=0,j=0;i<allBVOs.length;i++){
+    if(this.getBillCardPanel().getBillModel().getRowState(i)==BillModel.SELECTED){
+    		selectedRows[j]=i;
+    		j++;
+    }
+    }	
+    //合并后的表体存货行数.
+    int newBVOsLength=allBVOs.length-selectedBVOs.length;
+    
+    SaleinvoiceBVO[] newBVOs=new SaleinvoiceBVO[newBVOsLength];
+    /**
+     * 开始合并前判断,需要判断的内容有:
+     * 1.	所选择的存货行中是否存在非费用信息,如果有,则示警后退出方法.如果无,则累加费用金额.
+     * 2.	未选择存货行中是否存在费用信息,如果有,则提示,用户确定后继续操作.取消则退出.
+     */
+    /**
+     * 开始内容1判断.
+     */
+    //所选择行是否全为费用标志.
+    boolean isallexpense=true;
+    //费用合计
+    double expensesum=0.0;
+	for (int i = 0; i < selectedBVOs.length; i++) {    //判断表体所选择存货，应税劳务标示为N时.退出.否则累加金额.
+			String invbasdocid = selectedBVOs[i].getCinvbasdocid();
+			Object o = execQuery(invbasdocid);
+			if(o!=null&&(((String)o).trim().toUpperCase()).equals("Y")){
+				//费用合计累加
+				expensesum+=selectedBVOs[i].getNoriginalcursummny().doubleValue();//价税合计
+			}else if(o!=null&&(((String)o).trim().toUpperCase()).equals("N")){
+				//如果选中的不是费用项.则修改判断标志为false.
+				isallexpense=false;
+			}
+		}
+    if(!isallexpense){
+    	MessageDialog.showErrorDlg(this.getParent(), "错误", "对不起,合并显示时不能勾选非费用类存货.");
+    	return;//如果费用标志为false,终止本方法.
+    }
+    /**
+     * 将表体VO数组中的勾选存货行清除.并将非勾选存货另存至新数组中.
+     */
+    for(int i=0,j=0,k=0;i<allBVOs.length;i++){
+    	if(i==selectedRows[j]){
+    		allBVOs[i]=null;//如果为勾选行,那么清空
+    		if(selectedRows.length>j+1){
+    		j++;
+    		}
+    	}else{
+    		newBVOs[k]=allBVOs[i];//如果不为勾选行,那么复制其至新数组中.
+    		k++;
+    	}
+    }
+    /**
+     * 判断表体中未勾选的存货行中的哪些为非费用类存货,是,则记录数量,否,则跳过.并修改未勾选是否含费用项标志.
+     */
+    //未勾选存货行是否含费用标志
+    boolean ishaveexpense=false;
+    //未勾选存货行非费用存货数量总数
+    double invnumber=0.0;
+    //未勾选存货行中的费用行所在位置
+    List unselectedexpensenum=new ArrayList();
+    
+	for (int i = 0; i < newBVOs.length; i++) {    //判断表体存货，当表体存货的应税劳务标示为N时.累加数量.否则更改标志.
+		String invbasdocid = newBVOs[i].getCinvbasdocid();
+		Object o = execQuery(invbasdocid);
+		if(o!=null&&(((String)o).trim().toUpperCase()).equals("N")){
+			//数量合计累加
+			invnumber+=newBVOs[i].getNnumber().doubleValue();//数量累加.
+		}else if(o!=null&&(((String)o).trim().toUpperCase()).equals("Y")){
+			//如果未选中的存货行中存在费用行,则将是否含费用标志设定为true
+			ishaveexpense=true;
+			//并将该费用的数组位置信息记录下来
+			unselectedexpensenum.add(i);
+		}
+	}
+    //如果未选中的存货行中存在费用行,则提示.但并不中断.
+	if(ishaveexpense){
+		MessageDialog.showHintDlg(this.getParent(), "警告", "合并显示结果中存在未分摊的费用项.");
+	}
+	/**
+	 * 将已勾选费用总额按照数量比分摊至未勾选非费用行的价税合计中.
+	 */
+	for (int i = 0,j=0; i < newBVOs.length; i++) {    //判断表体存货，当表体存货的应税劳务标示为N时.分摊费用.否则略过.
+		//String invbasdocid = newBVOs[i].getCinvbasdocid();
+		//Object o = execQuery(invbasdocid);//使用新机制判断新表体存货中的非费用项.提高效率.
+		//if(o!=null&&(((String)o).trim().toUpperCase()).equals("N")){
+		if(unselectedexpensenum==null||unselectedexpensenum.size()==0||i!=Integer.valueOf(unselectedexpensenum.get(j).toString())){
+			if(unselectedexpensenum==null&&unselectedexpensenum.size()==0&&j<unselectedexpensenum.size()){
+				j++;
+			}
+			//按照数量占总量百分比分摊费用
+			if(newBVOs[i].getNnumber()!=null
+					&&newBVOs[i].getNnumber().doubleValue()!=0.0
+					&&invnumber!=0.0&&expensesum!=0.0){
+			newBVOs[i].setNoriginalcursummny(
+					new UFDouble(newBVOs[i].getNnumber().doubleValue()
+							/invnumber
+							*expensesum
+							+newBVOs[i].getNoriginalcursummny().doubleValue()));//数量累加.
+			}
+		}
+	}
+    
+    
+    //更新dlg中的表体存货信息.
+	
+    dlg.m_bodyVOs=newBVOs;
+    this.getBillCardPanel().getBillData().setBodyValueVO(newBVOs);
+    //this.updateUI();此时并不需要更新父UI,便注释,提高效率.
+    
+    
+    }
+    //2010-10-16 MeiChao end获取所勾选的表体存货行,判断是否为费用,是,则进行分摊后 再合并显示.
+    
     
     //  v55 合并显示新需求 增加存货类合并条件
     Configuration configuation =  nc.vo.scm.goldtax.Configuration.load(getClientEnvironment().getCorporation().getPk_corp());
@@ -3331,6 +3467,15 @@ public class SaleInvoiceUI extends ToftPanel implements
         "noriginalcurtaxprice", "noriginalcurprice"
     }, "nnumber");
     dlg.showModal();
+    //2010-10-16 17:14 MeiChao begin 有关费用打印的后置处理代码.
+    //当界面显示完后,将原表体数组放入卡片表体并更新
+    /*
+     * 为什么这么设计? 因为此dlg在showModal()之前取的VO值均是从其parent的Panel中抓取,而无法直接set该dlg的值.
+     * 所以便先处理卡片表体数据,等dlg抓取完后,再恢复原数据.稍显繁琐.但可行.
+     */
+    this.getBillCardPanel().getBillData().setBodyValueVO(allBVOsBackup);
+    this.updateUI();
+    //2010-10-16 17:14 MeiChao end
     showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID("40060501",
         "UPT40060501-000058")/* @res "合并显示" */);
 
@@ -4623,7 +4768,6 @@ private boolean checkHeadItem(String curstr,String addstr){
 
       setButtonsStateBrowse();
     }
-
   }
 
   private void setButtonsStateByLinkQueryBusitype() {
@@ -5194,19 +5338,16 @@ private Object execQuery(String pk_invbasdoc) {
 
 /**
  * @function 合并打印功能
- *
  * @author QuSida
- *
  * @param 无
- *
  * @return void
- *
  * @date 2010-8-7 上午10:26:39
  */
 private void onUnitePrint(){
 	 if (getShowState() == ListShow) { //切换到卡片显示
 		 onCard();
 	 }	 
+	 
 	 getBillCardPanel().setBodyMultiSelect(true);  //设置表体多选模式
 	 SaleinvoiceVO saleinvoiceVO = getVo();
 	 SaleinvoiceBVO[] bodyVOs = saleinvoiceVO.getBodyVO();
@@ -5219,8 +5360,6 @@ private void onUnitePrint(){
 			getBillCardPanel().getBillModel().setRowState(i, 4);
 			getBillCardPanel().getBillModel().getRowAttribute(i).setEdit(false);
 			invMap.put(i,bodyVOs[i]);
-			
-			
 		}
 	}
 	 UnitePrintFlag = true;  //设置合并打印标志为true
