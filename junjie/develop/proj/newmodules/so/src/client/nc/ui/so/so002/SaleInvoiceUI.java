@@ -2009,7 +2009,7 @@ public class SaleInvoiceUI extends ToftPanel implements
       setName("SaleInvoice");
       setSize(774, 419);
       add(getBillCardPanel(), "Center");
-      //2010-10-16 MeiChao begin
+      //2010-10-16 MeiChao begin 有关费用打印代码
       getBillCardPanel().setBodyMultiSelect(true);//设置表体可多选.
       //2010-10-16 MeiChao end
       
