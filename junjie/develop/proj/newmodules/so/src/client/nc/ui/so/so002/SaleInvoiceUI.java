@@ -2009,7 +2009,11 @@ public class SaleInvoiceUI extends ToftPanel implements
       setName("SaleInvoice");
       setSize(774, 419);
       add(getBillCardPanel(), "Center");
-  
+      //2010-10-16 MeiChao begin
+      getBillCardPanel().setBodyMultiSelect(true);//设置表体可多选.
+      //2010-10-16 MeiChao end
+      
+      
     //右键菜单增加"重排行号"
     BillTools.addReSortRowNoToPopMenu(getBillCardPanel(), null);
     //增加右键菜单中"卡片编辑"
@@ -3295,6 +3299,8 @@ public class SaleInvoiceUI extends ToftPanel implements
     	MessageDialog.showErrorDlg(this.getParent(), "错误", "对不起,该单据并无金额信息,无法合并显示.");
     	return;
     }
+    //构建一个表体存货备份数组
+    SaleinvoiceBVO[] allBVOsBackup=allBVOs.clone();
     //获取表体所有选中存货行
     SaleinvoiceBVO[] selectedBVOs=(SaleinvoiceBVO[])this.getBillCardPanel().getBillModel().getBodySelectedVOs(SaleinvoiceBVO.class.getName());
     //如果表体无选中行
@@ -3302,8 +3308,14 @@ public class SaleInvoiceUI extends ToftPanel implements
     	//不进行处理
     }else{//从此到本段添加代码结束,均为在表体有选中行的情况下进行.--2010-10-16 MeiChao
     	
-    //获取表体所有选中的行号
-    int[] selectedColumns=this.getBillCardPanel().getBodyPanel().getTable().getSelectedColumns();
+    //获取表体所有选中的行号(tnnd 以下第一行的那个方法根本不好使!!!!!!!!!!!!!!!!!)
+    int[] selectedRows=new int[selectedBVOs.length] ;	
+    for(int i=0,j=0;i<allBVOs.length;i++){
+    if(this.getBillCardPanel().getBillModel().getRowState(i)==BillModel.SELECTED){
+    		selectedRows[j]=i;
+    		j++;
+    }
+    }	
     //合并后的表体存货行数.
     int newBVOsLength=allBVOs.length-selectedBVOs.length;
     
@@ -3338,14 +3350,13 @@ public class SaleInvoiceUI extends ToftPanel implements
     /**
      * 将表体VO数组中的勾选存货行清除.并将非勾选存货另存至新数组中.
      */
-    for(int i=0,j=0;i<allBVOs.length;i++){
-    	if(i==selectedColumns[j]){
+    for(int i=0,j=0,k=0;i<allBVOs.length;i++){
+    	if(i==selectedRows[j]){
     		allBVOs[i]=null;//如果为勾选行,那么清空
     		j++;
     	}else{
-    		for(int ii=0;ii<newBVOsLength;ii++){
-    			newBVOs[ii]=allBVOs[i];//如果不为勾选行,那么复制其至新数组中.
-    		}
+    		newBVOs[k]=allBVOs[i];//如果不为勾选行,那么复制其至新数组中.
+    		k++;
     	}
     }
     /**
@@ -3382,8 +3393,10 @@ public class SaleInvoiceUI extends ToftPanel implements
 		//String invbasdocid = newBVOs[i].getCinvbasdocid();
 		//Object o = execQuery(invbasdocid);//使用新机制判断新表体存货中的非费用项.
 		//if(o!=null&&(((String)o).trim().toUpperCase()).equals("N")){
-		if(i!=Integer.valueOf(unselectedexpensenum.get(j).toString())){
-			j++;
+		if(unselectedexpensenum==null||unselectedexpensenum.size()==0||i!=Integer.valueOf(unselectedexpensenum.get(j).toString())){
+			if(unselectedexpensenum==null&&unselectedexpensenum.size()==0&&j<unselectedexpensenum.size()){
+				j++;
+			}
 			//按照数量占总量百分比分摊费用
 			if(newBVOs[i].getNnumber()!=null
 					&&newBVOs[i].getNnumber().doubleValue()!=0.0
@@ -3399,8 +3412,12 @@ public class SaleInvoiceUI extends ToftPanel implements
     
     
     //更新dlg中的表体存货信息.
+	
     dlg.m_bodyVOs=newBVOs;
-    dlg.m_BillCardPanel.updateUI();
+    this.getBillCardPanel().getBillData().setBodyValueVO(newBVOs);
+    //this.updateUI();
+    
+    
     }
     //2010-10-16 MeiChao end获取所勾选的表体存货行,判断是否为费用,是,则进行分摊后 再合并显示.
     
@@ -3448,6 +3465,15 @@ public class SaleInvoiceUI extends ToftPanel implements
         "noriginalcurtaxprice", "noriginalcurprice"
     }, "nnumber");
     dlg.showModal();
+    //2010-10-16 17:14 MeiChao begin
+    //当界面显示完后,将原表体数组放入卡片表体并更新
+    /*
+     * 为什么这么设计? 因为此dlg在showModal()之前取的VO值均是从其parent的Panel中抓取,而无法直接set该dlg的值.
+     * 所以便先处理卡片表体数据,等dlg抓取完后,再恢复原数据.稍显繁琐.但可行.
+     */
+    this.getBillCardPanel().getBillData().setBodyValueVO(allBVOsBackup);
+    this.updateUI();
+    //2010-10-16 17:14 MeiChao end
     showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID("40060501",
         "UPT40060501-000058")/* @res "合并显示" */);
 
