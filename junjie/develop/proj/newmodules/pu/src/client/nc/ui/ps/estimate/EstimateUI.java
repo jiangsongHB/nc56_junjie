@@ -4,7 +4,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.swing.ListSelectionModel;
@@ -78,7 +83,8 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
     javax.swing.event.ListSelectionListener, BillEditListener2, IDataSource, IBillRelaSortListener2, MouseListener,
     IBillModelRowStateChangeEventListener {
 	
-	private boolean feeFlag = false;
+  //2010-10-17 是否费用暂估--MeiChao 添加注释
+  private boolean feeFlag = false; 
   // 界面控制按钮
   private ButtonObject m_buttons[] = null;
 
@@ -1865,7 +1871,7 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
       paraList.add(new ClientLink(getClientEnvironment()));
       paraList.add(m_sEstimateMode);
       paraList.add(m_sDiffMode);
-      paraList.add(m_bZGYF);
+      paraList.add(m_bZGYF);//将公司级参数PO52: 汇总暂估是否暂估应付 加入参数列表.
       paraList.add(m_sCurrTypeID);
       if(feeFlag){
     	  EstimateHelper.feeEstimate(VOs, paraList);
@@ -3084,88 +3090,280 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
   
   
   
-  
+  /**
+   * 2010-10-17 MeiChao 暂估处理中分摊费用的方法.
+   * 方法运行机制说明:	勾选任意行,则默认操作此行对应的整张单据所有存货行.
+   * 支持同时操作多张单据.
+   */
   private void onCostDistribute(){
-	  EstimateVO[] emvos = (EstimateVO[])getBillCardPanel().getBillData().getBodyValueChangeVOs(EstimateVO.class.getName());
-	  ArrayList rowList = new ArrayList();
-	  for (int h = 0; h < getBillCardPanel().getBillModel().getRowCount(); h++) {
-		if(getBillCardPanel().getBillModel().getRowState(h) == 4){
-			rowList.add(h);
-		}
-	}
-	  if(emvos == null || emvos.length == 0){
-		  showErrorMessage("没有要进行费用分摊的数据!");
-		  return;
+	  /**
+	   * 第一步,获取页面所有暂估存货项.以及其他待处理原始数据.
+	   */
+	  //表体所有暂估数据
+	  EstimateVO[] allEstimateVOs=(EstimateVO[])getBillCardPanel().getBillModel().getBodyValueVOs(EstimateVO.class.getName());
+	  //重新获取一次所有暂估数据(供还原之用)
+	  EstimateVO[] allEstimateVOsBackup=(EstimateVO[])getBillCardPanel().getBillModel().getBodyValueVOs(EstimateVO.class.getName());
+	  //获取所选择的暂估数据
+      Integer[] electedRowNOs = null;
+      Vector select = new Vector();
+      Vector unselect = new Vector();
+      int nRow = getBillCardPanel().getRowCount();//获得行数
+      for (int i = 0; i < nRow; i++) {
+    	//获取当前行状态
+        int nStatus = getBillCardPanel().getBillModel().getRowState(i);
+        if (nStatus == BillModel.SELECTED)
+        	select.addElement(new Integer(i));//如果该行为选中状态,则添加行号至选择集合.
+        else
+        	unselect.addElement(new Integer(i));//反之,则添加行号至未选择集合.
+      }
+      electedRowNOs = new Integer[select.size()];
+      select.copyInto(electedRowNOs);//将选中行号集合填充入数组.
+	  //对选中行数组进行为空判断
+      if(electedRowNOs==null||electedRowNOs.length==0){
+    	  MessageDialog.showErrorDlg(this, "错误", "对不起,请勾选要操作的数据.");
+    	  return;
+      }
+      /**
+       * 第二步,获取选中单据,即所选行对应的单据.选中一行存货默认选中对应单据整单.
+       * 注意,可能为多个单据.
+       */
+      //选中单据PK数组
+      String[] selectedPKs=null;
+      //使用集合Set,来存放PK,可自动过滤重复.
+      Set selectPKSet = new TreeSet();
+	  //从选中行中遍历出单据pk的Set集合.
+      for(int i=0;i<electedRowNOs.length;i++){
+    	  selectPKSet.add(allEstimateVOs[electedRowNOs[i]].getCgeneralhid());
+      }
+      selectedPKs=new String[selectPKSet.size()];
+      selectedPKs=(String[])selectPKSet.toArray(selectedPKs);//将Set中的PK填充入数组中.
+	  //验证该数组
+      if(selectedPKs==null||selectedPKs.length==0||selectedPKs[0]==null){//这里可以使用数组对其第一项判断,因为此时必须最少要有1个单据被选中.
+    	  MessageDialog.showErrorDlg(this, "错误", "无法获取选中行的单据PK!请至后台查看.");
+    	  return;
+      }
+      //**此时selectedPKs的长度便为所选择的单据数量,这里提到的一个概念<<选中单据>>,注意理解.**
+      /**
+       * 开始获取所有选中单据的数据,包括存货数量,费用金额,单据PK等,按单据不同存在不同的Map集合中
+       * 而这些Map,又存放于一个ArrayList中...
+       * 本步骤属于一个封装界面数据的过程.
+       */
+      List selectedAllBillData=new ArrayList();
+	  for(int i=0;i<selectedPKs.length;i++){
+		  Map selectedBillData=new HashMap();//单据信息Map
+		  List selectedBodys=new ArrayList();//单据体信息List
+		  Double selectedTotalQuantity=0.0;//所选单据体存货总数量
+		  List rowno=new ArrayList();//所选单据体存货所在的行号
+		  selectedBillData.put("pk", selectedPKs[i].toString());//将单据PK存入单据信息Map中,用以标识不同单据.
+		  //遍历界面所有存货行
+		  for(int j=0;j<allEstimateVOs.length;j++){
+			  //如果存货行PK与当前selectedPKs[i]所指PK一致,说明该存货属于当前的某<<选中单据>>
+			  if(allEstimateVOs[j].getCgeneralhid()==selectedPKs[i].toString()){
+				  //将其所属行号放入rowno中.
+				  rowno.add(j);
+				  //将其加到单据体信息List中
+				  selectedBodys.add(allEstimateVOs[j]);
+				  //累加其存货总数量
+				  selectedTotalQuantity+=allEstimateVOs[j].getNinnum().toDouble();
+			  }
+		  }
+		  //遍历过后,将单据体存货信息List加入到单据信息Map中,组成一个完整的单据
+		  selectedBillData.put("rowno", rowno);//表体行号组
+		  selectedBillData.put("body", selectedBodys);//表体存货组
+		  selectedBillData.put("number", selectedTotalQuantity);//表体存货总数
+		  //将该单据加入到selectedBillData中
+		  selectedAllBillData.add(selectedBillData);
 	  }
-	  StringBuffer sql = new StringBuffer(" dr = 0 ");
-		Vector v = new Vector();
-		ArrayList list = new ArrayList();
-		for (int i = 0; i < emvos.length; i++) {
-			String cbillid = emvos[i].getCgeneralhid();
-			if (i == 0) {
-				v.addElement(cbillid);
-				sql.append(" and cbillid = '" + cbillid + "' ");
-			} else {
-				if (!v.contains(cbillid)) {
-					v.addElement(cbillid);
-					sql.append(" or cbillid = '" + cbillid + "' ");
-				}
-			}
-		}
-		InformationCostVO[] infovos = null;
-	 try{
-		 infovos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql.toString());
-	 } catch(Exception e){
-		 SCMEnv.out(e);
-		 showErrorMessage("费用分摊失败!");
-	 }
-	 if(infovos == null || infovos.length == 0){
-		 SCMEnv.out("-------无费用信息,不进行费用分摊--------");
-		 return;
-	 }
-	 for (int i = 0; i < v.size(); i++) {
-			UFDouble mny = new UFDouble().ZERO_DBL;
-			UFDouble number = new UFDouble().ZERO_DBL;
-			ArrayList<EstimateVO> emvoList = new ArrayList<EstimateVO>();
-			for (int j = 0; j < infovos.length; j++) {
-				if (infovos[j].getCbillid().equals(v.get(i))) {
-					mny = mny.add(infovos[j].getNoriginalcurmny());
-		//			String costunit = infovos[j].getCcostunitid();
-					number = infovos[j].getNnumber();
-				}
-			}
-			for (int k = 0; k < emvos.length; k++) {
-				if (emvos[k].getCgeneralhid().equals(v.get(i))) {
-//					number = number.add(emvos[k].getNinnum());
-					
-					emvoList.add(emvos[k]);
-				}
-			}
-			if(emvoList!=null&&emvoList.size()!=0){
-				UFDouble mny1 = mny;
-			  for (int l = 0; l < emvoList.size(); l++) {
-//				  if(l == emvoList.size()-1){
-//					  emvoList.get(l).setNfeemny(mny1); 
-//				  }
-//				  else{
-					  UFDouble innum = emvoList.get(l).getNinnum();
-				 
-				UFDouble freemny = mny.multiply(innum.div(number));
-				emvoList.get(l).setNfeemny(freemny);
-				mny1 = mny1.sub(freemny);
-//				  }
-			}	
-			}
-	}
-	 int n = 0;
-	 for (int m = 0; m < rowList.size(); m++) {
-        int rowNO = (Integer)rowList.get(m);
-        getBillCardPanel().getBillModel().setBodyRowVO(emvos[n], m);
-        n++;
-		}
-//	 getBillCardPanel().getBillData().setBodyValueVO(emvos);
-	 getBillCardPanel().getBillModel().execLoadFormula();
-	 feeFlag = true;
-	 SCMEnv.out("-------分摊费用成功--------");  
+	  if(selectedAllBillData==null||selectedAllBillData.size()==0){
+		  MessageDialog.showErrorDlg(this, "严重错误", "系统在封装选中单据时产生一个不可预见的致命错误,请与UFIDA工程师联系.");
+	  }
+	  /**
+	   * 界面数据封装完毕,开始读取单据对应费用信息.
+	   */
+	  //遍历所选单据对应的费用信息.
+	  List<String> haveexpense=new ArrayList<String>();//有费用的单据
+	  List<String> havenotexpense=new ArrayList<String>();//没有费用的单据
+	  List<String> unknowexpense=new ArrayList<String>();//获取费用失败的单据
+	  for(int i=0;i<selectedAllBillData.size();i++){
+		  Double selectedtotalamount=0.0;//所选单据体总金额
+
+		  Map selectedBill=(HashMap)selectedAllBillData.get(i);//获取当前单据Map对象
+		  String cbillid=selectedBill.get("pk").toString();//获取当前单据对应入库单PK
+		  StringBuffer sql = new StringBuffer(" dr = 0 ");//根据入库单PK拼sql语句的where字句
+			Vector v = new Vector();
+			ArrayList list = new ArrayList();
+			v.addElement(cbillid);
+			sql.append(" and cbillid = '" + cbillid + "' ");
+			InformationCostVO[] expenseinformation = null;
+		 try{
+			 //查询对应入库单的费用信息.
+			 expenseinformation = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql.toString());
+		 } catch(Exception e){
+			 SCMEnv.out(e);
+			 showErrorMessage("获取费用信息失败!");
+			 unknowexpense.add(cbillid);//如果数据库访问失败,则将该入库单pk存入unknowexpense
+			 continue;//继续执行遍历,防止中途出错,影响后面的数据.
+		 }
+		 if(expenseinformation == null || expenseinformation.length == 0){
+			 SCMEnv.out("单据:"+cbillid+"无费用信息.");
+			 havenotexpense.add(cbillid);//如果查不到该入库单对应费用信息,则将该单pk存入havenotexpense
+		 }else if(expenseinformation!=null&&expenseinformation.length>0){
+			 //如成功查出费用信息,则将其遍历并将费用金额累加至selectedtotalamount中.
+			 for(int k=0;k<expenseinformation.length;k++){
+				 selectedtotalamount+=expenseinformation[k].getNoriginalcurmny().toDouble();
+			 }
+			 haveexpense.add(cbillid);
+			 selectedBill.put("expenseamount", selectedtotalamount);//将单据费用总金额存入该单据map中.
+		 }
+	  }
+	  //***费用信息读取完毕,开始验证费用信息****
+	  if(haveexpense.size()!=0&&haveexpense.size()==selectedAllBillData.size()){
+		  /**
+		   * 如果有费用信息的单据数与选中单据数相等,则直接进行分摊操作,无需显示提示信息.
+		   * 开始分摊费用操作...
+		   */
+		  //开始进行遍历分摊!
+		  for(int i=0;i<selectedAllBillData.size();i++){//要注意,此处仍然对整个选中单据进行遍历..
+			  for(int j=0;j<haveexpense.size();j++){//在此循环中将有费用信息的PK取出与之验证,相符,则表示可以进行分摊.
+				  if(((HashMap)selectedAllBillData.get(i)).get("pk").toString().equals(haveexpense.get(j).toString())){
+					 List rowno=(List)((HashMap)selectedAllBillData.get(i)).get("rowno");//行号
+					 List selectedBodys=(List)((HashMap)selectedAllBillData.get(i)).get("body");//表体存货
+					 Double expenseamount=(Double)((HashMap)selectedAllBillData.get(i)).get("expenseamount");//费用总额
+					 Double selectedTotalQuantity=(Double)((HashMap)selectedAllBillData.get(i)).get("selectedTotalQuantity");//当前单据存货总数.
+					 if(rowno.size()==selectedBodys.size()){//行号List必须与存货List长度相等,否则便说明之前数据处理有问题.处理结果是错误的..
+						 for(int k=0;k<rowno.size();k++){//开始进行遍历分摊
+							 //当前处理行号
+							 Integer nowRowNO=Integer.valueOf(rowno.get(k).toString());
+							 //当前处理行存货数量
+							 Double nownumber=((EstimateVO)selectedBodys.get(k)).getNinnum().toDouble();
+							 //当前行应分摊的费用金额.
+							 Double nowexpense=expenseamount*nownumber/selectedTotalQuantity;
+							 //将该金额写入页面VO数组中对应存货行的费用金额项中
+							 allEstimateVOs[nowRowNO].setNfeemny(new UFDouble(nowexpense));
+						 }
+					 }
+				  }
+			  }
+		  }
+		 //分摊循环处理完毕以后,更新界面.
+		 this.getBillCardPanel().getBillModel().setBodyDataVO(allEstimateVOs);
+		 this.getBillCardPanel().getBillModel().execLoadFormula();
+		 feeFlag = true;
+		 this.getBillCardPanel().updateUI();
+		  
+		 MessageDialog.showHintDlg(this, "提示", "成功分摊费用,请点击暂估按钮进行暂估处理.");
+	  }else{//如果有费用信息的单据数与选中单据数不相等,那么...
+	  
+		  if(unknowexpense.size()==selectedAllBillData.size()){
+		  //如果无法获取数与选中数相等
+		  MessageDialog.showErrorDlg(this, "错误", "无法获取所选单据的费用信息,请检查您的网络连接,或与技术员联系.");
+		  return;
+		  }else if(unknowexpense.size()>0&&unknowexpense.size()<selectedAllBillData.size()){
+			  //如果存在无法获取费用单据,那么..
+			  String unknowexpensePKs="";
+			  for(int i=0;i<unknowexpense.size();i++){
+				  unknowexpensePKs+=";";
+				  unknowexpensePKs+=unknowexpense.get(i).toString();
+			  }
+			  MessageDialog.showHintDlg(this, "警告", "成功进行部分单据的费用分摊,但以下单据无法获取费用:"+unknowexpensePKs);
+		  }
+		  
+		  if(havenotexpense.size()==selectedAllBillData.size()){
+			  //如果无费用单据数与选中树相等..那么..
+		 	 MessageDialog.showHintDlg(this, "提示", "所选择的单据无费用信息,无需进行费用分摊操作!");
+		 	 return;
+		  }else if(havenotexpense.size()>0&&havenotexpense.size()<selectedAllBillData.size()){
+			  //如果存在无费用的单据..那么...
+			  String havenotexpensePKs="";
+			  for(int i=0;i<havenotexpense.size();i++){
+				  havenotexpensePKs+=";";
+				  havenotexpensePKs+=unknowexpense.get(i).toString();
+			  }
+			  MessageDialog.showHintDlg(this, "警告", "成功进行部分单据的费用分摊,但以下单据无费用信息:"+havenotexpensePKs);
+		  }
+	  }
+	  
+	  
+//	  EstimateVO[] emvos = (EstimateVO[])getBillCardPanel().getBillData().getBodyValueChangeVOs(EstimateVO.class.getName());
+//	  ArrayList rowList = new ArrayList();
+//	  for (int h = 0; h < getBillCardPanel().getBillModel().getRowCount(); h++) {
+//		if(getBillCardPanel().getBillModel().getRowState(h) == 4){
+//			rowList.add(h);
+//		}
+//	}
+//	  if(emvos == null || emvos.length == 0){
+//		  showErrorMessage("没有要进行费用分摊的数据!");
+//		  return;
+//	  }
+//	  StringBuffer sql = new StringBuffer(" dr = 0 ");
+//		Vector v = new Vector();
+//		ArrayList list = new ArrayList();
+//		for (int i = 0; i < emvos.length; i++) {
+//			String cbillid = emvos[i].getCgeneralhid();
+//			if (i == 0) {
+//				v.addElement(cbillid);
+//				sql.append(" and cbillid = '" + cbillid + "' ");
+//			} else {
+//				if (!v.contains(cbillid)) {
+//					v.addElement(cbillid);
+//					sql.append(" or cbillid = '" + cbillid + "' ");
+//				}
+//			}
+//		}
+//		InformationCostVO[] infovos = null;
+//	 try{
+//		 infovos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql.toString());
+//	 } catch(Exception e){
+//		 SCMEnv.out(e);
+//		 showErrorMessage("获取费用信息失败!");
+//	 }
+//	 if(infovos == null || infovos.length == 0){
+//		 SCMEnv.out("-------无费用信息,不进行费用分摊--------");
+//		 return;
+//	 }
+//	 for (int i = 0; i < v.size(); i++) {
+//			UFDouble mny = new UFDouble().ZERO_DBL;
+//			UFDouble number = new UFDouble().ZERO_DBL;
+//			ArrayList<EstimateVO> emvoList = new ArrayList<EstimateVO>();
+//			for (int j = 0; j < infovos.length; j++) {
+//				if (infovos[j].getCbillid().equals(v.get(i))) {
+//					mny = mny.add(infovos[j].getNoriginalcurmny());
+//		//			String costunit = infovos[j].getCcostunitid();
+//					number = infovos[j].getNnumber();
+//				}
+//			}
+//			for (int k = 0; k < emvos.length; k++) {
+//				if (emvos[k].getCgeneralhid().equals(v.get(i))) {
+////					number = number.add(emvos[k].getNinnum());
+//					
+//					emvoList.add(emvos[k]);
+//				}
+//			}
+//			if(emvoList!=null&&emvoList.size()!=0){
+//				UFDouble mny1 = mny;
+//			  for (int l = 0; l < emvoList.size(); l++) {
+////				  if(l == emvoList.size()-1){
+////					  emvoList.get(l).setNfeemny(mny1); 
+////				  }
+////				  else{
+//					  UFDouble innum = emvoList.get(l).getNinnum();
+//				 
+//				UFDouble freemny = mny.multiply(innum.div(number));
+//				emvoList.get(l).setNfeemny(freemny);
+//				mny1 = mny1.sub(freemny);
+////				  }
+//			}	
+//			}
+//	}
+//	 int n = 0;
+//	 for (int m = 0; m < rowList.size(); m++) {
+//        int rowNO = (Integer)rowList.get(m);
+//        getBillCardPanel().getBillModel().setBodyRowVO(emvos[n], m);
+//        n++;
+//		}
+////	 getBillCardPanel().getBillData().setBodyValueVO(emvos);
+//	 getBillCardPanel().getBillModel().execLoadFormula();
+//	 feeFlag = true;//分摊费用成功后,将是否费用暂估标记设定为true.
+//	 SCMEnv.out("-------分摊费用成功--------");  
   }
 }
