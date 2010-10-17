@@ -3217,7 +3217,7 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 		 }
 	  }
 	  //***费用信息读取完毕,开始验证费用信息****
-	  if(haveexpense.size()!=0&&haveexpense.size()==selectedAllBillData.size()){
+	  if(haveexpense.size()!=0){
 		  /**
 		   * 如果有费用信息的单据数与选中单据数相等,则直接进行分摊操作,无需显示提示信息.
 		   * 开始分摊费用操作...
@@ -3229,7 +3229,7 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 					 List rowno=(List)((HashMap)selectedAllBillData.get(i)).get("rowno");//行号
 					 List selectedBodys=(List)((HashMap)selectedAllBillData.get(i)).get("body");//表体存货
 					 Double expenseamount=(Double)((HashMap)selectedAllBillData.get(i)).get("expenseamount");//费用总额
-					 Double selectedTotalQuantity=(Double)((HashMap)selectedAllBillData.get(i)).get("selectedTotalQuantity");//当前单据存货总数.
+					 Double number=(Double)((HashMap)selectedAllBillData.get(i)).get("number");//当前单据存货总数.
 					 if(rowno.size()==selectedBodys.size()){//行号List必须与存货List长度相等,否则便说明之前数据处理有问题.处理结果是错误的..
 						 for(int k=0;k<rowno.size();k++){//开始进行遍历分摊
 							 //当前处理行号
@@ -3237,7 +3237,7 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 							 //当前处理行存货数量
 							 Double nownumber=((EstimateVO)selectedBodys.get(k)).getNinnum().toDouble();
 							 //当前行应分摊的费用金额.
-							 Double nowexpense=expenseamount*nownumber/selectedTotalQuantity;
+							 Double nowexpense=expenseamount*nownumber/number;
 							 //将该金额写入页面VO数组中对应存货行的费用金额项中
 							 allEstimateVOs[nowRowNO].setNfeemny(new UFDouble(nowexpense));
 						 }
@@ -3248,13 +3248,31 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 		 //分摊循环处理完毕以后,更新界面.
 		 this.getBillCardPanel().getBillModel().setBodyDataVO(allEstimateVOs);
 		 this.getBillCardPanel().getBillModel().execLoadFormula();
-		 feeFlag = true;
+		 feeFlag = true;//是否费用分摊标志设定为true
 		 this.getBillCardPanel().updateUI();
-		  
+		 if(haveexpense.size()!=0&&haveexpense.size()==selectedAllBillData.size()){
+			 //如果有费用的单据数与选择单据数相等,则进行成功提示.
 		 MessageDialog.showHintDlg(this, "提示", "成功分摊费用,请点击暂估按钮进行暂估处理.");
-	  }else{//如果有费用信息的单据数与选中单据数不相等,那么...
+		 }
+		 /**
+		  * 将成功分摊的所有存货行设置为选中状态
+		  */
+		 for(int x=0;x<haveexpense.size();x++){//使用haveexpense来控制外循环,因为只设置成功分摊的存货
+	      String thisICBillPK=haveexpense.get(x).toString();
+			 for (int y = 0; y < nRow; y++) {
+	    	  if(allEstimateVOs[y].getCgeneralhid()==thisICBillPK){
+	    		  //如果表体存货中的入库单PK与成功分摊的入库单PK一致.
+	    	      this.getBillCardPanel().getBillModel().setRowState(y, BillModel.SELECTED);
+	    	  }
+	    	  }
+		 }
+		 this.getBillCardPanel().updateUI();//更新界面!!!!!!
+	  }
 	  
-		  if(unknowexpense.size()==selectedAllBillData.size()){
+	  	/**
+	  	 * 后续处理,主要是分摊时的特殊情况提示.
+	  	 */
+	      if(unknowexpense.size()==selectedAllBillData.size()){
 		  //如果无法获取数与选中数相等
 		  MessageDialog.showErrorDlg(this, "错误", "无法获取所选单据的费用信息,请检查您的网络连接,或与技术员联系.");
 		  return;
@@ -3277,12 +3295,14 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 			  String havenotexpensePKs="";
 			  for(int i=0;i<havenotexpense.size();i++){
 				  havenotexpensePKs+=";";
-				  havenotexpensePKs+=unknowexpense.get(i).toString();
+				  havenotexpensePKs+=havenotexpense.get(i).toString();
 			  }
 			  MessageDialog.showHintDlg(this, "警告", "成功进行部分单据的费用分摊,但以下单据无费用信息:"+havenotexpensePKs);
 		  }
-	  }
 	  
+	  /**
+	   * 至此,数据分摊处理完毕!
+	   */
 	  
 //	  EstimateVO[] emvos = (EstimateVO[])getBillCardPanel().getBillData().getBodyValueChangeVOs(EstimateVO.class.getName());
 //	  ArrayList rowList = new ArrayList();
