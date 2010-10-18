@@ -1,6 +1,7 @@
 package nc.bs.ic.md;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import nc.bs.dao.BaseDAO;
@@ -9,6 +10,7 @@ import nc.jdbc.framework.SQLParameter;
 import nc.jdbc.framework.processor.ColumnListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.md.dialog.MDUtils;
+import nc.vo.ic.md.CargInfVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.xcl.MdxclBVO;
 import nc.vo.ic.xcl.MdxclVO;
@@ -49,6 +51,7 @@ public class MDToolsImpl implements IMDTools {
 		String del_md = " delete  NC_MDCRK where  CGENERALBID = ? ";
 
 		String del_sd = " delete nc_mdsd where pk_mdxcl_b in ( select pk_mdxcl_b from NC_MDCRK where isnull(dr,0)=0 and  CGENERALBID = ? ) ";
+		
 		// 删除码单锁定记录
 		int t = getDAO().executeUpdate(del_sd, param);
 		System.out.println("一共删除锁定记录:" + t);
@@ -99,7 +102,6 @@ public class MDToolsImpl implements IMDTools {
 		 */
 		for (MdcrkVO mdcrkVO : mdvos) {
 			MdxclBVO bvo = new MdxclBVO();
-
 			bvo.setCspaceid(mdcrkVO.getCspaceid());
 			bvo.setJbh(mdcrkVO.getJbh());
 			bvo.setMd_width(mdcrkVO.getMd_width());
@@ -128,6 +130,7 @@ public class MDToolsImpl implements IMDTools {
 
 			zl = zl.add(mdcrkVO.getSrkzl());
 			zs = zs.add(mdcrkVO.getSrkzs());
+			
 		}
 
 		/*
@@ -198,6 +201,47 @@ public class MDToolsImpl implements IMDTools {
 			baseDAO = new BaseDAO();
 		}
 		return baseDAO;
+	}
+
+	//增加系统货位表的同步更新方法实现。by 阮睿 2010-10-18
+	public void updateCargoInfo(String cgeneralbid) throws BusinessException 
+	{
+		String del_huowei = "delete ic_general_bb1 where cgeneralbid=?";
+		SQLParameter param = new SQLParameter();
+		param.addParam(cgeneralbid);
+		int k = getDAO().executeUpdate(del_huowei, param);
+		System.out.println("一共删除库存表体行"+cgeneralbid+"的货位记录:" + k);
+		
+		Collection c = getDAO().retrieveByClause(MdcrkVO.class, "cgeneralbid='"+cgeneralbid+"'");
+		if (c!=null && c.size()>0)
+		{
+			Object[] o = c.toArray();
+			for(int i=0;i<o.length;i++)
+			{
+				MdcrkVO mdcrkVO = (MdcrkVO)o[i];
+				CargInfVO CargInfVO = new CargInfVO();
+				CargInfVO.setCgeneralbid(cgeneralbid);
+				CargInfVO.setCspaceid(mdcrkVO.getCspaceid());
+				CargInfVO.setDr(0);
+				CargInfVO.setPk_corp(mdcrkVO.getPk_corp());
+				if(mdcrkVO.getCbodybilltypecode().trim().equals("4I")||mdcrkVO.getCbodybilltypecode().trim().equals("4C"))
+				{
+					CargInfVO.setNoutspaceassistnum(mdcrkVO.getSrkzs());
+					CargInfVO.setNoutspacenum(mdcrkVO.getSrkzs());
+				}
+				else
+				{
+					CargInfVO.setNinspaceassistnum(mdcrkVO.getSrkzs());
+					CargInfVO.setNinspacenum(mdcrkVO.getSrkzl());
+				}
+				getDAO().insertVO(CargInfVO);
+			}
+			
+		}
+		else
+		{
+			
+		}
 	}
 
 }

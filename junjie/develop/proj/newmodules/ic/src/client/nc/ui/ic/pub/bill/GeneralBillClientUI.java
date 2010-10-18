@@ -1964,13 +1964,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
-<<<<<<< .mine
 				//同步更新货位信息 add by 阮睿 2010-10-18
 				handCagroInfo(j,getM_voBill());
-				//清空数据
-=======
 				// 清空数据
->>>>>>> .r269
 				dlg.setNoutassistnum(null);
 				dlg.setNoutnum(null);
 			} catch (BusinessException e) {
