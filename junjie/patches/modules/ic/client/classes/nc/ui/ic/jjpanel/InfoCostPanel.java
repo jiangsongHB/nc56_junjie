@@ -393,6 +393,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		//add by 付世超 2010-10-13 begin
 			int row = getBillListPanel().getHeadTable().getRowCount();
 			getBillListPanel().getHeadBillModel().setValueAt(arrnumber, row-1, "nnumber");
+			getBillListPanel().getHeadBillModel().setValueAt("1", row-1, "vdef10");//使用自定义项 vdef10  0：到货单录入的费用  1：入库单录入的费用
 		//add by 付世超 2010-10-13 end			
 		}
 		// 删除按钮动作

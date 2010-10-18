@@ -116,19 +116,63 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	private ArrayList  lmny = null;
 	//拉式生产的最初金额 add by 付世超 2010-10-15
 	private UFDouble pmny = null;
-	
+	// 存放本单前的累计费用金额 add by 付世超 2010-10-16
+	private ArrayList lotmny = null;
+	// 用于存放本单之前的累积费用金额 add by 付世超 2010-10-16
+	private UFDouble otmny = null;
+	// 存放本单前的累计入库费用金额 add by 付世超  2010-10-17
+	private ArrayList ltmny = null;
+	// 存放本单前的累计入库费用金额 add by 付世超  2010-10-17
+	private UFDouble tmny = null;
+	// add by  付世超  2010-10-16  GET方法 其他类调用Client中的费用数据 begin
 	public UFDouble getArrnum(){
 		return arrnum;
 	}
 	
+	public InformationCostVO[] getInfovos(){
+		return infovos;
+	}
 	public ArrayList getLmny() {
 		return lmny;
 	}
 
-	public InformationCostVO[] getInfovos(){
-		return infovos;
+	public ArrayList getLotmny() {
+		
+		return lotmny;
 	}
-    
+	
+	public ArrayList getLtmny() {
+		return ltmny;
+	}
+	
+
+	public void setLmny(ArrayList lmnyn) {
+		if(lmny ==null){
+			this.lmny = lmnyn;
+		}else{
+			lmny.clear();
+			this.lmny = lmnyn;
+		}
+	}
+
+	public void setLotmny(ArrayList lotmnyn) {
+		if(lotmny ==null){
+			this.lotmny = lotmnyn;
+		}else{
+			lotmny.clear();
+			this.lotmny = lotmnyn;
+		}
+	}
+	
+	public void setLtmny(ArrayList ltmnyn) {
+		if(ltmny ==null){
+			this.ltmny = ltmnyn;
+		}else{
+			ltmny.clear();
+			this.ltmny = ltmnyn;
+		}
+	}
+	// add by  付世超  2010-10-16  GET/SET方法 其他类调用Client中的费用数据 end
 
 
 	public GeneralButtonManager(GeneralBillClientUI clientUI)
@@ -587,22 +631,33 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 									for (int i = 0; i < a.length; i++) {
 										arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("nshouldinnum").toString()));
 									}
-						//add by 付世超 2010-10-15 begin
+						//add by 付世超 2010-10-15 begin 费用基础数据
 									lmny = new ArrayList();
+									lotmny = new ArrayList();// add by 付世超 2010-10-16 
+									ltmny = new ArrayList();// add by 付世超 2010-10-17
 					      for (int i = 0; i < infovos.length; i++) {
 //							vos[i].setAttributeValue("ninvoriginalcursummny", vos[i].getNoriginalcursummny());
 //					    	 infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurmny().add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-					    	  pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber.div((arrnum.add(arrnumber))));
-					    	  lmny.add(pmny);
-					    	  infovos[i].setAttributeValue("ninvoriginalcurmny", pmny.add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-					    	  infovos[i].setAttributeValue("noriginalcurmny", pmny);
+//					    	  pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber.div((arrnumber.add(arrnum))));
+//					    	  lmny.add(pmny);
+					    	  		lmny.add(infovos[i].getNoriginalcurprice().multiply(arrnumber));
+								//将单前到货费用累积金额 存入缓存 2010-10-17  by 付世超
+									lotmny.add(infovos[i].getNinvoriginalcurmny().sub(infovos[i].getNoriginalcurmny()));
+								//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超
+									ltmny.add((infovos[i].getNinstoreoriginalcurmny()== null ? (infovos[i].getNoriginalcurmny()):infovos[i].getNinstoreoriginalcurmny()).sub(infovos[i].getNoriginalcurmny()));
+//					    	  infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurprice().multiply(arrnumber).add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
+					    	  infovos[i].setAttributeValue("noriginalcurmny", infovos[i].getNoriginalcurprice().multiply(arrnumber));
 					    	  infovos[i].setNnumber(arrnumber);
 						}
+							//将拉式生成的费用明细 存入ClientUI add by 2010-10-17
+							getClientUI().setLmny(lmny);
+							getClientUI().setLotmny(lotmny);
+							getClientUI().setLtmny(ltmny);
 					//add by 付世超 2010-10-15 end 
 				      getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
 		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-		  	        getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-		  	        getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+		  	          getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
 		              }else{
 		            	  //2010-10-11 MeiChao 将卡片及列表中的费用页签中的信息清空
 		            	  getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null); 
@@ -637,34 +692,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						false);
 
 			}
-<<<<<<< .mine
 			
-              
-=======
-//			 arrnum = new UFDouble((o==null?"0":o).toString());
-//				CircularlyAccessibleValueObject[] a = retVOs[0].getChildrenVO();
-//				  // int temp = getBillCardPanel().getBillModel("table").getRowCount();
-//				   arrnumber = new UFDouble(0.0);
-//							for (int i = 0; i < a.length; i++) {
-//								arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("narrvnum").toString()));
-//							}
-              if(infovos!=null&&infovos.length!=0){
-//			      for (int i = 0; i < infovos.length; i++) {
-////					vos[i].setAttributeValue("ninvoriginalcursummny", vos[i].getNoriginalcursummny());
-//			    	  infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurmny().add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-//				}
-		      getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-  	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-  	        getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-  	        getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
-              }else{
-            	  //2010-10-11 MeiChao 将卡片及列表中的费用页签中的信息清空
-            	  getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null); 
-      	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
-      	        
-              }
->>>>>>> .r238
-              
               
 		} catch (Exception e) {
 			nc.vo.scm.pub.SCMEnv.error(e);
@@ -840,6 +868,31 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					e.printStackTrace();
 				}
 				if(vos!=null&&vos.length!=0){
+					// add by 付世超 2010-10-16 begin 设置费用基础数据
+					int temp = getBillListPanel().getBodyBillModel("table").getRowCount();
+					UFDouble plannum = new UFDouble(0.0);
+					for (int i = 0; i < temp; i++) {
+						plannum = plannum.add(new UFDouble((getBillListPanel().getBodyBillModel("table")
+								.getValueAt(i, "nshouldinnum") == null ? 0
+								: getBillListPanel().getBodyBillModel("table")
+								.getValueAt(i, "nshouldinnum"))
+								.toString()));// 应到数量
+					}
+					lmny = new ArrayList();
+					lotmny = new ArrayList();// add by 付世超 2010-10-16 
+					ltmny = new ArrayList();// add by 付世超 2010-10-17
+					for (int i = 0; i < vos.length; i++) {
+						lmny.add(vos[i].getNoriginalcurprice().multiply(plannum));
+						//将单前到货费用累积金额 存入缓存 2010-10-16  by 付世超
+						lotmny.add(vos[i].getNinvoriginalcurmny().sub(vos[i].getNoriginalcurmny()));
+						//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超
+						ltmny.add((vos[i].getNinstoreoriginalcurmny()== null ? (vos[i].getNoriginalcurmny()):vos[i].getNinstoreoriginalcurmny()).sub(vos[i].getNoriginalcurmny()));
+					}
+					//将拉式生成的费用明细 存入ClientUI add by 2010-10-17
+					getClientUI().setLmny(lmny);
+					getClientUI().setLotmny(lotmny);
+					getClientUI().setLtmny(ltmny);
+					// add by 付世超 2010-10-16 end
 					getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 					getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
 				}else{
@@ -1343,6 +1396,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 
 			getClientUI().setDataOnList(alListData, true);
 
+			
 			// DUYONG 当执行刷新操作，并且当前界面为卡片类型时，不应该切换到列表类型的界面中
 			if (!getClientUI().isBQuery()
 					&& getM_iCurPanel() != cardOrList) {
@@ -1357,6 +1411,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					+ e.getMessage());
 		}
 	}
+
+
 
 	/**
 	 * 此处插入方法说明。 功能描述:根据表体行的单据ID和单据类型联查上下游单据。 作者：程起伍 输入参数: 返回值: 异常处理:
