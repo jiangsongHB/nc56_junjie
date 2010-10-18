@@ -4155,7 +4155,7 @@ private void onButtonClickedCard(ButtonObject bo){
 	  // int temp = getBillCardPanel().getBillModel("table").getRowCount();
 	   arrnumber = new UFDouble(0.0);
 //	   plannum = new UFDouble(0.0);
-	   plannum = new UFDouble(p.toString());
+	   plannum = new UFDouble(p.toString());//上有单据应到总数量，用于按金额录入费用的比例分配
 				for (int i = 0; i < a.length; i++) {
 					arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("narrvnum").toString()));
 //					plannum = plannum.add(new UFDouble(a[i].getAttributeValue("nplanarrvnum").toString()));
