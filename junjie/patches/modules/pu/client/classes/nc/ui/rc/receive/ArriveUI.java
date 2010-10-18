@@ -900,7 +900,7 @@ private void afterEditWhenNum(BillEditEvent e) {
 //    	UFDouble price =  new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurmny").toString()).div(arrnumber);
 //    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(price, i, "noriginalcurprice");	
     		//add by 付世超 2010-10-14 begin 
-    		mny = pmny.multiply(arrnumber.div(plannum));
+    		mny = pmny.multiply(arrnumber).div(plannum);//修改 by 付世超  2010-10-18 先乘后除
     		arrmny = otmny.add(mny);//modify by 付世超 2010-10-16
 //    		arrmny  = pmny.multiply(((arrnumber.add(arrnum)).div(plannum)));
     		//add by 付世超 2010-10-14 end 
@@ -4133,11 +4133,13 @@ private void onButtonClickedCard(ButtonObject bo){
     	  }
   	}      
       String sql = "select nvl(sum(naccumarrvnum),0) from po_order_b where dr = 0 and corderid = '"+pkList.get(0)+"'";
+      String sqlnum = "select sum(nordernum) from po_order_b where dr = 0 and corderid = '"+pkList.get(0)+"'";//添加对订单存货总数的查询 add by 付世超 2010-10-18
       Object o = null;
+      Object p = null;//添加对订单存货总数的查询 add by 付世超 2010-10-18
            try {
         	    IUAPQueryBS query1 = NCLocator.getInstance().lookup(IUAPQueryBS.class);
                 o = query1.executeQuery(sql, new ColumnProcessor());        		  		
-               
+                p = query1.executeQuery(sqlnum, new ColumnProcessor());//添加对订单存货总数的查询 add by 付世超 2010-10-18
               //第二个参数为null表示查询全部字段,将查询结果存储在内存中
               vos =  (InformationCostVO[]) JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, whereSql.toString());
         	   
@@ -4152,17 +4154,19 @@ private void onButtonClickedCard(ButtonObject bo){
 		CircularlyAccessibleValueObject[] a = retVOs[0].getChildrenVO();
 	  // int temp = getBillCardPanel().getBillModel("table").getRowCount();
 	   arrnumber = new UFDouble(0.0);
-	   plannum = new UFDouble(0.0);
+//	   plannum = new UFDouble(0.0);
+	   plannum = new UFDouble(p.toString());
 				for (int i = 0; i < a.length; i++) {
 					arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("narrvnum").toString()));
-					plannum = plannum.add(new UFDouble(a[i].getAttributeValue("nplanarrvnum").toString()));
+//					plannum = plannum.add(new UFDouble(a[i].getAttributeValue("nplanarrvnum").toString()));
 				}
 		//add by 付世超 2010-10-15 begin 费用基础数据
 				lmny = new ArrayList();
 				lotmny = new ArrayList();// add by 付世超 2010-10-16 
       for (int i = 0; i < vos.length; i++) {
 //		vos[i].setAttributeValue("ninvoriginalcursummny", vos[i].getNoriginalcursummny());
-    	  pmny = vos[i].getNoriginalcurprice().multiply(plannum);
+    	  
+    	  pmny = vos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
     	  lmny.add(pmny);
     	  	//将单前费用累积金额 存入缓存 2010-10-16  by 付世超
 			lotmny.add(arrnum.multiply(vos[i].getNoriginalcurprice()));
@@ -4766,14 +4770,17 @@ if(vos!=null&&vos.length!=0){
 	// add by 付世超 2010-10-16 begin 设置费用基础数据
 	int temp = getBillCardPanel().getBillModel("table").getRowCount();
 	plannum = new UFDouble(0.0);
+	arrnumber = new UFDouble(0.0);
 	for (int i = 0; i < temp; i++) {
+		arrnumber = arrnumber.add(new UFDouble(getBillCardPanel().getBillModel("table").getValueAt(i,"narrvnum").toString()));
 		plannum = plannum.add(new UFDouble((getBillCardPanel().getBodyValueAt(i, "nplanarrvnum") == null ? 0:
 			getBillCardPanel().getBodyValueAt(i, "nplanarrvnum")).toString()));// 应到数量
 	}
 	lotmny = new ArrayList();// add by 付世超 2010-10-16 
 	lmny = new ArrayList();
 	for (int i = 0; i < vos.length; i++) {
-		pmny = vos[i].getNoriginalcurprice().multiply(plannum);
+		pmny = vos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
+//		pmny = vos[i].getNoriginalcurprice().multiply(plannum);
 		lmny.add(pmny);
 		//将单前费用累积金额 存入缓存 2010-10-16  by 付世超
 		lotmny.add(vos[i].getNinvoriginalcurmny().sub(vos[i].getNoriginalcurmny()));
@@ -5560,7 +5567,7 @@ private void onModify() {
   if (iCurSelectedRow >= 0)
     getBillCardPanel().getBillTable().setRowSelectionInterval(iCurSelectedRow, iCurSelectedRow);
   //add by 付世超 2010-10-12 (佛山俊杰) begin
-  getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);//重置表体页签显示为首页签!
+  getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);//重置表体页签显示为首页签
   //add by 付世超 2010-10-12 (佛山俊杰) end
   //初始化删除集合(库位分配时用到)
   v_DeletedItems = new Vector();
@@ -10344,7 +10351,8 @@ private void onBoInfoCost() {
 					if(i < lmny.size()){
 						if (lmny != null  ) {
 							//若已存在的费用 单价 或金额改变 会导致本单据费用的改变 应及时更新  使用单价作为标识 
-								pmny = infoCostVOs[i].getNoriginalcurmny().div((arrnumber.div(plannum)));
+//								pmny = infoCostVOs[i].getNoriginalcurmny().div((arrnumber.div(plannum)));
+								pmny = infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
 								lmny.remove(i);
 								lmny.add(i, pmny);
 						}
@@ -10352,7 +10360,8 @@ private void onBoInfoCost() {
 							otmny = (UFDouble)lotmny.get(i);
 						}
 						}else {
-							pmny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber);
+//							pmny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber);
+							pmny = infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
 							lmny.add(new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber));
 							otmny = new UFDouble(0.0);//新增加的入库费用没有到货累计费用 初始化为0
 							lotmny.add(otmny);
@@ -10370,7 +10379,7 @@ private void onBoInfoCost() {
 //			    	infoCostVOs[i].setAttributeValue("ninvoriginalcursummny", taxmny);
 			    	infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", arrmny);	
 					}else{
-			    		mny = pmny.multiply(arrnumber.div(plannum));
+			    		mny = pmny.multiply(arrnumber).div(plannum);
 			    		arrmny = otmny.add(mny);//modify by 付世超 2010-10-16
 			    		infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
 			        	//累计到货金额
