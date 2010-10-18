@@ -10366,7 +10366,7 @@ private void onBoInfoCost() {
 						}else {
 //							pmny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber);
 							pmny = infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
-							lmny.add(new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber));
+							lmny.add(pmny);
 							otmny = new UFDouble(0.0);//新增加的入库费用没有到货累计费用 初始化为0
 							lotmny.add(otmny);
 							
@@ -10383,7 +10383,7 @@ private void onBoInfoCost() {
 //			    	infoCostVOs[i].setAttributeValue("ninvoriginalcursummny", taxmny);
 			    	infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", arrmny);	
 					}else{
-			    		mny = pmny.multiply(arrnumber).div(plannum);
+			    		mny = pmny.multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改
 			    		arrmny = otmny.add(mny);//modify by 付世超 2010-10-16
 			    		infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
 			        	//累计到货金额
