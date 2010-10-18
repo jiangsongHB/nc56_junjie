@@ -15,6 +15,7 @@ import nc.vo.ic.md.MdcrkVO;
 import javax.swing.JFileChooser;
 
 import nc.bs.framework.common.NCLocator;
+import nc.itf.ic.md.IMDTools;
 import nc.ui.bd.ref.AbstractRefModel;
 import nc.ui.ic.ic001.BatchCodeDefSetTool;
 import nc.ui.ic.ic001.BatchcodeHelper;
@@ -1963,6 +1964,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
+				//同步更新货位信息 add by 阮睿 2010-10-18
+				handCagroInfo(j,getM_voBill());
 				// 清空数据
 				dlg.setNoutassistnum(null);
 				dlg.setNoutnum(null);
@@ -2007,6 +2010,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
 
+				//同步更新货位信息 add by 阮睿 2010-10-18
+				handCagroInfo(j,billvo);
+				
 				dialog.setSsfsl(null);
 				dialog.setSssl(null);
 			} catch (BusinessException e) {
@@ -2014,6 +2020,17 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				showErrorMessage(e.getMessage());
 			}
 		}
+	}
+	
+	private void handCagroInfo(int selectedRow,GeneralBillVO nowVObill) throws BusinessException
+	{		
+		String cgeneralbid = (String) nowVObill.getItemValue(selectedRow, "cgeneralbid");
+		if(cgeneralbid != null && !cgeneralbid.trim().equals(""))
+		{
+			IMDTools tools = NCLocator.getInstance().lookup(IMDTools.class);
+			tools.updateCargoInfo(cgeneralbid);
+		}		
+		
 	}
 
 	// 2010-10-12 heyq add
