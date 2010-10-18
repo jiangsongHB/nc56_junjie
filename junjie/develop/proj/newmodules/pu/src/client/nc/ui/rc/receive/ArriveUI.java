@@ -4698,6 +4698,10 @@ public void onCancel() {
   }
   onCard();
   showHintMessage(m_lanResTool.getStrByID("common","UCH008")/*@res "取消成功"*/);
+	//2010-10-18 18:49 MeiChao 当取消修改操作时,将当前显示页签顺序重置.
+	this.getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);
+	//2010-10-18 18:49 MeiChao 当取消修改操作时,将当前显示页签顺序重置.
+
 }
 
 /**
@@ -10409,6 +10413,10 @@ private void onBoInfoCost() {
 			}		
 		}
 	}
+	//2010-10-18 18:49 MeiChao 当费用录入处理结束时,将当前显示页签顺序重置.
+	this.getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);
+	//2010-10-18 18:49 MeiChao 当费用录入处理结束时,将当前显示页签顺序重置.
+	
 }
 private void costInfoDistribute(InformationCostVO[] infoCostVOs,OrderVO orderVO){
 //	if(infoCostVOs==null||infoCostVOs.length==0||orderVO==null){
