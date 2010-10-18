@@ -3309,6 +3309,7 @@ public class SaleInvoiceUI extends ToftPanel implements
     }else{//从此到本段添加代码结束,均为在表体有选中行的情况下进行.--2010-10-16 MeiChao
     	
     //获取表体所有选中的行号(tnnd 以下第一行的那个方法根本不好使!!!!!!!!!!!!!!!!!)
+    //int[] selectedRows=this.getBillCardPanel().getBillModel().getBodyTable().getSelectedRows();
     int[] selectedRows=new int[selectedBVOs.length] ;	
     for(int i=0,j=0;i<allBVOs.length;i++){
     if(this.getBillCardPanel().getBillModel().getRowState(i)==BillModel.SELECTED){
