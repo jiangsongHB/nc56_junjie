@@ -10372,9 +10372,9 @@ private void onBoInfoCost() {
 					}else{
 			    		mny = pmny.multiply(arrnumber.div(plannum));
 			    		arrmny = otmny.add(mny);//modify by 付世超 2010-10-16
-			    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
+			    		infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
 			        	//累计到货金额
-			        	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(arrmny, i, "ninvoriginalcurmny");
+			    		infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", arrmny);	
 //						infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(arrnumber));	
 //						infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", infoCostVOs[i].getNoriginalcurmny());	
 					}
