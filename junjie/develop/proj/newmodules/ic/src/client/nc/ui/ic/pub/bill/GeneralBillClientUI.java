@@ -1900,6 +1900,13 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 							.setEnabled(false);
 				}
 			}
+			if (bo.getCode().equals("修改")) {
+				getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
+						true);
+				getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
+						true);
+			}
+
 			// heyq end
 
 			// 二次开发扩展
@@ -1956,7 +1963,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
-				//清空数据
+				// 清空数据
 				dlg.setNoutassistnum(null);
 				dlg.setNoutnum(null);
 			} catch (BusinessException e) {
@@ -1978,7 +1985,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				MDioDialog dialog = new MDioDialog(this);
 				dialog.showModal();
 				if (dialog.getSssl() == null
-						|| dialog.getSssl().doubleValue() == 0){
+						|| dialog.getSssl().doubleValue() == 0) {
 					dialog.setSsfsl(null);
 					return;
 				}
@@ -1998,8 +2005,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 							BillModel.MODIFICATION);
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
-						ICButtonConst.BTN_SAVE));				
-				
+						ICButtonConst.BTN_SAVE));
+
 				dialog.setSsfsl(null);
 				dialog.setSssl(null);
 			} catch (BusinessException e) {
@@ -2029,25 +2036,27 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			showHintMessage("请选择需要计算的表体行....");
 			return;
 		}
-		
-        //对毛边计算按钮进行控制。如果已经维护好码单信息，不允许再次进行毛边计算修改单据表体行的字段值，以避免出现数据不一致性的错误。
-		//add by 阮睿 2010-10-13 -----------begin
-		if(getM_iMode() == BillMode.Update)
-		{
-			String cgeneralbid = getBillCardPanel().getBodyValueAt(j, "cgeneralbid")==null?"":getBillCardPanel().getBodyValueAt(j, "cgeneralbid").toString();
+
+		// 对毛边计算按钮进行控制。如果已经维护好码单信息，不允许再次进行毛边计算修改单据表体行的字段值，以避免出现数据不一致性的错误。
+		// add by 阮睿 2010-10-13 -----------begin
+		if (getM_iMode() == BillMode.Update) {
+			String cgeneralbid = getBillCardPanel().getBodyValueAt(j,
+					"cgeneralbid") == null ? "" : getBillCardPanel()
+					.getBodyValueAt(j, "cgeneralbid").toString();
 			try {
-				SuperVO[] vo= HYPubBO_Client.queryByCondition(MdcrkVO.class, " isnull(dr,0)=0 and cgeneralbid = '"+cgeneralbid+"' ");
-				if(vo!=null&&vo.length>0)
-				{
-					showWarningMessage("所选择的存货行已经维护有码单数据，在码单数据未清除的情况下，不允许再次进行毛边计算");	
+				SuperVO[] vo = HYPubBO_Client.queryByCondition(MdcrkVO.class,
+						" isnull(dr,0)=0 and cgeneralbid = '" + cgeneralbid
+								+ "' ");
+				if (vo != null && vo.length > 0) {
+					showWarningMessage("所选择的存货行已经维护有码单数据，在码单数据未清除的情况下，不允许再次进行毛边计算");
 					return;
 				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-		}		
-		//add by 阮睿 2010-10-13 -----------end
-		
+		}
+		// add by 阮睿 2010-10-13 -----------end
+
 		UFDouble stuffprice = UFDouble.ZERO_DBL;
 		UFDouble stuffweight = UFDouble.ZERO_DBL;
 		UFDouble stuffsumny = UFDouble.ZERO_DBL;
@@ -2128,50 +2137,30 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			UFDouble ninnum = hmpResult.get("grossweight").add(
 					hmpResult.get("stuffweight"), 4);
 
-			getBillCardPanel().setBodyValueAt(ninnum, j, "ninnum");
-			getBillCardPanel().setBodyValueAt(nmny, j, "nmny");
+			// getBillCardPanel().setBodyValueAt(nmny, j, "nmny"); //金额
 
 			UFDouble nprice = nmny.div(ninnum, 4);
-			getBillCardPanel().setBodyValueAt(nprice, j, "nprice");
 
-			// getBillCardPanel().getBillModel().getRowAttribute(j).setRowState(VOStatus.UPDATED);
+			getBillCardPanel().setBodyValueAt(nprice, j, "nprice"); // 单价
+			BillEditEvent e1 = new BillEditEvent(getBillCardPanel()
+					.getBodyItem("nprice").getComponent(), getBillCardPanel()
+					.getBodyValueAt(j, "nprice"), "nprice", j, BillItem.BODY);
+			// 编辑后事件
+			afterEdit(e1);
+
+			getBillCardPanel().setBodyValueAt(ninnum, j, "ninnum"); // 实入数量
+
 			BillEditEvent e = new BillEditEvent(getBillCardPanel().getBodyItem(
-					"nprice"), nprice, "nprice", j, BillItem.BODY);
-			this.afterEdit(e);
+					"ninnum").getComponent(), getBillCardPanel()
+					.getBodyValueAt(j, "ninnum"), "ninnum", j, BillItem.BODY);
+			// 编辑后事件
+			afterEdit(e);
 
-			for (String key : new String[] { "grossprice", "grossweight",
-					"grosssumny", "stuffprice", "stuffweight", "stuffsumny" }) {
-				getM_voBill().setItemValue(j, key, hmpResult.get(key));// 像VO里头附值
-				BillEditEvent e1 = new BillEditEvent(getBillCardPanel()
-						.getBodyItem(key), nprice, key, j, BillItem.BODY);
-				this.afterEdit(e1);
-			}
-
-			getBillCardPanel().getBillModel().setRowState(j,
-					BillModel.MODIFICATION);
-
+			if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
+				getBillCardPanel().getBillModel().setRowState(j,
+						BillModel.MODIFICATION);
 		}
 		showHintMessage("计算完成....");
-
-		//
-		// GeneralBillItemVO[] voItem=null;
-		// if(getM_voBill().getHeaderVO().getVbillcode()!=null){
-		// voItem=getM_voBill().getItemVOs();
-		// voItem[j].setNprice(nprice);
-		// voItem[j].setNmny(nmny);
-		// voItem[j].setNinnum(ninnum);
-		// voItem[j].setStuffsumny(hmpResult.get("stuffsumny"));
-		// voItem[j].setStuffweight(hmpResult.get("stuffweight"));
-		// voItem[j].setStuffprice(hmpResult.get("stuffprice"));
-		// voItem[j].setGrosssumny(hmpResult.get("grosssumny"));
-		// voItem[j].setGrossweight(hmpResult.get("grossweight"));
-		// voItem[j].setGrossprice(hmpResult.get("grossprice"));
-		// }
-		// getM_voBill().setChildrenVO(voItem);
-		// IVOPersistence persit=
-		// (IVOPersistence)NCLocator.getInstance().lookup(IVOPersistence.class.getName());
-		// persit.insertObject(voItem, new GeneralBillItemVOMeta());
-
 	}
 
 	/**
@@ -5661,28 +5650,35 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		// 二次开发扩展
 		if (!getPluginProxy().beforeEdit(e))
 			bret = false;
-		
-		//加入字段编辑前校验，如果出入库单存货行已经有码单信息，则不允许直接修改存货行的实入（出）数量与辅数量。
-		//add by 阮睿 2010-10-13 -----begin
-		if (getBillType() == "4C"||getBillType() == "4I"||getBillType() == "45"||getBillType() == "4A")
-		{
-			if(e.getKey().equals("ninnum")||e.getKey().equals("ninassistnum")||e.getKey().equals("noutnum")||e.getKey().equals("noutassistnum"))
-			{
-				String cgeneralbid = getBillCardPanel().getBodyValueAt(e.getRow(), "cgeneralbid")==null?"":getBillCardPanel().getBodyValueAt(e.getRow(), "cgeneralbid").toString();
+
+		// 加入字段编辑前校验，如果出入库单存货行已经有码单信息，则不允许直接修改存货行的实入（出）数量与辅数量。
+		// add by 阮睿 2010-10-13 -----begin
+		if (getBillType() == "4C" || getBillType() == "4I"
+				|| getBillType() == "45" || getBillType() == "4A") {
+			if (e.getKey().equals("ninnum")
+					|| e.getKey().equals("ninassistnum")
+					|| e.getKey().equals("noutnum")
+					|| e.getKey().equals("noutassistnum")) {
+				String cgeneralbid = getBillCardPanel().getBodyValueAt(
+						e.getRow(), "cgeneralbid") == null ? ""
+						: getBillCardPanel().getBodyValueAt(e.getRow(),
+								"cgeneralbid").toString();
 				try {
-					SuperVO[] vo= HYPubBO_Client.queryByCondition(MdcrkVO.class, " isnull(dr,0)=0 and cgeneralbid = '"+cgeneralbid+"' ");
-					if(vo!=null&&vo.length>0)
-					{
+					SuperVO[] vo = HYPubBO_Client.queryByCondition(
+							MdcrkVO.class,
+							" isnull(dr,0)=0 and cgeneralbid = '" + cgeneralbid
+									+ "' ");
+					if (vo != null && vo.length > 0) {
 						showWarningMessage("本存货已经维护有码单信息，在码单信息清除前，不能直接修改实际数量与辅数量");
 						bret = false;
 					}
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
-				
+
 			}
 		}
-		//add by 阮睿 2010-10-13------------end
+		// add by 阮睿 2010-10-13------------end
 		return bret;
 
 	}
@@ -8268,7 +8264,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		 * 
 		 * SCMEnv.out("查询出节点"+getBillTypeCode()+"的按钮总数: "+inum);
 		 */
-		
+
 		setButtons(buttonArray);
 
 	}
@@ -10020,7 +10016,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		}
 
 		// 毛边计算
-		if (getBillType() == "45"||getBillType() == "4A") {
+		if (getBillType() == "45" || getBillType() == "4A") {
 			getButtonManager().getButtonTree().addMenu(
 					new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON,
 							MDUtils.MBJS_BUTTON));
