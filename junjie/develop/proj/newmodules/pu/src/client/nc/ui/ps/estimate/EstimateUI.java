@@ -3104,7 +3104,7 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 	  //重新获取一次所有暂估数据(供还原之用)
 	  EstimateVO[] allEstimateVOsBackup=(EstimateVO[])getBillCardPanel().getBillModel().getBodyValueVOs(EstimateVO.class.getName());
 	  //获取所选择的暂估数据
-      Integer[] electedRowNOs = null;
+      Integer[] selectedRowNOs = null;
       Vector select = new Vector();
       Vector unselect = new Vector();
       int nRow = getBillCardPanel().getRowCount();//获得行数
@@ -3116,10 +3116,10 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
         else
         	unselect.addElement(new Integer(i));//反之,则添加行号至未选择集合.
       }
-      electedRowNOs = new Integer[select.size()];
-      select.copyInto(electedRowNOs);//将选中行号集合填充入数组.
+      selectedRowNOs = new Integer[select.size()];
+      select.copyInto(selectedRowNOs);//将选中行号集合填充入数组.
 	  //对选中行数组进行为空判断
-      if(electedRowNOs==null||electedRowNOs.length==0){
+      if(selectedRowNOs==null||selectedRowNOs.length==0){
     	  MessageDialog.showErrorDlg(this, "错误", "对不起,请勾选要操作的数据.");
     	  return;
       }
@@ -3132,8 +3132,8 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
       //使用集合Set,来存放PK,可自动过滤重复.
       Set selectPKSet = new TreeSet();
 	  //从选中行中遍历出单据pk的Set集合.
-      for(int i=0;i<electedRowNOs.length;i++){
-    	  selectPKSet.add(allEstimateVOs[electedRowNOs[i]].getCgeneralhid());
+      for(int i=0;i<selectedRowNOs.length;i++){
+    	  selectPKSet.add(allEstimateVOs[selectedRowNOs[i]].getCgeneralhid());
       }
       selectedPKs=new String[selectPKSet.size()];
       selectedPKs=(String[])selectPKSet.toArray(selectedPKs);//将Set中的PK填充入数组中.
