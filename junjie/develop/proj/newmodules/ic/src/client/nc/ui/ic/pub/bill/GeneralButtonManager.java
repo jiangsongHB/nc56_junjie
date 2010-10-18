@@ -104,6 +104,12 @@ import org.w3c.dom.Document;
  * @time 2007-3-9 下午04:29:04
  */
 public class GeneralButtonManager implements IButtonManager,BillActionListener {
+	
+	//2010-10-18 MeiChao 添加
+	private int beforeEditBillMode=0;//修改操作前的单据状态,取值: BillMode.Card或BillMode.List 
+	private InformationCostVO[] expenseBackup=null;//用户作修改操作时,将当前的费用信息存入缓存,用于用户取消修改时恢复.
+	//2010-10-18 MeiChao 添加
+	
 	private ButtonTree m_buttonTree;
 
 	private GeneralBillClientUI m_ui;
@@ -1475,6 +1481,16 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	 */
 	protected void onUpdate() {
 
+		//在用户点修改操作开始前,储存当前单据状态及费用信息.2010-10-18 17:47 MeiChao begin
+		this.beforeEditBillMode=this.getClientUI().getM_iCurPanel();
+		if(this.getClientUI().getM_iCurPanel()==BillMode.Card){
+			expenseBackup=(InformationCostVO[])this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+		}else if(this.getClientUI().getM_iCurPanel()==BillMode.List){
+			//为List时,不需要备份费用信息.
+		}
+		//在用户点修改操作开始前,储存当前单据状态及费用信息.2010-10-18 17:47 MeiChao end 
+		
+		
 		// v5 lj
 		if (getClientUI().m_bRefBills == true) {
 			onSwitch();
@@ -1690,6 +1706,17 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				"UCH008")/*
 							 * @res "取消成功"
 							 */);
+		
+		//2010-10-18 17:48 MeiChao  判断修改前的页面是否是列表状态,是则返回列表状态.
+		if(this.beforeEditBillMode==BillMode.List){
+			this.onSwitch();
+		}else if(this.beforeEditBillMode==BillMode.Card){//否则.重新为费用信息页签写入费用信息.并执行公式.
+			this.getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(expenseBackup);
+			this.getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+			//更新界面
+			this.getBillCardPanel().updateUI();
+		}
+		//2010-10-18 17:48 MeiChao  判断修改前的页面是否是列表状态,是则返回列表状态.
 	}
 
 	/**
