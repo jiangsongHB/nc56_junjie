@@ -104,6 +104,12 @@ import org.w3c.dom.Document;
  * @time 2007-3-9 下午04:29:04
  */
 public class GeneralButtonManager implements IButtonManager,BillActionListener {
+	
+	//2010-10-18 MeiChao 添加
+	private int beforeEditBillMode=0;//修改操作前的单据状态,取值: BillMode.Card或BillMode.List 
+	private InformationCostVO[] expenseBackup=null;//用户作修改操作时,将当前的费用信息存入缓存,用于用户取消修改时恢复.
+	//2010-10-18 MeiChao 添加
+	
 	private ButtonTree m_buttonTree;
 
 	private GeneralBillClientUI m_ui;
@@ -112,6 +118,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	
 	private UFDouble arrnum ;//累计到货数量
 	private UFDouble arrnumber ;//实际到货数量
+	private UFDouble plannum;//上游单据应到总数量
 	//存放所有费用的金额 add by 付世超 2010-10-15
 	private ArrayList  lmny = null;
 	//拉式生产的最初金额 add by 付世超 2010-10-15
@@ -565,10 +572,12 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				  	}      
 				     
 				      String sql = "select nvl(sum(naccumwarehousenum),0) from po_arriveorder_b where dr = 0 and carriveorderid = '"+pkList.get(0)+"'";
-				           try {
+				      String sqlnum = "select sum(narrvnum) from po_arriveorder_b where dr = 0 and carriveorderid = '"+pkList.get(0)+"'";//添加对订单存货总数的查询 add by 付世超 2010-10-18
+				      Object p = null;//添加对订单存货总数的查询 add by 付世超 2010-10-18      
+				      try {
 				        	   IUAPQueryBS query1 = NCLocator.getInstance().lookup(IUAPQueryBS.class);
 				                o = query1.executeQuery(sql, new ColumnProcessor());        		  
-				              
+				                p = query1.executeQuery(sqlnum, new ColumnProcessor());//添加对订单存货总数的查询 add by 付世超 2010-10-18
 				              //第二个参数为null表示查询全部字段,将查询结果存储在内存中
 				              infovos =  (InformationCostVO[]) JJIcScmPubHelper.querySmartVOs(InformationCostVO.class, null, whereSql.toString());
 				        	   
@@ -623,7 +632,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					}
 					// end v5
 					// add by 付世超 2010-10-15 begin
-					 arrnum = new UFDouble((o==null?"0":o).toString());
+					 arrnum = new UFDouble((o==null?"0":o).toString());//累计到货数量
+					 plannum = new UFDouble(p.toString());//上游单据应到总数量，用于按金额录入费用的比例分配
 						CircularlyAccessibleValueObject[] a = vos[0].getChildrenVO();
 //						   int temp = getBillCardPanel().getBillModel("table").getRowCount();
 						if(infovos!=null&&infovos.length!=0){
@@ -640,13 +650,14 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 //					    	 infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurmny().add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
 //					    	  pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber.div((arrnumber.add(arrnum))));
 //					    	  lmny.add(pmny);
-					    	  		lmny.add(infovos[i].getNoriginalcurprice().multiply(arrnumber));
+					    	  		pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
+					    	  		lmny.add(pmny);
 								//将单前到货费用累积金额 存入缓存 2010-10-17  by 付世超
 									lotmny.add(infovos[i].getNinvoriginalcurmny().sub(infovos[i].getNoriginalcurmny()));
 								//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超
 									ltmny.add((infovos[i].getNinstoreoriginalcurmny()== null ? (infovos[i].getNoriginalcurmny()):infovos[i].getNinstoreoriginalcurmny()).sub(infovos[i].getNoriginalcurmny()));
 //					    	  infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurprice().multiply(arrnumber).add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-					    	  infovos[i].setAttributeValue("noriginalcurmny", infovos[i].getNoriginalcurprice().multiply(arrnumber));
+					    	  infovos[i].setAttributeValue("noriginalcurmny", pmny);
 					    	  infovos[i].setNnumber(arrnumber);
 						}
 							//将拉式生成的费用明细 存入ClientUI add by 2010-10-17
@@ -873,10 +884,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					UFDouble plannum = new UFDouble(0.0);
 					for (int i = 0; i < temp; i++) {
 						plannum = plannum.add(new UFDouble((getBillListPanel().getBodyBillModel("table")
-								.getValueAt(i, "nshouldinnum") == null ? 0
-								: getBillListPanel().getBodyBillModel("table")
-								.getValueAt(i, "nshouldinnum"))
-								.toString()));// 应到数量
+								.getValueAt(i, "nshouldinnum") == null ? 0:
+								getBillListPanel().getBodyBillModel("table").getValueAt(i, "nshouldinnum")).toString()));// 应到数量
 					}
 					lmny = new ArrayList();
 					lotmny = new ArrayList();// add by 付世超 2010-10-16 
@@ -1472,6 +1481,16 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	 */
 	protected void onUpdate() {
 
+		//在用户点修改操作开始前,储存当前单据状态及费用信息.2010-10-18 17:47 MeiChao begin
+		this.beforeEditBillMode=this.getClientUI().getM_iCurPanel();
+		if(this.getClientUI().getM_iCurPanel()==BillMode.Card){
+			expenseBackup=(InformationCostVO[])this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+		}else if(this.getClientUI().getM_iCurPanel()==BillMode.List){
+			//为List时,不需要备份费用信息.
+		}
+		//在用户点修改操作开始前,储存当前单据状态及费用信息.2010-10-18 17:47 MeiChao end 
+		
+		
 		// v5 lj
 		if (getClientUI().m_bRefBills == true) {
 			onSwitch();
@@ -1687,6 +1706,17 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				"UCH008")/*
 							 * @res "取消成功"
 							 */);
+		
+		//2010-10-18 17:48 MeiChao  判断修改前的页面是否是列表状态,是则返回列表状态.
+		if(this.beforeEditBillMode==BillMode.List){
+			this.onSwitch();
+		}else if(this.beforeEditBillMode==BillMode.Card){//否则.重新为费用信息页签写入费用信息.并执行公式.
+			this.getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(expenseBackup);
+			this.getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+			//更新界面
+			this.getBillCardPanel().updateUI();
+		}
+		//2010-10-18 17:48 MeiChao  判断修改前的页面是否是列表状态,是则返回列表状态.
 	}
 
 	/**
