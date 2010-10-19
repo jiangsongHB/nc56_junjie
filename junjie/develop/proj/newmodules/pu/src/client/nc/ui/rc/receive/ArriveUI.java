@@ -4231,6 +4231,7 @@ private void onButtonClickedCard(ButtonObject bo){
     onSendAudit();
   } else if(bo == m_btnAudit){
     onAudit(bo);
+    
   } else if(bo == m_btnUnAudit){
     onUnAudit(bo);
   } else if(bo == m_btnQueryForAudit){
@@ -4257,6 +4258,7 @@ private void onButtonClickedCard(ButtonObject bo){
   else{
     onExtendBtnsClick(bo);
   }
+  
 }
 
 /**
@@ -4698,9 +4700,7 @@ public void onCancel() {
   }
   onCard();
   showHintMessage(m_lanResTool.getStrByID("common","UCH008")/*@res "取消成功"*/);
-	//2010-10-18 18:49 MeiChao 当取消修改操作时,将当前显示页签顺序重置.
-	this.getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);
-	//2010-10-18 18:49 MeiChao 当取消修改操作时,将当前显示页签顺序重置.
+	
 
 }
 
@@ -10453,6 +10453,16 @@ private void costInfoDistribute(InformationCostVO[] infoCostVOs,OrderVO orderVO)
 //		  }
 //	}
 }
-   
+/**
+ * 2010-10-18 MeiChao
+ * 由于到货单中强制插入费用信息页签的硬伤.与到货单不兼容,在作任何操作之后均执行一次重置表体页签显示顺序操作.
+ */
+   private void resetBodyTable(){
+	   //重置卡片.列表下的页签顺序.
+	   if(this.getBillCardPanel().getBodyTabbedPane().getSelectedIndex()!=0||this.getBillListPanel().getBodyTabbedPane().getSelectedIndex()!=0){
+		   this.getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);
+		   this.getBillListPanel().getBodyTabbedPane().setSelectedIndex(0);
+	   }
+   }
 
 }
