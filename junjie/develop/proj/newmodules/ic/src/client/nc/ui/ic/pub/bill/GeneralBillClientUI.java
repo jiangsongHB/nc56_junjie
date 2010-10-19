@@ -2771,7 +2771,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					.setBodyDataVO(vos);
 			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
 					.execLoadFormula();
-		} else if(this.getBillType()=="45"){
+		} else if(this.getBillType().equals("45")){
       	  //2010-10-11 MeiChao 当前单据类型为"采购入库单"时, 将卡片及列表中的费用页签中的信息清空
       	  getBillListPanel().getBodyBillModel("jj_scm_informationcost")
 					.setBodyDataVO(null);
