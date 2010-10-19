@@ -639,6 +639,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						if(infovos!=null&&infovos.length!=0){
 						   arrnumber = new UFDouble(0.0);
 									for (int i = 0; i < a.length; i++) {
+										//因为入库单默认的实入数量是空 所以取应入数量用于计算总金额
+//										arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("ninnum").toString()));
 										arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("nshouldinnum").toString()));
 									}
 						//add by 付世超 2010-10-15 begin 费用基础数据
@@ -881,17 +883,21 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				if(vos!=null&&vos.length!=0){
 					// add by 付世超 2010-10-16 begin 设置费用基础数据
 					int temp = getBillListPanel().getBodyBillModel("table").getRowCount();
-					UFDouble plannum = new UFDouble(0.0);
+					 plannum = new UFDouble(0.0);//应到数量
+					 arrnumber = new UFDouble(0.0);//实到数量
 					for (int i = 0; i < temp; i++) {
-						plannum = plannum.add(new UFDouble((getBillListPanel().getBodyBillModel("table")
-								.getValueAt(i, "nshouldinnum") == null ? 0:
-								getBillListPanel().getBodyBillModel("table").getValueAt(i, "nshouldinnum")).toString()));// 应到数量
+						plannum = plannum.add(new UFDouble((getBillListPanel().getBodyBillModel("table").getValueAt(i, "nshouldinnum") == null ? 0:
+									getBillListPanel().getBodyBillModel("table").getValueAt(i, "nshouldinnum")).toString()));// 应到数量
+						arrnumber = arrnumber.add(new UFDouble((getBillListPanel().getBodyBillModel("table").getValueAt(i, "ninnum") == null ? 0:
+									getBillListPanel().getBodyBillModel("table").getValueAt(i, "ninnum")).toString()));// 实到数量
+						
 					}
 					lmny = new ArrayList();
 					lotmny = new ArrayList();// add by 付世超 2010-10-16 
 					ltmny = new ArrayList();// add by 付世超 2010-10-17
 					for (int i = 0; i < vos.length; i++) {
-						lmny.add(vos[i].getNoriginalcurprice().multiply(plannum));
+						pmny = vos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
+						lmny.add(pmny);
 						//将单前到货费用累积金额 存入缓存 2010-10-16  by 付世超
 						lotmny.add(vos[i].getNinvoriginalcurmny().sub(vos[i].getNoriginalcurmny()));
 						//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超

@@ -1939,13 +1939,13 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 				int temp = getBillCardPanel().getBillModel("table").getRowCount();
 				number= new UFDouble(0.0);
 				// add by 付世超 2010-10-14
-				UFDouble plannum = new UFDouble(0.0);
+				UFDouble plannum = new UFDouble(0.0);//应入数量
 				for (int i = 0; i < temp; i++) {
 					number = number.add(new UFDouble((getBillCardPanel().getBillModel("table").getValueAt(i,"ninnum")==null?0.0:getBillCardPanel().getBillModel("table").getValueAt(i,"ninnum")).toString()));    			    	  
 					// add by 付世超 2010-10-14
 					plannum = plannum.add(new UFDouble((getBillCardPanel().getBillModel("table").getValueAt(i,"nshouldinnum") == null ? 0
 									: getBillCardPanel().getBillModel("table").getValueAt(i,"nshouldinnum"))
-									.toString()));// 应到数量
+									.toString()));// 应入数量
 				}
 				
 				for (int i = 0; i < infoCostVOs.length; i++) {
@@ -1955,7 +1955,8 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 					if(i < super.getLmny().size()){
 						if (super.getLmny() != null  ) {
 							//若已存在的费用 单价 或金额改变 会导致本单据费用的改变 应及时更新  
-								pmny = infoCostVOs[i].getNoriginalcurmny().div((number.div(plannum)));
+//								pmny = infoCostVOs[i].getNoriginalcurmny().div((number.div(plannum)));
+								pmny = infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(number);//修改 付世超 2010-10-18 算法修改 为先乘后除
 								super.getLmny().remove(i);
 								super.getLmny().add(i, pmny);
 						}
@@ -1966,12 +1967,12 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 							tmny = (UFDouble)super.getLtmny().get(i);
 						}
 					}else {
-						super.getLmny().add(new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(plannum));
+						super.getLmny().add(new UFDouble(infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(number).toString()));//修改 付世超 2010-10-18 算法修改
 						super.getLotmny().add(new UFDouble(0.0));//新增加的入库费用没有到货累计费用 初始化为0
 						super.getLtmny().add(new UFDouble(0.0));//因为是新增加的入库费用 所以 累计费用为0
 						otmny = new UFDouble(0.0);
 						tmny = new UFDouble(0.0);
-						pmny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(plannum);
+						pmny = new UFDouble(infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(number).toString());//修改 付世超 2010-10-18 算法修改 为先乘后除 算出按应入数量入库所需费用
 					}
 					// add by 付世超 2010-10-17 添加是否为新增加入库费用的判断 使用自定义项 vdef10  0：到货单录入的费用  1：入库单录入的费用
 					if("0".equals(infoCostVOs[i].getAttributeValue("vdef10"))){//到货单录入的费用
@@ -1988,7 +1989,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 				    	}
 						else{
 							// add by 付世超 2010-10-14 begin
-							mny = pmny.multiply(number.div(plannum));
+							mny = pmny.multiply(number).div(plannum);//修改 付世超 2010-10-18
 							//累计到货金额
 							arrmny = otmny.add(mny);//modify by 付世超 2010-10-16
 							// add by 付世超 2010-10-14 end 
@@ -2006,7 +2007,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 						}
 						else{
 							// add by 付世超 2010-10-14 begin
-							mny = pmny.multiply(number.div(plannum));
+							mny = pmny.multiply(number).div(plannum);//修改 付世超 2010-10-18
 							//累计入库金额
 							inmny = tmny.add(mny);//modify by 付世超 2010-10-16
 							// add by 付世超 2010-10-14 end 
@@ -2015,7 +2016,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 						}
 					}
 				}
-										
+				// by 付世超 2010-10-12 注释掉代码						
 //					vos = ((GeneralButtonManager)getButtonManager()).getInfovos();
 //					
 //					if(vos.length != 0 && vos != null){

@@ -506,10 +506,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	private UFDouble otmny = null;
 	// 存放本单前的累计入库费用金额 add by 付世超  2010-10-17
 	private ArrayList ltmny = null;
-	// 存放本单前的累计入库费用金额 add by 付世超  2010-10-17
-	private UFDouble tmny = null;
-	// 存放本单的费用单价 add by 付世超  2010-10-17
-	private ArrayList lprice = null;
+
 
 	public InvokeEventProxy getPluginProxy() {
 		if (this.pluginproxy == null)
@@ -2751,25 +2748,23 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			// add by 付世超 2010-10-16 begin 设置费用基础数据
 			int temp = getBillListPanel().getBodyBillModel("table").getRowCount();
 			UFDouble plannum = new UFDouble(0.0);
+			UFDouble arrnumber = new UFDouble(0.0);//实到数量
 			for (int i = 0; i < temp; i++) {
-				plannum = plannum.add(new UFDouble((getBillListPanel().getBodyBillModel("table")
-						.getValueAt(i, "nshouldinnum") == null ? 0
-						: getBillListPanel().getBodyBillModel("table")
-						.getValueAt(i, "nshouldinnum"))
-						.toString()));// 应到数量
+				plannum = plannum.add(new UFDouble((getBillListPanel().getBodyBillModel("table").getValueAt(i, "nshouldinnum") == null ? 0
+						: getBillListPanel().getBodyBillModel("table").getValueAt(i, "nshouldinnum")).toString()));// 应到数量
+				arrnumber = arrnumber.add(new UFDouble((getBillListPanel().getBodyBillModel("table").getValueAt(i, "ninnum") == null ? 0:
+					getBillListPanel().getBodyBillModel("table").getValueAt(i, "ninnum")).toString()));// 实到数量
 			}
 			lmny = new ArrayList();
 			lotmny = new ArrayList();// add by 付世超 2010-10-16 
 			ltmny = new ArrayList();// add by 付世超 2010-10-17
-			lprice = new ArrayList();// add by 付世超 2010-10-17
 			for (int i = 0; i < vos.length; i++) {
-					lmny.add(vos[i].getNoriginalcurprice().multiply(plannum));
+					pmny = vos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
+					lmny.add(pmny);
 				//将单前到货费用累积金额 存入缓存 2010-10-16  by 付世超
 					lotmny.add(vos[i].getNinvoriginalcurmny().sub(vos[i].getNoriginalcurmny()));
 				//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超
 					ltmny.add((vos[i].getNinstoreoriginalcurmny()== null ? (vos[i].getNoriginalcurmny()):vos[i].getNinstoreoriginalcurmny()).sub(vos[i].getNoriginalcurmny()));
-				//将当前的费用单价 存入缓存 2010-10-17 by 付世超
-					lprice.add(vos[i].getNoriginalcurprice());
 			}
 			// add by 付世超 2010-10-16 end
 			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
@@ -2799,9 +2794,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		return ltmny;
 	}
 	
-	public ArrayList getLprice() {
-		return lprice;
-	}
 	public void setLmny(ArrayList lmnyn) {
 		if(lmny ==null){
 			this.lmny = lmnyn;
@@ -2829,14 +2821,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		}
 	}
 	
-	public void setLprice(ArrayList lpricen) {
-		if(lprice ==null){
-			this.lprice = lpricen;
-		}else{
-			lprice.clear();
-			this.lprice = lpricen;
-		}
-	}
 	// add by  付世超  2010-10-16  GET方法 其他类调用Client中的费用数据 end
 	/**
 	 * 
