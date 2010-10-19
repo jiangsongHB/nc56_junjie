@@ -4155,7 +4155,7 @@ private void onButtonClickedCard(ButtonObject bo){
 	  // int temp = getBillCardPanel().getBillModel("table").getRowCount();
 	   arrnumber = new UFDouble(0.0);
 //	   plannum = new UFDouble(0.0);
-	   plannum = new UFDouble(p.toString());
+	   plannum = new UFDouble(p.toString());//上有单据应到总数量，用于按金额录入费用的比例分配
 				for (int i = 0; i < a.length; i++) {
 					arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("narrvnum").toString()));
 //					plannum = plannum.add(new UFDouble(a[i].getAttributeValue("nplanarrvnum").toString()));
@@ -4698,6 +4698,10 @@ public void onCancel() {
   }
   onCard();
   showHintMessage(m_lanResTool.getStrByID("common","UCH008")/*@res "取消成功"*/);
+	//2010-10-18 18:49 MeiChao 当取消修改操作时,将当前显示页签顺序重置.
+	this.getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);
+	//2010-10-18 18:49 MeiChao 当取消修改操作时,将当前显示页签顺序重置.
+
 }
 
 /**
@@ -4779,11 +4783,11 @@ if(vos!=null&&vos.length!=0){
 	lotmny = new ArrayList();// add by 付世超 2010-10-16 
 	lmny = new ArrayList();
 	for (int i = 0; i < vos.length; i++) {
-		pmny = vos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
+		pmny = vos[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
 //		pmny = vos[i].getNoriginalcurprice().multiply(plannum);
 		lmny.add(pmny);
 		//将单前费用累积金额 存入缓存 2010-10-16  by 付世超
-		lotmny.add(vos[i].getNinvoriginalcurmny().sub(vos[i].getNoriginalcurmny()));
+		lotmny.add((vos[i].getNinvoriginalcurmny() == null ? vos[i].getNoriginalcurmny() : vos[i].getNinvoriginalcurmny()).sub(vos[i].getNoriginalcurmny()));
 	}
 	// add by 付世超 2010-10-16 end
 	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
@@ -10362,7 +10366,7 @@ private void onBoInfoCost() {
 						}else {
 //							pmny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber);
 							pmny = infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
-							lmny.add(new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber));
+							lmny.add(pmny);
 							otmny = new UFDouble(0.0);//新增加的入库费用没有到货累计费用 初始化为0
 							lotmny.add(otmny);
 							
@@ -10379,7 +10383,7 @@ private void onBoInfoCost() {
 //			    	infoCostVOs[i].setAttributeValue("ninvoriginalcursummny", taxmny);
 			    	infoCostVOs[i].setAttributeValue("ninvoriginalcurmny", arrmny);	
 					}else{
-			    		mny = pmny.multiply(arrnumber).div(plannum);
+			    		mny = pmny.multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改
 			    		arrmny = otmny.add(mny);//modify by 付世超 2010-10-16
 			    		infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
 			        	//累计到货金额
@@ -10409,6 +10413,10 @@ private void onBoInfoCost() {
 			}		
 		}
 	}
+	//2010-10-18 18:49 MeiChao 当费用录入处理结束时,将当前显示页签顺序重置.
+	this.getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);
+	//2010-10-18 18:49 MeiChao 当费用录入处理结束时,将当前显示页签顺序重置.
+	
 }
 private void costInfoDistribute(InformationCostVO[] infoCostVOs,OrderVO orderVO){
 //	if(infoCostVOs==null||infoCostVOs.length==0||orderVO==null){
