@@ -671,7 +671,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
 		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
 		  	          getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
-		              }else if(this.getBillType()=="45"){
+		              }else if(this.getBillType().equals("45")){
 		            	  //2010-10-11 MeiChao 当前单据类型为"采购入库单"时, 将卡片及列表中的费用页签中的信息清空
 		            	  getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null); 
 		      	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
@@ -909,7 +909,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					// add by 付世超 2010-10-16 end
 					getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 					getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-				}else if(this.getBillType()=="45"){
+				}else if(this.getBillType().equals("45")){
 	            	  //2010-10-11 MeiChao 当前单据类型为"采购入库单"时, 将卡片及列表中的费用页签中的信息清空
 	            	  getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
 	      		 }
@@ -1488,7 +1488,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 
 		//在用户点修改操作开始前,当前单据类型为采购入库单时储存当前单据状态及费用信息.2010-10-18 17:47 MeiChao begin
 		this.beforeEditBillMode=this.getClientUI().getM_iCurPanel();
-		if(this.getClientUI().getM_iCurPanel()==BillMode.Card&&this.getBillType()=="45"){
+		if(this.getClientUI().getM_iCurPanel()==BillMode.Card&&this.getBillType().equals("45")){
 			expenseBackup=(InformationCostVO[])this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
 		}else if(this.getClientUI().getM_iCurPanel()==BillMode.List){
 			//为List时,不需要备份费用信息.
@@ -1713,9 +1713,9 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 							 */);
 		
 		//2010-10-18 17:48 MeiChao  如果当前单据类型为"采购入库单"时,判断修改前的页面是否是列表状态,是则返回列表状态.
-		if(this.beforeEditBillMode==BillMode.List&&this.getBillType()=="45"){
+		if(this.beforeEditBillMode==BillMode.List&&this.getBillType().equals("45")){
 			this.onSwitch();
-		}else if(this.beforeEditBillMode==BillMode.Card&&this.getBillType()=="45"){//否则.重新为费用信息页签写入费用信息.并执行公式.
+		}else if(this.beforeEditBillMode==BillMode.Card&&this.getBillType().equals("45")){//否则.重新为费用信息页签写入费用信息.并执行公式.
 			this.getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(expenseBackup);
 			this.getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
 			//更新界面
