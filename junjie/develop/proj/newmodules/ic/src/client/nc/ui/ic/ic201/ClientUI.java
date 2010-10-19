@@ -256,7 +256,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 //		    		UFDouble price =  new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurmny").toString()).div(number);
 //		    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(price, i, "noriginalcurprice");	
 		    		//add by 付世超 2010-10-14 begin 
-		    		mny = pmny.multiply(number.div(plannum));
+		    		mny = pmny.multiply(number).div(plannum);
 		    		arrmny = otmny.add(mny);//modify by 付世超 2010-10-16
 		    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
 		        	//累计到货金额
@@ -277,7 +277,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 					}
 					else{
 						// add by 付世超 2010-10-14 begin
-						mny = pmny.multiply(number.div(plannum));
+						mny = pmny.multiply(number).div(plannum);
 						//累计入库金额
 						inmny = tmny.add(mny);//modify by 付世超 2010-10-16
 						// add by 付世超 2010-10-14 end 

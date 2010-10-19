@@ -896,7 +896,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					lotmny = new ArrayList();// add by 付世超 2010-10-16 
 					ltmny = new ArrayList();// add by 付世超 2010-10-17
 					for (int i = 0; i < vos.length; i++) {
-						pmny = vos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
+						pmny = vos[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
 						lmny.add(pmny);
 						//将单前到货费用累积金额 存入缓存 2010-10-16  by 付世超
 						lotmny.add(vos[i].getNinvoriginalcurmny().sub(vos[i].getNoriginalcurmny()));
