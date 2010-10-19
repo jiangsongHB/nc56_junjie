@@ -4783,11 +4783,11 @@ if(vos!=null&&vos.length!=0){
 	lotmny = new ArrayList();// add by 付世超 2010-10-16 
 	lmny = new ArrayList();
 	for (int i = 0; i < vos.length; i++) {
-		pmny = vos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
+		pmny = vos[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
 //		pmny = vos[i].getNoriginalcurprice().multiply(plannum);
 		lmny.add(pmny);
 		//将单前费用累积金额 存入缓存 2010-10-16  by 付世超
-		lotmny.add(vos[i].getNinvoriginalcurmny().sub(vos[i].getNoriginalcurmny()));
+		lotmny.add((vos[i].getNinvoriginalcurmny() == null ? vos[i].getNoriginalcurmny() : vos[i].getNinvoriginalcurmny()).sub(vos[i].getNoriginalcurmny()));
 	}
 	// add by 付世超 2010-10-16 end
 	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
