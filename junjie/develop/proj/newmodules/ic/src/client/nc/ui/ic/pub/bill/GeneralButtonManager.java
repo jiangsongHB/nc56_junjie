@@ -655,7 +655,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					    	  		pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
 					    	  		lmny.add(pmny);
 								//将单前到货费用累积金额 存入缓存 2010-10-17  by 付世超
-									lotmny.add(infovos[i].getNinvoriginalcurmny().sub(infovos[i].getNoriginalcurmny()));
+									lotmny.add((infovos[i].getNinvoriginalcurmny() == null ? infovos[i].getNoriginalcurmny() : infovos[i].getNinvoriginalcurmny()).sub(infovos[i].getNoriginalcurmny()));
 								//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超
 									ltmny.add((infovos[i].getNinstoreoriginalcurmny()== null ? (infovos[i].getNoriginalcurmny()):infovos[i].getNinstoreoriginalcurmny()).sub(infovos[i].getNoriginalcurmny()));
 //					    	  infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurprice().multiply(arrnumber).add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
@@ -899,7 +899,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						pmny = vos[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
 						lmny.add(pmny);
 						//将单前到货费用累积金额 存入缓存 2010-10-16  by 付世超
-						lotmny.add(vos[i].getNinvoriginalcurmny().sub(vos[i].getNoriginalcurmny()));
+						lotmny.add((vos[i].getNinvoriginalcurmny() == null ? vos[i].getNoriginalcurmny() : vos[i].getNinvoriginalcurmny()).sub(vos[i].getNoriginalcurmny()));
 						//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超
 						ltmny.add((vos[i].getNinstoreoriginalcurmny()== null ? (vos[i].getNoriginalcurmny()):vos[i].getNinstoreoriginalcurmny()).sub(vos[i].getNoriginalcurmny()));
 					}
