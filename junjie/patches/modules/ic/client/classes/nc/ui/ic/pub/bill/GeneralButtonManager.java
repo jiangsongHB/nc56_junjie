@@ -123,15 +123,6 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	private ArrayList  lmny = null;
 	//拉式生产的最初金额 add by 付世超 2010-10-15
 	private UFDouble pmny = null;
-	// 存放本单前的累计费用金额 add by 付世超 2010-10-16
-	private ArrayList lotmny = null;
-	// 用于存放本单之前的累积费用金额 add by 付世超 2010-10-16
-	private UFDouble otmny = null;
-	// 存放本单前的累计入库费用金额 add by 付世超  2010-10-17
-	private ArrayList ltmny = null;
-	// 存放本单前的累计入库费用金额 add by 付世超  2010-10-17
-	private UFDouble tmny = null;
-	// add by  付世超  2010-10-16  GET方法 其他类调用Client中的费用数据 begin
 	public UFDouble getArrnum(){
 		return arrnum;
 	}
@@ -139,47 +130,12 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	public InformationCostVO[] getInfovos(){
 		return infovos;
 	}
+	// add by  付世超  2010-10-16  GET方法 其他类调用费用数据 begin
 	public ArrayList getLmny() {
 		return lmny;
 	}
 
-	public ArrayList getLotmny() {
-		
-		return lotmny;
-	}
-	
-	public ArrayList getLtmny() {
-		return ltmny;
-	}
-	
-
-	public void setLmny(ArrayList lmnyn) {
-		if(lmny ==null){
-			this.lmny = lmnyn;
-		}else{
-			lmny.clear();
-			this.lmny = lmnyn;
-		}
-	}
-
-	public void setLotmny(ArrayList lotmnyn) {
-		if(lotmny ==null){
-			this.lotmny = lotmnyn;
-		}else{
-			lotmny.clear();
-			this.lotmny = lotmnyn;
-		}
-	}
-	
-	public void setLtmny(ArrayList ltmnyn) {
-		if(ltmny ==null){
-			this.ltmny = ltmnyn;
-		}else{
-			ltmny.clear();
-			this.ltmny = ltmnyn;
-		}
-	}
-	// add by  付世超  2010-10-16  GET/SET方法 其他类调用Client中的费用数据 end
+	// add by  付世超  2010-10-16  GET方法 其他类调用费用数据 end
 
 
 	public GeneralButtonManager(GeneralBillClientUI clientUI)
@@ -645,27 +601,17 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 									}
 						//add by 付世超 2010-10-15 begin 费用基础数据
 									lmny = new ArrayList();
-									lotmny = new ArrayList();// add by 付世超 2010-10-16 
-									ltmny = new ArrayList();// add by 付世超 2010-10-17
+									//累计金额废弃不用 by 付世超  2010-10-19
 					      for (int i = 0; i < infovos.length; i++) {
 //							vos[i].setAttributeValue("ninvoriginalcursummny", vos[i].getNoriginalcursummny());
 //					    	 infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurmny().add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-//					    	  pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber.div((arrnumber.add(arrnum))));
-//					    	  lmny.add(pmny);
 					    	  		pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
 					    	  		lmny.add(pmny);
-								//将单前到货费用累积金额 存入缓存 2010-10-17  by 付世超
-									lotmny.add((infovos[i].getNinvoriginalcurmny() == null ? infovos[i].getNoriginalcurmny() : infovos[i].getNinvoriginalcurmny()).sub(infovos[i].getNoriginalcurmny()));
-								//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超
-									ltmny.add((infovos[i].getNinstoreoriginalcurmny()== null ? (infovos[i].getNoriginalcurmny()):infovos[i].getNinstoreoriginalcurmny()).sub(infovos[i].getNoriginalcurmny()));
 //					    	  infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurprice().multiply(arrnumber).add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-					    	  infovos[i].setAttributeValue("noriginalcurmny", pmny);
-					    	  infovos[i].setNnumber(arrnumber);
+					    	  //因为入库单初始是没有实入数量的 所以应该也没有费用显示 清零 by 付世超  2010-10-19
+					    	  infovos[i].setAttributeValue("noriginalcurmny", new UFDouble(0.0));
+					    	  infovos[i].setNnumber(new UFDouble(0.0));
 						}
-							//将拉式生成的费用明细 存入ClientUI add by 2010-10-17
-							getClientUI().setLmny(lmny);
-							getClientUI().setLotmny(lotmny);
-							getClientUI().setLtmny(ltmny);
 					//add by 付世超 2010-10-15 end 
 				      getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
 		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
@@ -892,20 +838,10 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						
 					}
 					lmny = new ArrayList();
-					lotmny = new ArrayList();// add by 付世超 2010-10-16 
-					ltmny = new ArrayList();// add by 付世超 2010-10-17
 					for (int i = 0; i < vos.length; i++) {
 						pmny = vos[i].getNoriginalcurmny().multiply(plannum).div(arrnumber);//修改 付世超 2010-10-18 算法修改 为先乘后除
 						lmny.add(pmny);
-						//将单前到货费用累积金额 存入缓存 2010-10-16  by 付世超
-						lotmny.add((vos[i].getNinvoriginalcurmny() == null ? vos[i].getNoriginalcurmny() : vos[i].getNinvoriginalcurmny()).sub(vos[i].getNoriginalcurmny()));
-						//将单前入库费用累积金额 存入缓存 2010-10-17  by 付世超
-						ltmny.add((vos[i].getNinstoreoriginalcurmny()== null ? (vos[i].getNoriginalcurmny()):vos[i].getNinstoreoriginalcurmny()).sub(vos[i].getNoriginalcurmny()));
 					}
-					//将拉式生成的费用明细 存入ClientUI add by 2010-10-17
-					getClientUI().setLmny(lmny);
-					getClientUI().setLotmny(lotmny);
-					getClientUI().setLtmny(ltmny);
 					// add by 付世超 2010-10-16 end
 					getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 					getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
