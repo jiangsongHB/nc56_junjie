@@ -426,6 +426,7 @@ junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientCtrl.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientEH.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientUI.class -text
 junjie/patches/scripts/.project -text
+junjie/patches/scripts/到货单费用信息页签/维护到货单累计金额为不可显示.sql -text
 junjie/patches/scripts/码单/NC脚本/45Temp.sql -text
 junjie/patches/scripts/码单/NC脚本/mbic.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/001.sql -text
@@ -447,6 +448,8 @@ junjie/patches/scripts/码单/NC脚本/zhunjie_md_v1.3.sql -text
 junjie/patches/scripts/码单/ierp/bin/scmplugin.xml -text
 junjie/patches/scripts/码单/码单数据库设计100906_v1.3.doc -text
 junjie/patches/scripts/码单/部署说明.txt -text
+junjie/patches/scripts/费用录入面板更新/费用信息模板累计金额为不可显示.sql -text
+junjie/patches/scripts/采购入库费用信息页签/库存采购入库单累计金额为不可显示.sql -text
 junjie/patches/scripts/采购到货单数量与辅数量换算补丁.问题00002/采购入库单模板修改脚本.sql -text
 junjie/patches/scripts/采购到货单数量与辅数量换算补丁.问题00002/采购到货单模板修改脚本.sql -text
 junjie/patches/scripts/采购订单模板/采购订单数量与辅数量换算编辑公式脚本.sql -text
