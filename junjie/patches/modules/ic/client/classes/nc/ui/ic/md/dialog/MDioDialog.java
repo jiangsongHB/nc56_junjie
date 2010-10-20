@@ -169,6 +169,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		if (stuffprice == null || stuffprice.doubleValue() == 0) {
 			UFDouble nprice = (UFDouble) nowVObill.getItemValue(
 					getGenSelectRowID(), "nprice");
+			if(nprice==null)
+				nprice=new UFDouble(0);
 			this.setStuffprice(nprice);
 		} else
 			this.setStuffprice(stuffprice);
