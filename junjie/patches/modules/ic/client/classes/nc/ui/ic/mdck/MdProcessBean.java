@@ -13,7 +13,9 @@ import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.MapProcessor;
 import nc.ui.pub.beans.MessageDialog;
+import nc.vo.ic.md.CargInfVO;
 import nc.vo.ic.md.MdcrkVO;
+import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.sd.MdsdVO;
 import nc.vo.ic.xcl.MdxclBVO;
 import nc.vo.ic.xcl.MdxclVO;
@@ -356,6 +358,41 @@ public class MdProcessBean {
 			evo.setDef2(kyzl);
 		}
 		return evo;
+	}
+
+	// 全部删除码单后，还原码货位表数据
+	public boolean returnHw(GeneralBillItemVO itemVOa, String pk_corp,
+			String billtype) throws BusinessException {
+		
+		String del_huowei = "delete ic_general_bb1 where cgeneralbid='"
+				+ itemVOa.getCgeneralbid() + "'";
+
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		try {
+			iUAPQueryBS.executeQuery(del_huowei, new ArrayListProcessor());
+		} catch (BusinessException e) {
+			e.printStackTrace();
+		}
+
+		CargInfVO CargInfVO = new CargInfVO();
+		CargInfVO.setCgeneralbid(itemVOa.getCgeneralbid());
+		CargInfVO.setCspaceid("_________N/A________");
+		CargInfVO.setDr(0);
+		CargInfVO.setPk_corp(pk_corp);
+		if (billtype.equals("4I") || billtype.equals("4C")) {
+			CargInfVO.setNoutspaceassistnum(itemVOa.getNoutassistnum()); // noutassistnum
+			// 实出辅数量
+			CargInfVO.setNoutspacenum(itemVOa.getNoutnum()); // noutnum 实出数量
+		} else {
+			CargInfVO.setNinspaceassistnum(itemVOa.getNinassistnum()); // ninassistnum
+			// 实入辅数量
+			CargInfVO.setNinspacenum(itemVOa.getNinnum()); // ninnum 实入数量
+		}
+		IVOPersistence ivo = (IVOPersistence) NCLocator.getInstance().lookup(
+				IVOPersistence.class.getName());
+		ivo.insertVO(CargInfVO);
+		return true;
 	}
 
 }

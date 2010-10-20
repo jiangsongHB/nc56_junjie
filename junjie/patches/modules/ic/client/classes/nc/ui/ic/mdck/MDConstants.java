@@ -15,6 +15,10 @@ public class MDConstants {
 
 	public static final int ZL_XSW = 4;// 重量小数位
 
+	public static final int DJ_XSW = 2;// 单价
+
+	public static final int JE_XSW = 2;// 金额
+
 	public static String getCurrentDateTime() {
 		String currentTime = null;
 		Date date = new Date();

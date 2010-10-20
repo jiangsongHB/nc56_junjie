@@ -7,9 +7,12 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pub.jj.IJJUAPService;
 import nc.jdbc.framework.processor.ColumnProcessor;
+import nc.ui.ic.mdck.MDConstants;
+import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDouble;
 
 /**
@@ -183,14 +186,12 @@ public class MDUtils {
 	public static MdcrkVO[] mdLJ(MdcrkVO[] vos) throws BusinessException {
 
 		boolean isCG = false;// 是否为槽钢
-
 		if (vos[0].getMd_meter() != null) {
 			isCG = true;
 		} else if (vos[0].getMd_length() == null
 				|| vos[0].getMd_width() == null) {
 			throw new BusinessException("第1行，长度/宽度/米数不能同时为空.");
 		}
-
 		for (int i = 0; i < vos.length; i++) {
 			MdcrkVO vo = vos[i];
 			UFDouble lenth = vo.getMd_length();// 长
@@ -220,11 +221,11 @@ public class MDUtils {
 				if (width == null || width.doubleValue() <= 0) {
 					throw new BusinessException("第" + (i + 1) + "行，宽度不能小于0");
 				}
-
 				UFDouble gui = new UFDouble(guige);
-				// （厚+附加值）*宽*长*支数*7.85 /1000000000
+				// （厚+附加值）*宽*长*支数*7.85 /1000000
 				vo.setSrkzl((gui.add(fjm)).multiply(width).multiply(lenth)
-						.multiply(zs).multiply(7.85).div(1000000000));
+						.multiply(zs).multiply(7.85).div(
+								new UFDouble(1000000), MDConstants.ZL_XSW));
 			}
 		}
 
@@ -339,20 +340,6 @@ public class MDUtils {
 			e.printStackTrace();
 			throw new BusinessException(e.getMessage());
 		}
-		// queryAdditionalvalue(String pk_invbasdoc) 根据存货基本档案查出附加值
-		//
-		//
-		// queryAdjustmentcoefficient(String pk_invbasdoc) 根据存货基本档案查出理算系数
-
 		return rsDouble;
-
-		/*
-		 * // FIXME 与佛山代码整合后,需要更改此处代码 IUAPQueryBS bs =
-		 * NCLocator.getInstance().lookup(IUAPQueryBS.class); Object obj = null;
-		 * try { obj = bs.executeQuery( "select pk_invcl from bd_invbasdoc where
-		 * pk_invbasdoc = '" + cinvbasid + "' ", new ColumnProcessor()); } catch
-		 * (BusinessException e) { e.printStackTrace(); } return new
-		 * UFDouble(0.5);
-		 */
 	}
 }

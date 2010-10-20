@@ -5,11 +5,11 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
 import nc.bs.framework.common.NCLocator;
 import nc.itf.ic.md.IMDTools;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ArrayProcessor;
+import nc.ui.ic.mdck.MDConstants;
 import nc.ui.ic.pub.bill.Environment;
 import nc.ui.ic.pub.bill.GeneralBillClientUI;
 import nc.ui.pub.beans.MessageDialog;
@@ -25,6 +25,7 @@ import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.trade.business.HYPubBO_Client;
 import nc.uif.pub.exception.UifException;
 import nc.vo.ic.md.MdcrkVO;
+import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
 import nc.vo.ic.xcl.MdxclVO;
 import nc.vo.pub.BusinessException;
@@ -63,6 +64,24 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	public UFDouble ssfsl = new UFDouble(0);// 实收辅数量
 
 	public UFDouble sssl = new UFDouble(0);// 实收数量
+
+	public UFDouble nprice = new UFDouble(0);// 实入库单价
+
+	public UFDouble nmny = new UFDouble(0);// 实入金额
+
+	public UFDouble grossprice = new UFDouble(0);// 毛边单价
+
+	public UFDouble grossweight = new UFDouble(0);// 毛边重量
+
+	public UFDouble grosssumny = new UFDouble(0);// 毛边金额
+
+	public UFDouble stuffprice = new UFDouble(0);// 正材单价
+
+	public UFDouble stuffweight = new UFDouble(0);// 正材重量
+
+	public UFDouble stuffsumny = new UFDouble(0);// 正材金额
+
+	public UFBoolean sfsqmd = new UFBoolean(false); // 是否删除码单
 
 	public MDioDialog(GeneralBillClientUI ui) throws BusinessException {
 		super(ui, MDUtils.getBillNameByBilltype(ui.getBillType()) + "－码单信息");
@@ -142,6 +161,21 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		mdxclvo.setCinvbasid((String) nowVObill.getItemValue(
 				getGenSelectRowID(), "cinvbasid"));// 基本档案
 		mdxclvo.setCinventoryidb(InvID);// 存货.
+
+		// 初始化正材单价,如果表体正材单价为空，则取表体中的单价。如果不为空，则一直取正材单价
+		GeneralBillItemVO itemVOa = ((GeneralBillItemVO[]) nowVObill
+				.getChildrenVO())[getGenSelectRowID()];
+		UFDouble stuffprice = itemVOa.getStuffprice();
+		if (stuffprice == null || stuffprice.doubleValue() == 0) {
+			UFDouble nprice = (UFDouble) nowVObill.getItemValue(
+					getGenSelectRowID(), "nprice");
+			this.setStuffprice(nprice);
+		} else
+			this.setStuffprice(stuffprice);
+		// 初始化毛边单价
+		UFDouble grossprice = itemVOa.getGrossprice();
+		if (grossprice != null && grossprice.doubleValue() != 0)
+			getBillCardPanel().setHeadItem("grossprice", grossprice);
 	}
 
 	/**
@@ -393,6 +427,25 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	private void onEdit() {
 		setStatus(MDUtils.EDITING);
+		GeneralBillVO nowVObill = getGeneralBillVO();
+		String InvID = "";
+		if (nowVObill != null && getGenSelectRowID() >= 0) {
+			// WhID = (String)nowVObill.getHeaderValue("cwarehouseid");
+			InvID = (String) nowVObill.getItemValue(getGenSelectRowID(),
+					"cinventoryid");
+		}
+		// 初始化毛边单价输入框
+		boolean sfmbjs;
+		try {
+			sfmbjs = CheckSfmbjs(InvID);
+			if (sfmbjs == true)
+				getBillCardPanel().getHeadItem("grossprice").setEdit(true);
+			else
+				getBillCardPanel().getHeadItem("grossprice").setEdit(false);
+		} catch (BusinessException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	private void onDelline() {
@@ -409,9 +462,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	private void onCalc() throws BusinessException {
 		MdcrkVO[] mdvos = getBodyVOs();
-		if (mdvos.length < 1) {
+		if (mdvos.length < 1)
 			throw new BusinessException("码单表体没有数据！");
-		}
 		// 较验数据
 		UFDouble sum_srkzs = new UFDouble(0);
 		for (int i = 0; i < mdvos.length; i++) {
@@ -429,9 +481,24 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		String ispj = (String) getBillCardPanel().getHeadItem("ispj")
 				.getValueObject();
 		if (ispj == null || ispj.equals("false")) {
+			// 理计正材重量
 			mdvos = MDUtils.mdLJ(mdvos);
+			// 判断当前存货是否需要进行毛边计算
+			GeneralBillVO nowVObill = getGeneralBillVO();
+			String InvID = "";
+			if (nowVObill != null && getGenSelectRowID() >= 0) {
+				InvID = (String) nowVObill.getItemValue(getGenSelectRowID(),
+						"cinventoryid");
+			}
+			boolean sfmbjs = CheckSfmbjs(InvID);
+			// 理计毛边的重量及金额，正材重量及金额，全部的单价
+			if (sfmbjs == true)
+				mdvos = mdMbjs(mdvos);
+			else
+				this.setNprice(this.getStuffprice());// 正材单价stuffprice
 		} else {
 			mdvos = MDUtils.mdBJ(mdvos, num);
+			this.setNprice(this.getStuffprice());// 正材单价stuffprice
 		}
 		getBillCardPanel().getBillData().setBodyValueVO(mdvos);
 		getBillCardPanel().getBillModel().execLoadFormula();
@@ -465,11 +532,43 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			for (int i = 0; i < mdvos.length; i++) {
 				sum_sssl = sum_sssl.add(mdvos[i].getSrkzl());
 			}
+			// 是否删除码单
+			if (sum_sssl.doubleValue() == 0)
+				this.setSfsqmd(new UFBoolean(true));
 			// 设置实收数量
 			this.setSssl(sum_sssl);
 			setMessage("保存成功...");
 			setStatus(MDUtils.INIT_CANEDIT);
 			initBodyData();
+
+			// 补充正材重量及金额
+			String ispj = (String) getBillCardPanel().getHeadItem("ispj")
+					.getValueObject();
+			GeneralBillVO nowVObill = getGeneralBillVO();
+			String InvID = "";
+			if (nowVObill != null && getGenSelectRowID() >= 0) {
+				InvID = (String) nowVObill.getItemValue(getGenSelectRowID(),
+						"cinventoryid");
+			}
+			boolean sfmbjs = CheckSfmbjs(InvID);
+			if (ispj != null && !ispj.equals("false")) {
+				// 正材重量之和*正材单价=正材金额 stuffsumny
+				this.setStuffsumny(sum_sssl.multiply(this.getStuffprice(),
+						MDConstants.JE_XSW));
+				this.setStuffweight(sum_sssl);// 正材重量
+				this.setNmny(this.getStuffsumny().add(this.getGrosssumny())); // 实入库金额
+			} else {
+				if (sfmbjs == false) {
+					// 正材重量之和*正材单价=正材金额 stuffsumny
+					this.setStuffsumny(sum_sssl.multiply(this.getStuffprice(),
+							MDConstants.JE_XSW));
+					this.setStuffweight(sum_sssl);// 正材重量
+					this
+							.setNmny(this.getStuffsumny().add(
+									this.getGrosssumny())); // 实入库金额
+				}
+			}
+
 			closeCancel();
 			// ui.getButtonManager().onButtonClicked(ui.getButtonManager().getButton(ICButtonConst.BTN_BROWSE_REFRESH));
 		}
@@ -543,22 +642,29 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	 */
 	public void afterEdit(BillEditEvent editEvent) {
 		String key = editEvent.getKey();
-		// if(key.equals("srkzl")){
-		// UFDouble hsl =
-		// (UFDouble)getGeneralBillVO().getItemValue(getGenSelectRowID(),
-		// "hsl");
-		//			
-		// UFDouble zl = new UFDouble((String)editEvent.getValue());
-		// getBillCardPanel().getBillModel().setValueAt(hsl.multiply(zl),
-		// editEvent.getRow(), "srkzs");
-		// }else
-		//			
 		if (key.equals("ispj")) {
 			if (editEvent.getValue().equals("true")) {
 				getBillCardPanel().getHeadItem("realWeight").setEdit(true);
+				getBillCardPanel().getHeadItem("grossprice").setEdit(false);
 				setIspj(UFBoolean.TRUE);
 			} else {
 				getBillCardPanel().getHeadItem("realWeight").setEdit(false);
+
+				// 判断当前存货是否需要进行毛边计算
+				GeneralBillVO nowVObill = getGeneralBillVO();
+				String InvID = "";
+				if (nowVObill != null && getGenSelectRowID() >= 0) {
+					InvID = (String) nowVObill.getItemValue(
+							getGenSelectRowID(), "cinventoryid");
+				}
+				try {
+					boolean sfmbjs = CheckSfmbjs(InvID);
+					if (sfmbjs == true)
+						getBillCardPanel().getHeadItem("grossprice").setEdit(
+								true);
+				} catch (BusinessException e) {
+					e.printStackTrace();
+				}
 				setIspj(UFBoolean.FALSE);
 			}
 		}
@@ -577,6 +683,17 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		} else if (key.equals("srkzs")) {
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "srkzl");
+		} else if (key.equals("grossprice")) {
+			MdcrkVO[] vos = (MdcrkVO[]) getBillCardPanel().getBillData()
+					.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
+			if (vos != null && vos.length > 0) {
+				int row = getBillCardPanel().getBillModel()
+						.getTotalTableModel().getRowCount();
+				for (int i = 0; i < row; i++)
+					getBillCardPanel().getBillModel().setValueAt(null, i,
+							"srkzl");
+			}
+
 		}
 		edited = true;
 		// md_width
@@ -613,6 +730,142 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	public void setSssl(UFDouble sssl) {
 		this.sssl = sssl;
+	}
+
+	public UFDouble getGrossprice() {
+		return grossprice;
+	}
+
+	public void setGrossprice(UFDouble grossprice) {
+		this.grossprice = grossprice;
+	}
+
+	public UFDouble getGrosssumny() {
+		return grosssumny;
+	}
+
+	public void setGrosssumny(UFDouble grosssumny) {
+		this.grosssumny = grosssumny;
+	}
+
+	public UFDouble getGrossweight() {
+		return grossweight;
+	}
+
+	public void setGrossweight(UFDouble grossweight) {
+		this.grossweight = grossweight;
+	}
+
+	public UFDouble getStuffprice() {
+		return stuffprice;
+	}
+
+	public void setStuffprice(UFDouble stuffprice) {
+		this.stuffprice = stuffprice;
+	}
+
+	public UFDouble getStuffsumny() {
+		return stuffsumny;
+	}
+
+	public void setStuffsumny(UFDouble stuffsumny) {
+		this.stuffsumny = stuffsumny;
+	}
+
+	public UFDouble getStuffweight() {
+		return stuffweight;
+	}
+
+	public void setStuffweight(UFDouble stuffweight) {
+		this.stuffweight = stuffweight;
+	}
+
+	public UFDouble getNprice() {
+		return nprice;
+	}
+
+	public void setNprice(UFDouble nprice) {
+		this.nprice = nprice;
+	}
+
+	public UFDouble getNmny() {
+		return nmny;
+	}
+
+	public void setNmny(UFDouble nmny) {
+		this.nmny = nmny;
+	}
+
+	public UFBoolean getSfsqmd() {
+		return sfsqmd;
+	}
+
+	public void setSfsqmd(UFBoolean sfsqmd) {
+		this.sfsqmd = sfsqmd;
+	}
+
+	// 毛边计算
+	public MdcrkVO[] mdMbjs(MdcrkVO[] mdcrkVos) throws BusinessException {
+		// 毛边单价
+		String grossprice_str = getBillCardPanel().getHeadItem("grossprice")
+				.getValue();
+		if (grossprice_str == null || grossprice_str.equals(""))
+			throw new BusinessException("当前存货维护了毛边计算，理计时毛边单价不能为空！");
+		UFDouble grossprice = new UFDouble(grossprice_str, MDConstants.DJ_XSW);
+		if (grossprice.doubleValue() == 0)
+			throw new BusinessException("理计时毛边单价不能为0");
+		// 毛边系数
+		UFDouble mbxs = new UFDouble(0);
+		mbxs = MDUtils.getMBXS(mdxclvo.getCinvbasid(), mdxclvo
+				.getCinventoryidb(), null);
+		if (mbxs == null || mbxs.doubleValue() <= 0)
+			throw new BusinessException("毛边系数不能小于等于0");
+		UFDouble sumZczl = new UFDouble(0);// 正材重量之和
+		UFDouble sumMbzl = new UFDouble(0);// 毛边重量之和
+		for (int i = 0; i < mdcrkVos.length; i++) {
+			mdcrkVos[i].setDef1(mdcrkVos[i].getSrkzl());// 正材重量
+			mdcrkVos[i].setDef2(mdcrkVos[i].getSrkzl().multiply(mbxs,
+					MDConstants.ZL_XSW));// 毛边重量
+			mdcrkVos[i].setSrkzl(mdcrkVos[i].getDef1().add(
+					mdcrkVos[i].getDef2())); // 正材+毛边重量,即实入库重量
+			sumZczl = sumZczl.add(mdcrkVos[i].getDef1());// 正材重量相加
+			sumMbzl = sumMbzl.add(mdcrkVos[i].getDef2());// 毛边重量相加
+		}
+		// 毛边单价
+		this.setGrossprice(grossprice);
+
+		// 正材重量之和*正材单价=正材金额 stuffsumny
+		this.setStuffsumny(sumZczl.multiply(this.getStuffprice(),
+				MDConstants.JE_XSW));
+		this.setStuffweight(sumZczl);// 正材重量
+
+		// 毛边重量之和*毛边单价=毛边金额 grosssumny
+		this.setGrosssumny(sumMbzl.multiply(this.getGrossprice(),
+				MDConstants.JE_XSW));
+		this.setGrossweight(sumMbzl);// 毛边重量
+
+		// 真实的单价 nprice =(正材金额+毛边金额)/(正材重量+毛边重量)
+		this.setNprice((this.getStuffsumny().add(this.getGrosssumny())).div(
+				this.getStuffweight().add(this.getGrossweight()),
+				MDConstants.DJ_XSW));
+
+		this.setNmny(this.getStuffsumny().add(this.getGrosssumny())); // 实入库金额
+
+		return mdcrkVos;
+	}
+
+	// 是否需要进行毛边计算
+	private boolean CheckSfmbjs(String pk_invbas) throws BusinessException {
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		Object[] objs = (Object[]) iUAPQueryBS
+				.executeQuery(
+						"select t1.def19 from bd_invbasdoc t1 left join bd_invmandoc t2 on t1.pk_invbasdoc=t2.pk_invbasdoc where t2.pk_invmandoc='"
+								+ pk_invbas + "'", new ArrayProcessor());
+		if (objs[0] != null && objs[0].toString() != null
+				&& objs[0].toString().toUpperCase().equals("Y"))
+			return true;
+		return false;
 	}
 
 }
