@@ -10,6 +10,7 @@ import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.constant.ic.BillMode;
 
@@ -24,6 +25,8 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 	private UFDouble noutnum;// 实出数量
 
 	private GeneralBillClientUI ui;
+	
+	public UFBoolean sfsqmd = new UFBoolean(false); // 是否删除码单
 
 	/**
 	 * This method initializes
@@ -179,4 +182,13 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 		return billvo;
 	}
 
+	public UFBoolean getSfsqmd() {
+		return sfsqmd;
+	}
+
+	public void setSfsqmd(UFBoolean sfsqmd) {
+		this.sfsqmd = sfsqmd;
+	}
+
+	
 }
