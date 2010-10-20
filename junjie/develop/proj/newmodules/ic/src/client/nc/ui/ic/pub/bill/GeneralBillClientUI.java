@@ -2022,15 +2022,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_BILL_EDIT));
 
-				/*
-				 * getBillCardPanel().setBodyValueAt(dialog.getNprice(), j,
-				 * "nprice"); // 单价 BillEditEvent e1 = new
-				 * BillEditEvent(getBillCardPanel()
-				 * .getBodyItem("nprice").getComponent(),
-				 * getBillCardPanel().getBodyValueAt(j, "nprice"), "nprice", j,
-				 * BillItem.BODY); // 编辑后事件 单价 afterEdit(e1);
-				 */
-
 				getBillCardPanel()
 						.setBodyValueAt(dialog.getSssl(), j, "ninnum");
 				BillEditEvent e = new BillEditEvent(getBillCardPanel()
@@ -2047,29 +2038,36 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 编辑后事件 金额
 				afterEdit(e2);
 
-				getBillCardPanel().setBodyValueAt(dialog.getGrossprice(), j,
-						"grossprice"); // 毛边单价
+				if (getBillCardPanel().getBodyItem("grossprice") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getGrossprice(),
+							j, "grossprice"); // 毛边单价
 				getM_voBill().setItemValue(j, "grossprice",
 						dialog.getGrossprice());
-				getBillCardPanel().setBodyValueAt(dialog.getGrossweight(), j,
-						"grossweight");// 毛边重量
+				if (getBillCardPanel().getBodyItem("grossweight") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getGrossweight(),
+							j, "grossweight");// 毛边重量
 				getM_voBill().setItemValue(j, "grossweight",
 						dialog.getGrossweight());
-				getBillCardPanel().setBodyValueAt(dialog.getGrosssumny(), j,
-						"grosssumny");// 毛边金额
+				if (getBillCardPanel().getBodyItem("grosssumny") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getGrosssumny(),
+							j, "grosssumny");// 毛边金额
 				getM_voBill().setItemValue(j, "grosssumny",
 						dialog.getGrosssumny());
 
-				getBillCardPanel().setBodyValueAt(dialog.getStuffprice(), j,
-						"stuffprice");// 正材单价
+				if (getBillCardPanel().getBodyItem("stuffprice") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getStuffprice(),
+							j, "stuffprice");// 正材单价
 				getM_voBill().setItemValue(j, "stuffprice",
 						dialog.getStuffprice());
-				getBillCardPanel().setBodyValueAt(dialog.getStuffweight(), j,
-						"stuffweight");// 正材重量
+
+				if (getBillCardPanel().getBodyItem("stuffweight") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getStuffweight(),
+							j, "stuffweight");// 正材重量
 				getM_voBill().setItemValue(j, "stuffweight",
 						dialog.getStuffweight());
-				getBillCardPanel().setBodyValueAt(dialog.getStuffsumny(), j,
-						"stuffsumny");// 正材金额
+				if (getBillCardPanel().getBodyItem("stuffsumny") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getStuffsumny(),
+							j, "stuffsumny");// 正材金额
 				getM_voBill().setItemValue(j, "stuffsumny",
 						dialog.getStuffsumny());
 
