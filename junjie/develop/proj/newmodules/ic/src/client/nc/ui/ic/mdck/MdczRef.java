@@ -10,7 +10,7 @@ public class MdczRef extends AbstractRefModel {
 	public String getTableName() {
 		String table = "(select ttt.* from (select t1.PK_MDXCL_B,"
 				+ " t1.dr,"
-				+ " t4.cscode as cspaceid,"
+				+ " t4.csname as cspaceid,"
 				+ " t1.jbh,"
 				+ " t1.md_width,"
 				+ " t1.md_length,"

@@ -255,7 +255,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ " t3.invname,"
 				+ " t3.invspec,"
 				+ " t3.invtype,"
-				+ " t4.cscode as cspaceid,"
+				+ " t4.csname as cspaceid,"
 				+ " t1.jbh,"
 				+ " t1.md_width,"
 				+ " t1.md_length,"
