@@ -24,6 +24,7 @@ import nc.ui.ic.jj.JJIcScmPubHelper;
 import nc.ui.ic.md.MDPlugin;
 import nc.ui.ic.md.dialog.MDUtils;
 import nc.ui.ic.md.dialog.MDioDialog;
+import nc.ui.ic.mdck.MdProcessBean;
 import nc.ui.ic.mdck.MdwhDlg;
 import nc.ui.ic.pub.BarcodeValidateDialog;
 import nc.ui.ic.pub.BillFormulaContainer;
@@ -497,7 +498,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	// 二次开发扩展
 	private InvokeEventProxy pluginproxy;
 
-
+	
 
 	public InvokeEventProxy getPluginProxy() {
 		if (this.pluginproxy == null)
@@ -1875,29 +1876,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 */
 	public void onButtonClicked(nc.ui.pub.ButtonObject bo) {
 		try {
-			// 2010-10-13 heyq add
-			if (bo.getCode().equals(ICButtonConst.BTN_SWITCH)) {
-				if (BillMode.List == getM_iCurPanel()) {
-					getButtonManager().getButton(MDUtils.MDINFO_BUTTON)
-							.setEnabled(true);
-					getButtonManager().getButton(MDUtils.MBJS_BUTTON)
-							.setEnabled(true);
-				} else {
-					getButtonManager().getButton(MDUtils.MDINFO_BUTTON)
-							.setEnabled(false);
-					getButtonManager().getButton(MDUtils.MBJS_BUTTON)
-							.setEnabled(false);
-				}
-			}
-			if (bo.getCode().equals("修改")) {
-				getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
-						true);
-				getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
-						true);
-			}
-
-			// heyq end
-
 			// 二次开发扩展
 			getPluginProxy().beforeButtonClicked(bo);
 
@@ -1930,11 +1908,40 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		if (getBillType().equals("4C") || getBillType().equals("4I")) {
 			MdwhDlg dlg;
 			try {
+				if (BillMode.List == getM_iCurPanel())
+					throw new BusinessException("请在卡片显示下维护码单");
 				int j = this.getBillCardPanel().getBillTable().getSelectedRow(); // 行数
+				GeneralBillVO billvo = getM_voBill();
+				if (billvo == null)
+					throw new BusinessException("请选择单据！");
+				GeneralBillHeaderVO hvo = (GeneralBillHeaderVO) billvo
+						.getParentVO();
+				if (hvo == null)
+					throw new BusinessException("请选择需要维护码单的单据！");
+				if (j < 0)
+					throw new BusinessException("没有选择表体行！");
 				dlg = new MdwhDlg(this);
 				dlg.showModal();
-				if (dlg.getNoutassistnum() == null || dlg.getNoutnum() == null)
+				if (dlg.getNoutassistnum() == null || dlg.getNoutnum() == null) {
+					// 是否删除码单
+					if (dlg.getSfsqmd().booleanValue() == true) {
+						MdProcessBean bean = new MdProcessBean();
+						LocatorVO voLoc[] = bean.builderHwVos(
+								(GeneralBillItemVO) billvo.getChildrenVO()[j],
+								getBillType());
+						// 调用修改方法
+						onButtonClicked(getButtonManager().getButton(
+								ICButtonConst.BTN_BILL_EDIT));
+						getM_alLocatorData().set(j, voLoc);
+						// 调用保存方法
+						onButtonClicked(getButtonManager().getButton(
+								ICButtonConst.BTN_SAVE));
+					}
+					dlg.setNoutassistnum(null);
+					dlg.setNoutnum(null);
 					return;
+				}
+
 				// 调用修改方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_BILL_EDIT));
@@ -1946,23 +1953,35 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						"noutnum", j, BillItem.BODY);
 				// 编辑后事件
 				afterEdit(e);
+				
+				// 设置货位
+				MdProcessBean bean = new MdProcessBean();
+				LocatorVO voLoc[] = bean.builderHwVos(
+						(GeneralBillItemVO) billvo.getChildrenVO()[j],
+						getBillType());
+				if (voLoc != null && voLoc.length > 0)
+					getM_alLocatorData().set(j, voLoc);
+				
 				if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
 					getBillCardPanel().getBillModel().setRowState(j,
 							BillModel.MODIFICATION);
+
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
-				//同步更新货位信息 add by 阮睿 2010-10-18
-				handCagroInfo(j,getM_voBill());
+				
 				// 清空数据
 				dlg.setNoutassistnum(null);
 				dlg.setNoutnum(null);
+
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
 			}
 		} else if (getBillType().equals("45") || getBillType().equals("4A")) {
 			try {
+				if (BillMode.List == getM_iCurPanel())
+					throw new BusinessException("请在卡片显示下维护码单");
 				int j = this.getBillCardPanel().getBillTable().getSelectedRow(); // 行数
 				GeneralBillVO billvo = getM_voBill();
 				if (billvo == null)
@@ -1978,19 +1997,84 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				if (dialog.getSssl() == null
 						|| dialog.getSssl().doubleValue() == 0) {
 					dialog.setSsfsl(null);
+					// 是否删除码单
+					if (dialog.getSfsqmd().booleanValue() == true) {
+						MdProcessBean bean = new MdProcessBean();
+						LocatorVO voLoc[] = bean.builderHwVos(
+								(GeneralBillItemVO) billvo.getChildrenVO()[j],
+								getBillType());
+						// 调用修改方法
+						onButtonClicked(getButtonManager().getButton(
+								ICButtonConst.BTN_BILL_EDIT));
+						getM_alLocatorData().set(j, voLoc);
+						// 调用保存方法
+						onButtonClicked(getButtonManager().getButton(
+								ICButtonConst.BTN_SAVE));
+
+					}
 					return;
 				}
 				// 调用修改方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_BILL_EDIT));
+
 				getBillCardPanel()
 						.setBodyValueAt(dialog.getSssl(), j, "ninnum");
 				BillEditEvent e = new BillEditEvent(getBillCardPanel()
 						.getBodyItem("ninnum").getComponent(),
 						getBillCardPanel().getBodyValueAt(j, "ninnum"),
 						"ninnum", j, BillItem.BODY);
-				// 编辑后事件
+				// 编辑后事件 数量
 				afterEdit(e);
+
+				getBillCardPanel().setBodyValueAt(dialog.getNmny(), j, "nmny"); // 金额
+				BillEditEvent e2 = new BillEditEvent(getBillCardPanel()
+						.getBodyItem("nmny").getComponent(), getBillCardPanel()
+						.getBodyValueAt(j, "nmny"), "nmny", j, BillItem.BODY);
+				// 编辑后事件 金额
+				afterEdit(e2);
+
+				if (getBillCardPanel().getBodyItem("grossprice") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getGrossprice(),
+							j, "grossprice"); // 毛边单价
+				getM_voBill().setItemValue(j, "grossprice",
+						dialog.getGrossprice());
+				if (getBillCardPanel().getBodyItem("grossweight") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getGrossweight(),
+							j, "grossweight");// 毛边重量
+				getM_voBill().setItemValue(j, "grossweight",
+						dialog.getGrossweight());
+				if (getBillCardPanel().getBodyItem("grosssumny") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getGrosssumny(),
+							j, "grosssumny");// 毛边金额
+				getM_voBill().setItemValue(j, "grosssumny",
+						dialog.getGrosssumny());
+
+				if (getBillCardPanel().getBodyItem("stuffprice") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getStuffprice(),
+							j, "stuffprice");// 正材单价
+				getM_voBill().setItemValue(j, "stuffprice",
+						dialog.getStuffprice());
+
+				if (getBillCardPanel().getBodyItem("stuffweight") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getStuffweight(),
+							j, "stuffweight");// 正材重量
+				getM_voBill().setItemValue(j, "stuffweight",
+						dialog.getStuffweight());
+				if (getBillCardPanel().getBodyItem("stuffsumny") != null)
+					getBillCardPanel().setBodyValueAt(dialog.getStuffsumny(),
+							j, "stuffsumny");// 正材金额
+				getM_voBill().setItemValue(j, "stuffsumny",
+						dialog.getStuffsumny());
+
+				// 设置货位
+				MdProcessBean bean = new MdProcessBean();
+				LocatorVO voLoc[] = bean.builderHwVos(
+						(GeneralBillItemVO) billvo.getChildrenVO()[j],
+						getBillType());
+				if (voLoc != null && voLoc.length > 0)
+					getM_alLocatorData().set(j, voLoc);
+
 				if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
 					getBillCardPanel().getBillModel().setRowState(j,
 							BillModel.MODIFICATION);
@@ -1998,27 +2082,26 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
 
-				//同步更新货位信息 add by 阮睿 2010-10-18
-				handCagroInfo(j,billvo);
-				
 				dialog.setSsfsl(null);
 				dialog.setSssl(null);
+
+
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
 			}
 		}
 	}
-	
-	private void handCagroInfo(int selectedRow,GeneralBillVO nowVObill) throws BusinessException
-	{		
-		String cgeneralbid = (String) nowVObill.getItemValue(selectedRow, "cgeneralbid");
-		if(cgeneralbid != null && !cgeneralbid.trim().equals(""))
-		{
+
+	private void handCagroInfo(int selectedRow, GeneralBillVO nowVObill)
+			throws BusinessException {
+		String cgeneralbid = (String) nowVObill.getItemValue(selectedRow,
+				"cgeneralbid");
+		if (cgeneralbid != null && !cgeneralbid.trim().equals("")) {
 			IMDTools tools = NCLocator.getInstance().lookup(IMDTools.class);
 			tools.updateCargoInfo(cgeneralbid);
-		}		
-		
+		}
+
 	}
 
 	// 2010-10-12 heyq add
@@ -2125,7 +2208,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			hmpResult = ui.gethmpResult();
 
 			getBillCardPanel().setBodyValueAt(hmpResult.get("grossprice"), j,
-					"grossprice");
+					"grossprice");// 毛边单价
 			getBillCardPanel().setBodyValueAt(hmpResult.get("grossweight"), j,
 					"grossweight");
 			getBillCardPanel().setBodyValueAt(hmpResult.get("grosssumny"), j,
@@ -2741,9 +2824,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					.setBodyDataVO(vos);
 			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
 					.execLoadFormula();
-		} else if(this.getBillType().equals("45")){
-      	  //2010-10-11 MeiChao 当前单据类型为"采购入库单"时, 将卡片及列表中的费用页签中的信息清空
-      	  getBillListPanel().getBodyBillModel("jj_scm_informationcost")
+		} else if (this.getBillType().equals("45")) {
+			// 2010-10-11 MeiChao 当前单据类型为"采购入库单"时, 将卡片及列表中的费用页签中的信息清空
+			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
 					.setBodyDataVO(null);
 		}
 		// add by QuSida 2010-9-11 (佛山骏杰) --- end
@@ -2751,7 +2834,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		timer.showExecuteTime("@@方法selectListBill时间");
 
 	}
+
 	
+
 	/**
 	 * 
 	 * 方法功能描述：递归修改某个按钮的所有下级按钮的状态。
@@ -9913,51 +9998,13 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	/* 警告：此方法将重新生成。 */
 	protected void initialize(String sBiztypeid) {
 		// 添加按钮,zhoujie 2010-09-03 09:28:42
-		/*
-		 * if
-		 * (getButtonManager().getButtonTree().getButton(MDUtils.MDINFO_BUTTON)
-		 * .getCode().equals(MDUtils.MDINFO_BUTTON)) { System.out.println("");
-		 * try { getButtonManager().getButtonTree().removeChildMenu(
-		 * getButtonManager().getButtonTree().getButton(
-		 * MDUtils.MDINFO_BUTTON));
-		 * getButtonManager().getButtonTree().removeMenu(
-		 * getButtonManager().getButtonTree().getButton(
-		 * MDUtils.MDINFO_BUTTON)); } catch (BusinessException e) {
-		 * e.printStackTrace(); } }
-		 */
 		if (MDUtils.getBillNameByBilltype(getBillType()) != null) {
-			/*
-			 * try { getButtonManager().getButtonTree().addChildMenu(
-			 * getButtonManager().getButtonTree().getButton(
-			 * ICButtonConst.BTN_BILL), mdinfo); } catch (BusinessException e) {
-			 * e.printStackTrace(); }
-			 */
 			// heyq 2010-10-12 add
 			getButtonManager().getButtonTree().addMenu(
 					new ButtonObject(MDUtils.MDINFO_BUTTON,
 							MDUtils.MDINFO_BUTTON, MDUtils.MDINFO_BUTTON));
-			if (BillMode.List == getM_iCurPanel())
-				getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
-						false);
-			else
-				getButtonManager().getButton(MDUtils.MDINFO_BUTTON).setEnabled(
-						true);
-
-			// heyq 2010-10-12 end
 		}
 
-		// 毛边计算
-		if (getBillType() == "45" || getBillType() == "4A") {
-			getButtonManager().getButtonTree().addMenu(
-					new ButtonObject(MDUtils.MBJS_BUTTON, MDUtils.MBJS_BUTTON,
-							MDUtils.MBJS_BUTTON));
-			if (BillMode.List == getM_iCurPanel())
-				getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
-						false);
-			else
-				getButtonManager().getButton(MDUtils.MBJS_BUTTON).setEnabled(
-						true);
-		}
 		try {
 			// 界面管理器
 			m_layoutManager = new ToftLayoutManager(this);
