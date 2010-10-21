@@ -346,11 +346,13 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			if (rsvos == null && ders == true) {
 				bean.updateSdbs(infoVO, "0");// 还原码单锁定数据
 				// bean.updateBillNull(infoVO);// 将数据实出库数量、支数清空
-				dlg.setNoutnum(new UFDouble(0));
-				dlg.setNoutassistnum(new UFDouble(0));
+				dlg.setNoutnum(null);
+				dlg.setNoutassistnum(null);
 				// buttonState(true, true, false, true, false);
 				dlg.setSfsqmd(new UFBoolean(true));// 是否删除码单
-				throw new BusinessException("码单明细全部删除成功！");
+				onBtnCan();
+				return;
+				//throw new BusinessException("码单明细全部删除成功！");
 			}
 			// 构造并更新现存量主子表
 			bean.updateXcl(vos);
@@ -361,7 +363,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			bean.updateSdbs(infoVO, "2");
 			// getUIButtonCan().setText("关 闭");
 			// buttonState(true, true, false, true, false);
-			MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
+			//MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
 			onBtnCan();
 		} catch (BusinessException e) {
 			e.printStackTrace();
