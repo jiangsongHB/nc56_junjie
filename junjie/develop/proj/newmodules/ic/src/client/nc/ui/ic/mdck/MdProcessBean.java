@@ -11,11 +11,13 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.ArrayListProcessor;
+import nc.jdbc.framework.processor.MapListProcessor;
 import nc.jdbc.framework.processor.MapProcessor;
 import nc.ui.pub.beans.MessageDialog;
 import nc.vo.ic.md.CargInfVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
+import nc.vo.ic.pub.locator.LocatorVO;
 import nc.vo.ic.sd.MdsdVO;
 import nc.vo.ic.xcl.MdxclBVO;
 import nc.vo.ic.xcl.MdxclVO;
@@ -363,7 +365,7 @@ public class MdProcessBean {
 	// 全部删除码单后，还原码货位表数据
 	public boolean returnHw(GeneralBillItemVO itemVOa, String pk_corp,
 			String billtype) throws BusinessException {
-		
+
 		String del_huowei = "delete ic_general_bb1 where cgeneralbid='"
 				+ itemVOa.getCgeneralbid() + "'";
 
@@ -393,6 +395,50 @@ public class MdProcessBean {
 				IVOPersistence.class.getName());
 		ivo.insertVO(CargInfVO);
 		return true;
+	}
+
+	// 构靠一个货位VOs
+	public LocatorVO[] builderHwVos(GeneralBillItemVO itemVO, String billType)
+			throws BusinessException {
+		LocatorVO[] rsvo = null;
+		String sql = "select t2.cspaceid,t3.cscode,t3.csname,t1.cgeneralbid,t1.srkzs,t1.srkzl"
+				+ " from nc_mdcrk t1 left join nc_mdxcl_b t2 on t1.pk_mdxcl_b=t2.pk_mdxcl_b"
+				+ " left join bd_cargdoc t3 on t2.cspaceid=t3.pk_cargdoc where t1.cgeneralbid='"
+				+ itemVO.getCgeneralbid() + "' and t1.dr=0";
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		List rsList = (List) iUAPQueryBS.executeQuery(sql,
+				new MapListProcessor());
+		if (rsList == null || rsList.size() == 0)
+			return null;
+		rsvo = new LocatorVO[rsList.size()];
+		for (int i = 0; i < rsList.size(); i++) {
+			LocatorVO vo = new LocatorVO();
+			Map voMap = (Map) rsList.get(i);
+			vo.setCspaceid((String) voMap.get("cspaceid")); // 货位PK值
+			vo.setVspacecode((String) voMap.get("cscode")); // 货位编码
+			vo.setVspacename((String) voMap.get("csname")); // 货位名称
+			// 入库
+			if (billType.equals("45") || billType.equals("4A")) {
+				vo
+						.setNinspacenum(new UFDouble((BigDecimal) voMap
+								.get("srkzl")));
+				vo.setNinspaceassistnum(new UFDouble((BigDecimal) voMap
+						.get("srkzs")));
+				vo.setNingrossnum(null);
+			}
+			// 出库
+			else {
+				vo
+						.setNoutspacenum(new UFDouble((BigDecimal) voMap
+								.get("srkzl")));
+				vo.setNoutspaceassistnum(new UFDouble((BigDecimal) voMap
+						.get("srkzs")));
+				vo.setNoutgrossnum(null);
+			}
+			rsvo[i] = vo;
+		}
+		return rsvo;
 	}
 
 }

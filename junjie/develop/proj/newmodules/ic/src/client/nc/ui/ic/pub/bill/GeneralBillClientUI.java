@@ -1945,12 +1945,16 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					// 是否删除码单
 					if (dlg.getSfsqmd().booleanValue() == true) {
 						MdProcessBean bean = new MdProcessBean();
-						bean.returnHw((GeneralBillItemVO) billvo
-								.getChildrenVO()[j], hvo.getPk_corp(),
+						LocatorVO voLoc[] = bean.builderHwVos(
+								(GeneralBillItemVO) billvo.getChildrenVO()[j],
 								getBillType());
-						// 调用刷新方法
+						// 调用修改方法
 						onButtonClicked(getButtonManager().getButton(
-								ICButtonConst.BTN_BROWSE_REFRESH));
+								ICButtonConst.BTN_BILL_EDIT));
+						getM_alLocatorData().set(j, voLoc);
+						// 调用保存方法
+						onButtonClicked(getButtonManager().getButton(
+								ICButtonConst.BTN_SAVE));
 					}
 					dlg.setNoutassistnum(null);
 					dlg.setNoutnum(null);
@@ -1968,21 +1972,27 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						"noutnum", j, BillItem.BODY);
 				// 编辑后事件
 				afterEdit(e);
+				
+				// 设置货位
+				MdProcessBean bean = new MdProcessBean();
+				LocatorVO voLoc[] = bean.builderHwVos(
+						(GeneralBillItemVO) billvo.getChildrenVO()[j],
+						getBillType());
+				if (voLoc != null && voLoc.length > 0)
+					getM_alLocatorData().set(j, voLoc);
+				
 				if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
 					getBillCardPanel().getBillModel().setRowState(j,
 							BillModel.MODIFICATION);
+
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
-				// 同步更新货位信息 add by 阮睿 2010-10-18
-				handCagroInfo(j, getM_voBill());
+				
 				// 清空数据
 				dlg.setNoutassistnum(null);
 				dlg.setNoutnum(null);
 
-				// 调用刷新方法
-				onButtonClicked(getButtonManager().getButton(
-						ICButtonConst.BTN_BROWSE_REFRESH));
 			} catch (BusinessException e) {
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
@@ -2009,12 +2019,17 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					// 是否删除码单
 					if (dialog.getSfsqmd().booleanValue() == true) {
 						MdProcessBean bean = new MdProcessBean();
-						bean.returnHw((GeneralBillItemVO) billvo
-								.getChildrenVO()[j], hvo.getPk_corp(),
+						LocatorVO voLoc[] = bean.builderHwVos(
+								(GeneralBillItemVO) billvo.getChildrenVO()[j],
 								getBillType());
-						// 调用刷新方法
+						// 调用修改方法
 						onButtonClicked(getButtonManager().getButton(
-								ICButtonConst.BTN_BROWSE_REFRESH));
+								ICButtonConst.BTN_BILL_EDIT));
+						getM_alLocatorData().set(j, voLoc);
+						// 调用保存方法
+						onButtonClicked(getButtonManager().getButton(
+								ICButtonConst.BTN_SAVE));
+
 					}
 					return;
 				}
@@ -2071,6 +2086,14 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				getM_voBill().setItemValue(j, "stuffsumny",
 						dialog.getStuffsumny());
 
+				// 设置货位
+				MdProcessBean bean = new MdProcessBean();
+				LocatorVO voLoc[] = bean.builderHwVos(
+						(GeneralBillItemVO) billvo.getChildrenVO()[j],
+						getBillType());
+				if (voLoc != null && voLoc.length > 0)
+					getM_alLocatorData().set(j, voLoc);
+
 				if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
 					getBillCardPanel().getBillModel().setRowState(j,
 							BillModel.MODIFICATION);
@@ -2078,15 +2101,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
 
-				// 同步更新货位信息 add by 阮睿 2010-10-18
-				handCagroInfo(j, billvo);
-
 				dialog.setSsfsl(null);
 				dialog.setSssl(null);
 
-				// 调用刷新方法
-				onButtonClicked(getButtonManager().getButton(
-						ICButtonConst.BTN_BROWSE_REFRESH));
 
 			} catch (BusinessException e) {
 				e.printStackTrace();
