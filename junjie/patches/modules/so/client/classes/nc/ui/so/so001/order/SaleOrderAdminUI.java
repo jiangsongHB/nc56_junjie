@@ -2,10 +2,14 @@ package nc.ui.so.so001.order;
 
 import java.util.Vector;
 
+import nc.bs.framework.common.NCLocator;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.ui.pub.ButtonObject;
 import nc.ui.pub.pf.PfUtilClient;
 import nc.ui.scm.so.SaleBillType;
 import nc.ui.so.so001.panel.SaleBillUI;
+import nc.vo.pub.BusinessException;
 import nc.vo.so.so001.SaleOrderVO;
 import nc.vo.so.so001.SaleorderBVO;
 import nc.vo.so.so001.SaleorderHVO;
@@ -366,9 +370,43 @@ public class SaleOrderAdminUI extends SaleBillUI {
 					.getBodyValueRowVO(introw, SaleorderBVO.class.getName());
 			if (bvo.getCorder_bid() == null)
 				return;
+
+			// 判断是否进行码单管理
+			try {
+				if (querySfmdwf(bvo.getCinvbasdocid()) == false)
+					throw new BusinessException(
+							"当前存货不可以维护码单，不能码单锁定，请检查存货基本档案配置！");
+			} catch (BusinessException e) {
+				e.printStackTrace();
+				showWarningMessage(e.getMessage());
+				return;
+			}
 			SoMdwhDlg dlg = new SoMdwhDlg(hvo, bvo);
 			dlg.showModal();
 		}
 	}
+
+	// 判断是否码单维护
+	public boolean querySfmdwf(String cinvbasid) throws BusinessException {
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		String sql = "select def20 from bd_invbasdoc where pk_invbasdoc='"
+				+ cinvbasid + "'";
+		Object[] objs = (Object[]) iUAPQueryBS.executeQuery(sql,
+				new ArrayProcessor());
+		if (objs == null || objs.length == 0)
+			throw new BusinessException("当前存货异常，在存货基本档案中不存在！");
+		if (objs[0] == null)
+			return false;
+		else {
+			String bz = (String) objs[0];
+			bz = bz.toUpperCase();
+			if (bz.equals("Y"))
+				return true;
+			else
+				return false;
+		}
+	}
+
 	// 何意求增加开始 10-09-15 end
 }

@@ -498,8 +498,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	// 二次开发扩展
 	private InvokeEventProxy pluginproxy;
 
-	
-
 	public InvokeEventProxy getPluginProxy() {
 		if (this.pluginproxy == null)
 			this.pluginproxy = new InvokeEventProxy(ICConst.MODULE_IC,
@@ -1920,6 +1918,10 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					throw new BusinessException("请选择需要维护码单的单据！");
 				if (j < 0)
 					throw new BusinessException("没有选择表体行！");
+				// 判断当前存货是否可以维护码单
+				if (new MdProcessBean().querySfmdwf(((GeneralBillItemVO) billvo
+						.getChildrenVO()[j]).getCinvbasid()) == false)
+					throw new BusinessException("当前存货不可以维护码单，请检查存货基本档案配置！");
 				dlg = new MdwhDlg(this);
 				dlg.showModal();
 				if (dlg.getNoutassistnum() == null || dlg.getNoutnum() == null) {
@@ -1953,7 +1955,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						"noutnum", j, BillItem.BODY);
 				// 编辑后事件
 				afterEdit(e);
-				
+
 				// 设置货位
 				MdProcessBean bean = new MdProcessBean();
 				LocatorVO voLoc[] = bean.builderHwVos(
@@ -1961,7 +1963,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						getBillType());
 				if (voLoc != null && voLoc.length > 0)
 					getM_alLocatorData().set(j, voLoc);
-				
+
 				if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
 					getBillCardPanel().getBillModel().setRowState(j,
 							BillModel.MODIFICATION);
@@ -1969,7 +1971,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
-				
+
 				// 清空数据
 				dlg.setNoutassistnum(null);
 				dlg.setNoutnum(null);
@@ -1992,6 +1994,12 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					throw new BusinessException("请选择需要维护码单的单据！");
 				if (j < 0)
 					throw new BusinessException("没有选择表体行！");
+				
+				// 判断当前存货是否可以维护码单
+				if (new MdProcessBean().querySfmdwf(((GeneralBillItemVO) billvo
+						.getChildrenVO()[j]).getCinvbasid()) == false)
+					throw new BusinessException("当前存货不可以维护码单，请检查存货基本档案配置！");
+
 				MDioDialog dialog = new MDioDialog(this);
 				dialog.showModal();
 				if (dialog.getSssl() == null
@@ -2084,7 +2092,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 				dialog.setSsfsl(null);
 				dialog.setSssl(null);
-
 
 			} catch (BusinessException e) {
 				e.printStackTrace();
@@ -2819,7 +2826,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			SCMEnv.out(e);
 		}
 		if (vos != null && vos.length != 0) {
-			
+
 			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
 					.setBodyDataVO(vos);
 			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
@@ -2834,8 +2841,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		timer.showExecuteTime("@@方法selectListBill时间");
 
 	}
-
-	
 
 	/**
 	 * 

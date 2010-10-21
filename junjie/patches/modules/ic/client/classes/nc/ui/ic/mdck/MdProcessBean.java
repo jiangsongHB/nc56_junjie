@@ -11,6 +11,7 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.ArrayListProcessor;
+import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.MapListProcessor;
 import nc.jdbc.framework.processor.MapProcessor;
 import nc.ui.pub.beans.MessageDialog;
@@ -441,4 +442,25 @@ public class MdProcessBean {
 		return rsvo;
 	}
 
+	// 判断是否码单维护
+	public boolean querySfmdwf(String cinvbasid) throws BusinessException {
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		String sql = "select def20 from bd_invbasdoc where pk_invbasdoc='"
+				+ cinvbasid + "'";
+		Object[] objs = (Object[]) iUAPQueryBS.executeQuery(sql,
+				new ArrayProcessor());
+		if (objs == null || objs.length == 0)
+			throw new BusinessException("当前存货异常，在存货基本档案中不存在！");
+		if (objs[0] == null)
+			return false;
+		else {
+			String bz = (String) objs[0];
+			bz = bz.toUpperCase();
+			if (bz.equals("Y"))
+				return true;
+			else
+				return false;
+		}
+	}
 }
