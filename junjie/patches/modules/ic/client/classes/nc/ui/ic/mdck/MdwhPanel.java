@@ -149,7 +149,17 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				return mdsd;
 			}
 			getOPBillCardPanel().getBillModel().setBodyDataVO(crkvos);
-			getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+			if (mdsd == 1)
+				getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+			else {
+				String[] s1 = getOPBillCardPanel().getBodyItem("huowei")
+						.getLoadFormula();
+				s1[1] = ";";
+				if (s1 != null && s1.length > 0) {
+					for (int n = 0; n < crkvos.length; n++)
+						getOPBillCardPanel().execBodyFormulas(n, s1);
+				}
+			}
 			getOPBillCardPanel().setHeadItem("sfbj", crkvos[0].getSfbj());
 			// 如果锁定带出来的数据，则修改背景颜色
 			if (mdsd == 1) {
@@ -352,7 +362,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				dlg.setSfsqmd(new UFBoolean(true));// 是否删除码单
 				onBtnCan();
 				return;
-				//throw new BusinessException("码单明细全部删除成功！");
+				// throw new BusinessException("码单明细全部删除成功！");
 			}
 			// 构造并更新现存量主子表
 			bean.updateXcl(vos);
@@ -363,7 +373,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			bean.updateSdbs(infoVO, "2");
 			// getUIButtonCan().setText("关 闭");
 			// buttonState(true, true, false, true, false);
-			//MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
+			// MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
 			onBtnCan();
 		} catch (BusinessException e) {
 			e.printStackTrace();
