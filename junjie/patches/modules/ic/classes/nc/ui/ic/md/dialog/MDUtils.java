@@ -165,10 +165,9 @@ public class MDUtils {
 					vga = sszl.multiply(width).multiply(lenth).multiply(zs)
 							.div(count_LW);
 				}
-				vga = vga.setScale(4, UFDouble.ROUND_HALF_UP);
-
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
 				vo.setSrkzl(vga);
-				count_ZL = count_ZL.add(vga);
+				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
 			}
 			// System.out.println("########"+vo.getSrkzl());
 		}
@@ -208,7 +207,9 @@ public class MDUtils {
 					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
 				}
 				// 米数*支数*理算系数/1000
-				vo.setSrkzl(lsxs.multiply(zs).multiply(meter).div(1000));
+				UFDouble zl = lsxs.multiply(zs).multiply(meter).div(1000);
+				zl = zl.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				vo.setSrkzl(zl);
 			} else {
 				UFDouble fjm = getFJM(vos[0]);
 				if (guige == null || guige.trim().equals("")) {
@@ -223,9 +224,10 @@ public class MDUtils {
 				}
 				UFDouble gui = new UFDouble(guige);
 				// （厚+附加值）*宽*长*支数*7.85 /1000000
-				vo.setSrkzl((gui.add(fjm)).multiply(width).multiply(lenth)
-						.multiply(zs).multiply(7.85).div(
-								new UFDouble(1000000), MDConstants.ZL_XSW));
+				UFDouble zl = gui.add(fjm).multiply(width).multiply(lenth)
+						.multiply(zs).multiply(7.85).div(1000000);
+				zl = zl.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				vo.setSrkzl(zl);
 			}
 		}
 
