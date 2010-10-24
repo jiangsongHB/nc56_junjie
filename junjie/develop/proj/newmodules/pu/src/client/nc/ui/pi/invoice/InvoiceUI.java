@@ -20,6 +20,9 @@ import javax.swing.event.ListSelectionListener;
 import nc.bs.bd.b21.BusinessCurrencyRateUtil;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
+import nc.bs.pub.compiler.AbstractCompiler2;
+import nc.bs.pub.pf.PfUtilTools;
+import nc.itf.arap.pub.IArapBillPublic;
 import nc.itf.pi.IDataPowerForInv;
 import nc.itf.pi.IInvoiceD;
 import nc.itf.scm.cenpur.service.TempTableUtil;
@@ -70,6 +73,7 @@ import nc.ui.pub.bill.DefaultCurrTypeBizDecimalListener;
 import nc.ui.pub.bill.DefaultCurrTypeDecimalAdapter;
 import nc.ui.pub.bill.IBillData;
 import nc.ui.pub.bill.IBillRelaSortListener2;
+import nc.ui.pub.change.PfChangeBO_Client;
 import nc.ui.pub.linkoperate.ILinkAdd;
 import nc.ui.pub.linkoperate.ILinkAddData;
 import nc.ui.pub.linkoperate.ILinkApprove;
@@ -97,7 +101,11 @@ import nc.ui.scm.pub.print.ScmPrintTool;
 import nc.ui.scm.pub.query.SCMQueryConditionDlg;
 import nc.ui.scm.pub.report.BillRowNo;
 import nc.ui.scm.pub.sourceref.SourceRefDlg;
+import nc.vo.arap.change.VoChangeCG;
 import nc.vo.bd.b06.PsndocVO;
+import nc.vo.ep.dj.DJZBHeaderVO;
+import nc.vo.ep.dj.DJZBItemVO;
+import nc.vo.ep.dj.DJZBVO;
 import nc.vo.ic.pub.vmi.VmiSumHeaderVO;
 import nc.vo.jcom.lang.StringUtil;
 import nc.vo.pi.ConstantVO;
@@ -117,6 +125,7 @@ import nc.vo.pub.CommonConstant;
 import nc.vo.pub.VOStatus;
 import nc.vo.pub.ValidationException;
 import nc.vo.pub.bill.BillTempletVO;
+import nc.vo.pub.compiler.PfParameterVO;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDateTime;
@@ -155,6 +164,8 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
   
   String sContinueBillTypeName = "";
   boolean feeFlag = false;//费用发票审核标志 add by QuSida (佛山骏杰) 2010-9-26
+  boolean isfromexpenseARAP = false;//采购发票是否由应付单拉式生成. 2010-10-22 MeiChao 
+  
   boolean bIswaitaudit = false;
 
   // {业务类型主键=是否配置了审批驱动传应付}
@@ -4319,11 +4330,6 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     }
 
     try {
-    	//费用发票审批  add by QuSida (佛山骏杰) 2010-9-27
-    	if(feeFlag)
-      	  PfUtilClient.processBatchFlow(this, "FEEAPPROVE", nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment
-      	          .getInstance().getDate().toString(), proceVOs, null);
-        else
       PfUtilClient.processBatchFlow(this, "APPROVE", nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment
           .getInstance().getDate().toString(), proceVOs, null);
       timer.addExecutePhase("执行审批操作APPROVE");
@@ -4366,7 +4372,13 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
           showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID("SCMCOMMON", "UPPSCMCommon-000236")/*
                                                                                                            * @res
                                                                                                            * "审批成功"
-                                                                                                           */);
+                                                                                                         */);
+          
+          //if(this.getBillCardPanel().getHeadItem("vdef20").getValue().equals("Y")){//验证表头"是否费用发票"项的值
+          if(true){
+        	  //2010-10-23 MeiChao 如果是费用发票,那么在审核时自动调用费用回冲及库存调整单方法.
+        	  this.formalExpenseTOAP();
+          }
         }
       }
     }
@@ -5649,8 +5661,10 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
 
         // if(m_bizButton!=null&&m_bizButton.getName()!=null&&m_bizButton.getName().equals("")){
         else {
+        	  //当来源单据为D1或F1时 (实际上是F1) 修改费用发票相应标志
         	  if ("D1".equalsIgnoreCase(strUpBillType)||"F1".equalsIgnoreCase(strUpBillType)){
                   feeFlag = true;  //费用发票标志 add by QuSida (佛山骏杰) 2010-9-26
+                  this.isfromexpenseARAP=true ; //是否由应付的费用单生成标志.设置为true 2010-10-22 MeiChao
               }
           PfUtilClient.childButtonClicked(btn, nc.ui.pub.ClientEnvironment.getInstance().getCorporation().getPk_corp(),
               getModuleCode(), nc.ui.pub.ClientEnvironment.getInstance().getUser().getPrimaryKey(),
@@ -13183,6 +13197,113 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
       if(null==digits || 0==digits.length) continue;
       item.setNexchangeotobrate(item.getNexchangeotobrate().add(UFDouble.ZERO_DBL, digits[0]));
     }
+  }
+  
+  /**
+   * 费用采购发票审核自动回冲暂估应付单,并生成库存调整单
+   * 回冲后的应付单的暂估标志应为"0"
+   */
+  private void formalExpenseTOAP(){
+//	  /**
+//	   * 第一步,获取页面上的费用发票聚合VO类,并将其转换成采购应付单的聚合VO
+//	   */
+//	  InvoiceVO expenseInvoiceVO=(InvoiceVO)this.getBillCardPanel().getBillData().getBillValueChangeVO(InvoiceVO.class.getName(), InvoiceHeaderVO.class.getName(), InvoiceItemVO.class.getName());
+//	  DJZBVO expenseAPVO=new DJZBVO();
+//	  try {
+//		  //使用数据转换平台工具类,将销售发票VO转换成销售应付单VO
+//		expenseAPVO=(DJZBVO)PfChangeBO_Client.pfChangeBillToBill(expenseInvoiceVO, "25","D1");
+//	} catch (BusinessException e) {
+//		// TODO Auto-generated catch block
+//		e.printStackTrace();
+//		MessageDialog.showHintDlg(this.getBillCardPanel(), "警告", "费用发票审核时执行暂估应付的红蓝回冲失败,请手工做回冲单或弃审");
+//		return;
+//	}
+	   	/**
+	   	 * 第一步,获取页面上的采购费用发票的聚合VO,并校验
+	   	 */
+	  //获取卡片页面上的发票聚合VO
+	  InvoiceVO expenseInvoiceVO=(InvoiceVO)this.getBillCardPanel().getBillData().getBillValueChangeVO(InvoiceVO.class.getName(), InvoiceHeaderVO.class.getName(), InvoiceItemVO.class.getName());
+	  if(expenseInvoiceVO==null){
+		  MessageDialog.showErrorDlg(this.getBillCardPanel(), "费用回冲错误", "无法获取当前页面的费用信息,请联系技术员.");
+		  return;
+	  }
+	  //获取发票表头VO
+	  InvoiceHeaderVO expenseInvoiceHeaderVO=expenseInvoiceVO.getHeadVO();
+	  //判断当前是否采购费用发票(vdef20字段)
+	  if(!expenseInvoiceHeaderVO.getVdef20().equals("Y")){
+		  MessageDialog.showErrorDlg(this.getBillCardPanel(), "错误", "当前发票非采购费用发票,不能进行暂估应付回冲操作!");
+		  return;
+	  }
+	  //判断当前发票是否已传应付
+	  if(expenseInvoiceHeaderVO.getBapflag().booleanValue()){
+		  MessageDialog.showHintDlg(this.getBillCardPanel(),"提示" , "该发票:"+expenseInvoiceHeaderVO.getVinvoicecode()+"已传应付.");
+		  return;
+	  }
+	  //获取发票表体VO数组
+	  InvoiceItemVO[] expenseInvoiceItemVOs=expenseInvoiceVO.getBodyVO();
+	  if(expenseInvoiceItemVOs==null||expenseInvoiceItemVOs.length==0){
+		  MessageDialog.showHintDlg(this.getBillCardPanel(), "提示", "审批成功!但由于无法获取发票体信息,回冲暂估应付失败.");
+		  return; 
+	  }
+	  //发票来源单据id
+	  List exInvoiceSourceID=new ArrayList();
+	  //发票来源单据体id
+	  Map exInvoiceSourceBodyID=new HashMap();
+	  //将发票来源单据ID初始化,(如果发票有多个来源单据,将以此初始化值在循环中逐一判断)
+	  exInvoiceSourceID.set(0, expenseInvoiceItemVOs[0].getCupsourcebillid());
+	  //指针,用于标识下面循环的来源单据ID不同的下标处
+	  int differentsourcepoint=0;
+	  
+	  //遍历发票表体--BUG: 如果表体不按来源单据排列,那么此判断将失效.
+	  for(int i=0;i<expenseInvoiceItemVOs.length;i++){
+		  //判断当前费用发票的上层来源单据类型
+		  if(!expenseInvoiceItemVOs[i].getCupsourcebilltype().equals("D1")
+				  &&!expenseInvoiceItemVOs[i].getCupsourcebilltype().equals("F1")){
+			  MessageDialog.showHintDlg(this.getBillCardPanel(), "提示", "目前暂不支持非应付下游发票的费用回冲");
+			  return;
+		  }
+		  //将当前表体行的上层来源单据ID与初始化的上层来源单据ID对比,如相同则表示本行与第一行属于同1个来源单据
+		  if(exInvoiceSourceID.get(differentsourcepoint).toString().equals(expenseInvoiceItemVOs[i].getCupsourcebillid())){
+			  //将本行上层来源单据的头/体id 存入单据体id的Map
+			  exInvoiceSourceBodyID.put(exInvoiceSourceID.get(0).toString(), expenseInvoiceItemVOs[i].getCupsourcebillrowid());
+		  }else{//如果行表头id与初始化不相等,那么表示当前发票由多张单据生成
+			  differentsourcepoint=i;
+			  exInvoiceSourceID.add(expenseInvoiceItemVOs[i].getCupsourcebillid());
+			  exInvoiceSourceBodyID.put(exInvoiceSourceID.get(0).toString(), expenseInvoiceItemVOs[i].getCupsourcebillrowid());
+		  }
+	  }
+
+	  /**
+	   * 第二步,获取当前采购费用发票的上层来源的费用暂估应付单,并校验.
+	   */
+	  //获取应收应付的对外操作接口
+	  IArapBillPublic iARAP=(IArapBillPublic)NCLocator.getInstance().lookup(IArapBillPublic.class.getName());
+	  //根据当前发票的来源单据获取对应的暂估应付单,目前只支持仅有一个来源单据的发票
+	  DJZBVO upsourceBill=null;
+	  try {
+			upsourceBill = iARAP.findArapBillByPK(exInvoiceSourceID.get(0)
+					.toString());
+		} catch (BusinessException e) {
+			Logger.debug("采购费用发票回冲暂估应付时,调用IArapBillPublic接口findArapBillByPK方法获取暂估应付单出错.");
+		}
+	  if(upsourceBill==null){
+		  MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","审批成功,但回冲费用暂估应付单时,获取上层来源暂估应付单失败.");
+		  return;
+	  }
+	  //获取暂估应付单表头及表体
+	  DJZBHeaderVO upsourceBillHeade=(DJZBHeaderVO)upsourceBill.getParentVO();
+	  DJZBItemVO[] upsourceBillBody=(DJZBItemVO[])upsourceBill.getChildrenVO();
+ 	  
+	  //判断是否暂估应付
+	  if(!upsourceBillHeade.getZgyf().equals(1)){
+		  MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","当前发票的上层来源单据非\"暂估\"应付单,不允许回冲.");
+		  return;
+	  }
+	  //遍历,判断应付单表体
+	  for(int i=0;i<upsourceBillBody.length;i++){
+		  
+	  }
+	  
   }
   
 }
