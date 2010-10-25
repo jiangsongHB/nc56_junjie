@@ -187,6 +187,7 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 					MessageDialog.showErrorDlg(this, "错误",
 							"调整货位时您选择的码单必须是同一个货位!");
 					this.setSstatus(0);
+					this.pk_cspaceid = null;
 					return;
 				}
 			}
@@ -489,5 +490,4 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 		this.zzvoArrays = zzvoArrays;
 	}
 
-	
 }
