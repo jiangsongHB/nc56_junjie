@@ -162,6 +162,10 @@ junjie/develop/proj/newmodules/ic/META-INF/mdrkTools.upm -text
 junjie/develop/proj/newmodules/ic/META-INF/module.xml -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic008/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic201/ClientUI.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/ClientUI.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/HwtzDialog.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/HwtzObj.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/HwtzVO.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/MdDetailDialog.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/MdDetailVO.java -text
