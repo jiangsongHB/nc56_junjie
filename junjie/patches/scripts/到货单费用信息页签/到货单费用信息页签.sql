@@ -1,4 +1,8 @@
 delete from pub_billtemplet_b where table_code = 'jj_scm_informationcost' and pk_billtemplet = '40040301010000000000';
+--添加人-MeiChao-添加原因费用信息页签必须在pub_billtemplet_t表中注册
+insert into pub_billtemplet_t (BASETAB, DR, METADATACLASS, METADATAPATH, MIXINDEX, PK_BILLTEMPLET, PK_BILLTEMPLET_T, POS, POSITION, RESID, TABCODE, TABINDEX, TABNAME, TS, VDEF1, VDEF2, VDEF3)
+values ('', 0, '', '', null, '40040301010000000000', '0001AA10000000008AMB', 1, 1, '', 'jj_scm_informationcost', 1, '费用信息', '2010-10-20 09:43:46', '', '', '');
+--end-MeiChao
 
 insert into pub_billtemplet_b (CARDFLAG, DATATYPE, DEFAULTSHOWNAME, DEFAULTVALUE, DR, EDITFLAG, EDITFORMULA, FOREGROUND, IDCOLNAME, INPUTLENGTH, ITEMKEY, ITEMTYPE, LEAFFLAG, LISTFLAG, LISTSHOWFLAG, LOADFORMULA, LOCKFLAG, METADATAPATH, METADATAPROPERTY, METADATARELATION, NEWLINEFLAG, NULLFLAG, OPTIONS, PK_BILLTEMPLET, PK_BILLTEMPLET_B, PK_CORP, POS, REFTYPE, RESID, RESID_TABNAME, REVISEFLAG, SHOWFLAG, SHOWORDER, TABLE_CODE, TABLE_NAME, TOTALFLAG, TS, USERDEFFLAG, USERDEFINE1, USERDEFINE2, USERDEFINE3, USEREDITFLAG, USERFLAG, USERREVISEFLAG, USERSHOWFLAG, VALIDATEFORMULA, WIDTH)
 values (1, 0, '计量单位', '', 0, 1, '', -1, '', 20, 'mea', 0, 'N', 1, 'Y', 'mea->getColValue(bd_measdoc,measname , pk_measdoc, cmeasdocid)', 0, '', '', '', 'N', 0, '', '40040301010000000000', '0001ZZ10000000004BV7', '@@@@', 1, '', '', '', 'N', 1, 7, 'jj_scm_informationcost', '费用信息', 0, '2010-09-14 15:24:06', 'N', '', '', '', 1, 1, 'N', 1, '', 100);
