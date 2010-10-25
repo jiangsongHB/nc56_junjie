@@ -308,6 +308,18 @@ junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI$1.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI$ButtonManager201.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI$1.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI$ButtonManager251.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzDialog$1.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzDialog$IvjEventHandler.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzDialog.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzDialog.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzObj.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzObj.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzVO.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzVO.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/ClientUI.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/MdDetailDialog$1.class -text
@@ -435,6 +447,9 @@ junjie/patches/scripts/2010-10-20-0000024[!!-~]patcher入库单换算率机制�
 junjie/patches/scripts/到货单费用信息页签/维护到货单累计金额为不可显示.sql -text
 junjie/patches/scripts/码单/NC脚本/45Temp.sql -text
 junjie/patches/scripts/码单/NC脚本/mbic.sql -text
+junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/001.sql -text
+junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/002.sql -text
+junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/003.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/001.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/002.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/003.sql -text
