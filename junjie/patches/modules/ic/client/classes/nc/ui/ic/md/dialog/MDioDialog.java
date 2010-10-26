@@ -83,10 +83,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	public UFBoolean sfsqmd = new UFBoolean(false); // 是否删除码单
 
+	private String md_note;// 厚*宽*长
+
+	private String md_zyh;// 资源号
+
 	public MDioDialog(GeneralBillClientUI ui) throws BusinessException {
-		super(ui, MDUtils.getBillNameByBilltype(ui.getBillType()) + "－码单信息");
+		super(ui, MDUtils.getBillNameByBilltype(ui.getBillType()) + "－码单维护");
 		this.ui = ui;
-		this.setSize(700, 400);
+		this.setSize(1024, 700);
 		init();
 	}
 
@@ -132,6 +136,12 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				getGeneralBillVO().getItemValue(getGenSelectRowID(), "ninnum"));// 实收数量
 		getBillCardPanel().execHeadLoadFormulas();
 
+		// 初始化资源号、厚*宽*长
+		GeneralBillItemVO itemvo = (GeneralBillItemVO) nowVObill
+				.getChildrenVO()[getGenSelectRowID()];
+		this.setMd_note(itemvo.getVuserdef2()); // 待备用字段确认
+		this.setMd_zyh(itemvo.getVuserdef1()); // 待备用字段确认
+
 		// 实入数量
 		// this.setSssl((UFDouble) (getGeneralBillVO().getItemValue(
 		// getGenSelectRowID(), "ninnum")));
@@ -169,8 +179,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		if (stuffprice == null || stuffprice.doubleValue() == 0) {
 			UFDouble nprice = (UFDouble) nowVObill.getItemValue(
 					getGenSelectRowID(), "nprice");
-			if(nprice==null)
-				nprice=new UFDouble(0);
+			if (nprice == null)
+				nprice = new UFDouble(0);
 			this.setStuffprice(nprice);
 		} else
 			this.setStuffprice(stuffprice);
@@ -185,8 +195,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	 */
 	private void init() throws BusinessException {
 		this.add(getBillCardPanel(), BorderLayout.CENTER);
-		this.add(getButtonPanel(), BorderLayout.NORTH);
-		this.add(getBottomPanel(), BorderLayout.SOUTH);
+		this.add(getButtonPanel(), BorderLayout.SOUTH);
+		// this.add(getBottomPanel(), BorderLayout.SOUTH);BorderLayout.NORTH
 		this.initData();
 	}
 
@@ -310,7 +320,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	public UILabel getBottomPanel() {
 		if (bottomPanel == null) {
 			bottomPanel = new UILabel();
-			bottomPanel.setPreferredSize(new Dimension(100, 20));
+			bottomPanel.setPreferredSize(new Dimension(1024, 20));
 			// bottomPanel.setBorder(BorderFactory.createLoweredBevelBorder());
 			bottomPanel.setRequestFocusEnabled(false);
 		}
@@ -351,8 +361,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		if (buttonPanel == null) {
 			buttonPanel = new UIPanel();
 			// buttonPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-			buttonPanel.setPreferredSize(new Dimension(10, 30));
-
+			buttonPanel.setPreferredSize(new Dimension(1024, 50));
 			for (String button_code : MDUtils.getButtons()) {
 				UIButton button = new UIButton(button_code);
 				buttonPanel.add(button);
@@ -375,6 +384,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			cardPanel.addEditListener(this);
 			cardPanel.addBillEditListenerHeadTail(this);
 			cardPanel.addBodyEditListener2(this);
+			cardPanel.setSize(new Dimension(1024, 650));
 			// cardPanel.addLine();
 		}
 		return cardPanel;
@@ -578,7 +588,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	private void onAddline() {
 		setMessage("增加一行数据...");
-
+		// 选择的行
+		int srow = getBillCardPanel().getBillTable().getSelectedRow();
 		getBillCardPanel().addLine();
 		int i = getBillCardPanel().getRowCount();
 		// 单据类型
@@ -630,12 +641,45 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		getBillCardPanel().getBillModel().setValueAt(
 				getEnvironment().getUserID(), i - 1, "voperatorid");
 
+		getBillCardPanel().getBillModel().setValueAt(this.getMd_note(), i - 1,
+				"md_note"); // 厚宽长
+		getBillCardPanel().getBillModel().setValueAt(this.getMd_zyh(), i - 1,
+				"md_zyh"); // 资源号
+
 		getBillCardPanel().getBillModel().setValueAt(
 				getBillCardPanel().getHeadItem("thickness").getValueObject(),
 				i - 1, "def6");
 		getBillCardPanel().getBillModel().setValueAt(
 				getBillCardPanel().getHeadItem("ispj").getValueObject(), i - 1,
 				"sfpj");// 是否磅计
+
+		// 如果选择的行大于0
+		if (srow >= 0) {
+			MdcrkVO[] vos = (MdcrkVO[]) getBillCardPanel().getBillData()
+					.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
+			MdcrkVO vo = vos[srow];
+			getBillCardPanel().getBillModel().setValueAt(vo.getCspaceid(),
+					i - 1, "cspaceid"); // 货位
+			getBillCardPanel().getBillModel().setValueAt(vo.getJbh(), i - 1,
+					"jbh"); // 件编号
+			getBillCardPanel().getBillModel().setValueAt(vo.getMd_length(),
+					i - 1, "md_length"); // 长度
+			getBillCardPanel().getBillModel().setValueAt(vo.getMd_width(),
+					i - 1, "md_width"); // 宽度
+			getBillCardPanel().getBillModel().setValueAt(vo.getMd_meter(),
+					i - 1, "md_meter"); // 米数
+			getBillCardPanel().getBillModel().setValueAt(vo.getSrkzs(), i - 1,
+					"srkzs"); // 支数
+			getBillCardPanel().getBillModel().setValueAt(vo.getMd_lph(), i - 1,
+					"md_lph"); // 炉批号
+			getBillCardPanel().getBillModel().setValueAt(vo.getMd_zlzsh(),
+					i - 1, "md_zlzsh"); // 质量保证书号
+			getBillCardPanel().getBillModel().setValueAt(vo.getMd_note(),
+					i - 1, "md_note"); // 厚宽长
+			getBillCardPanel().getBillModel().setValueAt(vo.getMd_zyh(), i - 1,
+					"md_zyh");// 资源号
+			getBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+		}
 
 	}
 
@@ -868,6 +912,22 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				&& objs[0].toString().toUpperCase().equals("Y"))
 			return true;
 		return false;
+	}
+
+	public String getMd_note() {
+		return md_note;
+	}
+
+	public void setMd_note(String md_note) {
+		this.md_note = md_note;
+	}
+
+	public String getMd_zyh() {
+		return md_zyh;
+	}
+
+	public void setMd_zyh(String md_zyh) {
+		this.md_zyh = md_zyh;
 	}
 
 }

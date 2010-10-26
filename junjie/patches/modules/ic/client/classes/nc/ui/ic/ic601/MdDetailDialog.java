@@ -1,15 +1,22 @@
 package nc.ui.ic.ic601;
 
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.swing.ListSelectionModel;
+
 import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.jdbc.framework.processor.MapListProcessor;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
+import nc.ui.pub.beans.UIButton;
 import nc.ui.pub.bill.BillListPanel;
+import nc.vo.bd.b15.BatchUpdateCtlVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFDouble;
 
@@ -33,10 +40,17 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 
 	private String pk_invbasdoc; // 存货基本档案
 
+	private UIButton UIButtonPg = null; // 批改
+
+	private MdDetailVO[] viewVos = null;
+
 	class IvjEventHandler implements java.awt.event.ActionListener {
 		public void actionPerformed(java.awt.event.ActionEvent e) {
 			if (e.getSource() == MdDetailDialog.this.getbtnClose())
 				connEtoC1(e);
+			if (e.getSource() == UIButtonPg) {
+				onboPg();
+			}
 		};
 	};
 
@@ -169,7 +183,9 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 			try {
 				ivjpanelSouth = new nc.ui.pub.beans.UIPanel();
 				ivjpanelSouth.setName("panelSouth");
-				ivjpanelSouth.setPreferredSize(new java.awt.Dimension(800, 50));
+				ivjpanelSouth
+						.setPreferredSize(new java.awt.Dimension(1024, 50));
+				getpanelSouth().add(getUIButtonPg(), getUIButtonPg().getName());
 				getpanelSouth().add(getbtnClose(), getbtnClose().getName());
 			} catch (java.lang.Throwable ivjExc) {
 				handleException(ivjExc);
@@ -190,7 +206,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				ivjUIDialogContentPane = new javax.swing.JPanel();
 				ivjUIDialogContentPane.setName("UIDialogContentPane");
 				ivjUIDialogContentPane.setPreferredSize(new java.awt.Dimension(
-						800, 400));
+						1024, 700));
 				ivjUIDialogContentPane.setLayout(new java.awt.BorderLayout());
 				getUIDialogContentPane().add(getBillList(), "Center");
 				getUIDialogContentPane().add(getpanelSouth(), "South");
@@ -225,6 +241,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 		// user code begin {1}
 		// user code end
 		getbtnClose().addActionListener(ivjEventHandler);
+		getUIButtonPg().addActionListener(ivjEventHandler);
 	}
 
 	/**
@@ -237,8 +254,8 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 			// user code end
 			setName("SNDialog1");
 			setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-			setSize(810, 410);
-			setTitle("码单明细");
+			setSize(1024, 700);
+			setTitle("显示码单明细");
 			setContentPane(getUIDialogContentPane());
 			initDate();
 			initConnections();
@@ -251,7 +268,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 	// 初始化数据
 	private void initDate() {
 		MdDetailVO[] detailVos = null;
-		String sql = "select t3.invcode,"
+		String sql = "select t1.pk_mdxcl_b,t3.invcode,"
 				+ " t3.invname,"
 				+ " t3.invspec,"
 				+ " t3.invtype,"
@@ -268,7 +285,10 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ " t1.zhishu,"
 				+ " t1.zhongliang,"
 				+ " b.sdzs as yxsdzs,"
-				+ " (t1.zhishu - nvl(b.sdzs, 0)) as kyzs"
+				+ " (t1.zhishu - nvl(b.sdzs, 0)) as kyzs,"
+				+ " t8.dbilldate,"
+				+ " t8.vbillcode,"
+				+ " t8.vuserdef4"
 				+ " from nc_mdxcl_b t1"
 				+ " left join nc_mdxcl t2 on t1.pk_mdxcl = t2.pk_mdxcl"
 				+ " left join bd_invbasdoc t3 on t2.cinvbasid = t3.pk_invbasdoc"
@@ -277,11 +297,15 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ " from nc_mdsd"
 				+ " where sfsx='0' and to_date(sxrq, 'yyyy-mm-dd') > sysdate"
 				+ " group by pk_mdxcl_b) b on b.pk_mdxcl_b = t1.pk_mdxcl_b"
+				+ " left join nc_mdcrk t6 on t1.pk_mdxcl_b=t6.pk_mdxcl_b"
+				+ " left join ic_general_b t7 on t6.cgeneralbid=t7.cgeneralbid"
+				+ " left join ic_general_h t8 on t7.cgeneralhid=t8.cgeneralhid "
 				+ " where t2.ccalbodyidb = '" + ccalbodyid + "'"
 				+ " and t2.cwarehouseidb = '" + cwarehouseid + "'"
 				+ " and t2.cinventoryidb = '" + cinventoryid + "'"
 				+ " and t2.cinvbasid = '" + pk_invbasdoc + "'"
-				+ " and t1.dr = 0" + " and t2.dr = 0" + " and t1.zhishu > 0";
+				+ " and t1.dr = 0" + " and t2.dr = 0"
+				+ " and t1.zhishu > 0 and t6.cbodybilltypecode in ('45','4A')";
 
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
@@ -315,18 +339,31 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				vo.setMd_zyh((String) objMap.get("md_zyh"));
 				vo.setMd_zlzsh((String) objMap.get("md_zlzsh"));
 				vo.setRemark((String) objMap.get("remark"));
+				vo.setRkrq((String) objMap.get("dbilldate"));// 入库日期
+				vo.setRkdh((String) objMap.get("vbillcode"));// 入库单号
+				vo.setCqh((String) objMap.get("vuserdef2"));// 车船号
+				vo.setPk_mdxcl_b((String) objMap.get("pk_mdxcl_b"));
 				// 有效锁定支数
-				if (objMap.get("yxsdzs") != null)
+				if (objMap.get("yxsdzs") != null) {
 					vo.setYxsdzs(new UFDouble(((Integer) objMap.get("yxsdzs"))
 							.doubleValue()));
-				else
+					UFDouble ywsdzl = vo.getYxsdzs().div(vo.getZhishu())
+							.multiply(vo.getZhongliang(), 4);
+					vo.setYxsdzl(ywsdzl); // 有效锁定重量
+				} else {
 					vo.setYxsdzs(new UFDouble(0));
+					vo.setYxsdzl(new UFDouble(0)); // 有效锁定重量
+				}
 				// 可用支数
-				if (objMap.get("kyzs") != null)
+				if (objMap.get("kyzs") != null) {
 					vo.setKyzs(new UFDouble(((Integer) objMap.get("kyzs"))
 							.doubleValue()));
-				else
+					vo.setKyzl(vo.getZhongliang().sub(vo.getYxsdzl()));// 可用重量
+				} else {
 					vo.setKyzs(new UFDouble(0));
+					vo.setKyzl(new UFDouble(0));// 可用重量
+				}
+
 				detailVos[i] = vo;
 			}
 
@@ -337,7 +374,9 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				UFDouble sum_zhishu = new UFDouble(0); // 合计支数
 				UFDouble sum_zhongliang = new UFDouble(0); // 合计重量
 				UFDouble sum_yxsdzs = new UFDouble(0);// 合计有效锁定支数
+				UFDouble sum_yxsdzl = new UFDouble(0);// 合计有效锁定重量
 				UFDouble sum_kyzs = new UFDouble(0);// 合计可用支数
+				UFDouble sum_kyzl = new UFDouble(0);// 合计可用重量
 				for (int t = 0; t < detailVos.length; t++) {
 					hjVos[t] = detailVos[t];
 					sum_zhishu = sum_zhishu.add(detailVos[t].getZhishu());
@@ -345,16 +384,24 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 							.getZhongliang());
 					sum_yxsdzs = sum_yxsdzs.add(detailVos[t].getYxsdzs());
 					sum_kyzs = sum_kyzs.add(detailVos[t].getKyzs());
+					sum_yxsdzl = sum_yxsdzl.add(detailVos[t].getYxsdzl());
+					sum_kyzl = sum_kyzl.add(detailVos[t].getKyzl());
 				}
 				MdDetailVO hjvo = new MdDetailVO();
 				hjvo.setInvcode("合计");
 				hjvo.setZhishu(sum_zhishu);
 				hjvo.setZhongliang(sum_zhongliang);
 				hjvo.setYxsdzs(sum_yxsdzs);
+				hjvo.setYxsdzl(sum_yxsdzl);
 				hjvo.setKyzs(sum_kyzs);
+				hjvo.setKyzl(sum_kyzl);
 				hjVos[detailVos.length] = hjvo;
 			}
-			getBillList().setHeaderValueVO(hjVos);
+			viewVos = hjVos;
+			getBillList().setHeaderValueVO(viewVos);
+			// 设置表头可以多选
+			billList.getHeadTable().setSelectionMode(
+					ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		} catch (BusinessException e) {
 			e.printStackTrace();
 			MessageDialog.showErrorDlg(this, "错误", e.getMessage());
@@ -396,6 +443,57 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 		}
 		billList.loadTemplet("H001", null, clientEnv.getUser().getPrimaryKey(),
 				clientEnv.getCorporation().getPk_corp());
+		billList.setPreferredSize(new Dimension(1024, 650));
 		return billList;
+	}
+
+	private UIButton getUIButtonPg() {
+		if (UIButtonPg == null) {
+			UIButtonPg = new UIButton();
+			UIButtonPg.setBounds(new Rectangle(512, 4, 75, 20));
+			UIButtonPg.setText("批  改");
+			UIButtonPg.setToolTipText("<HTML><B>批改(CTRL + S)</B></HTML>");
+		}
+		return UIButtonPg;
+	}
+
+	// 批改按钮
+	private void onboPg() {
+		String userNote = ClientEnvironment.getInstance().getUser()
+				.getUserNote();
+		if (userNote == null || userNote.equals("") || !userNote.contains("Y")) {
+			MessageDialog.showWarningDlg(this, "提示",
+					"当前用户没有质量保证书号批发权限，请与系统管理员联系！");
+			return;
+		}
+		int[] row = billList.getHeadTable().getSelectedRows();
+		if (row == null || row.length == 0)
+			return;
+		BatchModifyDlg dlg = new BatchModifyDlg();
+		dlg.showModal();
+		if (dlg.getResult() == 1) {
+			BatchUpdateCtlVO vo = dlg.getResultVO();
+			String filedCode = vo.getFieldVOName();
+			String value = (String) vo.getValue();
+			IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance()
+					.lookup(IUAPQueryBS.class.getName());
+			if (value == null)
+				value = "";
+			String sql = "update nc_mdxcl_b set md_zlzsh='" + value
+					+ "' where pk_mdxcl_b in (";
+			for (int i = 0; i < row.length; i++) {
+				MdDetailVO dvo = viewVos[row[i]];
+				sql += "'" + dvo.getPk_mdxcl_b() + "',";
+			}
+			sql = sql.substring(0, sql.length() - 1);
+			sql = sql + ")";
+			try {
+				iUAPQueryBS.executeQuery(sql, new ColumnProcessor());
+			} catch (BusinessException e) {
+				e.printStackTrace();
+			}
+			initDate();
+		}
+		// MessageDialog.showWarningDlg(this, "提示", "开始批改！");
 	}
 }

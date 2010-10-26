@@ -101,7 +101,7 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 		this.setTitle("码单维护");
 		// dialog的滚动条
 		this.setContentPane(getOrigPiecePanel());
-		this.setSize(800, 400);
+		this.setSize(1024, 700);
 		// this.setNoutassistnum(infoVO.getNoutassistnum());
 		// this.setNoutnum(infoVO.getNoutnum());
 	}

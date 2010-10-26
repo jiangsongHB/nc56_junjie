@@ -322,6 +322,8 @@ junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzObj.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzObj.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzVO.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/HwtzVO.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/BatchModifyDlg.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/BatchModifyDlg.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/ClientUI.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic601/MdDetailDialog$1.class -text
@@ -468,6 +470,7 @@ junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001ZZ100
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001ZZ10000000005FZN/002.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001ZZ10000000005FZN/003.sql -text
 junjie/patches/scripts/码单/NC脚本/zhunjie_md_v1.3.sql -text
+junjie/patches/scripts/码单/NC脚本/根据单据类型删除单据模板.sql -text
 junjie/patches/scripts/码单/ierp/bin/scmplugin.xml -text
 junjie/patches/scripts/码单/码单数据库设计100906_v1.3.doc -text
 junjie/patches/scripts/码单/部署说明.txt -text

@@ -88,7 +88,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 	 */
 	private void initialize() {
 		this.setLayout(new BorderLayout());
-		this.setSize(new Dimension(800, 400));
+		this.setSize(new Dimension(1024, 700));
 		this.add(getOPBillCardPanel(), BorderLayout.CENTER);
 		this.add(getUIPanel(), BorderLayout.SOUTH);
 		getUIButtonAdd().addActionListener(this);
@@ -184,7 +184,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 		if (UIPanel == null) {
 			UIPanel = new UIPanel();
 			UIPanel.setLayout(null);
-			UIPanel.setPreferredSize(new Dimension(10, 30));
+			UIPanel.setPreferredSize(new Dimension(1024, 50));
 			UIPanel.add(getUIButtonAdd(), null);
 			UIPanel.add(getUIButtonDel(), null);
 			UIPanel.add(getUIButtonSave(), null);
@@ -202,7 +202,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 	private UIButton getUIButtonAdd() {
 		if (UIButtonAdd == null) {
 			UIButtonAdd = new UIButton();
-			UIButtonAdd.setBounds(new Rectangle(200, 4, 75, 20));
+			UIButtonAdd.setBounds(new Rectangle(312, 4, 75, 20));
 			UIButtonAdd.setText("增 行");
 			UIButtonAdd.setToolTipText("<HTML><B>增行(CTRL + L)</B></HTML>");
 		}
@@ -217,7 +217,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 	private UIButton getUIButtonDel() {
 		if (UIButtonDel == null) {
 			UIButtonDel = new UIButton();
-			UIButtonDel.setBounds(new Rectangle(280, 4, 75, 20));
+			UIButtonDel.setBounds(new Rectangle(392, 4, 75, 20));
 			UIButtonDel.setText("删  行");
 			UIButtonDel.setToolTipText("<HTML><B>删行(CTRL + D)</B></HTML>");
 		}
@@ -227,7 +227,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 	private UIButton getUIButtonJs() {
 		if (UIButtonJs == null) {
 			UIButtonJs = new UIButton();
-			UIButtonJs.setBounds(new Rectangle(360, 4, 75, 20));
+			UIButtonJs.setBounds(new Rectangle(472, 4, 75, 20));
 			UIButtonJs.setText("计  算");
 			UIButtonJs.setToolTipText("<HTML><B>计算(CTRL + X)</B></HTML>");
 		}
@@ -242,7 +242,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 	private UIButton getUIButtonSave() {
 		if (UIButtonSave == null) {
 			UIButtonSave = new UIButton();
-			UIButtonSave.setBounds(new Rectangle(440, 4, 75, 20));
+			UIButtonSave.setBounds(new Rectangle(552, 4, 75, 20));
 			UIButtonSave.setText("保  存");
 			UIButtonSave.setToolTipText("<HTML><B>保存(CTRL + S)</B></HTML>");
 		}
@@ -257,7 +257,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 	private UIButton getUIButtonCan() {
 		if (UIButtonCan == null) {
 			UIButtonCan = new UIButton();
-			UIButtonCan.setBounds(new Rectangle(520, 4, 75, 20));
+			UIButtonCan.setBounds(new Rectangle(632, 4, 75, 20));
 			UIButtonCan.setText("关  闭");
 			UIButtonCan.setToolTipText("<HTML><B>取消(CTRL + X)</B></HTML>");
 		}
@@ -272,7 +272,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 	private BillCardPanel getOPBillCardPanel() {
 		if (billCardPanel == null) {
 			billCardPanel = new BillCardPanel();
-			billCardPanel.setSize(800, 370);
+			billCardPanel.setSize(1024, 650);
 			billCardPanel.loadTemplet("H002", null, m_pkuser, m_pkcorp);
 			billCardPanel.setTatolRowShow(true);
 		}

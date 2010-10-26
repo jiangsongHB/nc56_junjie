@@ -320,7 +320,7 @@ public class MdProcessBean {
 	public MdcrkVO queryMdCrkKyl(MdcrkVO evo, UFBoolean bsfbj)
 			throws BusinessException {
 		String pk_mdxcl_b = evo.getPk_mdxcl_b();
-		String sql = "select ttt.* from (select t1.PK_MDXCL_B, t1.dr, t4.cscode as cspaceid, "
+		String sql = "select ttt.* from (select t1.PK_MDXCL_B, t1.dr, t1.cspaceid, "
 				+ "t1.jbh, t1.md_width, t1.md_length, t1.md_meter, t1.md_note, t1.md_lph, t1.md_zyh,"
 				+ " t1.md_zlzsh, t1.remark, t1.zhishu, (t1.zhishu-nvl(b.sdzs,0)) as kyzs, t1.zhongliang,"
 				+ " t2.pk_corp, t2.cwarehouseidb, t2.ccalbodyidb, t2.cinvbasid, t2.cinventoryidb, t3.invspec "
@@ -346,6 +346,7 @@ public class MdProcessBean {
 		UFDouble kyzs = new UFDouble((Integer) rsmap.get("kyzs")); // 可用支数
 		UFDouble kyzl = kyzs.multiply(zhongliang).div(zhishu,
 				MDConstants.ZL_XSW);// 可用重量
+		evo.setCspaceid((String) rsmap.get("cspaceid"));//货位
 		// 如果是理计
 		if (bsfbj.booleanValue() == false) {
 			evo.setSrkzs(kyzs);
