@@ -222,6 +222,7 @@ junjie/develop/proj/newmodules/pu/src/private/nc/bs/pu/pr/PraybillDMO.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pub/action/N_25_FEEAPPROVE.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/itf/ps/estimate/IEstimate.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/itf/pu/mm/ISrvPUToMM.java -text
+junjie/develop/proj/newmodules/pu/src/public/nc/ui/pf/changedir/CHGF1TO25.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/pu/jjvo/InformationCostVO.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/pu/jjvo/InformationCostVOMeta.java -text
 junjie/develop/proj/newmodules/scmpub/.classpath -text
