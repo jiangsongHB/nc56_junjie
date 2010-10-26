@@ -39,7 +39,7 @@ public class SoMdwhDlg extends UIDialog implements ActionListener {
 		this.setTitle("码单锁定");
 		// dialog的滚动条
 		this.setContentPane(getOrigPiecePanel());
-		this.setSize(800, 400);
+		this.setSize(1024, 700);
 	}
 
 	public SoMdwhPanel getOrigPiecePanel() {
