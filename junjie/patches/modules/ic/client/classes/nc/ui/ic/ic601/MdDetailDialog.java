@@ -288,7 +288,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ " (t1.zhishu - nvl(b.sdzs, 0)) as kyzs,"
 				+ " t8.dbilldate,"
 				+ " t8.vbillcode,"
-				+ " t8.vuserdef4"
+				+ " t7.vuserdef4"
 				+ " from nc_mdxcl_b t1"
 				+ " left join nc_mdxcl t2 on t1.pk_mdxcl = t2.pk_mdxcl"
 				+ " left join bd_invbasdoc t3 on t2.cinvbasid = t3.pk_invbasdoc"
@@ -341,7 +341,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				vo.setRemark((String) objMap.get("remark"));
 				vo.setRkrq((String) objMap.get("dbilldate"));// 入库日期
 				vo.setRkdh((String) objMap.get("vbillcode"));// 入库单号
-				vo.setCqh((String) objMap.get("vuserdef2"));// 车船号
+				vo.setCqh((String) objMap.get("vuserdef4"));// 车船号
 				vo.setPk_mdxcl_b((String) objMap.get("pk_mdxcl_b"));
 				// 有效锁定支数
 				if (objMap.get("yxsdzs") != null) {
