@@ -9270,6 +9270,7 @@ for (int i = 0; i < VOs.length; i++) {
   bodyVO[0].setFb_oid(VOs[i].getCgeneralbid());
 
   bodyVO[0].setHbbm(VOs[i].getCproviderbaseid()); // 供应商基本ID
+  bodyVO[0].setZyx19(VOs[i].getCprovidermangid());//使用自定义字段存放 供应商管理id 参照生成发票时用  add by 付世超 2010-10-26
   bodyVO[0].setCinventoryid(VOs[i].getCbaseid()); // 存货基本ID
 
   // bodyVO[0].setFbye(new UFDouble(0)); // 辅币余额
