@@ -223,9 +223,9 @@ public class MDUtils {
 					throw new BusinessException("第" + (i + 1) + "行，宽度不能小于0");
 				}
 				UFDouble gui = new UFDouble(guige);
-				// （厚+附加值）*宽*长*支数*7.85 /1000000
+				// （厚+附加值）*宽*长*支数*7.85 /1000000000
 				UFDouble zl = gui.add(fjm).multiply(width).multiply(lenth)
-						.multiply(zs).multiply(7.85).div(1000000);
+						.multiply(zs).multiply(7.85).div(1000000000);
 				zl = zl.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
 				vo.setSrkzl(zl);
 			}
