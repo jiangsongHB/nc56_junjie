@@ -1,5 +1,6 @@
 package nc.ui.ic.ic251;
 
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -237,7 +238,7 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 			try {
 				ivjpanelSouth = new nc.ui.pub.beans.UIPanel();
 				ivjpanelSouth.setName("panelSouth");
-				ivjpanelSouth.setPreferredSize(new java.awt.Dimension(800, 50));
+				ivjpanelSouth.setPreferredSize(new java.awt.Dimension(1024, 50));
 				// 新增确定按钮
 				getpanelSouth().add(getUIButtonQR(), getUIButtonQR().getName());
 				getpanelSouth().add(getbtnClose(), getbtnClose().getName());
@@ -260,7 +261,7 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 				ivjUIDialogContentPane = new javax.swing.JPanel();
 				ivjUIDialogContentPane.setName("UIDialogContentPane");
 				ivjUIDialogContentPane.setPreferredSize(new java.awt.Dimension(
-						800, 400));
+						1024, 700));
 				ivjUIDialogContentPane.setLayout(new java.awt.BorderLayout());
 				getUIDialogContentPane().add(getBillList(), "Center");
 				getUIDialogContentPane().add(getpanelSouth(), "South");
@@ -307,7 +308,7 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 			billList = getBillList();
 			setName("SNDialog1");
 			setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-			setSize(810, 410);
+			setSize(1024, 700);
 			setTitle("码单货位调整");
 			setContentPane(getUIDialogContentPane());
 			initDate();
@@ -429,13 +430,14 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 		}
 		billList.loadTemplet("H004", null, clientEnv.getUser().getPrimaryKey(),
 				clientEnv.getCorporation().getPk_corp());
+		billList.setSize(new Dimension(1024,650));
 		return billList;
 	}
 
 	private UIButton getUIButtonQR() {
 		if (UIButtonQR == null) {
 			UIButtonQR = new UIButton();
-			UIButtonQR.setBounds(new Rectangle(440, 4, 75, 20));
+			UIButtonQR.setBounds(new Rectangle(512, 4, 75, 20));
 			UIButtonQR.setText("确  定");
 			UIButtonQR.setToolTipText("<HTML><B>确定(CTRL + S)</B></HTML>");
 		}

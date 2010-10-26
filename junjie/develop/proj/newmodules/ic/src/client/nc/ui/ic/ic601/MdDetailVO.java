@@ -29,7 +29,11 @@ public class MdDetailVO extends SuperVO {
 
 	private UFDouble yxsdzs;// 有效锁定支数
 
+	private UFDouble yxsdzl;// 在效锁定重量
+
 	private UFDouble kyzs;// 可用支数
+
+	private UFDouble kyzl;// 可用重量
 
 	private String md_lph;// 炉编号
 
@@ -38,6 +42,63 @@ public class MdDetailVO extends SuperVO {
 	private String md_zlzsh;// 质量保证书号
 
 	private String remark;// 备注；
+
+	private String rkdh;// 入库单号
+
+	private String rkrq;// 入库日期
+
+	private String cqh;// 车船号
+	
+	private String pk_mdxcl_b;
+	
+	
+	public String getPk_mdxcl_b() {
+		return pk_mdxcl_b;
+	}
+
+	public void setPk_mdxcl_b(String pk_mdxcl_b) {
+		this.pk_mdxcl_b = pk_mdxcl_b;
+	}
+
+	public String getCqh() {
+		return cqh;
+	}
+
+	public void setCqh(String cqh) {
+		this.cqh = cqh;
+	}
+
+	public UFDouble getKyzl() {
+		return kyzl;
+	}
+
+	public void setKyzl(UFDouble kyzl) {
+		this.kyzl = kyzl;
+	}
+
+	public String getRkdh() {
+		return rkdh;
+	}
+
+	public void setRkdh(String rkdh) {
+		this.rkdh = rkdh;
+	}
+
+	public String getRkrq() {
+		return rkrq;
+	}
+
+	public void setRkrq(String rkrq) {
+		this.rkrq = rkrq;
+	}
+
+	public UFDouble getYxsdzl() {
+		return yxsdzl;
+	}
+
+	public void setYxsdzl(UFDouble yxsdzl) {
+		this.yxsdzl = yxsdzl;
+	}
 
 	public UFDouble getKyzs() {
 		return kyzs;
