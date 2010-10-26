@@ -67,7 +67,6 @@ public class CHGF1TO25 extends VOConversionUI {
 "B_ntaxrate->B_sl",//税率 -> 税率
 "B_ninvoicenum->B_shlye",//发票数量 -> 数量余额 
 "B_vmemo->B_zy",//备注 -> 摘要				
-"H_vdef20->B_sfbz",//使用子定义字段 存收付标志
 
 "H_cvendormangid->B_zyx19"//从应付单的自定义项中取出 客商管理id
 				};
@@ -82,7 +81,6 @@ public class CHGF1TO25 extends VOConversionUI {
 				"H_finitflag->int(0)",//公式  起初标志
 				"H_ibillstatus->int(0)",//公式 单据状态
 				"H_iinvoicetype->int(0)",//公式 发票类型
-//				"H_cvendormangid->getColvalue(bd_cumandoc,pk_cumandoc,pk_cubasdoc,H_cvendormangid,pk_corp,H_pk_corp,custflag,H_vdef20)",//客商管理id
 				
 				"B_cmangid->getColValue(bd_invmandoc,pk_invmandoc,pk_invbasdoc,B_cbaseid,pk_corp,H_pk_corp)",//存货管理ID 
 				
