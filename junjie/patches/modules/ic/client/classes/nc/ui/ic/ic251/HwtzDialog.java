@@ -238,7 +238,8 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 			try {
 				ivjpanelSouth = new nc.ui.pub.beans.UIPanel();
 				ivjpanelSouth.setName("panelSouth");
-				ivjpanelSouth.setPreferredSize(new java.awt.Dimension(1024, 50));
+				ivjpanelSouth
+						.setPreferredSize(new java.awt.Dimension(1024, 50));
 				// 新增确定按钮
 				getpanelSouth().add(getUIButtonQR(), getUIButtonQR().getName());
 				getpanelSouth().add(getbtnClose(), getbtnClose().getName());
@@ -344,10 +345,14 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 				+ " left join nc_mdxcl_b t2 on t1.pk_mdxcl = t2.pk_mdxcl"
 				+ " left join bd_cargdoc t3 on t2.cspaceid = t3.pk_cargdoc"
 				+ " left join bd_invbasdoc t4 on t1.cinvbasid = t4.pk_invbasdoc"
+				+ " left join nc_mdcrk t5 on t2.pk_mdxcl_b=t5.pk_mdxcl_b"
+				+ " left join ic_general_b t6 on t5.cgeneralbid=t6.cgeneralbid"
+				+ " left join ic_general_h t7 on t6.cgeneralhid=t7.cgeneralhid"
 				+ " where t1.dr=0 and t2.dr=0 and t1.cinvbasid='"
 				+ pk_invbasdoc + "' and t1.ccalbodyidb='" + ccalbodyid
 				+ "' and t1.cwarehouseidb='" + cwarehouseid
-				+ "' order by t4.invcode desc";
+				+ "' and t5.cbodybilltypecode in ('45','4A')"
+				+ " and t7.fbillflag='3' order by t4.invcode desc";
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
 		List qList = (List) iUAPQueryBS.executeQuery(sql,
@@ -430,7 +435,7 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 		}
 		billList.loadTemplet("H004", null, clientEnv.getUser().getPrimaryKey(),
 				clientEnv.getCorporation().getPk_corp());
-		billList.setSize(new Dimension(1024,650));
+		billList.setSize(new Dimension(1024, 650));
 		return billList;
 	}
 
