@@ -4383,8 +4383,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
                                                                                                            * "审批成功"
                                                                                                          */);
           
-          //if(this.getBillCardPanel().getHeadItem("vdef20").getValue().equals("Y")){//验证表头"是否费用发票"项的值
-          if(true){
+          if(this.getBillCardPanel().getHeadItem("vdef20").getValue().equals("Y")){//验证表头"是否费用发票"项的值
         	  //2010-10-23 MeiChao 如果是费用发票,那么在审核时自动调用费用回冲及库存调整单方法.
         	  //获取卡片页面上的发票聚合VO
         	  InvoiceVO expenseInvoiceVO=(InvoiceVO)this.getBillCardPanel().getBillData().getBillValueVO(InvoiceVO.class.getName(), InvoiceHeaderVO.class.getName(), InvoiceItemVO.class.getName());
