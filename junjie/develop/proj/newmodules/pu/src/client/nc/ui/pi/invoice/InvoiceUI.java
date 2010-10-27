@@ -13425,6 +13425,8 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		  try {
 			  //使用数据转换平台工具类,将采购发票VO转换成采购应付单VO
 			expenseAPVO=(DJZBVO)PfChangeBO_Client.pfChangeBillToBill(expenseInvoiceVO, "25","D1");
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setZgyf(0);//设置此应付单为非暂估应付单
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSpzt("1");//设置审批状态
 			iARAP.saveArapBill(expenseAPVO);
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
@@ -13515,12 +13517,15 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 				//贷方数量转换为负数
 				Double dfshl=Double.valueOf("-"+oldbody[k].getDfshl().toString());
 				oldbody[k].setDfshl(new UFDouble(dfshl));
-				//贷方原币金额,原币无税金额,本币金额,本币无税金额转换为负数
+				//贷方原币金额,原币无税金额,本币金额,本币无税金额,本币余额,原币余额 转换为负数
 				Double dfybje=Double.valueOf("-"+oldbody[k].getDfybje().toString());
 				oldbody[k].setDfybje(new UFDouble(dfybje));
 				oldbody[k].setDfybwsje(new UFDouble(dfybje));
 				oldbody[k].setDfbbje(new UFDouble(dfybje));
 				oldbody[k].setDfbbwsje(new UFDouble(dfybje));
+				oldbody[k].setBbye(new UFDouble(dfybje));//本币余额
+				oldbody[k].setYbye(new UFDouble(dfybje));//原币余额
+				
 				backExpenseBody[i]=oldbody[k];//VO交换
 				break;
 			}
@@ -13532,6 +13537,7 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			dfybjeSUM+=backExpenseBody[i].getDfybje().toDouble();//累加表体贷方原币金额
 		}
 		backExpenseHead.setYbje(new UFDouble(dfybjeSUM));//设置表头贷方原币总金额
+		backExpenseHead.setBbje(new UFDouble(dfybjeSUM));//设置表头本币金额
 		//将处理过后的回冲单表头表体set入应付VO
 		DJZBVO backExpenseVO=new DJZBVO();
 		backExpenseVO.setParentVO(backExpenseHead);
@@ -13540,6 +13546,7 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		try {
 			iARAP.saveArapBill(backExpenseVO);
 		} catch (BusinessException e) {
+			e.printStackTrace();
 			MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","组织暂估应付回冲红单成功,但保存失败!请进入ARAP手工做单或弃审处理!");
 			return;
 		}
@@ -13607,7 +13614,7 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		changeBillHead.setBestimateflag(new UFBoolean(false));
 		changeBillHead.setBoutestimate(new UFBoolean(false));
 		changeBillHead.setBwithdrawalflag(new UFBoolean(false));
-		changeBillHead.setCbillid("I9");//单据类型
+		changeBillHead.setCbilltypecode("I9");//单据类型
 		changeBillHead.setClastoperatorid(ce.getUser().getPrimaryKey());//最后修改人
 		changeBillHead.setCoperatorid(ce.getUser().getPrimaryKey());//操作员
 		changeBillHead.setCrdcenterid(generalHead.getPk_calbody());//库存组织
@@ -13616,14 +13623,14 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		changeBillHead.setDr(0);
 		changeBillHead.setFdispatchflag(0);
 		changeBillHead.setIdebtflag(-1);
-		changeBillHead.setPk_corp(ce.getGroupId());
-		changeBillHead.setTlastmaketime(new UFDateTime().toString());
-		changeBillHead.setTmaketime(new UFDateTime().toString());
-		changeBillHead.setTs(new UFDateTime().toString());
+		changeBillHead.setPk_corp(getCorpPrimaryKey());
+		changeBillHead.setTlastmaketime(new UFDateTime(new Date()).toString());
+		changeBillHead.setTmaketime(new UFDateTime(new Date()).toString());
 		SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmm");
 		changeBillHead.setVbillcode("I9"+sdf.format(new Date()));
 		//调整单表体
 		for(int i=0;i<changeBillBody.length;i++){
+			changeBillBody[i]=new BillItemVO();
 			changeBillBody[i].setBadjustedItemflag(new UFBoolean(false));
 			changeBillBody[i].setBauditbatchflag(new UFBoolean(false));
 			changeBillBody[i].setBlargessflag(new UFBoolean(false));
@@ -13642,6 +13649,8 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			changeBillBody[i].setCicitemid(null);//上层来源单据体id
 			changeBillBody[i].setCvendorbasid(generalBody[i].getPk_cubasdoc());//供应商基本档案id,取库存表体对应字段
 			changeBillBody[i].setCvendorid(generalBody[i].getCvendorid());//供应商管理档案id,取库存表体对应字段
+			changeBillBody[i].setCinvbasid(generalBody[i].getCinvbasid());//存货基本档案id,取库存表体对应字段
+			changeBillBody[i].setCinventoryid(generalBody[i].getCinventoryid());//存货管理档案id,取库存表体对应字段
 			changeBillBody[i].setDbizdate(new UFDate());
 			changeBillBody[i].setDr(0);
 			changeBillBody[i].setFcalcbizflag(0);
@@ -13650,12 +13659,17 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			changeBillBody[i].setFoutadjustableflag(new UFBoolean(false));
 			changeBillBody[i].setFpricemodeflag(3);
 			changeBillBody[i].setIauditsequence(-1);
-			changeBillBody[i].setIrownumber(i-1);//行号
+			changeBillBody[i].setIrownumber(i);//行号
 			changeBillBody[i].setNadjustnum(new UFDouble(generalBody[i].getNinnum()));
-			changeBillBody[i].setNmoney(new UFDouble(iaAdjustAmount*(generalBody[i].getNinnum().doubleValue())/invSUM));
+			//计算调整金额
+			java.text.NumberFormat  formater  =  java.text.DecimalFormat.getInstance();  
+			formater.setMaximumFractionDigits(2);  
+			formater.setMinimumFractionDigits(2);  
+			Double changemoney=iaAdjustAmount*(generalBody[i].getNinnum().doubleValue())/invSUM;
+			//调整金额计算完毕
+			changeBillBody[i].setNmoney(new UFDouble(formater.format(changemoney)));//将调整金额四舍五入成2位小数,并赋值.
 			changeBillBody[i].setNsimulatemny(changeBillBody[i].getNmoney());
-			changeBillBody[i].setPk_corp(ce.getGroupId());
-			changeBillBody[i].setTs(new UFDateTime().toString());
+			changeBillBody[i].setPk_corp(getCorpPrimaryKey());
 			changeBillBody[i].setVbillcode(changeBillHead.getVbillcode());
 		}
 		changeBillVO.setParentVO(changeBillHead);
@@ -13666,6 +13680,8 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			MessageDialog.showErrorDlg(this.getBillCardPanel(), "错误","保存库存调整单错误!");
 		}
+		MessageDialog.showHintDlg(this.getBillCardPanel(),"提示","采购费用发票回冲暂估及库存调整成功!");
   }
 }
