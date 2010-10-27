@@ -300,12 +300,21 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ " left join nc_mdcrk t6 on t1.pk_mdxcl_b=t6.pk_mdxcl_b"
 				+ " left join ic_general_b t7 on t6.cgeneralbid=t7.cgeneralbid"
 				+ " left join ic_general_h t8 on t7.cgeneralhid=t8.cgeneralhid "
-				+ " where t2.ccalbodyidb = '" + ccalbodyid + "'"
-				+ " and t2.cwarehouseidb = '" + cwarehouseid + "'"
-				+ " and t2.cinventoryidb = '" + cinventoryid + "'"
-				+ " and t2.cinvbasid = '" + pk_invbasdoc + "'"
-				+ " and t1.dr = 0" + " and t2.dr = 0"
-				+ " and t1.zhishu > 0 and t6.cbodybilltypecode in ('45','4A')";
+				+ " where t2.ccalbodyidb = '"
+				+ ccalbodyid
+				+ "'"
+				+ " and t2.cwarehouseidb = '"
+				+ cwarehouseid
+				+ "'"
+				+ " and t2.cinventoryidb = '"
+				+ cinventoryid
+				+ "'"
+				+ " and t2.cinvbasid = '"
+				+ pk_invbasdoc
+				+ "'"
+				+ " and t1.dr = 0"
+				+ " and t2.dr = 0"
+				+ " and (t1.zhishu<>0 or t1.zhongliang<>0) and t6.cbodybilltypecode in ('45','4A')";
 
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
@@ -358,7 +367,10 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				if (objMap.get("kyzs") != null) {
 					vo.setKyzs(new UFDouble(((Integer) objMap.get("kyzs"))
 							.doubleValue()));
-					vo.setKyzl(vo.getZhongliang().sub(vo.getYxsdzl()));// 可用重量
+					if (vo.getKyzs().doubleValue() != 0)
+						vo.setKyzl(vo.getZhongliang().sub(vo.getYxsdzl()));// 可用重量
+					else
+						vo.setKyzl(new UFDouble(0));// 可用重量
 				} else {
 					vo.setKyzs(new UFDouble(0));
 					vo.setKyzl(new UFDouble(0));// 可用重量
