@@ -8976,6 +8976,9 @@ private EstimateVO[] getArapVOs(EstimateVO[] vos){
 	 if(infovos == null || infovos.length == 0){
                return null;
 	 }
+//	for (int i = 0; i < infovos.length; i++) {
+//		infovos[i].set
+//	}
 	 ArrayList esvos = new ArrayList();
 	 for (int i = 0; i < v.size(); i++) {
 //			UFDouble mny = new UFDouble().ZERO_DBL;
@@ -9037,8 +9040,7 @@ private EstimateVO[] getArapVOs(EstimateVO[] vos){
                 newVO.setCbaseid(pk_invbasdoc);
                 newVO.setCmangid(pk_invmandoc);
                 newVO.setNtaxrate(null);
-			    
-			    
+                newVO.setVuserdef18("tureFree");//添加是否为费用暂估的标志 by 付世超 2010-10-26
 			    esvos.add(newVO);
             }
             

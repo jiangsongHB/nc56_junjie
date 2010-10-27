@@ -66,9 +66,10 @@ public class CHGF1TO25 extends VOConversionUI {
 "B_nexchangeotobrate->B_bbhl",//折本汇率 -> 本币汇率			
 "B_ntaxrate->B_sl",//税率 -> 税率
 "B_ninvoicenum->B_shlye",//发票数量 -> 数量余额 
-"B_vmemo->B_zy",//备注 -> 摘要				
-
-"H_cvendormangid->B_zyx19"//从应付单的自定义项中取出 客商管理id
+"B_vmemo->B_zy",//备注 -> 摘要	
+"B_bFeeFlag->B_zyx18",
+"B_vdef18->B_zyx18",//是否为费用暂估的标识 使用自定义项18
+"H_cvendormangid->B_zyx19"//从应付单的自定义项中取出 客商管理id 使用应付单的自定义项19
 				};
 	}
 
