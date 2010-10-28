@@ -112,7 +112,7 @@ public class MDToolsImpl implements IMDTools {
 			bvo.setMd_zlzsh(mdcrkVO.getMd_zlzsh());
 			bvo.setMd_zyh(mdcrkVO.getMd_zyh());
 			bvo.setDef6(mdcrkVO.getDef6());
-
+			bvo.setRemark(mdcrkVO.getRemark());//±¸×¢
 			bvo.setZhongliang(mdcrkVO.getSrkzl());
 			bvo.setZhishu(mdcrkVO.getSrkzs());
 			bvo.setDr(0);
