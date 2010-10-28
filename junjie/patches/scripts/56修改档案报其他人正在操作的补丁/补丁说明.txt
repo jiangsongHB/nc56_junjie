@@ -1,0 +1,9 @@
+将附件解压打到
+nchome/external/classes
+重启中件间，清空缓存
+
+
+
+设一个参数-Duser.timezone=GMT+8，方法如下：
+NC:　控制面板> Java> 增加属性
+WAS:应用程序服务器 > 服务器名 > 进程定义 > Java 虚拟机>定制属性
