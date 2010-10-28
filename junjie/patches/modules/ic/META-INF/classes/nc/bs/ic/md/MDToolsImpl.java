@@ -168,7 +168,7 @@ public class MDToolsImpl implements IMDTools {
 			}
 			if (mdcrkVO.getCrkfx() == MDUtils.KC_IN) {
 				String jbh = mdcrkVO.getJbh();
-				String pk_md = mdcrkVO.getPk_mdcrk();
+				String pk_md = mdcrkVO.getPk_mdxcl_b();
 
 				if (jbh_list.contains(jbh)) {
 					throw new BusinessException("表体存在相同的件编号: " + jbh);
@@ -176,10 +176,10 @@ public class MDToolsImpl implements IMDTools {
 					jbh_list.add(jbh);
 				}
 
-				String sql = " select jbh from nc_mdcrk where isnull(dr,0)=0 and CRKFX=0 and jbh='"
+				String sql = " select jbh from nc_mdxcl_b where isnull(dr,0)=0 and zhishu<>0 and jbh='"
 						+ jbh + "' ";
 				if (pk_md != null) {
-					sql = sql + " and pk_mdcrk != '" + pk_md + "' ";
+					sql = sql + " and pk_mdxcl_b != '" + pk_md + "' ";
 				}
 
 				List list = (List) getDAO().executeQuery(sql,
