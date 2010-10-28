@@ -6,6 +6,7 @@ import java.util.HashMap;
 import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pub.jj.IJJUAPService;
+import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.mdck.MDConstants;
 import nc.ui.pub.beans.MessageDialog;
@@ -243,10 +244,11 @@ public class MDUtils {
 	static UFDouble getFJM(MdcrkVO vo) throws BusinessException {
 		UFDouble rsDouble = new UFDouble(0);
 		String pk_invbasid = getInvBasidByMDVO(vo);
-		// if (pk_invbasid == null) {
-		// return UFDouble.ZERO_DBL;
-		// }
 		if (pk_invbasid == null)
+			return UFDouble.ZERO_DBL;
+		// 查询是否附加值配置
+		boolean sffjz = queryFjzConfig(pk_invbasid);
+		if (sffjz == false)
 			return UFDouble.ZERO_DBL;
 		// FIXME 与佛山代码整合后,需要更改此处代码
 		IJJUAPService js = NCLocator.getInstance().lookup(IJJUAPService.class);
@@ -343,5 +345,28 @@ public class MDUtils {
 			throw new BusinessException(e.getMessage());
 		}
 		return rsDouble;
+	}
+
+	// 查询附加值配置
+	private static boolean queryFjzConfig(String cinvbasid)
+			throws BusinessException {
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		String sql = "select def18 from bd_invbasdoc where pk_invbasdoc='"
+				+ cinvbasid + "'";
+		Object[] objs = (Object[]) iUAPQueryBS.executeQuery(sql,
+				new ArrayProcessor());
+		if (objs == null || objs.length == 0)
+			throw new BusinessException("当前存货异常，在存货基本档案中不存在！");
+		if (objs[0] == null)
+			return false;
+		else {
+			String bz = (String) objs[0];
+			bz = bz.toUpperCase();
+			if (bz.equals("Y"))
+				return true;
+			else
+				return false;
+		}
 	}
 }
