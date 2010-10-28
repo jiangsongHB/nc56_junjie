@@ -176,7 +176,7 @@ public class MDToolsImpl implements IMDTools {
 					jbh_list.add(jbh);
 				}
 
-				String sql = " select jbh from nc_mdcrk where isnull(dr,0)=0 and CRKFX=0 and jbh='"
+				String sql = " select jbh from nc_mdxcl_b where isnull(dr,0)=0 and zhishu<>0 and jbh='"
 						+ jbh + "' ";
 				if (pk_md != null) {
 					sql = sql + " and pk_mdcrk != '" + pk_md + "' ";
