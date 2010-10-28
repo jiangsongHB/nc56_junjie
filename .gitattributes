@@ -475,6 +475,7 @@ junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001ZZ100
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001ZZ10000000005FZN/003.sql -text
 junjie/patches/scripts/码单/NC脚本/zhunjie_md_v1.3.sql -text
 junjie/patches/scripts/码单/NC脚本/根据单据类型删除单据模板.sql -text
+junjie/patches/scripts/码单/NC补丁开发源代码清单.doc -text
 junjie/patches/scripts/码单/ierp/bin/scmplugin.xml -text
 junjie/patches/scripts/码单/码单数据库设计100906_v1.3.doc -text
 junjie/patches/scripts/码单/码单数据库设计100906_v1.3.pdm -text
