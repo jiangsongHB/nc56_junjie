@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.ListSelectionModel;
 
@@ -15,6 +16,7 @@ import nc.jdbc.framework.processor.MapListProcessor;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
+import nc.ui.pub.beans.UICheckBox;
 import nc.ui.pub.bill.BillListPanel;
 import nc.vo.bd.b15.BatchUpdateCtlVO;
 import nc.vo.pub.BusinessException;
@@ -44,12 +46,17 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 
 	private MdDetailVO[] viewVos = null;
 
+	private UICheckBox checkBox = null;
+
 	class IvjEventHandler implements java.awt.event.ActionListener {
 		public void actionPerformed(java.awt.event.ActionEvent e) {
 			if (e.getSource() == MdDetailDialog.this.getbtnClose())
 				connEtoC1(e);
 			if (e.getSource() == UIButtonPg) {
 				onboPg();
+			}
+			if (e.getSource() == checkBox) {
+				onXstcsj();
 			}
 		};
 	};
@@ -185,6 +192,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				ivjpanelSouth.setName("panelSouth");
 				ivjpanelSouth
 						.setPreferredSize(new java.awt.Dimension(1024, 50));
+				getpanelSouth().add(getCheckBox(), getCheckBox().getName());
 				getpanelSouth().add(getUIButtonPg(), getUIButtonPg().getName());
 				getpanelSouth().add(getbtnClose(), getbtnClose().getName());
 			} catch (java.lang.Throwable ivjExc) {
@@ -242,6 +250,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 		// user code end
 		getbtnClose().addActionListener(ivjEventHandler);
 		getUIButtonPg().addActionListener(ivjEventHandler);
+		getCheckBox().addActionListener(ivjEventHandler);
 	}
 
 	/**
@@ -267,6 +276,154 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 
 	// 初始化数据
 	private void initDate() {
+		// 查询所有数据
+		MdDetailVO[] detailVos = null;
+		try {
+			// 查询全部的VO
+			detailVos = queryAll();
+			MdDetailVO[] hjVos = null;
+			// 构造合计数据
+			if (getCheckBox().isSelected() == true)
+				hjVos = queryHJVOs(detailVos);
+			else
+				hjVos = queryHJVOs(getGlVos(detailVos));
+			viewVos = hjVos;
+			getBillList().setHeaderValueVO(viewVos);
+			// 设置表头可以多选
+			billList.getHeadTable().setSelectionMode(
+					ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		} catch (BusinessException e) {
+			e.printStackTrace();
+			MessageDialog.showErrorDlg(this, "错误", e.getMessage());
+		}
+
+	}
+
+	/**
+	 * 主入口点 - 当部件作为应用程序运行时，启动这个部件。
+	 * 
+	 * @param args
+	 *            java.lang.String[]
+	 */
+	public static void main(java.lang.String[] args) {
+		try {
+			MdDetailDialog aSNDialog1;
+			aSNDialog1 = new MdDetailDialog();
+			aSNDialog1.setModal(true);
+			aSNDialog1.addWindowListener(new java.awt.event.WindowAdapter() {
+				public void windowClosing(java.awt.event.WindowEvent e) {
+					System.exit(0);
+				};
+			});
+			aSNDialog1.show();
+			java.awt.Insets insets = aSNDialog1.getInsets();
+			aSNDialog1.setSize(aSNDialog1.getWidth() + insets.left
+					+ insets.right, aSNDialog1.getHeight() + insets.top
+					+ insets.bottom);
+			aSNDialog1.setVisible(true);
+		} catch (Throwable exception) {
+			nc.vo.scm.pub.SCMEnv.out("nc.ui.pub.beans.UIDialog 的 main() 中发生异常");
+			nc.vo.scm.pub.SCMEnv.error(exception);
+		}
+	}
+
+	public BillListPanel getBillList() {
+		if (billList == null) {
+			billList = new BillListPanel();
+			billList.loadTemplet("H001", null, clientEnv.getUser()
+					.getPrimaryKey(), clientEnv.getCorporation().getPk_corp());
+			billList.setPreferredSize(new Dimension(1024, 650));
+		}
+		return billList;
+	}
+
+	private UIButton getUIButtonPg() {
+		if (UIButtonPg == null) {
+			UIButtonPg = new UIButton();
+			UIButtonPg.setBounds(new Rectangle(512, 4, 75, 20));
+			UIButtonPg.setText("批  改");
+			UIButtonPg.setToolTipText("<HTML><B>批改(CTRL + S)</B></HTML>");
+		}
+		return UIButtonPg;
+	}
+
+	private UICheckBox getCheckBox() {
+		if (checkBox == null) {
+			checkBox = new UICheckBox();
+			checkBox.setText("显示调差数据");
+		}
+		return checkBox;
+	}
+
+	// 批改按钮
+	private void onboPg() {
+		String userNote = ClientEnvironment.getInstance().getUser()
+				.getUserNote();
+		if (userNote == null || userNote.equals("") || !userNote.contains("Y")) {
+			MessageDialog.showWarningDlg(this, "提示",
+					"当前用户没有质量保证书号批发权限，请与系统管理员联系！");
+			return;
+		}
+		int[] row = billList.getHeadTable().getSelectedRows();
+		if (row == null || row.length == 0)
+			return;
+		BatchModifyDlg dlg = new BatchModifyDlg();
+		dlg.showModal();
+		if (dlg.getResult() == 1) {
+			BatchUpdateCtlVO vo = dlg.getResultVO();
+			String filedCode = vo.getFieldVOName();
+			String value = (String) vo.getValue();
+			IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance()
+					.lookup(IUAPQueryBS.class.getName());
+			if (value == null)
+				value = "";
+			String sql = "update nc_mdxcl_b set md_zlzsh='" + value
+					+ "' where pk_mdxcl_b in (";
+			for (int i = 0; i < row.length; i++) {
+				MdDetailVO dvo = viewVos[row[i]];
+				sql += "'" + dvo.getPk_mdxcl_b() + "',";
+			}
+			sql = sql.substring(0, sql.length() - 1);
+			sql = sql + ")";
+			try {
+				iUAPQueryBS.executeQuery(sql, new ColumnProcessor());
+			} catch (BusinessException e) {
+				e.printStackTrace();
+			}
+			initDate();
+		}
+		// MessageDialog.showWarningDlg(this, "提示", "开始批改！");
+	}
+
+	// 显示调差数据
+	private void onXstcsj() {
+		initDate();
+		/*
+		if (getCheckBox().isSelected() == true) {
+			getBillList().setHeaderValueVO(viewVos);
+		} else
+			getBillList().setHeaderValueVO(getGlVos(viewVos));
+	    */
+	}
+
+	// 进行数据帅选
+	private MdDetailVO[] getGlVos(MdDetailVO[] vos) {
+		MdDetailVO[] rsvos = null;
+		if (vos == null || vos.length == 0)
+			return null;
+		List rsList = new ArrayList();
+		for (int i = 0; i < vos.length; i++) {
+			if (vos[i].getZhishu().doubleValue() == 0)
+				continue;
+			rsList.add(vos[i]);
+		}
+		rsvos = new MdDetailVO[rsList.size()];
+		rsList.toArray(rsvos);
+		return rsvos;
+	}
+
+	// 查询所有相关数据
+	private MdDetailVO[] queryAll() throws BusinessException {
 		MdDetailVO[] detailVos = null;
 		String sql = "select t1.pk_mdxcl_b,t3.invcode,"
 				+ " t3.invname,"
@@ -318,194 +475,99 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
-		try {
-			ArrayList arList = (ArrayList) iUAPQueryBS.executeQuery(sql,
-					new MapListProcessor());
-			detailVos = new MdDetailVO[arList.size()];
-			for (int i = 0; i < arList.size(); i++) {
-				HashMap objMap = (HashMap) arList.get(i);
-				MdDetailVO vo = new MdDetailVO();
-				vo.setInvcode((String) objMap.get("invcode"));
-				vo.setInvname((String) objMap.get("invname"));
-				vo.setInvspec((String) objMap.get("invspec"));
-				vo.setCspaceid((String) objMap.get("cspaceid"));
-				vo.setJbh((String) objMap.get("jbh"));
-				if (objMap.get("md_width") != null)
-					vo.setMd_width(new UFDouble(((BigDecimal) objMap
-							.get("md_width")).doubleValue()));
-				if (objMap.get("md_length") != null)
-					vo.setMd_length(new UFDouble(((BigDecimal) objMap
-							.get("md_length")).doubleValue()));
-				if (objMap.get("md_meter") != null)
-					vo.setMd_meter(new UFDouble(((BigDecimal) objMap
-							.get("md_meter")).doubleValue()));
-				vo.setZhishu(new UFDouble(((BigDecimal) objMap.get("zhishu"))
+		ArrayList arList = (ArrayList) iUAPQueryBS.executeQuery(sql,
+				new MapListProcessor());
+		detailVos = new MdDetailVO[arList.size()];
+		for (int i = 0; i < arList.size(); i++) {
+			HashMap objMap = (HashMap) arList.get(i);
+			MdDetailVO vo = new MdDetailVO();
+			vo.setInvcode((String) objMap.get("invcode"));
+			vo.setInvname((String) objMap.get("invname"));
+			vo.setInvspec((String) objMap.get("invspec"));
+			vo.setCspaceid((String) objMap.get("cspaceid"));
+			vo.setJbh((String) objMap.get("jbh"));
+			if (objMap.get("md_width") != null)
+				vo.setMd_width(new UFDouble(((BigDecimal) objMap
+						.get("md_width")).doubleValue()));
+			if (objMap.get("md_length") != null)
+				vo.setMd_length(new UFDouble(((BigDecimal) objMap
+						.get("md_length")).doubleValue()));
+			if (objMap.get("md_meter") != null)
+				vo.setMd_meter(new UFDouble(((BigDecimal) objMap
+						.get("md_meter")).doubleValue()));
+			vo.setZhishu(new UFDouble(((BigDecimal) objMap.get("zhishu"))
+					.doubleValue()));
+			vo.setZhongliang(new UFDouble(((BigDecimal) objMap
+					.get("zhongliang")).doubleValue()));
+			vo.setMd_note((String) objMap.get("md_note"));
+			vo.setMd_lph((String) objMap.get("md_lph"));
+			vo.setMd_zyh((String) objMap.get("md_zyh"));
+			vo.setMd_zlzsh((String) objMap.get("md_zlzsh"));
+			vo.setRemark((String) objMap.get("remark"));
+			vo.setRkrq((String) objMap.get("dbilldate"));// 入库日期
+			vo.setRkdh((String) objMap.get("vbillcode"));// 入库单号
+			vo.setCqh((String) objMap.get("vuserdef4"));// 车船号
+			vo.setPk_mdxcl_b((String) objMap.get("pk_mdxcl_b"));
+			// 有效锁定支数
+			if (objMap.get("yxsdzs") != null) {
+				vo.setYxsdzs(new UFDouble(((Integer) objMap.get("yxsdzs"))
 						.doubleValue()));
-				vo.setZhongliang(new UFDouble(((BigDecimal) objMap
-						.get("zhongliang")).doubleValue()));
-				vo.setMd_note((String) objMap.get("md_note"));
-				vo.setMd_lph((String) objMap.get("md_lph"));
-				vo.setMd_zyh((String) objMap.get("md_zyh"));
-				vo.setMd_zlzsh((String) objMap.get("md_zlzsh"));
-				vo.setRemark((String) objMap.get("remark"));
-				vo.setRkrq((String) objMap.get("dbilldate"));// 入库日期
-				vo.setRkdh((String) objMap.get("vbillcode"));// 入库单号
-				vo.setCqh((String) objMap.get("vuserdef4"));// 车船号
-				vo.setPk_mdxcl_b((String) objMap.get("pk_mdxcl_b"));
-				// 有效锁定支数
-				if (objMap.get("yxsdzs") != null) {
-					vo.setYxsdzs(new UFDouble(((Integer) objMap.get("yxsdzs"))
-							.doubleValue()));
-					UFDouble ywsdzl = vo.getYxsdzs().div(vo.getZhishu())
-							.multiply(vo.getZhongliang(), 4);
-					vo.setYxsdzl(ywsdzl); // 有效锁定重量
-				} else {
-					vo.setYxsdzs(new UFDouble(0));
-					vo.setYxsdzl(new UFDouble(0)); // 有效锁定重量
-				}
-				// 可用支数
-				if (objMap.get("kyzs") != null) {
-					vo.setKyzs(new UFDouble(((Integer) objMap.get("kyzs"))
-							.doubleValue()));
-					if (vo.getKyzs().doubleValue() != 0)
-						vo.setKyzl(vo.getZhongliang().sub(vo.getYxsdzl()));// 可用重量
-					else
-						vo.setKyzl(new UFDouble(0));// 可用重量
-				} else {
-					vo.setKyzs(new UFDouble(0));
+				UFDouble ywsdzl = vo.getYxsdzs().div(vo.getZhishu()).multiply(
+						vo.getZhongliang(), 4);
+				vo.setYxsdzl(ywsdzl); // 有效锁定重量
+			} else {
+				vo.setYxsdzs(new UFDouble(0));
+				vo.setYxsdzl(new UFDouble(0)); // 有效锁定重量
+			}
+			// 可用支数
+			if (objMap.get("kyzs") != null) {
+				vo.setKyzs(new UFDouble(((Integer) objMap.get("kyzs"))
+						.doubleValue()));
+				if (vo.getKyzs().doubleValue() != 0)
+					vo.setKyzl(vo.getZhongliang().sub(vo.getYxsdzl()));// 可用重量
+				else
 					vo.setKyzl(new UFDouble(0));// 可用重量
-				}
-
-				detailVos[i] = vo;
+			} else {
+				vo.setKyzs(new UFDouble(0));
+				vo.setKyzl(new UFDouble(0));// 可用重量
 			}
-
-			// 构造合计数据
-			MdDetailVO[] hjVos = null;
-			if (detailVos != null && detailVos.length > 0) {
-				hjVos = new MdDetailVO[detailVos.length + 1];
-				UFDouble sum_zhishu = new UFDouble(0); // 合计支数
-				UFDouble sum_zhongliang = new UFDouble(0); // 合计重量
-				UFDouble sum_yxsdzs = new UFDouble(0);// 合计有效锁定支数
-				UFDouble sum_yxsdzl = new UFDouble(0);// 合计有效锁定重量
-				UFDouble sum_kyzs = new UFDouble(0);// 合计可用支数
-				UFDouble sum_kyzl = new UFDouble(0);// 合计可用重量
-				for (int t = 0; t < detailVos.length; t++) {
-					hjVos[t] = detailVos[t];
-					sum_zhishu = sum_zhishu.add(detailVos[t].getZhishu());
-					sum_zhongliang = sum_zhongliang.add(detailVos[t]
-							.getZhongliang());
-					sum_yxsdzs = sum_yxsdzs.add(detailVos[t].getYxsdzs());
-					sum_kyzs = sum_kyzs.add(detailVos[t].getKyzs());
-					sum_yxsdzl = sum_yxsdzl.add(detailVos[t].getYxsdzl());
-					sum_kyzl = sum_kyzl.add(detailVos[t].getKyzl());
-				}
-				MdDetailVO hjvo = new MdDetailVO();
-				hjvo.setInvcode("合计");
-				hjvo.setZhishu(sum_zhishu);
-				hjvo.setZhongliang(sum_zhongliang);
-				hjvo.setYxsdzs(sum_yxsdzs);
-				hjvo.setYxsdzl(sum_yxsdzl);
-				hjvo.setKyzs(sum_kyzs);
-				hjvo.setKyzl(sum_kyzl);
-				hjVos[detailVos.length] = hjvo;
-			}
-			viewVos = hjVos;
-			getBillList().setHeaderValueVO(viewVos);
-			// 设置表头可以多选
-			billList.getHeadTable().setSelectionMode(
-					ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		} catch (BusinessException e) {
-			e.printStackTrace();
-			MessageDialog.showErrorDlg(this, "错误", e.getMessage());
+			detailVos[i] = vo;
 		}
-
+		return detailVos;
 	}
 
-	/**
-	 * 主入口点 - 当部件作为应用程序运行时，启动这个部件。
-	 * 
-	 * @param args
-	 *            java.lang.String[]
-	 */
-	public static void main(java.lang.String[] args) {
-		try {
-			MdDetailDialog aSNDialog1;
-			aSNDialog1 = new MdDetailDialog();
-			aSNDialog1.setModal(true);
-			aSNDialog1.addWindowListener(new java.awt.event.WindowAdapter() {
-				public void windowClosing(java.awt.event.WindowEvent e) {
-					System.exit(0);
-				};
-			});
-			aSNDialog1.show();
-			java.awt.Insets insets = aSNDialog1.getInsets();
-			aSNDialog1.setSize(aSNDialog1.getWidth() + insets.left
-					+ insets.right, aSNDialog1.getHeight() + insets.top
-					+ insets.bottom);
-			aSNDialog1.setVisible(true);
-		} catch (Throwable exception) {
-			nc.vo.scm.pub.SCMEnv.out("nc.ui.pub.beans.UIDialog 的 main() 中发生异常");
-			nc.vo.scm.pub.SCMEnv.error(exception);
-		}
-	}
-
-	public BillListPanel getBillList() {
-		if (billList == null) {
-			billList = new BillListPanel();
-		}
-		billList.loadTemplet("H001", null, clientEnv.getUser().getPrimaryKey(),
-				clientEnv.getCorporation().getPk_corp());
-		billList.setPreferredSize(new Dimension(1024, 650));
-		return billList;
-	}
-
-	private UIButton getUIButtonPg() {
-		if (UIButtonPg == null) {
-			UIButtonPg = new UIButton();
-			UIButtonPg.setBounds(new Rectangle(512, 4, 75, 20));
-			UIButtonPg.setText("批  改");
-			UIButtonPg.setToolTipText("<HTML><B>批改(CTRL + S)</B></HTML>");
-		}
-		return UIButtonPg;
-	}
-
-	// 批改按钮
-	private void onboPg() {
-		String userNote = ClientEnvironment.getInstance().getUser()
-				.getUserNote();
-		if (userNote == null || userNote.equals("") || !userNote.contains("Y")) {
-			MessageDialog.showWarningDlg(this, "提示",
-					"当前用户没有质量保证书号批发权限，请与系统管理员联系！");
-			return;
-		}
-		int[] row = billList.getHeadTable().getSelectedRows();
-		if (row == null || row.length == 0)
-			return;
-		BatchModifyDlg dlg = new BatchModifyDlg();
-		dlg.showModal();
-		if (dlg.getResult() == 1) {
-			BatchUpdateCtlVO vo = dlg.getResultVO();
-			String filedCode = vo.getFieldVOName();
-			String value = (String) vo.getValue();
-			IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance()
-					.lookup(IUAPQueryBS.class.getName());
-			if (value == null)
-				value = "";
-			String sql = "update nc_mdxcl_b set md_zlzsh='" + value
-					+ "' where pk_mdxcl_b in (";
-			for (int i = 0; i < row.length; i++) {
-				MdDetailVO dvo = viewVos[row[i]];
-				sql += "'" + dvo.getPk_mdxcl_b() + "',";
+	// 查询合计VO
+	private MdDetailVO[] queryHJVOs(MdDetailVO[] detailVos)
+			throws BusinessException {
+		MdDetailVO[] hjVos = null;
+		if (detailVos != null && detailVos.length > 0) {
+			hjVos = new MdDetailVO[detailVos.length + 1];
+			UFDouble sum_zhishu = new UFDouble(0); // 合计支数
+			UFDouble sum_zhongliang = new UFDouble(0); // 合计重量
+			UFDouble sum_yxsdzs = new UFDouble(0);// 合计有效锁定支数
+			UFDouble sum_yxsdzl = new UFDouble(0);// 合计有效锁定重量
+			UFDouble sum_kyzs = new UFDouble(0);// 合计可用支数
+			UFDouble sum_kyzl = new UFDouble(0);// 合计可用重量
+			for (int t = 0; t < detailVos.length; t++) {
+				hjVos[t] = detailVos[t];
+				sum_zhishu = sum_zhishu.add(detailVos[t].getZhishu());
+				sum_zhongliang = sum_zhongliang.add(detailVos[t]
+						.getZhongliang());
+				sum_yxsdzs = sum_yxsdzs.add(detailVos[t].getYxsdzs());
+				sum_kyzs = sum_kyzs.add(detailVos[t].getKyzs());
+				sum_yxsdzl = sum_yxsdzl.add(detailVos[t].getYxsdzl());
+				sum_kyzl = sum_kyzl.add(detailVos[t].getKyzl());
 			}
-			sql = sql.substring(0, sql.length() - 1);
-			sql = sql + ")";
-			try {
-				iUAPQueryBS.executeQuery(sql, new ColumnProcessor());
-			} catch (BusinessException e) {
-				e.printStackTrace();
-			}
-			initDate();
+			MdDetailVO hjvo = new MdDetailVO();
+			hjvo.setInvcode("合计");
+			hjvo.setZhishu(sum_zhishu);
+			hjvo.setZhongliang(sum_zhongliang);
+			hjvo.setYxsdzs(sum_yxsdzs);
+			hjvo.setYxsdzl(sum_yxsdzl);
+			hjvo.setKyzs(sum_kyzs);
+			hjvo.setKyzl(sum_kyzl);
+			hjVos[detailVos.length] = hjvo;
 		}
-		// MessageDialog.showWarningDlg(this, "提示", "开始批改！");
+		return hjVos;
 	}
 }
