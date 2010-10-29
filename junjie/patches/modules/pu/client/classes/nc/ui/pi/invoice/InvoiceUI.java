@@ -3,6 +3,7 @@ package nc.ui.pi.invoice;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -20,6 +21,11 @@ import javax.swing.event.ListSelectionListener;
 import nc.bs.bd.b21.BusinessCurrencyRateUtil;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
+import nc.bs.pub.compiler.AbstractCompiler2;
+import nc.bs.pub.pf.PfUtilTools;
+import nc.itf.arap.pub.IArapBillPublic;
+import nc.itf.ia.bill.IBill;
+import nc.itf.ic.pub.IGeneralBill;
 import nc.itf.pi.IDataPowerForInv;
 import nc.itf.pi.IInvoiceD;
 import nc.itf.scm.cenpur.service.TempTableUtil;
@@ -70,6 +76,7 @@ import nc.ui.pub.bill.DefaultCurrTypeBizDecimalListener;
 import nc.ui.pub.bill.DefaultCurrTypeDecimalAdapter;
 import nc.ui.pub.bill.IBillData;
 import nc.ui.pub.bill.IBillRelaSortListener2;
+import nc.ui.pub.change.PfChangeBO_Client;
 import nc.ui.pub.linkoperate.ILinkAdd;
 import nc.ui.pub.linkoperate.ILinkAddData;
 import nc.ui.pub.linkoperate.ILinkApprove;
@@ -97,7 +104,17 @@ import nc.ui.scm.pub.print.ScmPrintTool;
 import nc.ui.scm.pub.query.SCMQueryConditionDlg;
 import nc.ui.scm.pub.report.BillRowNo;
 import nc.ui.scm.pub.sourceref.SourceRefDlg;
+import nc.vo.arap.change.VoChangeCG;
 import nc.vo.bd.b06.PsndocVO;
+import nc.vo.ep.dj.DJZBHeaderVO;
+import nc.vo.ep.dj.DJZBItemVO;
+import nc.vo.ep.dj.DJZBVO;
+import nc.vo.ia.bill.BillHeaderVO;
+import nc.vo.ia.bill.BillItemVO;
+import nc.vo.ia.bill.BillVO;
+import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
+import nc.vo.ic.pub.bill.GeneralBillItemVO;
+import nc.vo.ic.pub.bill.GeneralBillVO;
 import nc.vo.ic.pub.vmi.VmiSumHeaderVO;
 import nc.vo.jcom.lang.StringUtil;
 import nc.vo.pi.ConstantVO;
@@ -117,6 +134,7 @@ import nc.vo.pub.CommonConstant;
 import nc.vo.pub.VOStatus;
 import nc.vo.pub.ValidationException;
 import nc.vo.pub.bill.BillTempletVO;
+import nc.vo.pub.compiler.PfParameterVO;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDateTime;
@@ -155,6 +173,8 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
   
   String sContinueBillTypeName = "";
   boolean feeFlag = false;//费用发票审核标志 add by QuSida (佛山骏杰) 2010-9-26
+  boolean isfromexpenseARAP = false;//采购发票是否由应付单拉式生成. 2010-10-22 MeiChao 
+  
   boolean bIswaitaudit = false;
 
   // {业务类型主键=是否配置了审批驱动传应付}
@@ -4319,11 +4339,6 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     }
 
     try {
-    	//费用发票审批  add by QuSida (佛山骏杰) 2010-9-27
-    	if(feeFlag)
-      	  PfUtilClient.processBatchFlow(this, "FEEAPPROVE", nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment
-      	          .getInstance().getDate().toString(), proceVOs, null);
-        else
       PfUtilClient.processBatchFlow(this, "APPROVE", nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment
           .getInstance().getDate().toString(), proceVOs, null);
       timer.addExecutePhase("执行审批操作APPROVE");
@@ -4366,7 +4381,19 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
           showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID("SCMCOMMON", "UPPSCMCommon-000236")/*
                                                                                                            * @res
                                                                                                            * "审批成功"
-                                                                                                           */);
+                                                                                                         */);
+          
+          if(this.getBillCardPanel().getHeadItem("vdef20").getValue().equals("Y")){//验证表头"是否费用发票"项的值
+        	  //2010-10-23 MeiChao 如果是费用发票,那么在审核时自动调用费用回冲及库存调整单方法.
+        	  //获取卡片页面上的发票聚合VO
+        	  InvoiceVO expenseInvoiceVO=(InvoiceVO)this.getBillCardPanel().getBillData().getBillValueVO(InvoiceVO.class.getName(), InvoiceHeaderVO.class.getName(), InvoiceItemVO.class.getName());
+        	  if(expenseInvoiceVO==null){
+        		  MessageDialog.showErrorDlg(this.getBillCardPanel(), "费用回冲错误", "无法获取当前页面的费用信息,请联系技术员.");
+        		  return;
+        	  }
+        	  //this.formalExpenseTOAP(expenseInvoiceVO); 
+        	  this.invoiceTOAP(expenseInvoiceVO);
+          }
         }
       }
     }
@@ -5649,8 +5676,10 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
 
         // if(m_bizButton!=null&&m_bizButton.getName()!=null&&m_bizButton.getName().equals("")){
         else {
+        	  //当来源单据为D1或F1时 (实际上是F1) 修改费用发票相应标志
         	  if ("D1".equalsIgnoreCase(strUpBillType)||"F1".equalsIgnoreCase(strUpBillType)){
                   feeFlag = true;  //费用发票标志 add by QuSida (佛山骏杰) 2010-9-26
+                  this.isfromexpenseARAP=true ; //是否由应付的费用单生成标志.设置为true 2010-10-22 MeiChao
               }
           PfUtilClient.childButtonClicked(btn, nc.ui.pub.ClientEnvironment.getInstance().getCorporation().getPk_corp(),
               getModuleCode(), nc.ui.pub.ClientEnvironment.getInstance().getUser().getPrimaryKey(),
@@ -10529,6 +10558,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     }
     //重新根据币种设置换算率精度 by zhaoyha at 2009.9
     setVoExchgRateDigit(items);
+    
     // 设置VO
     getBillCardPanel().setBillValueVO(curVO);
 
@@ -13185,4 +13215,473 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
     }
   }
   
+  /**
+   * 费用采购发票审核自动回冲暂估应付单,并生成库存调整单
+   * 回冲后的应付单的暂估标志应为"0"
+   * MeiChao
+   */
+  private void formalExpenseTOAP(InvoiceVO expenseInvoiceVO){
+//	  /**
+//	   * 第一步,获取页面上的费用发票聚合VO类,并将其转换成采购应付单的聚合VO
+//	   */
+//	  InvoiceVO expenseInvoiceVO=(InvoiceVO)this.getBillCardPanel().getBillData().getBillValueChangeVO(InvoiceVO.class.getName(), InvoiceHeaderVO.class.getName(), InvoiceItemVO.class.getName());
+//	  DJZBVO expenseAPVO=new DJZBVO();
+//	  try {
+//		  //使用数据转换平台工具类,将销售发票VO转换成销售应付单VO
+//		expenseAPVO=(DJZBVO)PfChangeBO_Client.pfChangeBillToBill(expenseInvoiceVO, "25","D1");
+//	} catch (BusinessException e) {
+//		// TODO Auto-generated catch block
+//		e.printStackTrace();
+//		MessageDialog.showHintDlg(this.getBillCardPanel(), "警告", "费用发票审核时执行暂估应付的红蓝回冲失败,请手工做回冲单或弃审");
+//		return;
+//	}
+	   	/**
+	   	 * 第一步,获取页面上的采购费用发票的聚合VO,并校验
+	   	 */
+//	  //获取卡片页面上的发票聚合VO
+//	  InvoiceVO expenseInvoiceVO=(InvoiceVO)this.getBillCardPanel().getBillData().getBillValueChangeVO(InvoiceVO.class.getName(), InvoiceHeaderVO.class.getName(), InvoiceItemVO.class.getName());
+//	  if(expenseInvoiceVO==null){
+//		  MessageDialog.showErrorDlg(this.getBillCardPanel(), "费用回冲错误", "无法获取当前页面的费用信息,请联系技术员.");
+//		  return;
+//	  }
+	  //获取发票表头VO
+	  InvoiceHeaderVO expenseInvoiceHeaderVO=expenseInvoiceVO.getHeadVO();
+	  //判断当前是否采购费用发票(vdef20字段)
+	  if(!expenseInvoiceHeaderVO.getVdef20().equals("Y")){
+		  MessageDialog.showErrorDlg(this.getBillCardPanel(), "错误", "当前发票非采购费用发票,不能进行暂估应付回冲操作!");
+		  return;
+	  }
+	  //判断当前发票是否已传应付
+	  if(expenseInvoiceHeaderVO.getBapflag().booleanValue()){
+		  MessageDialog.showHintDlg(this.getBillCardPanel(),"提示" , "该发票:"+expenseInvoiceHeaderVO.getVinvoicecode()+"已传应付.");
+		  return;
+	  }
+	  //获取发票表体VO数组
+	  InvoiceItemVO[] expenseInvoiceItemVOs=expenseInvoiceVO.getBodyVO();
+	  if(expenseInvoiceItemVOs==null||expenseInvoiceItemVOs.length==0){
+		  MessageDialog.showHintDlg(this.getBillCardPanel(), "提示", "审批成功!但由于无法获取发票体信息,回冲暂估应付失败.");
+		  return; 
+	  }
+	  //发票来源单据id
+	  List exInvoiceSourceID=new ArrayList();
+	  //发票来源单据体id
+	  Map exInvoiceSourceBodyID=new HashMap();
+	  //将发票来源单据ID初始化,(如果发票有多个来源单据,将以此初始化值在循环中逐一判断)
+	  String aaaaa=expenseInvoiceItemVOs[0].getCupsourcebillid();
+	  exInvoiceSourceID.add(aaaaa);
+	  //指针,用于标识下面循环的来源单据ID不同的下标处
+	  int differentsourcepoint=0;
+	  
+	  //遍历发票表体--BUG: 如果表体不按来源单据排列,那么此判断将失效.
+	  for(int i=0;i<expenseInvoiceItemVOs.length;i++){
+		  //判断当前费用发票的上层来源单据类型
+		  if(!expenseInvoiceItemVOs[i].getCupsourcebilltype().equals("D1")
+				  &&!expenseInvoiceItemVOs[i].getCupsourcebilltype().equals("F1")){
+			  MessageDialog.showHintDlg(this.getBillCardPanel(), "提示", "目前暂不支持非应付下游发票的费用回冲");
+			  return;
+		  }
+		  //将当前表体行的上层来源单据ID与初始化的上层来源单据ID对比,如相同则表示本行与第一行属于同1个来源单据
+		  if(exInvoiceSourceID.get(differentsourcepoint).toString().equals(expenseInvoiceItemVOs[i].getCupsourcebillid())){
+			  //将本行上层来源单据的头/体id 存入单据体id的Map
+			  exInvoiceSourceBodyID.put(exInvoiceSourceID.get(differentsourcepoint).toString(), expenseInvoiceItemVOs[i].getCupsourcebillrowid());
+		  }else{//如果行表头id与初始化不相等,那么表示当前发票由多张单据生成
+			  differentsourcepoint+=1;
+			  exInvoiceSourceID.add(expenseInvoiceItemVOs[i].getCupsourcebillid());
+			  exInvoiceSourceBodyID.put(exInvoiceSourceID.get(differentsourcepoint).toString(), expenseInvoiceItemVOs[i].getCupsourcebillrowid());
+		  }
+	  }
+
+	  /**
+	   * 第二步,获取当前采购费用发票的上层来源的费用暂估应付单,并校验.
+	   */
+	  //获取应收应付的对外操作接口
+	  IArapBillPublic iARAP=(IArapBillPublic)NCLocator.getInstance().lookup(IArapBillPublic.class.getName());
+	  //根据当前发票的来源单据获取对应的暂估应付单,目前只支持仅有一个来源单据的发票
+	  DJZBVO upsourceBill=null;
+	  try {
+			upsourceBill = iARAP.findArapBillByPK(exInvoiceSourceID.get(0)
+					.toString());
+		} catch (BusinessException e) {
+			Logger.debug("采购费用发票回冲暂估应付时,调用IArapBillPublic接口findArapBillByPK方法获取暂估应付单出错.");
+		}
+	  if(upsourceBill==null){
+		  MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","审批成功,但回冲费用暂估应付单时,获取上层来源暂估应付单失败.");
+		  return;
+	  }
+	  //获取暂估应付单表头及表体
+	  DJZBHeaderVO upsourceBillHeade=(DJZBHeaderVO)upsourceBill.getParentVO();
+	  DJZBItemVO[] upsourceBillBody=(DJZBItemVO[])upsourceBill.getChildrenVO();
+ 	  
+	  //判断是否暂估应付
+	  if(!upsourceBillHeade.getZgyf().equals(1)){
+		  MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","当前发票的上层来源单据非\"暂估\"应付单,不允许回冲.");
+		  return;
+	  }
+	  //暂估应付单中的普通存货数量之和.
+	  Double upSourceSummy=0.0;
+	  //暂估应付单表体上层来源单据id
+	  List upupsourceBillid=new ArrayList();
+	  //暂估应付单表体上层来源单据行id
+	  Map upupsourceBillBodyid=new HashMap();
+	  //初始化上层来源单据id(上层来源有多个时,以此判定)
+	  upupsourceBillid.set(0, upsourceBillBody[0].getDdlx());
+	  //多来源单据判断指针
+	  int upupDifferentPoint=0;
+	  
+	  //遍历,判断应付单表体--BUG当来源单据为多张且排列杂乱时,将失效.
+	  for(int i=0;i<upsourceBillBody.length;i++){
+		  if(upupsourceBillid.get(upupDifferentPoint).toString().equals(upsourceBillBody[i].getDdlx())){
+			  Logger.debug("当前采购发票的来源应付单又多张单据生成.");
+			  upupsourceBillid.add(upsourceBillBody[i].getDdlx());
+			  upupDifferentPoint+=1;
+		  }
+		  //将行id及对应主表id信息加入到Map中
+		  upupsourceBillBodyid.put(upupsourceBillid.get(upupDifferentPoint).toString(), upsourceBillBody[i].getDdhh());
+		  
+		  if(!upsourceBillBody[i].getJsfsbm().equals("45")){
+			  Logger.debug("采购费用发票回冲暂估应付时,发现对应暂估应付单中存在非入库单生成的应付记录.");
+		  }
+		  //将应付单表体存货id与发票表体存货id比对,相同的则认为是费用,否则为普通存货,则累加其普通存货的数量.
+		  for(int j=0;j<expenseInvoiceItemVOs.length;j++){
+			  if(upsourceBillBody[i].getCinventoryid().equals(expenseInvoiceItemVOs[j].getCbaseid())){
+				  //如果找到了与发票项相同的存货PK,那么认为是费用类存货,直接结束本轮内层循环,进入外层循环
+				  break;
+			  }else if(j==expenseInvoiceItemVOs.length-1){
+				  //如果循环结束还没找到与发票项相同的存货PK,那么认为这行记录为普通存货.
+				  upSourceSummy+=upsourceBillBody[i].getDfshl().toDouble();
+			  }
+		  }
+	  }
+	  /**
+	   * 第三步,获取当前发票的上层->暂估应付单的上层--采购入库单,并进行校验.
+	   */
+	  //获取库存管理操作接口 nc.itf.ic.pub... ic.ui.ic.pub.bill..下有2个接口.
+	  IGeneralBill iGeneralBill=(IGeneralBill)NCLocator.getInstance().lookup(IGeneralBill.class.getName());
+	  String[] generalBillPK={upupsourceBillid.get(0).toString()};
+	  List generalList=new ArrayList();
+	  try {
+			generalList=iGeneralBill.queryBillByPks_for_OutModule(generalBillPK);
+		} catch (BusinessException e) {
+			MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","查询当前费用发票对应的入库单时出现异常,请检查网络连接,并保证服务器正常.");
+			e.printStackTrace();
+		}
+		if(generalList==null||generalList.size()==0){
+			MessageDialog.showErrorDlg(this.getBillCardPanel(), "错误","当前费用发票对应的入库单不存在!请检查数据.");
+		}
+		//取出采购入库单VO
+		GeneralBillVO generalBillVO=(GeneralBillVO)generalList.get(0);
+		//表头
+		GeneralBillHeaderVO generalBillHead=(GeneralBillHeaderVO)generalBillVO.getHeaderVO();
+		//表体
+		GeneralBillItemVO[] generalBillBody=(GeneralBillItemVO[])generalBillVO.getChildrenVO();
+		/*//由于入库单与采购费用发票流程相聚较远,须在此校验此时入库单的状态
+		if(){//废弃
+		}
+		*/
+	  
+		/**
+		 * 第四步,获取采购入库单对应费用信息.
+		 */
+		
+		/**
+		 * 第五步,组织后续操作参数.
+		 */
+		
+	    /**
+	     * 第六步,组织红,蓝应付单VO.
+	     */
+	  
+		/**
+		 * 第七步,组织入库调整单VO.
+		 */
+		
+		
+  }
+  /**
+   * 2010-10-24 MeiChao
+   * 采购费用发票回冲暂估应付的直接方法
+   * 缺点:校验功能较少.
+   */
+  private void invoiceTOAP(InvoiceVO expenseInvoiceVO){
+	  //查询采购费用发票的上层应付单
+	  //获取应收应付的对外操作接口
+	  IArapBillPublic iARAP=(IArapBillPublic)NCLocator.getInstance().lookup(IArapBillPublic.class.getName());
+	  //根据当前发票的来源单据获取对应的暂估应付单,目前只支持仅有一个来源单据的发票
+	  DJZBVO upsourceBill=null;
+	  try {
+		  	String apBillID=(expenseInvoiceVO.getBodyVO())[0].getCupsourcebillid();
+			upsourceBill = iARAP.findArapBillByPK(apBillID);
+		} catch (BusinessException e) {
+			Logger.debug("采购费用发票回冲暂估应付时,调用IArapBillPublic接口findArapBillByPK方法获取暂估应付单出错.");
+		}
+		//if(upsourceBill==null){
+		if(false){//暂不判断
+			MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","无法获取当前发票对应暂估应付单,请核对数据!");
+			return;
+		}
+		
+		//转换发票至应付
+		  DJZBVO expenseAPVO=new DJZBVO();
+		  try {
+			  //使用数据转换平台工具类,将采购发票VO转换成采购应付单VO
+			expenseAPVO=(DJZBVO)PfChangeBO_Client.pfChangeBillToBill(expenseInvoiceVO, "25","D1");
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setZgyf(0);//设置此应付单为非暂估应付单
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSpzt("1");//设置审批状态
+			iARAP.saveArapBill(expenseAPVO);
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			MessageDialog.showHintDlg(this.getBillCardPanel(), "警告", "费用发票审核时执行暂估应付的红蓝回冲失败,请手工做回冲单或弃审");
+			return;
+		}
+		/**
+		 * 将查询出的暂估应付单与转换成的应付单VO对比,决定回冲单与调整单.
+		 * 由于上层来源单据中可能存在非费用存货,所以此处比较以转换后的应付单VO表体为准
+		 */
+		//获取转换后应付单的表体VO
+		DJZBItemVO[] newbody=(DJZBItemVO[])expenseAPVO.getChildrenVO();
+		DJZBItemVO[] oldbody=(DJZBItemVO[])upsourceBill.getChildrenVO();
+		//费用类存货在上层来源应付单中的位置指针组集合.
+		List expencePoint=new ArrayList();
+		//转换后,上层来源应付单表体数量是否相符标志
+		boolean ishavenumberchange=false;
+		//新旧数量不匹配的存货表体组
+		Map differentnumberExpense=new HashMap();
+		//单价是否不等标志(相等,表示不需要进行库存成本调整)
+		boolean isneedchangecost=false;
+		//单价不相等的存货表体组
+		Map differentpriceExpense=new HashMap();
+		for(int i=0;i<newbody.length;i++){
+			for(int j=0;j<oldbody.length;j++){
+				//如果转换后的表体存货pk与上层单据表体中的存货PK相同.那么开始进行判断
+				if(newbody[i].getCinventoryid().equals(oldbody[j].getCinventoryid())){
+					//那么便可认为上层单据表体中的对应存货为费用类存货,将其下标加入到指针集合中.
+					expencePoint.add(j);
+					//如果数量不等
+					if(newbody[i].getDfshl().doubleValue()!=oldbody[j].getDfshl().doubleValue()){
+						ishavenumberchange=true;//那么表示根据上层应付单生成的发票中的数量有变动,即,后续需要进行按数量组织回冲金额.
+						differentnumberExpense.put(i,j);//将数量不等的存货对应行存入Map中
+					}
+					//如果单价不等
+					if(newbody[i].getDj().doubleValue()!=oldbody[j].getDj().doubleValue()){
+						isneedchangecost=true;//那么将是否需要进行库存调整标志设为true
+						differentpriceExpense.put(i,j);
+					}
+					break;
+				}
+			}
+		}
+		
+		/**
+		 * 组织回冲红单.
+		 */
+		//使用深度克隆方法,初始化回冲红单数据.需要将金额修正后修改为负值.
+		DJZBHeaderVO backExpenseHead=new DJZBHeaderVO();
+		backExpenseHead=(DJZBHeaderVO)((DJZBHeaderVO)expenseAPVO.getParentVO()).clone();
+		DJZBItemVO[] backExpenseBody=new DJZBItemVO[newbody.length];
+		backExpenseBody=newbody.clone();
+		/*
+		 * 表头暂不进行判断
+		 */
+		//需要进行库存调整的费用金额
+		Double iaAdjustAmount=0.0;
+		
+		//开始判断组织表体
+		for(int i=0;i<backExpenseBody.length;i++){
+			//如果该序号key在differentnumberExpense中存在值,那么表示这一行费用记录存在数量不同,需要按比例来计算回冲费用
+			if(differentnumberExpense.get(i)!=null){
+				//数量不同,则组织回冲金额
+				//上层来源表体序号
+				int j=Integer.valueOf(differentnumberExpense.get(i).toString());
+				//获取回冲数量:
+				Double backnumber=backExpenseBody[i].getDfshl().toDouble();//取贷方数量
+				//获取总数量(取贷方数量)
+				Double oldnumber=oldbody[j].getDfshl().toDouble();
+				//获取原暂估金额(取贷方原币金额)
+				Double oldAmount=oldbody[j].getDfybje().toDouble();
+				//计算回冲金额
+				Double backAmount=oldAmount*backnumber/oldnumber;
+				oldbody[j].setDfybje(new UFDouble(backAmount));//更新上层来源应付单的表体贷方金额
+				oldbody[j].setDfshl(new UFDouble(backnumber));//更新上层来源应付单贷方数量
+			}
+			//如果当前序号key对应在differentpriceExpense中存在值,那么表示此行费用单价也不一样,需要修改回冲的金额.
+			if(differentpriceExpense.get(i)!=null){
+				//单价不同,则组织库存调整金额
+				iaAdjustAmount+=backExpenseBody[i].getDfybje().toDouble()-oldbody[Integer.valueOf(differentnumberExpense.get(i).toString())].getDfybje().toDouble();
+			}
+			
+			//遍历上层来源应付单表体
+			for(int k=0;k<oldbody.length;k++){
+			//如果转换后的应付单与上层来源应付单表体存货id一致,那么将上层来源应付单表体数量、单价、金额转换为负数,再将表体交换.
+			if(backExpenseBody[i].getCinventoryid().equals(oldbody[k].getCinventoryid())){
+				//贷方数量转换为负数
+				Double dfshl=Double.valueOf("-"+oldbody[k].getDfshl().toString());
+				oldbody[k].setDfshl(new UFDouble(dfshl));
+				//贷方原币金额,原币无税金额,本币金额,本币无税金额,本币余额,原币余额 转换为负数
+				Double dfybje=Double.valueOf("-"+oldbody[k].getDfybje().toString());
+				oldbody[k].setDfybje(new UFDouble(dfybje));
+				oldbody[k].setDfybwsje(new UFDouble(dfybje));
+				oldbody[k].setDfbbje(new UFDouble(dfybje));
+				oldbody[k].setDfbbwsje(new UFDouble(dfybje));
+				oldbody[k].setBbye(new UFDouble(dfybje));//本币余额
+				oldbody[k].setYbye(new UFDouble(dfybje));//原币余额
+				
+				backExpenseBody[i]=oldbody[k];//VO交换
+				break;
+			}
+			}
+		}
+		//表体中的贷方原币金额累加成为表头中的原币金额
+		Double dfybjeSUM=0.0;
+		for(int i=0;i<backExpenseBody.length;i++){
+			dfybjeSUM+=backExpenseBody[i].getDfybje().toDouble();//累加表体贷方原币金额
+		}
+		backExpenseHead.setYbje(new UFDouble(dfybjeSUM));//设置表头贷方原币总金额
+		backExpenseHead.setBbje(new UFDouble(dfybjeSUM));//设置表头本币金额
+		//将处理过后的回冲单表头表体set入应付VO
+		DJZBVO backExpenseVO=new DJZBVO();
+		backExpenseVO.setParentVO(backExpenseHead);
+		backExpenseVO.setChildrenVO(backExpenseBody);
+		//保存回冲单
+		try {
+			iARAP.saveArapBill(backExpenseVO);
+		} catch (BusinessException e) {
+			e.printStackTrace();
+			MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","组织暂估应付回冲红单成功,但保存失败!请进入ARAP手工做单或弃审处理!");
+			return;
+		}
+		/**
+		 * 开始组织库存调整单
+		 */
+		//判断先决条件//精度目前控制在0.01内范围内,金额变动小于0.01元忽略不记
+		if(iaAdjustAmount==0||(-0.01<iaAdjustAmount&&iaAdjustAmount<0.01)){
+			Logger.debug("无需进行存货核算成本调整.");
+			return;
+		}
+		//遍历oldbody,从其中获取入库单主表ID
+		String ap_ICPK="";
+		for(int i=0;i<oldbody.length;i++){
+			if(oldbody[i].getDdlx()!=null){
+				ap_ICPK=oldbody[i].getDdlx();
+				break;//一旦获取成功便跳出循环.
+			}
+		}
+		if(ap_ICPK.length()!=20){//PK长度不是20位那么该PK为非法PK.
+			Logger.debug("费用回冲进行库存调整时,获取到了非法的库存PK");
+			return;
+		}
+		//获取库存管理操作接口
+		IGeneralBill iGeneralBill = (IGeneralBill)NCLocator.getInstance().lookup(IGeneralBill.class.getName());
+		String[] queryParam={ap_ICPK};//入库单PK
+		List generalList=null;
+		try {
+			generalList=iGeneralBill.queryBillByPks_for_OutModule(queryParam);
+		} catch (BusinessException e) {
+			Logger.debug("获取当前发票上游的暂估应付单对应的库存采购入库单失败!");
+			e.printStackTrace();
+		}
+		if(generalList==null||generalList.size()==0){
+			MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误" ,"没有找到当前采购发票对应的库存入库单!");
+			return;
+		}
+		//获取采购入库单
+		GeneralBillVO generalVO=(GeneralBillVO)generalList.get(0);
+		//入库单表头
+		GeneralBillHeaderVO generalHead=generalVO.getHeaderVO();
+		//入库单表体
+		GeneralBillItemVO[] generalBody=generalVO.getItemVOs();
+		//存货总数
+		Double invSUM=0.0;
+		for(int i=0;i<generalBody.length;i++){
+			invSUM+=generalBody[i].getNinnum().toDouble();
+		}
+		
+		//初始化库存调整单VO
+		BillVO changeBillVO=new BillVO();
+		BillHeaderVO changeBillHead=new BillHeaderVO();
+		BillItemVO[] changeBillBody=new BillItemVO[generalBody.length];
+		//初始化存货核算IA接口
+		IBill iBill=(IBill)NCLocator.getInstance().lookup(IBill.class.getName());
+		//存货核算接口进行保存操作时需要的参数
+		ClientEnvironment ce=ClientEnvironment.getInstance();
+		ClientLink cl=new ClientLink(ce);
+		/**
+		 * 开始生成库存调整单VO
+		 */
+		//调整单表头
+		changeBillHead.setBauditedflag(new UFBoolean(false));
+		changeBillHead.setBdisableflag(new UFBoolean(false));
+		changeBillHead.setBestimateflag(new UFBoolean(false));
+		changeBillHead.setBoutestimate(new UFBoolean(false));
+		changeBillHead.setBwithdrawalflag(new UFBoolean(false));
+		changeBillHead.setCbilltypecode("I9");//单据类型
+		changeBillHead.setClastoperatorid(ce.getUser().getPrimaryKey());//最后修改人
+		changeBillHead.setCoperatorid(ce.getUser().getPrimaryKey());//操作员
+		changeBillHead.setCrdcenterid(generalHead.getPk_calbody());//库存组织
+		changeBillHead.setCsourcemodulename("PO");//来源模块
+		changeBillHead.setDbilldate(new UFDate());
+		changeBillHead.setDr(0);
+		changeBillHead.setFdispatchflag(0);
+		changeBillHead.setIdebtflag(-1);
+		changeBillHead.setPk_corp(getCorpPrimaryKey());
+		changeBillHead.setTlastmaketime(new UFDateTime(new Date()).toString());
+		changeBillHead.setTmaketime(new UFDateTime(new Date()).toString());
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyyMMddHHmm");
+		changeBillHead.setVbillcode("I9"+sdf.format(new Date()));
+		//调整单表体
+		for(int i=0;i<changeBillBody.length;i++){
+			changeBillBody[i]=new BillItemVO();
+			changeBillBody[i].setBadjustedItemflag(new UFBoolean(false));
+			changeBillBody[i].setBauditbatchflag(new UFBoolean(false));
+			changeBillBody[i].setBlargessflag(new UFBoolean(false));
+			changeBillBody[i].setBretractflag(new UFBoolean(false));
+			changeBillBody[i].setBrtvouchflag(new UFBoolean(false));
+			changeBillBody[i].setBtransferincometax(new UFBoolean(false));
+			changeBillBody[i].setCadjustbillid(null);//调整对象单据id
+			changeBillBody[i].setCadjustbillitemid(null);//调整对象单据体id
+			changeBillBody[i].setCbilltypecode("I9");
+			changeBillBody[i].setCfirstbillid(null);//源头单据id
+			changeBillBody[i].setCfirstbillitemid(null);//源头单据体id
+			changeBillBody[i].setCfirstbilltypecode("21");//源头单据类型"采购订单"
+			changeBillBody[i].setCicbillcode(expenseInvoiceVO.getHeadVO().getVinvoicecode());//上层来源单据编号,发票号
+			changeBillBody[i].setCicbillid(expenseInvoiceVO.getHeadVO().getCinvoiceid());//上层来源单据id,发票id
+			changeBillBody[i].setCicbilltype("25");//上层来源单据类型 25
+			changeBillBody[i].setCicitemid(null);//上层来源单据体id
+			changeBillBody[i].setCvendorbasid(generalBody[i].getPk_cubasdoc());//供应商基本档案id,取库存表体对应字段
+			changeBillBody[i].setCvendorid(generalBody[i].getCvendorid());//供应商管理档案id,取库存表体对应字段
+			changeBillBody[i].setCinvbasid(generalBody[i].getCinvbasid());//存货基本档案id,取库存表体对应字段
+			changeBillBody[i].setCinventoryid(generalBody[i].getCinventoryid());//存货管理档案id,取库存表体对应字段
+			changeBillBody[i].setDbizdate(new UFDate());
+			changeBillBody[i].setDr(0);
+			changeBillBody[i].setFcalcbizflag(0);
+			changeBillBody[i].setFdatagetmodelflag(1);
+			changeBillBody[i].setFolddatagetmodelflag(1);
+			changeBillBody[i].setFoutadjustableflag(new UFBoolean(false));
+			changeBillBody[i].setFpricemodeflag(3);
+			changeBillBody[i].setIauditsequence(-1);
+			changeBillBody[i].setIrownumber(i);//行号
+			changeBillBody[i].setNadjustnum(new UFDouble(generalBody[i].getNinnum()));
+			//计算调整金额
+			java.text.NumberFormat  formater  =  java.text.DecimalFormat.getInstance();  
+			formater.setMaximumFractionDigits(2);  
+			formater.setMinimumFractionDigits(2);  
+			Double changemoney=iaAdjustAmount*(generalBody[i].getNinnum().doubleValue())/invSUM;
+			//调整金额计算完毕
+			changeBillBody[i].setNmoney(new UFDouble(formater.format(changemoney)));//将调整金额四舍五入成2位小数,并赋值.
+			changeBillBody[i].setNsimulatemny(changeBillBody[i].getNmoney());
+			changeBillBody[i].setPk_corp(getCorpPrimaryKey());
+			changeBillBody[i].setVbillcode(changeBillHead.getVbillcode());
+		}
+		changeBillVO.setParentVO(changeBillHead);
+		changeBillVO.setChildrenVO(changeBillBody);
+		try {
+			//保存库存调整单.
+			iBill.insertBill(changeBillVO, cl);
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			MessageDialog.showErrorDlg(this.getBillCardPanel(), "错误","保存库存调整单错误!");
+		}
+		MessageDialog.showHintDlg(this.getBillCardPanel(),"提示","采购费用发票回冲暂估及库存调整成功!");
+  }
 }

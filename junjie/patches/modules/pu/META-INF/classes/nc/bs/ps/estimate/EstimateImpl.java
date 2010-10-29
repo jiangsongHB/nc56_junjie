@@ -8976,6 +8976,9 @@ private EstimateVO[] getArapVOs(EstimateVO[] vos){
 	 if(infovos == null || infovos.length == 0){
                return null;
 	 }
+//	for (int i = 0; i < infovos.length; i++) {
+//		infovos[i].set
+//	}
 	 ArrayList esvos = new ArrayList();
 	 for (int i = 0; i < v.size(); i++) {
 //			UFDouble mny = new UFDouble().ZERO_DBL;
@@ -9037,8 +9040,7 @@ private EstimateVO[] getArapVOs(EstimateVO[] vos){
                 newVO.setCbaseid(pk_invbasdoc);
                 newVO.setCmangid(pk_invmandoc);
                 newVO.setNtaxrate(null);
-			    
-			    
+                newVO.setVuserdef18("tureFree");//添加是否为费用暂估的标志 by 付世超 2010-10-26
 			    esvos.add(newVO);
             }
             
@@ -9270,6 +9272,7 @@ for (int i = 0; i < VOs.length; i++) {
   bodyVO[0].setFb_oid(VOs[i].getCgeneralbid());
 
   bodyVO[0].setHbbm(VOs[i].getCproviderbaseid()); // 供应商基本ID
+  bodyVO[0].setZyx19(VOs[i].getCprovidermangid());//使用自定义字段存放 供应商管理id 参照生成发票时用  add by 付世超 2010-10-26
   bodyVO[0].setCinventoryid(VOs[i].getCbaseid()); // 存货基本ID
 
   // bodyVO[0].setFbye(new UFDouble(0)); // 辅币余额

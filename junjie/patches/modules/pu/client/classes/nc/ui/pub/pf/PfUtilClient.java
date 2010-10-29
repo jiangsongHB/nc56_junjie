@@ -400,15 +400,7 @@ public class PfUtilClient {
 			whereString = pkField + "='" + sourceBillId + "'";
           //add by QuSida (佛山骏杰)2010-9-24
 		  // 采购发票参照采购应付单的过滤条件(是否红冲：否    是否暂估应付：是)
-		if(currentBillType.trim().equals("25")&&billType.trim().equals("F1")){
-//		whereString = whereString.substring(0, whereString.length()-1);
-//		whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0)";
-		//因为生成的暂估应付单业务流程改为 arap中的 应付通用流程 所以将更改后的流程id加入查询条件 by 付世超 2010-10-23
-			whereString = whereString + " or xslxbm = '00011110000000002RGT' ";
-		}
-		
-		
-		
+
 		// fgj2001-12-06在条件语句的后边增加0(与公司无关)或1(与公司有关)
 		if (isQueryRelationCorp) {
 			whereString = whereString + "1";

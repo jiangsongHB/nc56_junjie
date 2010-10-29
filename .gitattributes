@@ -375,6 +375,8 @@ junjie/patches/modules/pu/classes/itf/pu/mm/ISrvPUToMM.class -text
 junjie/patches/modules/pu/classes/itf/pu/mm/ISrvPUToMM.java -text
 junjie/patches/modules/pu/classes/nc/itf/ps/estimate/IEstimate.class -text
 junjie/patches/modules/pu/classes/nc/itf/pu/mm/ISrvPUToMM.class -text
+junjie/patches/modules/pu/classes/nc/ui/pf/changedir/CHGF1TO25.class -text
+junjie/patches/modules/pu/classes/nc/ui/pf/changedir/CHGF1TO25.java -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVO.class -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVOMeta.class -text
 junjie/patches/modules/pu/classes/ui/pu/jjpanel/InfoCostPanel.class -text
@@ -413,6 +415,9 @@ junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IMenuItemList
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI.java -text
+junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To25$HeadRowStateListener.class -text
+junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To25.class -text
+junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To25.java -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/MdsdBean.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/MdsdBean.java -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SaleOrderAdminUI.class -text
