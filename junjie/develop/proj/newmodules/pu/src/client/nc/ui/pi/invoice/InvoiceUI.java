@@ -10558,26 +10558,6 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     }
     //重新根据币种设置换算率精度 by zhaoyha at 2009.9
     setVoExchgRateDigit(items);
-
-    
-    //add by 付世超  2010-10-27 加入对非费用暂估的过滤 begin
-    ArrayList<InvoiceItemVO> tempFreeVoList = new ArrayList<InvoiceItemVO>();
-    for (int j = 0; j < items.length; j++) {
-    	if(items[j].getVdef18()!=null&&items[j].getVdef18().equals("tureFree")){
-    		items[j].setVdef18(null);//因为自定义项有值时不能保存 所以清空标识
-    		tempFreeVoList.add(items[j]);
-    	}
-	}
-    InvoiceItemVO[] newFreeVoItem = null;
-    if(tempFreeVoList!=null&&tempFreeVoList.size()!=0){
-    	newFreeVoItem = new InvoiceItemVO[tempFreeVoList.size()];
-    	newFreeVoItem = tempFreeVoList.toArray(newFreeVoItem);
-    	//将处理后的表体VO与原表头VO进行组合
-    	curVO = new InvoiceVO();
-    	curVO.setParentVO(head);
-    	curVO.setChildrenVO(newFreeVoItem);
-    }
-  //add by 付世超  2010-10-27 加入对非费用暂估的过滤 end
     
     // 设置VO
     getBillCardPanel().setBillValueVO(curVO);

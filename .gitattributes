@@ -205,6 +205,7 @@ junjie/develop/proj/newmodules/pu/.classpath -text
 junjie/develop/proj/newmodules/pu/.module_prj -text
 junjie/develop/proj/newmodules/pu/.project -text
 junjie/develop/proj/newmodules/pu/META-INF/module.xml -text
+junjie/develop/proj/newmodules/pu/src/client/nc/ui/pf/changedir/CHGF1TO25.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/pi/invoice/InvoiceUI.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/oper/OrderUI.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/oper/PoToftPanel.java -text
@@ -216,6 +217,7 @@ junjie/develop/proj/newmodules/pu/src/client/nc/ui/pu/jj/JJPuScmPubHelper.java -
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/pu/jjpanel/InfoCostPanel.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/pub/pf/PfUtilClient.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/rc/receive/ArriveUI.java -text
+junjie/develop/proj/newmodules/pu/src/client/nc/ui/sourceref/arap/SourceBillDlgF1To25.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pi/InvoiceDMO.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pi/InvoiceImpl.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/estimate/EstimateImpl.java -text
