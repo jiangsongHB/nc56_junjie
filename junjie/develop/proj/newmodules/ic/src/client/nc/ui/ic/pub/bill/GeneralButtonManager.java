@@ -428,10 +428,13 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 			else if (BillMode.List == getM_iCurPanel())
 				getM_funcExtend().doAction(bo, getClientUI(), getBillCardPanel(),
 						getBillListPanel(), nc.ui.scm.extend.IFuncExtend.LIST);
+		}else if(this.getBillType()!=null&&this.getBillType().equals("4A")){
+			//2010-10-29 MeiChao 此处是当库存其他入库单中的费用录入按钮响应事件
+			this.getClientUI().onExtendBtnsClick(bo);
 		}
-
-		else {
-			getClientUI().onExtendBtnsClick(bo);
+		else if(this.getBillType()!=null&&this.getBillType().equals("45")) {
+			//2010-10-29 标记+增加IF判断语句 By MeiChao 此处是采购入库单的费用录入按钮响应事件
+			getClientUI().onExtendBtnsClick(bo);//--
 		}
 
 	}
