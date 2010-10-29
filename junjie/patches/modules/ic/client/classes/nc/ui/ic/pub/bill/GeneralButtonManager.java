@@ -132,6 +132,9 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	}
 	// add by  付世超  2010-10-16  GET方法 其他类调用费用数据 begin
 	public ArrayList getLmny() {
+		if(lmny == null){
+			lmny = new ArrayList();
+		}
 		return lmny;
 	}
 
@@ -591,27 +594,22 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					 arrnum = new UFDouble((o==null?"0":o).toString());//累计到货数量
 					 plannum = new UFDouble(p.toString());//上游单据应到总数量，用于按金额录入费用的比例分配
 						CircularlyAccessibleValueObject[] a = vos[0].getChildrenVO();
-//						   int temp = getBillCardPanel().getBillModel("table").getRowCount();
 						if(infovos!=null&&infovos.length!=0){
 						   arrnumber = new UFDouble(0.0);
-									for (int i = 0; i < a.length; i++) {
-										//因为入库单默认的实入数量是空 所以取应入数量用于计算总金额
-//										arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("ninnum").toString()));
-										arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("nshouldinnum").toString()));
-									}
-						//add by 付世超 2010-10-15 begin 费用基础数据
-									lmny = new ArrayList();
-									//累计金额废弃不用 by 付世超  2010-10-19
-					      for (int i = 0; i < infovos.length; i++) {
-//							vos[i].setAttributeValue("ninvoriginalcursummny", vos[i].getNoriginalcursummny());
-//					    	 infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurmny().add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-					    	  		pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
-					    	  		lmny.add(pmny);
-//					    	  infovos[i].setAttributeValue("ninvoriginalcurmny", infovos[i].getNoriginalcurprice().multiply(arrnumber).add(arrnum.multiply(infovos[i].getNoriginalcurprice())));
-					    	  //因为入库单初始是没有实入数量的 所以应该也没有费用显示 清零 by 付世超  2010-10-19
-					    	  infovos[i].setAttributeValue("noriginalcurmny", new UFDouble(0.0));
-					    	  infovos[i].setNnumber(new UFDouble(0.0));
-						}
+								for (int i = 0; i < a.length; i++) {
+									//因为入库单默认的实入数量是空 所以取应入数量用于计算总金额
+									arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("nshouldinnum").toString()));
+								}
+								//add by 付世超 2010-10-15 begin 费用基础数据
+								lmny = new ArrayList();
+								//累计金额废弃不用 by 付世超  2010-10-19
+								for (int i = 0; i < infovos.length; i++) {
+									pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
+									lmny.add(pmny);
+									//因为入库单初始是没有实入数量的 所以应该也没有费用显示 清零 by 付世超  2010-10-19
+									infovos[i].setAttributeValue("noriginalcurmny", new UFDouble(0.0));
+									infovos[i].setNnumber(new UFDouble(0.0));
+								}
 					//add by 付世超 2010-10-15 end 
 				      getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
 		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
