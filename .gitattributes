@@ -187,6 +187,7 @@ junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/GeneralBillClient
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/GeneralButtonManager.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/dialog/MBJSDialog.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/md/MDToolsImpl.java -text
+junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/pub/bill/GeneralBillImpl.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/itf/ic/md/IMDTools.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/itf/ic/pub/IGeneralBill.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/ui/ic/md/dialog/MDUtils.java -text
