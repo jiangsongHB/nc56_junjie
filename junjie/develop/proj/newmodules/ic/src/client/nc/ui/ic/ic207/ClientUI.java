@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import nc.ui.ic.jjpanel.InfoCostPanel;
 import nc.ui.ic.pub.bill.GeneralBillHelper;
+import nc.ui.ic.pub.bill.GeneralButtonManager;
 import nc.ui.ic.pub.bill.ICButtonConst;
 import nc.ui.ic.pub.bill.initref.RefFilter;
 import nc.ui.ic.pub.report.ICReportHelper;
@@ -13,6 +15,7 @@ import nc.ui.pub.FramePanel;
 import nc.ui.pub.beans.UITextField;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.scm.ic.exp.GeneralMethod;
+import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
@@ -21,6 +24,8 @@ import nc.vo.ic.pub.bill.QryInfoConst;
 
 
 import nc.vo.pub.ValidationException;
+import nc.vo.pub.lang.UFBoolean;
+import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.constant.ic.BillMode;
 import nc.vo.scm.constant.ic.InOutFlag;
 import nc.vo.scm.ic.bill.WhVO;
@@ -36,6 +41,24 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 //	private ButtonObject m_boQueryPrice ;
 	private boolean m_bIsOutBill= false;
 	private UITextField m_uitfHinttext= new UITextField();
+	//2010-10-29 MeiChao 添加--其他入库单的费用录入按钮.Begin
+	
+	private UFDouble number = null;//费用页签下的数量
+
+	
+	//拉式生产的最初金额 add by 付世超 2010-10-15
+	private UFDouble pmny = null;
+	
+	private ButtonObject expenseInput;
+	private ButtonObject getButtonExpenseInput(){
+		if(this.expenseInput==null){
+			this.expenseInput=new ButtonObject("费用录入","费用录入","费用录入");
+		}
+		return this.expenseInput;
+	}
+	//2010-10-29 MeiChao 添加 End
+	
+	
 
 /**
  * ClientUI2 构造子注解。
@@ -402,6 +425,8 @@ public UITextField getUITxtFldStatus() {
  * 算法说明：
  */
 public void initialize() {
+	//在父类初始化方法执行前,将费用录入按钮添加到按钮树中.
+	this.getButtonManager().getButtonTree().addMenu(this.getButtonExpenseInput());
 	//必须重载基类的initialize方法后,
 	super.initialize();
 	//	参照过滤
@@ -796,6 +821,10 @@ public void setBodyMenuShow(boolean bShowFlag) {
  *
  */
 protected void setButtonsStatus(int iBillMode) {
+	
+	//2010-10-29 MeiChao 设置费用录入按钮的状态
+	this.setExpenseInputButtonStat(iBillMode);
+	
 	//设置读结存单价是否可用
 	switch (iBillMode) {
 		case BillMode.New :
@@ -982,4 +1011,128 @@ public void showHintMessage(String sMessage) {
 private ButtonObject getBoQueryPrice() {
   return getButtonManager().getButton("取结存单价");
 }
+
+/**
+ * 费用录入按钮的监听处理方法.
+ * 
+ */
+public void onExtendBtnsClick(ButtonObject bo) {
+	 if(bo == this.getButtonExpenseInput()){
+	    	this.onBoExpenseInput();
+	    }
+}
+
+/**
+ *费用录入按钮的事件响应方法
+ * Meichao
+ *2010-10-29 14:58
+ */
+private void onBoExpenseInput() {
+	InformationCostVO[] vos = (InformationCostVO[] )getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+	ArrayList voList = new ArrayList();
+	for (int i = 0; i < vos.length; i++) {
+		if(vos[i] != null){
+			voList.add(vos[i]);
+		}
+	}
+	InfoCostPanel c = null;
+	if(voList.size()!=0&&voList!=null){
+		InformationCostVO[] vos1 = new InformationCostVO[voList.size()];
+		voList.toArray(vos1);
+		c = new InfoCostPanel(getBillCardPanel(),vos1);
+	}
+	else 			
+	c = new InfoCostPanel(getBillCardPanel());
+	// 打开费用录入界面
+	c.showModal();
+	// 当费用录入界面关闭时,将录入的数据存放到费用信息页签上
+	if (c.isCloseOK()) {
+		InformationCostVO[] infoCostVOs = c.getInfoCostVOs();
+		if (infoCostVOs != null && infoCostVOs.length != 0){
+			// 当费用录入界面的vo数组不为空时,将vo存到费用录入页签上
+			UFDouble mny = null;//单价
+			UFDouble ninum = ((GeneralButtonManager)getButtonManager()).getArrnum(); ;
+			int temp = getBillCardPanel().getBillModel("table").getRowCount();
+			number= new UFDouble(0.0);
+			// add by 付世超 2010-10-14
+			UFDouble plannum = new UFDouble(0.0);//应入数量
+			for (int i = 0; i < temp; i++) {
+				number = number.add(new UFDouble((getBillCardPanel().getBillModel("table").getValueAt(i,"ninnum")==null?0.0:getBillCardPanel().getBillModel("table").getValueAt(i,"ninnum")).toString()));    			    	  
+				// add by 付世超 2010-10-14
+				plannum = plannum.add(new UFDouble((getBillCardPanel().getBillModel("table").getValueAt(i,"nshouldinnum") == null ? 0
+								: getBillCardPanel().getBillModel("table").getValueAt(i,"nshouldinnum"))
+								.toString()));// 应入数量
+			}
+			for (int i = 0; i < infoCostVOs.length; i++) {
+				infoCostVOs[i].setNnumber(number);
+				UFBoolean ismny = (UFBoolean)infoCostVOs[i].getAttributeValue("ismny");
+				// add by 付世超 拉式生成时 应付费用金额 2010-10-15
+				
+				if(i < ((GeneralButtonManager)getButtonManager()).getLmny().size()){
+					if (((GeneralButtonManager)getButtonManager()).getLmny() != null  ) {
+						//若已存在的费用 单价 或金额改变 会导致本单据费用的改变 应及时更新  
+							pmny = infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(number);//修改 付世超 2010-10-18 算法修改 为先乘后除
+							((GeneralButtonManager)getButtonManager()).getLmny().remove(i);
+							((GeneralButtonManager)getButtonManager()).getLmny().add(i, pmny);
+					}
+				}else {
+					((GeneralButtonManager)getButtonManager()).getLmny().add(new UFDouble(infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(number).toString()));//修改 付世超 2010-10-18 算法修改
+					pmny = new UFDouble(infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(number).toString());//修改 付世超 2010-10-18 算法修改 为先乘后除 算出按应入数量入库所需费用
+				}
+				if("0".equals(infoCostVOs[i].getAttributeValue("vdef10"))){//到货单录入的费用
+					
+					if(ismny == null || !ismny.booleanValue()){
+						
+				    	mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(number);
+				    	infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
+			    	}
+					else{
+						mny = pmny.multiply(number).div(plannum);//修改 付世超 2010-10-18
+						infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	
+					}
+				}else if("1".equals(infoCostVOs[i].getAttributeValue("vdef10"))){//入库单新加费用
+					
+					if(ismny == null || !ismny.booleanValue()){
+						mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(number);
+						infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
+					}
+					else{
+						mny = pmny.multiply(number).div(plannum);//修改 付世超 2010-10-18
+						infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	
+					}
+				}
+			}
+					getBillCardPanel().getBillData().setBodyValueVO(
+						"jj_scm_informationcost", infoCostVOs);
+				getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+			}	
+		
+	}
+}
+/**
+ * 
+ * (设置费用录入按钮的可见/可用状态)
+ *  MeiChao  补充注释   
+ * @see nc.ui.ic.pub.bill.GeneralBillClientUI#setExtendBtnsStat(int)
+ * 
+ */
+	public void setExpenseInputButtonStat(int iState) {
+		switch (iState) {
+		case BillMode.New:
+			getButtonExpenseInput().setEnabled(true);
+			break;
+		case BillMode.Update:
+			getButtonExpenseInput().setEnabled(true);
+			break;
+		case BillMode.Browse:
+			getButtonExpenseInput().setEnabled(false);
+			break;
+		default:
+			getButtonExpenseInput().setEnabled(false);
+			break;
+		}
+	}
+
+
+
 }
