@@ -482,7 +482,6 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 		    for (int j = 0; j < tmpBodyVo.length; j++) {
 		    	DJZBItemVO tmpBVo = (DJZBItemVO) tmpBodyVo[j];
 		    	if(tmpBVo.getZyx18()!=null&&tmpBVo.getZyx18().equals("tureFree")){
-		    		tmpBVo.setZyx18(null);//因为自定义项有值时不能保存 所以清空标识
 		    		tempFreeVoList.add(tmpBVo);
 		    	}
 			}
