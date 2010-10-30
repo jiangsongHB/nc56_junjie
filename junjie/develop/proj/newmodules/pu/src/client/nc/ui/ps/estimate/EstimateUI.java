@@ -1418,6 +1418,15 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
     m_nButtonState[7] = 0;
     m_nButtonState[9] = 0; //费用暂估
     changeButtonState();
+    //2010-10-30 MeiChao Begin 暂估处理的自动获取暂估费用参数的公式,由于公式中无法获取当前公司的PK,所以将公式放入此处处理 
+    String pkCorp = ClientEnvironment.getInstance().getCorporation().getPrimaryKey();
+    String getexpenseforms[] = { 
+    		"cfycode->getcolvalue2(pub_sysinit , value, initcode,PO85, pk_org,"+pkCorp+")",
+    	    "cfyname->getColValue(bd_invbasdoc,invname,invcode,cfycode)",
+    	    "cfeeid->getcolvalue2(bd_invmandoc , pk_invmandoc, pk_invbasdoc, getColValue(bd_invbasdoc,pk_invbasdoc,invcode,cfycode), pk_corp,"+pkCorp+")"};
+    	    this.getBillCardPanel().getBodyItem("cfycode").setLoadFormula(getexpenseforms);
+    //2010-10-30 MeiChao End
+    
 
   }
 
