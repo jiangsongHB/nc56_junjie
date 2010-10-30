@@ -76,6 +76,8 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	private InformationCostVO[] icvos = null;
 	// 存货总数量  by 付世超 2010-10-13
 	private UFDouble arrnumber = null;
+	// 当前单据类型 by 付世超 2010-10-30
+	private String billtype = null;
 
 	/**
 	 * @function 传入父容器,公司,操作员的构造函数
@@ -89,9 +91,12 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 			String sOperatorID) {
 		super(parent);
 		setArrnumber(parent);//add by 付世超
+		setBillType(parent);//add by 付世超 2010-10-30
 		m_sLoginCorp = sPk_Corp;
 		initDialog(); // 初始化对话框
 	}
+
+
 
 	/**
 	 * @function 重写父类传入父容器的构造函数
@@ -104,6 +109,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	public InfoCostPanel(java.awt.Container parent,InformationCostVO[] vos) {
 		super(parent);
 		setArrnumber(parent);//add by 付世超
+		setBillType(parent);//add by 付世超 2010-10-30
 		initDialog();
 		this.getBillListPanel().setHeaderValueVO(vos);
 		this.getBillListPanel().getHeadBillModel().execLoadFormula();
@@ -114,6 +120,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	public InfoCostPanel(java.awt.Container parent) {
 		super(parent);
 		setArrnumber(parent);//add by 付世超
+		setBillType(parent);//add by 付世超 2010-10-30
 		initDialog();
 		}
 
@@ -392,8 +399,9 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		//add by 付世超 2010-10-13 begin
 			int row = getBillListPanel().getHeadTable().getRowCount();
 			getBillListPanel().getHeadBillModel().setValueAt(arrnumber, row-1, "nnumber");
-			getBillListPanel().getHeadBillModel().setValueAt("0", row-1, "vdef10");//使用自定义项 vdef10  0：到货单录入的费用  1：入库单录入的费用
-		//add by 付世超 2010-10-13 end			
+//			getBillListPanel().getHeadBillModel().setValueAt("0", row-1, "vdef10");//使用自定义项 vdef10  0：到货单录入的费用  1：入库单录入的费用
+			getBillListPanel().getHeadBillModel().setValueAt(billtype, row-1, "vdef10");//使用自定义项vdef10 存储当前费用对应的单据类型
+			//add by 付世超 2010-10-13 end			
 		}
 		// 删除按钮动作
 		else if (e.getSource() == this.m_btnDel) {
@@ -495,6 +503,21 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 			}
 		}
 		
+	}
+	
+	/**
+	 * @function 设置当前单据类型
+	 * 
+	 * @author 付世超
+	 * 
+	 * @return void
+	 * 
+	 * @date 2010-10-30
+	 */
+	public void setBillType(java.awt.Container parent) {
+		
+		parentCardPanel = (BillCardPanel) parent;
+		this.billtype = parentCardPanel.getBillType();
 	}
 	
 	public void bodyRowChange(BillEditEvent e) {
