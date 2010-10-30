@@ -1418,6 +1418,15 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
     m_nButtonState[7] = 0;
     m_nButtonState[9] = 0; //费用暂估
     changeButtonState();
+    //2010-10-30 MeiChao Begin 暂估处理的自动获取暂估费用参数的公式,由于公式中无法获取当前公司的PK,所以将公式放入此处处理 
+    String pkCorp = ClientEnvironment.getInstance().getCorporation().getPrimaryKey();
+    String getexpenseforms[] = { 
+    		"cfycode->getcolvalue2(pub_sysinit , value, initcode,PO85, pk_org,"+pkCorp+")",
+    	    "cfyname->getColValue(bd_invbasdoc,invname,invcode,cfycode)",
+    	    "cfeeid->getcolvalue2(bd_invmandoc , pk_invmandoc, pk_invbasdoc, getColValue(bd_invbasdoc,pk_invbasdoc,invcode,cfycode), pk_corp,"+pkCorp+")"};
+    	    this.getBillCardPanel().getBodyItem("cfycode").setLoadFormula(getexpenseforms);
+    //2010-10-30 MeiChao End
+    
 
   }
 
@@ -3104,7 +3113,7 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 	  //重新获取一次所有暂估数据(供还原之用)
 	  EstimateVO[] allEstimateVOsBackup=(EstimateVO[])getBillCardPanel().getBillModel().getBodyValueVOs(EstimateVO.class.getName());
 	  //获取所选择的暂估数据
-      Integer[] electedRowNOs = null;
+      Integer[] selectedRowNOs = null;
       Vector select = new Vector();
       Vector unselect = new Vector();
       int nRow = getBillCardPanel().getRowCount();//获得行数
@@ -3116,10 +3125,10 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
         else
         	unselect.addElement(new Integer(i));//反之,则添加行号至未选择集合.
       }
-      electedRowNOs = new Integer[select.size()];
-      select.copyInto(electedRowNOs);//将选中行号集合填充入数组.
+      selectedRowNOs = new Integer[select.size()];
+      select.copyInto(selectedRowNOs);//将选中行号集合填充入数组.
 	  //对选中行数组进行为空判断
-      if(electedRowNOs==null||electedRowNOs.length==0){
+      if(selectedRowNOs==null||selectedRowNOs.length==0){
     	  MessageDialog.showErrorDlg(this, "错误", "对不起,请勾选要操作的数据.");
     	  return;
       }
@@ -3132,8 +3141,8 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
       //使用集合Set,来存放PK,可自动过滤重复.
       Set selectPKSet = new TreeSet();
 	  //从选中行中遍历出单据pk的Set集合.
-      for(int i=0;i<electedRowNOs.length;i++){
-    	  selectPKSet.add(allEstimateVOs[electedRowNOs[i]].getCgeneralhid());
+      for(int i=0;i<selectedRowNOs.length;i++){
+    	  selectPKSet.add(allEstimateVOs[selectedRowNOs[i]].getCgeneralhid());
       }
       selectedPKs=new String[selectPKSet.size()];
       selectedPKs=(String[])selectPKSet.toArray(selectedPKs);//将Set中的PK填充入数组中.
@@ -3304,86 +3313,5 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 	   * 至此,数据分摊处理完毕!
 	   */
 	  
-//	  EstimateVO[] emvos = (EstimateVO[])getBillCardPanel().getBillData().getBodyValueChangeVOs(EstimateVO.class.getName());
-//	  ArrayList rowList = new ArrayList();
-//	  for (int h = 0; h < getBillCardPanel().getBillModel().getRowCount(); h++) {
-//		if(getBillCardPanel().getBillModel().getRowState(h) == 4){
-//			rowList.add(h);
-//		}
-//	}
-//	  if(emvos == null || emvos.length == 0){
-//		  showErrorMessage("没有要进行费用分摊的数据!");
-//		  return;
-//	  }
-//	  StringBuffer sql = new StringBuffer(" dr = 0 ");
-//		Vector v = new Vector();
-//		ArrayList list = new ArrayList();
-//		for (int i = 0; i < emvos.length; i++) {
-//			String cbillid = emvos[i].getCgeneralhid();
-//			if (i == 0) {
-//				v.addElement(cbillid);
-//				sql.append(" and cbillid = '" + cbillid + "' ");
-//			} else {
-//				if (!v.contains(cbillid)) {
-//					v.addElement(cbillid);
-//					sql.append(" or cbillid = '" + cbillid + "' ");
-//				}
-//			}
-//		}
-//		InformationCostVO[] infovos = null;
-//	 try{
-//		 infovos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql.toString());
-//	 } catch(Exception e){
-//		 SCMEnv.out(e);
-//		 showErrorMessage("获取费用信息失败!");
-//	 }
-//	 if(infovos == null || infovos.length == 0){
-//		 SCMEnv.out("-------无费用信息,不进行费用分摊--------");
-//		 return;
-//	 }
-//	 for (int i = 0; i < v.size(); i++) {
-//			UFDouble mny = new UFDouble().ZERO_DBL;
-//			UFDouble number = new UFDouble().ZERO_DBL;
-//			ArrayList<EstimateVO> emvoList = new ArrayList<EstimateVO>();
-//			for (int j = 0; j < infovos.length; j++) {
-//				if (infovos[j].getCbillid().equals(v.get(i))) {
-//					mny = mny.add(infovos[j].getNoriginalcurmny());
-//		//			String costunit = infovos[j].getCcostunitid();
-//					number = infovos[j].getNnumber();
-//				}
-//			}
-//			for (int k = 0; k < emvos.length; k++) {
-//				if (emvos[k].getCgeneralhid().equals(v.get(i))) {
-////					number = number.add(emvos[k].getNinnum());
-//					
-//					emvoList.add(emvos[k]);
-//				}
-//			}
-//			if(emvoList!=null&&emvoList.size()!=0){
-//				UFDouble mny1 = mny;
-//			  for (int l = 0; l < emvoList.size(); l++) {
-////				  if(l == emvoList.size()-1){
-////					  emvoList.get(l).setNfeemny(mny1); 
-////				  }
-////				  else{
-//					  UFDouble innum = emvoList.get(l).getNinnum();
-//				 
-//				UFDouble freemny = mny.multiply(innum.div(number));
-//				emvoList.get(l).setNfeemny(freemny);
-//				mny1 = mny1.sub(freemny);
-////				  }
-//			}	
-//			}
-//	}
-//	 int n = 0;
-//	 for (int m = 0; m < rowList.size(); m++) {
-//        int rowNO = (Integer)rowList.get(m);
-//        getBillCardPanel().getBillModel().setBodyRowVO(emvos[n], m);
-//        n++;
-//		}
-////	 getBillCardPanel().getBillData().setBodyValueVO(emvos);
-//	 getBillCardPanel().getBillModel().execLoadFormula();
-//	 feeFlag = true;//分摊费用成功后,将是否费用暂估标记设定为true.
-//	 SCMEnv.out("-------分摊费用成功--------");  
   }
 }
