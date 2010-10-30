@@ -76,6 +76,8 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	private InformationCostVO[] icvos = null;
 	// 存货总数量  by 付世超 2010-10-13
 	private UFDouble arrnumber = null;
+	// 当前单据类型 by 付世超 2010-10-30
+	private String billtype = null;
 	
 	/**
 	 * @function 传入父容器,公司,操作员的构造函数
@@ -89,6 +91,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 			String sOperatorID) {
 		super(parent);
 		setArrnumber(parent);//add by 付世超
+		setBillType(parent);//add by 付世超 2010-10-30
 		m_sLoginCorp = sPk_Corp;
 		initDialog(); // 初始化对话框
 	}
@@ -104,6 +107,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	public InfoCostPanel(java.awt.Container parent,InformationCostVO[] vos) {
 		super(parent);
 		setArrnumber(parent);//add by 付世超
+		setBillType(parent);//add by 付世超 2010-10-30
 		initDialog();
 		this.getBillListPanel().setHeaderValueVO(vos);
 		this.getBillListPanel().getHeadBillModel().execLoadFormula();
@@ -114,6 +118,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	public InfoCostPanel(java.awt.Container parent) {
 		super(parent);
 		setArrnumber(parent);//add by 付世超
+		setBillType(parent);//add by 付世超 2010-10-30
 		initDialog();
 		}
 
@@ -393,7 +398,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		//add by 付世超 2010-10-13 begin
 			int row = getBillListPanel().getHeadTable().getRowCount();
 			getBillListPanel().getHeadBillModel().setValueAt(arrnumber, row-1, "nnumber");
-			getBillListPanel().getHeadBillModel().setValueAt("1", row-1, "vdef10");//使用自定义项 vdef10  0：到货单录入的费用  1：入库单录入的费用
+			getBillListPanel().getHeadBillModel().setValueAt(billtype, row-1, "vdef10");//使用自定义项vdef10 存储当前费用对应的单据类型 by 付世超 2010-10-30
 		//add by 付世超 2010-10-13 end			
 		}
 		// 删除按钮动作
@@ -488,11 +493,28 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		parentCardPanel = (BillCardPanel) parent;
 		int temp = parentCardPanel.getBillModel("table").getRowCount();
 		for (int i = 0; i < temp; i++) {
-			arrnumber = arrnumber.add(new UFDouble((parentCardPanel.getBillModel("table").getValueAt(i,"ninnum")==null?0.0:parentCardPanel.getBillModel("table").getValueAt(i,"ninnum")).toString())); 
+			//当前只是入库单的数量 避免字段各单据ItemKey 定义的名不一样 其他单据如需使用请加入单据类型的判断 by 付世超 2010-10-30
+			if("45".equals(parentCardPanel.getBillType())){//采购订单存货数量
+				arrnumber = arrnumber.add(new UFDouble((parentCardPanel.getBillModel("table").getValueAt(i,"ninnum")==null?0.0:parentCardPanel.getBillModel("table").getValueAt(i,"ninnum")).toString())); 
+			}
 		}
 		
 	}
 	
+	/**
+	 * @function 设置当前单据类型
+	 * 
+	 * @author 付世超
+	 * 
+	 * @return void
+	 * 
+	 * @date 2010-10-30
+	 */
+	public void setBillType(java.awt.Container parent) {
+		
+		parentCardPanel = (BillCardPanel) parent;
+		this.billtype = parentCardPanel.getBillType();
+	}
 	public void bodyRowChange(BillEditEvent e) {
 		// TODO Auto-generated method stub
 		

@@ -2050,6 +2050,8 @@ public BillCardPanel getBillCardPanel() {
       
       initBillBeforeLoad(bd);
       m_billPanel.setBillData(bd);
+      //设置当前单据类型 by 付世超 2010-10-30
+      m_billPanel.setBillType(ScmConst.PO_Arrive);
       /*try {
         m_billPanel.loadTemplet(getModuleCode(), null, getOperatorId(), getCorpPrimaryKey(),new MyBillData());
       } catch (Exception ex) {
@@ -8342,7 +8344,6 @@ public void valueChanged(javax.swing.event.ListSelectionEvent e) {
     vos=(InformationCostVO[])this.getBillListPanel().getBodyBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
     getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
     getBillListPanel().getBodyTable().updateUI();
-    
   }
   //按钮逻辑
   if ("转入列表".equals(getStateStr())) {

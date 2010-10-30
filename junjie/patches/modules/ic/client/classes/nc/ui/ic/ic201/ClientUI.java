@@ -225,10 +225,7 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 		    	}
 				//累计金额废弃不用 by 付世超 2010-10-19
 				// add by 付世超 2010-10-14 begin 
-		    	// add by 付世超 2010-10-17 添加是否为新增加入库费用的判断 使用自定义项 vdef10  0：到货单录入的费用  1：入库单录入的费用
-				if("0".equals(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i,"vdef10"))||getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i,"vdef10")==null){//到货单录入的费用
 			    	if(ismny == null || !ismny){
-			    		
 				    	mny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i,"noriginalcurprice").toString()).multiply(number);
 				    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
 	//			    	inmny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i,"noriginalcurprice").toString()).multiply(number.add(innum==null?new UFDouble(0.0):innum));
@@ -239,17 +236,6 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 			    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
 			        	
 			    	}	
-		    	}else if("1".equals(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i,"vdef10"))){//入库单新加费用
-					
-					if(ismny == null || !ismny.booleanValue()){
-						mny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i,"noriginalcurprice").toString()).multiply(number);
-			    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
-					}
-					else{
-						mny = pmny.multiply(number).div(plannum);
-			    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
-					}
-				}
 				//add by 付世超 2010-10-14 end 
 		    }
 		    //add by QuSida 2010-9-5 (佛山骏杰)  --- end
@@ -423,13 +409,15 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 	 * 此处插入方法说明。 创建日期：(2003-11-19 9:10:04)
 	 */
 	public void initialize() {
-		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. begin 
+		//2010-10-13 MeiChao 在父类初始化方法之前.将费用录入按钮加入到菜单中. begin 
 		this.getButtonManager().getButtonTree().addMenu(this.getBoInfoCost());
 		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. end
 		super.initialize();
 
 		long lTime = System.currentTimeMillis();
-
+		//设置当前单据类型 by 付世超 2010-10-30
+		getBillCardPanel().setBillType(getBillType());
+		
 		getBillCardPanel().addBodyEditListener2(this);		
 		SCMEnv.showTime(lTime, "initialize:addBodyEditListener2:");
 
@@ -1925,9 +1913,6 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 						((GeneralButtonManager)getButtonManager()).getLmny().add(new UFDouble(infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(number).toString()));//修改 付世超 2010-10-18 算法修改
 						pmny = new UFDouble(infoCostVOs[i].getNoriginalcurmny().multiply(plannum).div(number).toString());//修改 付世超 2010-10-18 算法修改 为先乘后除 算出按应入数量入库所需费用
 					}
-					// add by 付世超 2010-10-17 添加是否为新增加入库费用的判断 使用自定义项 vdef10  0：到货单录入的费用  1：入库单录入的费用
-					if("0".equals(infoCostVOs[i].getAttributeValue("vdef10"))){//到货单录入的费用
-						
 						if(ismny == null || !ismny.booleanValue()){
 							
 					    	mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(number);
@@ -1938,18 +1923,6 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 							//累计到货金额废弃不用 by 付世超 2010-10-19
 							infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	
 						}
-					}else if("1".equals(infoCostVOs[i].getAttributeValue("vdef10"))){//入库单新加费用
-						
-						if(ismny == null || !ismny.booleanValue()){
-							mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(number);
-							infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
-						}
-						else{
-							mny = pmny.multiply(number).div(plannum);//修改 付世超 2010-10-18
-							//累计入库金额废弃不用 by 付世超 2010-10-19
-							infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	
-						}
-					}
 				}
 				// by 付世超 2010-10-12 注释掉代码						
 //					vos = ((GeneralButtonManager)getButtonManager()).getInfovos();
