@@ -5077,6 +5077,12 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     HashMap<String, ArrayList<Object>> mapAuditInfo = new HashMap<String, ArrayList<Object>>();
     ArrayList<Object> listAuditInfo = null;
 
+    /**
+     * 2010-10-25 MeiChao 当采购费用发票弃审开始时时,验证采购费用发票下游单据状态.
+     * (首先判断是否费用发票)(再判断是否以生成回冲单)(再判断下游单据是否已不可逆转)
+     * 用以决定弃审是否允许继续
+     */
+    
     try {
 
       // 配合审批流
@@ -5188,6 +5194,13 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
 
         timer.addExecutePhase("setVOToBillPanel");
         timer.showAllExecutePhase("采购发票弃审结束");
+        /**
+         * 2010-10-25 MeiChao 当采购费用发票弃审成功时,将其生成的下级应付单及回冲单清除.
+         * (首先判断是否费用发票)(再判断是否以生成回冲单)(再删除单据)
+         */
+        
+        
+        
       }
     }
     catch (Exception e) {
@@ -13219,6 +13232,7 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
    * 费用采购发票审核自动回冲暂估应付单,并生成库存调整单
    * 回冲后的应付单的暂估标志应为"0"
    * MeiChao
+   * 缺点:校验过于严格,算法过于繁杂.
    */
   private void formalExpenseTOAP(InvoiceVO expenseInvoiceVO){
 //	  /**
@@ -13414,8 +13428,8 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		} catch (BusinessException e) {
 			Logger.debug("采购费用发票回冲暂估应付时,调用IArapBillPublic接口findArapBillByPK方法获取暂估应付单出错.");
 		}
-		//if(upsourceBill==null){
-		if(false){//暂不判断
+		if(upsourceBill==null){
+		//if(false){//暂不判断
 			MessageDialog.showErrorDlg(this.getBillCardPanel(),"错误","无法获取当前发票对应暂估应付单,请核对数据!");
 			return;
 		}
