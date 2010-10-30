@@ -399,8 +399,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		//add by 付世超 2010-10-13 begin
 			int row = getBillListPanel().getHeadTable().getRowCount();
 			getBillListPanel().getHeadBillModel().setValueAt(arrnumber, row-1, "nnumber");
-//			getBillListPanel().getHeadBillModel().setValueAt("0", row-1, "vdef10");//使用自定义项 vdef10  0：到货单录入的费用  1：入库单录入的费用
-			getBillListPanel().getHeadBillModel().setValueAt(billtype, row-1, "vdef10");//使用自定义项vdef10 存储当前费用对应的单据类型
+			getBillListPanel().getHeadBillModel().setValueAt(billtype, row-1, "vdef10");//使用自定义项vdef10 存储当前费用对应的单据类型 by 付世超 2010-10-30
 			//add by 付世超 2010-10-13 end			
 		}
 		// 删除按钮动作
@@ -497,7 +496,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		for (int i = 0; i < temp; i++) {
 			if("21".equals(parentCardPanel.getBillType())){//采购订单存货数量
 				arrnumber = arrnumber.add(new UFDouble((parentCardPanel.getBillModel("table").getValueAt(i,"nordernum")==null?"0.0":parentCardPanel.getBillModel("table").getValueAt(i,"nordernum").toString())));	
-			}else {//到货单数量
+			}else if("23".equals(parentCardPanel.getBillType())){//到货单数量
 				arrnumber = arrnumber.add(new UFDouble(parentCardPanel.getBillModel("table").getValueAt(i,"narrvnum").toString()));    			    	  
 				
 			}
