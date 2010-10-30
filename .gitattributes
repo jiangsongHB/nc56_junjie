@@ -456,6 +456,9 @@ junjie/patches/scripts/.project -text
 junjie/patches/scripts/2010-10-20-0000023[!!-~]patcher到货单换算率机制改变/问题0000023脚本.sql -text
 junjie/patches/scripts/2010-10-20-0000024[!!-~]patcher入库单换算率机制修改/patcher-for-0000024入库单换算率机制补丁.sql -text
 junjie/patches/scripts/2010-10-29其他入库单费用信息页签/其他入库单费用信息页签注册脚本.sql -text
+junjie/patches/scripts/2010-10-30[!!-~]问题0000039暂估处理中的费用显示公式/nc/ui/ps/estimate/EstimateUI.class -text
+junjie/patches/scripts/2010-10-30[!!-~]问题0000039暂估处理中的费用显示公式/nc/ui/ps/estimate/EstimateUI.java -text
+junjie/patches/scripts/2010-10-30[!!-~]问题0000039暂估处理中的费用显示公式/暂估处理中将费用编码的显示公式删除.sql -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
