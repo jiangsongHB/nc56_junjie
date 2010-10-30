@@ -8342,7 +8342,6 @@ public void valueChanged(javax.swing.event.ListSelectionEvent e) {
     vos=(InformationCostVO[])this.getBillListPanel().getBodyBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
     getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
     getBillListPanel().getBodyTable().updateUI();
-    
   }
   //按钮逻辑
   if ("转入列表".equals(getStateStr())) {
