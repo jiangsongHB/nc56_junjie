@@ -1490,37 +1490,38 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
    */
 
   private void afterEditWhenBodyRelationsCal(BillEditEvent e) {
-	  //add by QuSida 2010-9-11 (佛山骏杰)  --- begin
+	  //add by QuSida 2010-9-11 (佛山骏杰)  --- begin 
+	  //--2010-11-01 MeiChao 修改,问题系统0000041 将表体数量与费用数量的联动关系移除,整体注释掉.
 	  //function:数量编辑后事件处理,对费用信息的数量及金额进行处理    费用信息的数量 = 数量和    费用信息金额 = 单价*费用信息数量
 		if(e.getKey() .equals("nordernum") ){
-			InformationCostVO[] vos = (InformationCostVO[])getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
-	   if(vos == null || vos.length == 0)
-		   return;
-			int temp = getBillModel("table").getRowCount();
-	    UFDouble number = new UFDouble(0.0);
-	    UFDouble mny = null;
-	    UFDouble price = null;
-	    for (int i = 0; i < temp; i++) {
-	    	number = number.add(new UFDouble((getBodyValueAt(i,"nordernum")==null?0:getBodyValueAt(i,"nordernum")).toString()));    		    	  
-		}		
-	    temp = getBillModel("jj_scm_informationcost").getRowCount();
-	    for (int i = 0; i < temp; i++) {
-	    	Boolean ismny = (Boolean)getBillModel("jj_scm_informationcost").getValueAt(i, "ismny");
-	    	
-	    	getBillModel("jj_scm_informationcost").setValueAt(number, i, "nnumber");	
-	    	if(ismny == null || !ismny){
-	    	mny = new UFDouble(getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurprice").toString()).multiply(number);
-//	        taxmny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurtaxprice").toString()).multiply(number);		    	
-//	    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(taxmny, i, "noriginalcursummny");
-	    	getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");		    	
-//	   	    getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(taxmny, i, "ninvoriginalcursummny");
-//	    	getPoCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "ninvoriginalcurmny");
-	    	}else{
-	    		price =  new UFDouble(getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurmny").toString()).div(number);
-	    		getBillModel("jj_scm_informationcost").setValueAt(price, i, "noriginalcurprice");	
-	    	}
-	    	
-	    	}
+//	    InformationCostVO[] vos = (InformationCostVO[])getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+//	   if(vos == null || vos.length == 0)
+//		   return;
+//			int temp = getBillModel("table").getRowCount();
+//	    UFDouble number = new UFDouble(0.0);
+//	    UFDouble mny = null;
+//	    UFDouble price = null;
+//	    for (int i = 0; i < temp; i++) {
+//	    	number = number.add(new UFDouble((getBodyValueAt(i,"nordernum")==null?0:getBodyValueAt(i,"nordernum")).toString()));    		    	  
+//		}		
+//	    temp = getBillModel("jj_scm_informationcost").getRowCount();
+//	    for (int i = 0; i < temp; i++) {
+//	    	Boolean ismny = (Boolean)getBillModel("jj_scm_informationcost").getValueAt(i, "ismny");
+//	    	
+//	    	getBillModel("jj_scm_informationcost").setValueAt(number, i, "nnumber");	
+//	    	if(ismny == null || !ismny){
+//	    	mny = new UFDouble(getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurprice").toString()).multiply(number);
+////	        taxmny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurtaxprice").toString()).multiply(number);		    	
+////	    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(taxmny, i, "noriginalcursummny");
+//	    	getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");		    	
+////	   	    getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(taxmny, i, "ninvoriginalcursummny");
+////	    	getPoCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "ninvoriginalcurmny");
+//	    	}else{
+//	    		price =  new UFDouble(getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurmny").toString()).div(number);
+//	    		getBillModel("jj_scm_informationcost").setValueAt(price, i, "noriginalcurprice");	
+//	    	}
+//	    	
+//	    	}
 }
 		  //add by QuSida 2010-9-11 (佛山骏杰)  --- end
     int iRow = e.getRow();
