@@ -2,7 +2,11 @@ package nc.ui.po.oper;
 
 import java.awt.BorderLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -2732,7 +2736,87 @@ if(vos!=null&&vos.length!=0){
 			
 			// 获取VO后进行保存，并得到保存后表头、新增表体行的主键
 			// 数组key第一个元素为表头主键，随后元素为表体主键
-			OrderVO voSavedOrder = getSaveVO();
+			OrderVO voSavedOrder = getSaveVO();//获取需要保存的VO
+			//2010-11-01 MeiChao  begin 获取需要保存的费用信息. 并在保存之前作校验.
+			InformationCostVO[] infoCostVOs = (InformationCostVO[])getPoCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());
+			/**
+			 * 第一步获取当前订单中的存货数量总和
+			 */
+			//订单存货总数
+			Double orderItemNumber=0.0;
+			OrderItemVO[] orderbody=(OrderItemVO[])voSavedOrder.getChildrenVO();//表体存货数组
+			for(int i=0;i<orderbody.length;i++){//遍历表体信息
+				orderItemNumber+=orderbody[i].getNordernum().doubleValue();
+			}
+			/**
+			 * 第二步,分类费用信息.
+			 */
+			InformationCostVO[] newinfoCostVOs=new InformationCostVO[infoCostVOs.length];
+			newinfoCostVOs=infoCostVOs.clone();//新建一个费用信息的拷贝,防止影响后续保存.
+			List infoCostListTemp=Arrays.asList(newinfoCostVOs);//费用信息数组转换为List
+			List infoCostList=new ArrayList(infoCostListTemp);
+			Map expenseClassified=new HashMap();//费用分类信息.
+			while(infoCostList.size()>0){
+				Double expenseItemsNumber=0.0;//某项费用所占数量之和
+				String expensename=((InformationCostVO)infoCostList.get(0)).getCostname();//获取费用名称
+				for(int i=0;i<infoCostList.size();i++){
+					if(expensename.equals(((InformationCostVO)infoCostList.get(i)).getCostname())){
+						expenseItemsNumber+=((InformationCostVO)infoCostList.get(i)).getNnumber().toDouble();
+						infoCostList.remove(i);//费用下的存货数量累加后,就将其移出List
+					}
+				}
+				expenseClassified.put(expensename, expenseItemsNumber);//循环结束后,将该项费用名称及该费用下的存货数量总和存入Map中
+			}
+			/**
+			 * 第三步,对比.
+			 */
+			Map noticeExpense=new HashMap();//存货数量与表体总数有误差的费用项
+			Object[] expenseKeys=expenseClassified.keySet().toArray();
+			for(int i=0;i<expenseKeys.length;i++){
+				if(expenseClassified.get(expenseKeys[i].toString()).toString().equals(orderItemNumber.toString())){
+					//如果该费用下的总数与表体总数相等,则不做操作
+				}else{
+					//如果不等,则将费用名作为key ,费用下存货总数-表体总数的结果存入Map
+					noticeExpense.put(expenseKeys[i].toString(),((Double)expenseClassified.get(expenseKeys[i].toString()))-orderItemNumber);
+				}
+			}
+			/**
+			 * 提醒
+			 */
+			StringBuffer noticeString=new StringBuffer("以下费用下存货总数与表体存货总数间存在误差:\n");
+			if(noticeExpense!=null&&noticeExpense.size()>0){//如果存在有误差的费用.那么给予选择提示信息
+				Object[] noticeKeys=noticeExpense.keySet().toArray();//有误差的费用名数组.
+				for(int i=0;i<noticeKeys.length;i++){
+					noticeString.append(i+1);
+					noticeString.append(") ");
+					noticeString.append(noticeKeys[i].toString());//费用名称
+					//差额
+					Double difference=Double.valueOf(noticeExpense.get(noticeKeys[i].toString()).toString());
+					if(difference>0){
+						noticeString.append(" 多 ");
+					}else{
+						noticeString.append(" 少 ");
+					}
+					noticeString.append(Math.abs(difference));
+					noticeString.append(" 吨\n");
+				}
+				noticeString.append("确定要继续保存吗?");
+				/**
+				 * 提示用户
+				 */
+				if(noticeString.length()>38){//如果提示字符串长度超过25 那么表示有误差信息需要提醒.
+					int result=MessageDialog.showYesNoDlg(this, "提示", noticeString.toString());
+					if(result==MessageDialog.ID_YES){
+						//如果点了是,那么继续执行保存.
+					}else{
+						//否则,一律取消操作.
+						return false;
+					}
+				}
+				
+			}
+			//2010-11-01 MeiChao  end 
+			
 			if (voSavedOrder == null) {
 				return false;
 			}
@@ -2747,8 +2831,11 @@ if(vos!=null&&vos.length!=0){
 			}
 			//add by QuSida 2010-9-11 (佛山骏杰) --- begin
 			//function:费用信息的修改保存
-			InformationCostVO[] infoCostVOs = (InformationCostVO[])getPoCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());
-			String cbillid = voSavedOrder.getHeadVO().getPrimaryKey();
+			String cbillid = voSavedOrder.getHeadVO().getPrimaryKey(); //采购订单据主键
+			
+			
+			
+			//保存费用信息的循环 
 			if(infoCostVOs!=null&&infoCostVOs.length!=0){	
 				for (int i = 0; i < infoCostVOs.length; i++) {
 					infoCostVOs[i].setCbillid(cbillid);
