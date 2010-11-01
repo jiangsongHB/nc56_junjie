@@ -7,9 +7,11 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -113,6 +115,7 @@ import nc.ui.scm.ref.WarehouseRefModel;
 import nc.vo.bd.b06.PsndocVO;
 import nc.vo.bd.def.DefVO;
 import nc.vo.pf.change.PfUtilBaseTools;
+import nc.vo.po.OrderItemVO;
 import nc.vo.po.OrderVO;
 import nc.vo.po.pub.Operlog;
 import nc.vo.po.pub.OrderPubVO;
@@ -842,62 +845,62 @@ private void afterEditWhenNum(BillEditEvent e) {
     }
     //add by QuSida 2010-9-2 (佛山骏杰)  --- begin
     //function 当已到货数量修改后及时更新费用信息中的数量
-    int temp = getBillCardPanel().getBillModel("table").getRowCount();
-    UFDouble mny = null; 
-    //add by 付世超 2010-10-14 
-    plannum = new UFDouble(0.0);
-    arrnumber = new UFDouble(0.0);
-    for (int i = 0; i < temp; i++) {
-    	arrnumber = arrnumber.add(new UFDouble((getBillCardPanel().getBodyValueAt(i,"narrvnum")==null?0:getBillCardPanel().getBodyValueAt(i,"narrvnum")).toString()));//实到数量
-    //add by 付世超 2010-10-14 
-    	plannum = plannum.add(new UFDouble((getBillCardPanel().getBodyValueAt(i,"nplanarrvnum")==null?0:getBillCardPanel().getBodyValueAt(i,"nplanarrvnum")).toString()));//应到数量
-	}
-    temp = getBillCardPanel().getBillModel("jj_scm_informationcost").getRowCount();
-    //查出累计到货数量
-//    IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);
-//    String sql = "select sum(naccumarrvnum) from po_order_b where dr = 0 and corderid = '"+vos[0].getCbillid()+"'";
-//    Object o = null;
-//    try {
-//		 o = query.executeQuery(sql, new ColumnProcessor());
-//	} catch (BusinessException e1) {
-//		// TODO Auto-generated catch block
-//		e1.printStackTrace();
-//		return;
+//    int temp = getBillCardPanel().getBillModel("table").getRowCount();
+//    UFDouble mny = null; 
+//    //add by 付世超 2010-10-14 
+//    plannum = new UFDouble(0.0);
+//    arrnumber = new UFDouble(0.0);
+//    for (int i = 0; i < temp; i++) {
+//    	arrnumber = arrnumber.add(new UFDouble((getBillCardPanel().getBodyValueAt(i,"narrvnum")==null?0:getBillCardPanel().getBodyValueAt(i,"narrvnum")).toString()));//实到数量
+//    //add by 付世超 2010-10-14 
+//    	plannum = plannum.add(new UFDouble((getBillCardPanel().getBodyValueAt(i,"nplanarrvnum")==null?0:getBillCardPanel().getBodyValueAt(i,"nplanarrvnum")).toString()));//应到数量
 //	}
-	int length = 0;
-//	if(vos!=null) length = vos.length;
-    for (int i = length; i < temp; i++) {
-    	Boolean ismny = (Boolean)getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "ismny");
-    	
-    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(arrnumber, i, "nnumber");
-    	// add by 付世超 拉式生成时 的费用初始金额 2010-10-15
-    	if(lmny!= null){
-    		pmny = (UFDouble) lmny.get(i);
-    	}
-    	//累计到货金额废弃不用 删除相关代码 by 付世超 2010-10-19
-    	if(ismny == null || !ismny){
-    	mny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurprice").toString()).multiply(arrnumber);
-    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
-    	}
-    	else{
-    		//add by 付世超 2010-10-14 begin 
-    		mny = pmny.multiply(arrnumber).div(plannum);//修改 by 付世超  2010-10-18 先乘后除
-    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
-    		//add by 付世超 2010-10-14 end 
-    	}
-    	
-    	//修改缓存VO
-//    	if(vos!=null&&i<vos.length){
-//    		
-//    		vos[i].setAttributeValue("noriginalcursummny", taxmny);
-//    		vos[i].setAttributeValue("noriginalcurmny", mny);
-//   		vos[i].setAttributeValue("ninvoriginalcursummny", taxmny);
-//    		vos[i].setAttributeValue("ninvoriginalcurmny", arrmny);
-//    		vos[i].setAttributeValue("nnumber", arrnumber);
+//    temp = getBillCardPanel().getBillModel("jj_scm_informationcost").getRowCount();
+//    //查出累计到货数量
+////    IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+////    String sql = "select sum(naccumarrvnum) from po_order_b where dr = 0 and corderid = '"+vos[0].getCbillid()+"'";
+////    Object o = null;
+////    try {
+////		 o = query.executeQuery(sql, new ColumnProcessor());
+////	} catch (BusinessException e1) {
+////		// TODO Auto-generated catch block
+////		e1.printStackTrace();
+////		return;
+////	}
+//	int length = 0;
+////	if(vos!=null) length = vos.length;
+//    for (int i = length; i < temp; i++) {
+//    	Boolean ismny = (Boolean)getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "ismny");
+//    	
+//    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(arrnumber, i, "nnumber");
+//    	// add by 付世超 拉式生成时 的费用初始金额 2010-10-15
+//    	if(lmny!= null){
+//    		pmny = (UFDouble) lmny.get(i);
 //    	}
-    	
-        
-    }
+//    	//累计到货金额废弃不用 删除相关代码 by 付世超 2010-10-19
+//    	if(ismny == null || !ismny){
+//    	mny = new UFDouble(getBillCardPanel().getBillModel("jj_scm_informationcost").getValueAt(i, "noriginalcurprice").toString()).multiply(arrnumber);
+//    	getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
+//    	}
+//    	else{
+//    		//add by 付世超 2010-10-14 begin 
+//    		mny = pmny.multiply(arrnumber).div(plannum);//修改 by 付世超  2010-10-18 先乘后除
+//    		getBillCardPanel().getBillModel("jj_scm_informationcost").setValueAt(mny, i, "noriginalcurmny");
+//    		//add by 付世超 2010-10-14 end 
+//    	}
+//    	
+//    	//修改缓存VO
+////    	if(vos!=null&&i<vos.length){
+////    		
+////    		vos[i].setAttributeValue("noriginalcursummny", taxmny);
+////    		vos[i].setAttributeValue("noriginalcurmny", mny);
+////   		vos[i].setAttributeValue("ninvoriginalcursummny", taxmny);
+////    		vos[i].setAttributeValue("ninvoriginalcurmny", arrmny);
+////    		vos[i].setAttributeValue("nnumber", arrnumber);
+////    	}
+//    	
+//        
+//    }
     //add by QuSida 2010-9-2 (佛山骏杰)  --- end
     
   }
@@ -4145,7 +4148,7 @@ private void onButtonClickedCard(ButtonObject bo){
     	  //累计费用金额废弃不用 删除相关代码 by 付世超 2010-10-19
 		//因为到货单默认显示应到数量为剩余数量 所以初始显示的累计金额 为总费用金额
 		vos[i].setAttributeValue("noriginalcurmny", pmny);
-		vos[i].setNnumber(arrnumber);
+		//vos[i].setNnumber(arrnumber); //2010-11-01 MeiChao 将费用页签数量重新设置功能取消.
 		//add by 付世超 2010-10-15 end  
       }
 
@@ -6375,6 +6378,88 @@ private boolean onSave() {
   aryPara.add(new Integer(0));
   aryPara.add(new String("cvendormangid"));
   InformationCostVO[] infoCostVOs = (InformationCostVO[])getBillCardPanel().getBillData().getBodyValueVOs("jj_scm_informationcost", InformationCostVO.class.getName());//add by QuSida 得到费用信息VO
+	//2010-11-01 MeiChao  begin 获取需要保存的费用信息. 并在保存之前作校验.
+	/**
+	 * 第一步获取当前到货单中的存货数量总和
+	 */
+	//到货单存货总数
+	Double arriveItemNumber=0.0;
+	ArriveorderItemVO[] arrivebody=(ArriveorderItemVO[])newvo.getChildrenVO();//表体存货数组
+	for(int i=0;i<arrivebody.length;i++){//遍历表体信息
+		arriveItemNumber+=arrivebody[i].getNarrvnum().doubleValue();
+	}
+	/**
+	 * 第二步,分类费用信息.
+	 */
+	InformationCostVO[] newinfoCostVOs=new InformationCostVO[infoCostVOs.length];
+	newinfoCostVOs=infoCostVOs.clone();//新建一个费用信息的拷贝,防止影响后续保存.
+	List infoCostListTemp=Arrays.asList(newinfoCostVOs);//费用信息数组转换为List
+	List infoCostList=new ArrayList(infoCostListTemp);
+	Map expenseClassified=new HashMap();//费用分类信息.
+	while(infoCostList.size()>0){
+		Double expenseItemsNumber=0.0;//某项费用所占数量之和
+		String expensename=((InformationCostVO)infoCostList.get(0)).getCostname();//获取费用名称
+		for(int i=0;i<infoCostList.size();i++){
+			if(expensename.equals(((InformationCostVO)infoCostList.get(i)).getCostname())){
+				expenseItemsNumber+=((InformationCostVO)infoCostList.get(i)).getNnumber().toDouble();
+				infoCostList.remove(i);//费用下的存货数量累加后,就将其移出List
+			}
+		}
+		expenseClassified.put(expensename, expenseItemsNumber);//循环结束后,将该项费用名称及该费用下的存货数量总和存入Map中
+	}
+	/**
+	 * 第三步,对比.
+	 */
+	Map noticeExpense=new HashMap();//存货数量与表体总数有误差的费用项
+	Object[] expenseKeys=expenseClassified.keySet().toArray();
+	for(int i=0;i<expenseKeys.length;i++){
+		if(expenseClassified.get(expenseKeys[i].toString()).toString().equals(arriveItemNumber.toString())){
+			//如果该费用下的总数与表体总数相等,则不做操作
+		}else{
+			//如果不等,则将费用名作为key ,费用下存货总数-表体总数的结果存入Map
+			noticeExpense.put(expenseKeys[i].toString(),((Double)expenseClassified.get(expenseKeys[i].toString()))-arriveItemNumber);
+		}
+	}
+	/**
+	 * 提醒
+	 */
+	StringBuffer noticeString=new StringBuffer("以下费用下存货总数与表体存货总数间存在误差:\n");
+	if(noticeExpense!=null&&noticeExpense.size()>0){//如果存在有误差的费用.那么给予选择提示信息
+		Object[] noticeKeys=noticeExpense.keySet().toArray();//有误差的费用名数组.
+		for(int i=0;i<noticeKeys.length;i++){
+			noticeString.append(i+1);
+			noticeString.append(") ");
+			noticeString.append(noticeKeys[i].toString());//费用名称
+			//差额
+			Double difference=Double.valueOf(noticeExpense.get(noticeKeys[i].toString()).toString());
+			if(difference>0){
+				noticeString.append(" 多 ");
+			}else{
+				noticeString.append(" 少 ");
+			}
+			noticeString.append(Math.abs(difference));
+			noticeString.append(" 吨\n");
+		}
+		noticeString.append("确定要继续保存吗?");
+		/**
+		 * 提示用户
+		 */
+		if(noticeString.length()>38){//如果提示字符串长度超过25 那么表示有误差信息需要提醒.
+			int result=MessageDialog.showYesNoDlg(this, "提示", noticeString.toString());
+			if(result==MessageDialog.ID_YES){
+				//如果点了是,那么继续执行保存.
+			}else{
+				//否则,一律取消操作.
+				return false;
+			}
+		}
+		
+	}
+//2010-11-01 MeiChao end 获取需要保存的费用信息. 并在保存之前作校验.
+  
+  
+  
+  
   
   if (getStateStr().equals(OrderPubVO.RC_ARRIVEMODIFY_STATE/*到货修改*/)) {
     //用于修改保存的VO
@@ -10317,7 +10402,7 @@ private void onBoInfoCost() {
 			    
 			    
 				for (int i = 0; i < infoCostVOs.length; i++) {
-					infoCostVOs[i].setNnumber(arrnumber);
+					//infoCostVOs[i].setNnumber(arrnumber); 2010-11-01 MeiChao 取消当费用录入Dialog点击确定按钮之后对费用行信息中数量的重新设置.
 					UFBoolean ismny = (UFBoolean)infoCostVOs[i].getAttributeValue("ismny");
 					// add by 付世超 拉式生成时 应付费用金额 2010-10-15
 					if(i < getLmny().size()){
