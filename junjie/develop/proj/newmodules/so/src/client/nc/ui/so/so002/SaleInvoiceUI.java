@@ -70,6 +70,7 @@ import nc.vo.pub.lang.UFDouble;
 import nc.vo.pub.pf.Pfi18nTools;
 import nc.vo.pub.pfflow01.BillbusinessVO;
 import nc.vo.scm.bd.SmartVODataUtils;
+import nc.vo.scm.constant.ic.BillMode;
 import nc.vo.scm.goldtax.Configuration;
 import nc.vo.scm.goldtax.GoldTaxHeadVO;
 import nc.vo.scm.goldtax.GoldTaxVO;
@@ -2005,14 +2006,12 @@ public class SaleInvoiceUI extends ToftPanel implements
    * @time 2009-8-13 下午04:49:27
    */
   private void initialize() {
-	  
       setName("SaleInvoice");
       setSize(774, 419);
       add(getBillCardPanel(), "Center");
-      //2010-10-16 MeiChao begin 有关费用打印代码
-      getBillCardPanel().setBodyMultiSelect(true);//设置表体可多选.
-      //2010-10-16 MeiChao end
-      
+    	  //2010-10-16 MeiChao begin 有关费用打印代码
+          getBillCardPanel().setBodyMultiSelect(true);//设置表体可多选.
+          //2010-10-16 MeiChao end
       
     //右键菜单增加"重排行号"
     BillTools.addReSortRowNoToPopMenu(getBillCardPanel(), null);
@@ -2754,6 +2753,12 @@ public class SaleInvoiceUI extends ToftPanel implements
    * @time 2009-6-24 下午02:50:51
    */
   private void onNew(ButtonObject bo) {
+	  
+	  //2010-11-02 MeiChao begin 由于如果新增之前卡片为多选状态的话,新增时会出错,修改为新增时,不可多选,新增后VO放置结束,可多选.
+      getBillCardPanel().setBodyMultiSelect(false);//设置表体为不可多选.
+      //2010-11-02 MeiChao end
+    	
+	  
    //转单界面
     PfUtilClient.childButtonClicked(bo, SaleInvoiceTools.getLoginPk_Corp(),
         "40060302", SaleInvoiceTools.getLoginUserId(),
@@ -2810,6 +2815,11 @@ public class SaleInvoiceUI extends ToftPanel implements
       
      setButtonsStateEdit();
     }
+    //2010-11-02 MeiChao begin 由于如果新增之前卡片为多选状态的话,新增时会出错,修改为新增时,不可多选,新增后VO放置结束,可多选.
+    getBillCardPanel().setBodyMultiSelect(true);//设置表体可多选.
+    //2010-11-02 MeiChao end
+  	
+    
   }
 
 /**
