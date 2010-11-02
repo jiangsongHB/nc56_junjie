@@ -1931,23 +1931,23 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 						if(ismny == null || !ismny.booleanValue()){
 							
 					    	mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(number);
-					    	infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
+					    	//infoCostVOs[i].setAttributeValue("noriginalcurmny", mny); 2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 				    	}
 						else{
 							mny = pmny.multiply(number).div(plannum);//修改 付世超 2010-10-18
 							//累计到货金额废弃不用 by 付世超 2010-10-19
-							infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	
+							//infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 						}
 					}else if("1".equals(infoCostVOs[i].getAttributeValue("vdef10"))){//入库单新加费用
 						
 						if(ismny == null || !ismny.booleanValue()){
 							mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(number);
-							infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
+							//infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 						}
 						else{
 							mny = pmny.multiply(number).div(plannum);//修改 付世超 2010-10-18
 							//累计入库金额废弃不用 by 付世超 2010-10-19
-							infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	
+							//infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 						}
 					}
 				}
