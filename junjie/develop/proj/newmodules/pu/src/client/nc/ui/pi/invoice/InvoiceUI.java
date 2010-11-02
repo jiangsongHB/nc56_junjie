@@ -5140,6 +5140,12 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
           }
         }
       }
+      /**
+       * 2010-11-02 MeiChao  在原始校验结束后,弃审脚本开始前,进行采购费用发票弃审先决条件的判断.
+       */
+      
+      
+      
       PfUtilClient.processBatch("UNAPPROVE" + nc.ui.pub.ClientEnvironment.getInstance().getUser().getPrimaryKey(),
           nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment.getInstance().getDate().toString(), proceVOs);
 
