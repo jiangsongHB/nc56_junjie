@@ -465,7 +465,7 @@ protected void onButtonClickedBill(nc.ui.pub.ButtonObject bo) {
 			}
 			for (int i = 0; i < infoCostVOs.length; i++) {
 				UFBoolean ismny = (UFBoolean)infoCostVOs[i].getAttributeValue("ismny");
-		    	infoCostVOs[i].setAttributeValue("nnumber", number);
+		    	//infoCostVOs[i].setAttributeValue("nnumber", number);  2010-11-01 MeiChao 取消对费用行数量的重新赋值.
 		    	if(ismny == null || !ismny.booleanValue()){
 		    	infoCostVOs[i].setAttributeValue("noriginalcurmny", infoCostVOs[i].getNoriginalcurprice().multiply(number));
 		    	}else{
