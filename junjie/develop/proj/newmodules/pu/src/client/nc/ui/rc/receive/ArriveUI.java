@@ -6399,7 +6399,7 @@ private boolean onSave() {
 	while(infoCostList.size()>0){
 		Double expenseItemsNumber=new Double(0.0);//某项费用所占数量之和
 		String expensename=((InformationCostVO)infoCostList.get(0)).getCostname();//获取费用名称
-		for(int i=0;i<infoCostList.size();i++){
+		for(int i=0;i<infoCostList.size();){
 			if(expensename.equals(((InformationCostVO)infoCostList.get(i)).getCostname())){
 				expenseItemsNumber+=((InformationCostVO)infoCostList.get(i)).getNnumber().toDouble();
 				infoCostList.remove(i);//费用下的存货数量累加后,就将其移出List
@@ -10422,12 +10422,12 @@ private void onBoInfoCost() {
 					if(ismny == null || !ismny.booleanValue()){
 
 			    	mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber);
-			    	infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
+			    	//infoCostVOs[i].setAttributeValue("noriginalcurmny", mny); 2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 //			    	arrmny  = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber.add(arrnum));
 //			    	taxmny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurtaxprice").toString()).multiply(arrnumber);
 					}else{
 			    		mny = pmny.multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改
-			    		infoCostVOs[i].setAttributeValue("noriginalcurmny", mny);
+			    		//infoCostVOs[i].setAttributeValue("noriginalcurmny", mny); 2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 					}
 				}
 				// by 付世超 2010-10-12 注释掉代码	
