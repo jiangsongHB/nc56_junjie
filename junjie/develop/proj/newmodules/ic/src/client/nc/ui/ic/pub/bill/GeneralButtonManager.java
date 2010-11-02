@@ -610,8 +610,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 									pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
 									lmny.add(pmny);
 									//因为入库单初始是没有实入数量的 所以应该也没有费用显示 清零 by 付世超  2010-10-19
-									infovos[i].setAttributeValue("noriginalcurmny", new UFDouble(0.0));
-									infovos[i].setNnumber(new UFDouble(0.0));
+//									infovos[i].setAttributeValue("noriginalcurmny", new UFDouble(0.0));  --2010-11-02 MeiChao 注释,需要将上游单据的数量金额准确带入,不允许清零
+//									infovos[i].setNnumber(new UFDouble(0.0)); --2010-11-02 MeiChao 注释,原因同上
 								}
 					//add by 付世超 2010-10-15 end 
 				      getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
