@@ -467,9 +467,9 @@ protected void onButtonClickedBill(nc.ui.pub.ButtonObject bo) {
 				UFBoolean ismny = (UFBoolean)infoCostVOs[i].getAttributeValue("ismny");
 		    	//infoCostVOs[i].setAttributeValue("nnumber", number);  2010-11-01 MeiChao 取消对费用行数量的重新赋值.
 		    	if(ismny == null || !ismny.booleanValue()){
-		    	infoCostVOs[i].setAttributeValue("noriginalcurmny", infoCostVOs[i].getNoriginalcurprice().multiply(number));
+		    	//infoCostVOs[i].setAttributeValue("noriginalcurmny", infoCostVOs[i].getNoriginalcurprice().multiply(number)); 2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 		    	}else{
-		    		infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	
+		    	//	infoCostVOs[i].setAttributeValue("noriginalcurprice", infoCostVOs[i].getNoriginalcurmny().div(number));	2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 		    	}
 				}
 				
