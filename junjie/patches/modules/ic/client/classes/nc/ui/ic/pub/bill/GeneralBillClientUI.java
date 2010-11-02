@@ -4,9 +4,11 @@ import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import nc.vo.ic.jjvo.InformationCostVO;
@@ -122,6 +124,7 @@ import nc.vo.ic.pub.lang.ResBase;
 import nc.vo.ic.pub.locator.LocatorVO;
 import nc.vo.ic.pub.smallbill.SMGeneralBillVO;
 import nc.vo.ic.pub.sn.SerialVO;
+import nc.vo.po.OrderItemVO;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.NullFieldException;
@@ -7770,6 +7773,90 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			// nc.vo.ic.pub.barcodeparse.BarcodeparseCtrl.beforSaveBillVOBarcode(
 			// m_bBarcodeSave, voNewBill);
 
+			//2010-11-02 MeiChao begin 保存采购入库单时进行费用存货总数与表体存货总数的校验
+			InformationCostVO[] infoCostVOs = (InformationCostVO[]) getBillCardPanel()
+					.getBillData().getBodyValueVOs(
+							"jj_scm_informationcost",
+							InformationCostVO.class.getName());
+			if(this.getBillType().equals("45")){//如果当前单据是采购入库单的话
+			/**
+			 * 第一步获取当前订单中的存货数量总和
+			 */
+			//订单存货总数
+			Double generalItemNumber=0.0;
+			GeneralBillItemVO[] generalitem=this.getBodyVOs();
+			for(int i=0;i<generalitem.length;i++){//遍历表体信息
+				generalItemNumber+=generalitem[i].getNinnum()==null?0.0:generalitem[i].getNinnum().doubleValue();
+			}
+			/**
+			 * 第二步,分类费用信息.
+			 */
+			InformationCostVO[] newinfoCostVOs=new InformationCostVO[infoCostVOs.length];
+			newinfoCostVOs=infoCostVOs.clone();//新建一个费用信息的拷贝,防止影响后续保存.
+			List infoCostListTemp=Arrays.asList(newinfoCostVOs);//费用信息数组转换为List
+			List infoCostList=new ArrayList(infoCostListTemp);
+			Map expenseClassified=new HashMap();//费用分类信息.
+			while(infoCostList.size()>0){
+				Double expenseItemsNumber=0.0;//某项费用所占数量之和
+				String expensename=((InformationCostVO)infoCostList.get(0)).getCostname();//获取费用名称
+				for(int i=0;i<infoCostList.size();i++){
+					if(expensename.equals(((InformationCostVO)infoCostList.get(i)).getCostname())){
+						expenseItemsNumber+=((InformationCostVO)infoCostList.get(i)).getNnumber().toDouble();
+						infoCostList.remove(i);//费用下的存货数量累加后,就将其移出List
+					}
+				}
+				expenseClassified.put(expensename, expenseItemsNumber);//循环结束后,将该项费用名称及该费用下的存货数量总和存入Map中
+			}
+			/**
+			 * 第三步,对比.
+			 */
+			Map noticeExpense=new HashMap();//存货数量与表体总数有误差的费用项
+			Object[] expenseKeys=expenseClassified.keySet().toArray();
+			for(int i=0;i<expenseKeys.length;i++){
+				if(expenseClassified.get(expenseKeys[i].toString()).toString().equals(generalItemNumber.toString())){
+					//如果该费用下的总数与表体总数相等,则不做操作
+				}else{
+					//如果不等,则将费用名作为key ,费用下存货总数-表体总数的结果存入Map
+					noticeExpense.put(expenseKeys[i].toString(),((Double)expenseClassified.get(expenseKeys[i].toString()))-generalItemNumber);
+				}
+			}
+			/**
+			 * 提醒
+			 */
+			StringBuffer noticeString=new StringBuffer("以下费用下存货总数与表体存货总数间存在误差:\n");
+			if(noticeExpense!=null&&noticeExpense.size()>0){//如果存在有误差的费用.那么给予选择提示信息
+				Object[] noticeKeys=noticeExpense.keySet().toArray();//有误差的费用名数组.
+				for(int i=0;i<noticeKeys.length;i++){
+					noticeString.append(i+1);
+					noticeString.append(") ");
+					noticeString.append(noticeKeys[i].toString());//费用名称
+					//差额
+					Double difference=Double.valueOf(noticeExpense.get(noticeKeys[i].toString()).toString());
+					if(difference>0){
+						noticeString.append(" 多 ");
+					}else{
+						noticeString.append(" 少 ");
+					}
+					noticeString.append(Math.abs(difference));
+					noticeString.append(" 吨\n");
+				}
+				noticeString.append("确定要继续保存吗?");
+				/**
+				 * 提示用户
+				 */
+				if(noticeString.length()>38){//如果提示字符串长度超过25 那么表示有误差信息需要提醒.
+					int result=MessageDialog.showYesNoDlg(this, "提示", noticeString.toString());
+					if(result==MessageDialog.ID_YES){
+						//如果点了是,那么继续执行保存.
+					}else{
+						//否则,一律取消操作.
+						throw new Exception("费用类别存货总数与表体存货总数不相符,已成功取消保存操作.");
+					}
+				}
+			  }
+			}
+			//2010-11-02 MeiChao end 保存采购入库单时进行费用存货总数与表体存货总数的校验
+			
 			voHead.setCoperatoridnow(getEnvironment().getUserID()); // 当前操作员2002-04-10.wnj
 			voHead.setAttributeValue("clogdatenow", getEnvironment()
 					.getLogDate()); // 当前登录日期2003-01-05
@@ -7828,11 +7915,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						.getCgeneralhid() != null
 						&& ((SMGeneralBillVO) alPK.get(2)).getHeaderVO()
 								.getCgeneralhid().length() != 0) {
-					// InfoCOstVO保存动作
-					InformationCostVO[] infoCostVOs = (InformationCostVO[]) getBillCardPanel()
-							.getBillData().getBodyValueVOs(
-									"jj_scm_informationcost",
-									InformationCostVO.class.getName());
+					
 					// add by QuSida 2010-8-31 (佛山骏杰) --- begin
 					// function:当订单保存成功后,将费用信息VO保存到数据库中
 					if (infoCostVOs != null && infoCostVOs.length != 0) {
@@ -10798,6 +10881,91 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				voUpdatedBill.setOperatelogVO(log);
 				// 执行修改保存...有错误抛出异常
 				// 执行修改保存
+				//2010-11-02 MeiChao begin 保存采购入库单时进行费用存货总数与表体存货总数的校验
+				InformationCostVO[] infoCostVOs = (InformationCostVO[]) getBillCardPanel()
+						.getBillData().getBodyValueVOs(
+								"jj_scm_informationcost",
+								InformationCostVO.class.getName());
+				GeneralBillItemVO[] voaItem=voUpdatedBill.getItemVOs();
+				if(this.getBillType().equals("45")){//如果当前单据是采购入库单的话
+				/**
+				 * 第一步获取当前订单中的存货数量总和
+				 */
+				//订单存货总数
+				Double generalItemNumber=0.0;
+				for(int i=0;i<voaItem.length;i++){//遍历表体信息
+					generalItemNumber+=voaItem[i].getNinnum().doubleValue();
+				}
+				/**
+				 * 第二步,分类费用信息.
+				 */
+				InformationCostVO[] newinfoCostVOs=new InformationCostVO[infoCostVOs.length];
+				newinfoCostVOs=infoCostVOs.clone();//新建一个费用信息的拷贝,防止影响后续保存.
+				List infoCostListTemp=Arrays.asList(newinfoCostVOs);//费用信息数组转换为List
+				List infoCostList=new ArrayList(infoCostListTemp);
+				Map expenseClassified=new HashMap();//费用分类信息.
+				while(infoCostList.size()>0){
+					Double expenseItemsNumber=0.0;//某项费用所占数量之和
+					String expensename=((InformationCostVO)infoCostList.get(0)).getCostname();//获取费用名称
+					for(int i=0;i<infoCostList.size();i++){
+						if(expensename.equals(((InformationCostVO)infoCostList.get(i)).getCostname())){
+							expenseItemsNumber+=((InformationCostVO)infoCostList.get(i)).getNnumber().toDouble();
+							infoCostList.remove(i);//费用下的存货数量累加后,就将其移出List
+						}
+					}
+					expenseClassified.put(expensename, expenseItemsNumber);//循环结束后,将该项费用名称及该费用下的存货数量总和存入Map中
+				}
+				/**
+				 * 第三步,对比.
+				 */
+				Map noticeExpense=new HashMap();//存货数量与表体总数有误差的费用项
+				Object[] expenseKeys=expenseClassified.keySet().toArray();
+				for(int i=0;i<expenseKeys.length;i++){
+					if(expenseClassified.get(expenseKeys[i].toString()).toString().equals(generalItemNumber.toString())){
+						//如果该费用下的总数与表体总数相等,则不做操作
+					}else{
+						//如果不等,则将费用名作为key ,费用下存货总数-表体总数的结果存入Map
+						noticeExpense.put(expenseKeys[i].toString(),((Double)expenseClassified.get(expenseKeys[i].toString()))-generalItemNumber);
+					}
+				}
+				/**
+				 * 提醒
+				 */
+				StringBuffer noticeString=new StringBuffer("以下费用下存货总数与表体存货总数间存在误差:\n");
+				if(noticeExpense!=null&&noticeExpense.size()>0){//如果存在有误差的费用.那么给予选择提示信息
+					Object[] noticeKeys=noticeExpense.keySet().toArray();//有误差的费用名数组.
+					for(int i=0;i<noticeKeys.length;i++){
+						noticeString.append(i+1);
+						noticeString.append(") ");
+						noticeString.append(noticeKeys[i].toString());//费用名称
+						//差额
+						Double difference=Double.valueOf(noticeExpense.get(noticeKeys[i].toString()).toString());
+						if(difference>0){
+							noticeString.append(" 多 ");
+						}else{
+							noticeString.append(" 少 ");
+						}
+						noticeString.append(Math.abs(difference));
+						noticeString.append(" 吨\n");
+					}
+					noticeString.append("确定要继续保存吗?");
+					/**
+					 * 提示用户
+					 */
+					if(noticeString.length()>38){//如果提示字符串长度超过25 那么表示有误差信息需要提醒.
+						int result=MessageDialog.showYesNoDlg(this, "提示", noticeString.toString());
+						if(result==MessageDialog.ID_YES){
+							//如果点了是,那么继续执行保存.
+						}else{
+							//否则,一律取消操作.
+							throw new Exception("费用类别存货总数与表体存货总数不相符,已成功取消保存操作.");
+						}
+					}
+				  }
+				}
+				//2010-11-02 MeiChao 保存采购入库单时进行费用存货总数与表体存货总数的校验
+				
+				
 
 				// 二次开发扩展
 				getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.SAVE,
