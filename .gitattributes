@@ -497,6 +497,7 @@ junjie/patches/scripts/2010-11-01[!!-~]问题0000041[!!-~]费用管理修改/修
 junjie/patches/scripts/2010-11-01[!!-~]问题0000041[!!-~]费用管理修改/修改采购入库单单据模板中的费用信息页签.sql -text
 junjie/patches/scripts/2010-11-01[!!-~]问题0000041[!!-~]费用管理修改/修改采购到货单单据模板中的费用信息页签.sql -text
 junjie/patches/scripts/2010-11-01[!!-~]问题0000041[!!-~]费用管理修改/修改采购订单单据模板的费用信息页签.sql -text
+junjie/patches/scripts/2010-11-02[!!-~]0000043问题[!!-~]采购发票中的表头自定义项20无法使用/采购发票表头自定义项20[!!-~]说明.txt -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
