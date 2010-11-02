@@ -352,6 +352,12 @@ junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdwhPanel.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdwhPanel.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MyRowRenderer.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MyRowRenderer.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralBillClientUI$1.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralBillClientUI.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralBillClientUI.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager$1IBillReferQueryProxyExt.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager$FreshTsListener.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/dialog/MBJSDialog.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/dialog/MBJSDialog.java -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pi/InvoiceDMO.class -text
