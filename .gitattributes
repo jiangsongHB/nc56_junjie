@@ -308,6 +308,10 @@ junjie/patches/modules/ic/classes/nc/vo/ic/xcl/XclBillVO.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic008/ClientUI$1.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic008/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic008/ClientUI.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI$1.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI$ButtonManager201.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI$1.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI$ButtonManager251.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI.class -text
