@@ -1,5 +1,5 @@
 --第一步,查询出采购到货单所使用的当前单据模板的PK
-select t.pk_billtemplet from pub_billtemplet t where t.pk_billtypecode='23';
+select t.pk_billtemplet from pub_billtemplet t where t.pk_billtypecode='23' and t.bill_templetname='维护到货单A';
 --第二步,删除费用信息页签 数据项: vdef1-3的历史信息;
 delete pub_billtemplet_b t where t.pk_billtemplet=(select t.pk_billtemplet from pub_billtemplet t where t.pk_billtypecode='23') and t.table_code='jj_scm_informationcost' and t.itemkey in ('vdef1','vdef2','vdef3');
 --第三步 ,更新自定义项1-3 为车船号,司机,付往方向.

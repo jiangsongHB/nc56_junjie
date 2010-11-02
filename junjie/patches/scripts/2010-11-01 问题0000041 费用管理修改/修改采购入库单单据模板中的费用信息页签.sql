@@ -1,5 +1,5 @@
 --查询采购入库单单据模板PK
-select t.pk_billtemplet from pub_billtemplet t where t.pk_billtypecode='45' and t.bill_templetname='SYSTEM';
+select t.pk_billtemplet from pub_billtemplet t where t.pk_billtypecode='45' and t.bill_templetname='采购入库单A';
 --删除采购入库单单据模板费用信息页签中的自定义1-3 字段的定义
 delete pub_billtemplet_b t where t.pk_billtemplet=(select t.pk_billtemplet from pub_billtemplet t where t.pk_billtypecode='45' and t.bill_templetname='SYSTEM') and t.table_code='jj_scm_informationcost' and t.itemkey in ('vdef1','vdef2','vdef3');
 --重新插入新的费用信息模板中的自定义字段1-3的字段定义
