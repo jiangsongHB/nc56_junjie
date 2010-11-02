@@ -7797,12 +7797,15 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			List infoCostList=new ArrayList(infoCostListTemp);
 			Map expenseClassified=new HashMap();//费用分类信息.
 			while(infoCostList.size()>0){
-				Double expenseItemsNumber=0.0;//某项费用所占数量之和
+				Double expenseItemsNumber=new Double(0.0);//某项费用所占数量之和
 				String expensename=((InformationCostVO)infoCostList.get(0)).getCostname();//获取费用名称
-				for(int i=0;i<infoCostList.size();i++){
+				for(int i=0;i<infoCostList.size();){
 					if(expensename.equals(((InformationCostVO)infoCostList.get(i)).getCostname())){
 						expenseItemsNumber+=((InformationCostVO)infoCostList.get(i)).getNnumber().toDouble();
 						infoCostList.remove(i);//费用下的存货数量累加后,就将其移出List
+						i=0;
+					}else{
+						i++;
 					}
 				}
 				expenseClassified.put(expensename, expenseItemsNumber);//循环结束后,将该项费用名称及该费用下的存货数量总和存入Map中
@@ -10905,12 +10908,15 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				List infoCostList=new ArrayList(infoCostListTemp);
 				Map expenseClassified=new HashMap();//费用分类信息.
 				while(infoCostList.size()>0){
-					Double expenseItemsNumber=0.0;//某项费用所占数量之和
+					Double expenseItemsNumber=new Double(0.0);//某项费用所占数量之和
 					String expensename=((InformationCostVO)infoCostList.get(0)).getCostname();//获取费用名称
-					for(int i=0;i<infoCostList.size();i++){
+					for(int i=0;i<infoCostList.size();){
 						if(expensename.equals(((InformationCostVO)infoCostList.get(i)).getCostname())){
 							expenseItemsNumber+=((InformationCostVO)infoCostList.get(i)).getNnumber().toDouble();
 							infoCostList.remove(i);//费用下的存货数量累加后,就将其移出List
+							i=0;
+						}else{
+							i++;
 						}
 					}
 					expenseClassified.put(expensename, expenseItemsNumber);//循环结束后,将该项费用名称及该费用下的存货数量总和存入Map中
