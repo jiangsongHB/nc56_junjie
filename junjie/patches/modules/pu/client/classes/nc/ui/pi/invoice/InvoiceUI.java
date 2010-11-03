@@ -5082,6 +5082,42 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
      * (首先判断是否费用发票)(再判断是否以生成回冲单)(再判断下游单据是否已不可逆转)
      * 用以决定弃审是否允许继续
      */
+    //2010-11-03 MeiChao begin
+    //过滤出采购费用发票vo..方式一: 效率略差,但准确性高.
+    List<InvoiceVO> expenseInvoiceVO=new ArrayList<InvoiceVO>();
+    for(int i=0;i<proceVOs.length;i++){//遍历VO数组
+    	for(int j=0;j<proceVOs[i].getBodyVO().length;j++){//遍历发票表体
+    		if(proceVOs[i].getBodyVO()[j].getCupsourcebilltype().equals("D1")){
+    			if(j==proceVOs[i].getBodyVO().length-1){//如果所有的表体上层来源单据类型均为D1,那么表示当前单据为采购费用发票.
+    				expenseInvoiceVO.add(proceVOs[i]);//将当前发票VO加入到费用发票VOList中.
+    			}
+    			continue;//如果当前表体上层来源单据类型为D1,那么
+    		}else{
+    			break;//否则,一旦有表体的上层来源单据不等于D1,那么直接跳出内层表体循环.
+    		}
+    	}
+    }
+    //过滤出采购费用发票vo..方式二: 简单,但可能有不准确的信息.如果发票VO异常,则无法检出
+    List<InvoiceVO> expenseInvoiceVOs=new ArrayList<InvoiceVO>();
+    for(int i=0;i<proceVOs.length;i++){//遍历VO数组
+    	if(proceVOs[i].getHeadVO().getVdef20().equals("Y")){
+    		expenseInvoiceVOs.add(proceVOs[i]);
+    	}else{
+    		//do nothing
+    	}
+    }
+    //判断检出的发票VO
+    if(expenseInvoiceVOs!=null){
+    	
+    	
+    	
+    	
+    	
+    }
+    
+    
+    //2010-11-03 MeiChao end
+    
     
     try {
 
@@ -13527,7 +13563,7 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			//如果当前序号key对应在differentpriceExpense中存在值,那么表示此行费用单价也不一样,需要修改回冲的金额.
 			if(differentpriceExpense.get(i)!=null){
 				//单价不同,则组织库存调整金额
-				iaAdjustAmount+=backExpenseBody[i].getDfybje().toDouble()-oldbody[Integer.valueOf(differentnumberExpense.get(i).toString())].getDfybje().toDouble();
+				iaAdjustAmount+=backExpenseBody[i].getDfybje().toDouble()-oldbody[Integer.valueOf(differentpriceExpense.get(i).toString())].getDfybje().toDouble();
 			}
 			
 			//遍历上层来源应付单表体
