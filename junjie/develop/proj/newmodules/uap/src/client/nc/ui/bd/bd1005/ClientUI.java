@@ -19,6 +19,8 @@ public class ClientUI extends BillManageUI {
 	 */
 	public ClientUI() {
 		super();
+		//自动执行表头公式
+		this.getBillCardPanel().setAutoExecHeadEditFormula(true); 
 	}
 
 	/**
