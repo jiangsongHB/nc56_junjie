@@ -277,6 +277,7 @@ junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1003/AdditionalValueVO.
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1003/MyBillVO.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1005/BurrCoefficientVO.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1005/MyBillVO.java -text
+junjie/develop/proj/newmodules/uap/src/public/nc/vo/ic/md/MdcrkVO.java -text
 junjie/patches/modules/.project -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.java -text
