@@ -1,11 +1,15 @@
 package nc.ui.bd.bd1005;
 
+import nc.bs.framework.common.NCLocator;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.bd.ref.busi.InvbasdocDefaultRefModel;
 import nc.ui.pub.beans.UIRefPane;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.trade.bill.AbstractManageController;
 import nc.ui.trade.manage.BillManageUI;
 import nc.ui.trade.manage.ManageEventHandler;
+import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 
 public class ClientUI extends BillManageUI {
@@ -15,6 +19,8 @@ public class ClientUI extends BillManageUI {
 	 */
 	public ClientUI() {
 		super();
+		//自动执行表头公式
+		this.getBillCardPanel().setAutoExecHeadEditFormula(true); 
 	}
 
 	/**
@@ -90,9 +96,20 @@ public class ClientUI extends BillManageUI {
 		if(e.getKey().equals("pk_invcl")){
 			String pk_invcl = getBillCardPanel().getHeadItem("pk_invcl").getValue();
 			InvbasdocDefaultRefModel invMod = 	(InvbasdocDefaultRefModel)((UIRefPane)getBillCardPanel().getHeadItem("pk_invbasdoc").getComponent()).getRefModel();		
-			invMod.setWherePart(" bd_invbasdoc.pk_invcl ='"+pk_invcl+"'");
+			IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+			String invclasscode = null;
+		try {
+			 invclasscode = 	(String)query.executeQuery("select invclasscode from bd_invcl where pk_invcl = '"+pk_invcl+"'", new ColumnProcessor());
+		} catch (BusinessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+			invMod.setWherePart(" bd_invbasdoc.pk_invcl in (select pk_invcl from bd_invcl where invclasscode like '"+invclasscode+"%')");
+			
 			//invMod.setGroupPart("invtype");			
 		}
+	}
+	protected void setListBodyData() throws Exception {
 	}
 
 }
