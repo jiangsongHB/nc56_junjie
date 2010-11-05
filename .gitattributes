@@ -440,6 +440,8 @@ junjie/patches/modules/uap/classes/nc/vo/bd/bd1003/AdditionalValueVO.class -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1003/MyBillVO.class -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1005/BurrCoefficientVO.class -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1005/MyBillVO.class -text
+junjie/patches/modules/uap/classes/nc/vo/ic/md/MdcrkVO.class -text
+junjie/patches/modules/uap/classes/nc/vo/ic/md/MdcrkVO.java -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1001/ClientCtrl.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1001/ClientEH.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1001/ClientUI.class -text
