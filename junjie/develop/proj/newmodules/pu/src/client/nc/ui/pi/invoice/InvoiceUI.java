@@ -24,12 +24,16 @@ import nc.bs.logging.Logger;
 import nc.bs.pub.compiler.AbstractCompiler2;
 import nc.bs.pub.pf.PfUtilTools;
 import nc.itf.arap.pub.IArapBillPublic;
+import nc.itf.ia.api.IBillAPI;
 import nc.itf.ia.bill.IBill;
 import nc.itf.ic.pub.IGeneralBill;
 import nc.itf.pi.IDataPowerForInv;
 import nc.itf.pi.IInvoiceD;
 import nc.itf.scm.cenpur.service.TempTableUtil;
+import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pf.IPFMetaModel;
+import nc.jdbc.framework.processor.ArrayListProcessor;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.bd.b21.CurrParamQuery;
 import nc.ui.bd.b39.PhaseRefModel;
 import nc.ui.ml.NCLangRes;
@@ -5097,7 +5101,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     		}
     	}
     }
-    //过滤出采购费用发票vo..方式二: 简单,但可能有不准确的信息.如果发票VO异常,则无法检出
+    //过滤出采购费用发票vo..方式二: 简单,但可能有不准确的信息.如果发票VO存在异常,则无法确保检出结果准确.
     List<InvoiceVO> expenseInvoiceVOs=new ArrayList<InvoiceVO>();
     for(int i=0;i<proceVOs.length;i++){//遍历VO数组
     	if(proceVOs[i].getHeadVO().getVdef20().equals("Y")){
@@ -13740,4 +13744,68 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		}
 		MessageDialog.showHintDlg(this.getBillCardPanel(),"提示","采购费用发票回冲暂估及库存调整成功!");
   }
+  /**
+   * @author MeiChao
+   * @explain 采购费用发票弃审时,删除下游回冲红蓝应付单及存货核算库存调整单的方法.
+   * @param InvoiceVO
+   * @return boolean true: 删除成功 false:删除失败
+   * @since 2010-11-05
+   */
+  private boolean rollbackAPandIA(InvoiceVO curInvoice) throws Exception{
+	  //判断是否为空
+	  if(curInvoice==null){
+		  return false;
+	  }
+	  //获取发票表头VO
+	  InvoiceHeaderVO head=curInvoice.getHeadVO();
+	  //发票PK
+	  String invoicePK=head.getCinvoiceid();
+	  String checkAPSQL="select t.djzt " +
+	  		"from arap_djzb t " +
+	  		"where t.vouchid in " +
+	  		"(select distinct i.vouchid from arap_djfb i " +
+	  		"where i.jsfsbm='25' and i.ddlx='"+invoicePK+"')";
+	  IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);//实例化UI查询接口
+	  List checkAPResult=new ArrayList();
+	  try {
+		  //查询费用发票所生成的应付单状态
+		  checkAPResult=(List)query.executeQuery(checkAPSQL, new ArrayListProcessor());
+	} catch (BusinessException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	for(int i=0;i<checkAPResult.size();i++){
+		if(!((Object[])checkAPResult.get(i))[0].toString().equals("1")){
+			MessageDialog.showHintDlg(this,"提示","下游单据已处理,不允许弃审.");
+			return false;
+		}
+	}
+	//获取应收应付的对外操作接口
+	  IArapBillPublic iARAP=(IArapBillPublic)NCLocator.getInstance().lookup(IArapBillPublic.class.getName());
+	  try {//根据上层来源单据PK删除对应应付单
+		iARAP.deleteOutArapBillByPk(invoicePK);
+	} catch (BusinessException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	
+	//查询存货核算中,当前发票生成的下游库存调整单.
+	String queryIASQL="select distinct t.cbillid from ia_bill_b t where t.cbilltypecode='I9' and t.cicbilltype='25' t.cicbillid";
+	//下游库存调整单的PK
+	Object iaResult=query.executeQuery(queryIASQL, new ColumnProcessor());
+	//初始化存货核算IA接口
+	IBillAPI iBillAPI=(IBillAPI)NCLocator.getInstance().lookup(IBillAPI.class.getName());
+	//存货核算接口进行保存操作时需要的参数
+	ClientEnvironment ce=ClientEnvironment.getInstance();
+	ClientLink cl=new ClientLink(ce);
+	
+	iBillAPI.apiDelete(new String[]{iaResult.toString()}, cl);
+	
+	MessageDialog.showHintDlg(this,"提示","费用发票弃审成功.");
+	
+	return true;
+  }
+  
+  
+  
 }
