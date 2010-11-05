@@ -496,6 +496,15 @@ junjie/patches/scripts/2010-11-01[!!-~]问题0000041[!!-~]费用管理修改/修
 junjie/patches/scripts/2010-11-01[!!-~]问题0000041[!!-~]费用管理修改/修改采购订单单据模板的费用信息页签.sql -text
 junjie/patches/scripts/2010-11-02[!!-~]0000043问题[!!-~]采购发票中的表头自定义项20无法使用/采购发票表头自定义项20[!!-~]说明.txt -text
 junjie/patches/scripts/2010-11-03[!!-~]0000067[!!-~]问题[!!-~]采购费用发票维护问题/修改采购应付单系统默认模板.sql -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/毛边计算/UI/client/nc/ui/bd/bd1005/ClientUI.class -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/毛边计算/UI/client/nc/ui/bd/bd1005/ClientUI.java -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/毛边计算/毛边计算单据模板.sql -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/META-INF/class/nc/bs/uap/pub/jj/JJUAPServiceImpl.class -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/META-INF/class/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/class/nc/itf/uap/pub/jj/IJJUAPService.class -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/class/nc/itf/uap/pub/jj/IJJUAPService.java -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/class/nc/vo/ic/md/MdcrkVO.class -text
+junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/class/nc/vo/ic/md/MdcrkVO.java -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
