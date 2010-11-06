@@ -379,12 +379,6 @@ junjie/patches/modules/pu/classes/nc/itf/ps/estimate/IEstimate.class -text
 junjie/patches/modules/pu/classes/nc/itf/pu/mm/ISrvPUToMM.class -text
 junjie/patches/modules/pu/classes/nc/ui/pf/changedir/CHGF1TO25.class -text
 junjie/patches/modules/pu/classes/nc/ui/pf/changedir/CHGF1TO25.java -text
-junjie/patches/modules/pu/classes/nc/ui/pi/invoice/InvoiceUI$1.class -text
-junjie/patches/modules/pu/classes/nc/ui/pi/invoice/InvoiceUI$2.class -text
-junjie/patches/modules/pu/classes/nc/ui/pi/invoice/InvoiceUI$IMenuItemListener.class -text
-junjie/patches/modules/pu/classes/nc/ui/pi/invoice/InvoiceUI$MyBillData.class -text
-junjie/patches/modules/pu/classes/nc/ui/pi/invoice/InvoiceUI.class -text
-junjie/patches/modules/pu/classes/nc/ui/pi/invoice/InvoiceUI.java -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVO.class -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVOMeta.class -text
 junjie/patches/modules/pu/classes/ui/pu/jjpanel/InfoCostPanel.class -text
