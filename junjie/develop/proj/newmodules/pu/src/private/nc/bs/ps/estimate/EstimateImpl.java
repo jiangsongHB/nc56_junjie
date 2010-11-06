@@ -9510,4 +9510,34 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 		}
 		return;
 	}
+
+	
+	/**
+	 * 2010-11-06 MeiChao
+	 * 费用发票弃审时,删除当前发票的下游单据: 红蓝回冲单,库存调整单
+	 */
+	public boolean rollbackEstimate(String invoicePK, String APpks,String IApks)
+			throws BusinessException {
+		try{
+		BaseDAO dao = new BaseDAO();
+		String deleteAPhead="update arap_djzb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
+		String deleteAPbody="update arap_djfb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
+		String deleteIAhead="update ia_bill t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
+		String deleteIAbody="update ia_bill_b t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
+		dao.executeUpdate(deleteAPhead);
+		dao.executeUpdate(deleteAPbody);
+		dao.executeUpdate(deleteIAhead);
+		dao.executeUpdate(deleteIAbody);
+		}catch (Exception e){
+			Logger.debug("费用发票弃审时出错!");
+			e.printStackTrace();
+			return false;
+			
+		}
+		return true;
+	}
+
+	
+	
+	
 }
