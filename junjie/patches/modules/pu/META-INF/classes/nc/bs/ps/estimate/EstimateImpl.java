@@ -108,8849 +108,8985 @@ import nc.vo.scm.pub.vosplit.SplitBillVOs;
 
 /**
  * Estimate的BO类 创建日期：(2001-5-30)
- * @date 2009-08-03 
+ * 
+ * @date 2009-08-03
  * @author：
  */
 public class EstimateImpl implements IPuToIc_EstimateImpl,
-    nc.itf.pu.inter.IPuToSc_EstimateBO, IEstimate,
-    nc.bs.pub.para.IBeforSaveSysinit {
-  
-  /**
-   * EstimateImpl 构造子注解。
-   */
-  public EstimateImpl() {
-    super();
-  }
-
-  /**
-   * 功能描述:取消暂估 输入参数:EstimateVO[],当前操作员ID 作者：熊海情 创建：2001-5-24 14:41:50 修改：晁志平 FOR
-   * V30、V502
-   */
-  public void antiEstimate(EstimateVO VOs[], ClientLink cl)
-      throws BusinessException {
-
-    String cOperator = cl.getUser();
-    String strLoginCorp = cl.getCorp();
-
-    EstimateDMO dmo = null;
-    ICreateCorpQueryService myService0 = null;
-    boolean bLock = false;
-
-    nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
-    timerDebug.start();
-
-    if (VOs == null || VOs.length == 0) {
-      SCMEnv.out("传递参数为空，直接返回");
-      return;
-    }
-
-    // 组合所有需要加锁的主键
-    String sKeys[] = getEstimateLockKeys(VOs);
-
-    try {
-      dmo = new EstimateDMO();
-      // 对单据加锁
-      bLock = LockTool.setLockForPks(sKeys, cOperator);
-      if (!bLock) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000000")/*
-                                                           * @res
-                                                           * "正在进行相关操作，请稍后再试！"
-                                                           */);
-      }
-
-      timerDebug.addExecutePhase("组合所有需要加锁的主键及对单据加锁");
-
-      // 判断时间戳是否改变
-      String sMessage = isTimeStampChanged(VOs);
-      if (sMessage != null && sMessage.length() > 0) {
-        sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-            "40040503", "UPP40040503-000001")/*
-                                               * @res "请刷新！\n"
-                                               */;
-        throw new BusinessException(sMessage);
-      }
-
-      timerDebug.addExecutePhase("判断时间戳是否改变");
-
-      Vector vGeneralHID = new Vector();
-      Vector vGeneralBID = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        vGeneralHID.addElement(VOs[i].getCgeneralhid());
-        vGeneralBID.addElement(VOs[i].getCgeneralbid());
-      }
-      // 刷新状态：是否已经反暂过(存在则抛异常)
-      if (vGeneralBID.size() > 0) {
-        dmo.checkExistAntiEsti(vGeneralBID);
-      }
-
-      timerDebug.addExecutePhase("刷新状态：是否已经反暂过(存在则抛异常)");
-
-      // 判断是否全部反暂
-      if (vGeneralHID.size() > 0) {
-        String sGeneralhid[] = new String[vGeneralHID.size()];
-        vGeneralHID.copyInto(sGeneralhid);
-        String sGeneralbid[] = new String[vGeneralBID.size()];
-        vGeneralBID.copyInto(sGeneralbid);
-
-        // 判断是否全部反暂
-        UFBoolean bAll[] = dmo.isAntiEstimateAll(sGeneralhid, sGeneralbid);
-        vGeneralHID = new Vector(); // 全部反暂
-        vGeneralBID = new Vector(); // 部分反暂
-        for (int i = 0; i < bAll.length; i++) {
-          if (bAll[i].booleanValue())
-            vGeneralHID.addElement(sGeneralhid[i]);
-          else
-            vGeneralBID.addElement(sGeneralbid[i]);
-        }
-      }
-      else {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000002")/* @res "入库单不存在!" */);
-      }
-
-      timerDebug.addExecutePhase("判断是否全部反暂");
-
-      //
-      Vector vAllBodyVoB = new Vector();
-      Vector vAllBodyVoBB3 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        GeneralHItemVO bodyVO = new GeneralHItemVO();
-        bodyVO.setBzgflag(new UFBoolean(false));
-        bodyVO.setBzgyfflag(new UFBoolean(false));
-        bodyVO.setDzgdate(null);
-        bodyVO.setCgeneralbid(VOs[i].getCgeneralbid());
-        vAllBodyVoB.addElement(bodyVO);
-
-        GeneralBb3VO bb3VO = new GeneralBb3VO();
-        bb3VO.setNpprice(null);
-        bb3VO.setNpmoney(null);
-        bb3VO.setNzygfprice(null);
-        bb3VO.setNzgyfmoney(null);
-        bb3VO.setNmaterialmoney(null);
-
-        bb3VO.setCurrencytypeid(null);
-        bb3VO.setNexchangeotobrate(null);
-
-        bb3VO.setNoriginalnetprice(null);
-        bb3VO.setNoriginalcurmny(null);
-        bb3VO.setNorgnettaxprice(null);
-        bb3VO.setNorgtaxMoney(null);
-        bb3VO.setNoriginaltaxpricemny(null);
-
-        bb3VO.setCfeeid(null);
-        bb3VO.setNfeemny(null);
-
-        bb3VO.setCgeneralbid(VOs[i].getCgeneralbid());
-        vAllBodyVoBB3.addElement(bb3VO);
-      }
-      if (vAllBodyVoB.size() > 0) {
-        GeneralHItemVO[] bodyVOs = new GeneralHItemVO[vAllBodyVoB.size()];
-        vAllBodyVoB.copyInto(bodyVOs);
-        dmo.updateBillBody(bodyVOs);
-      }
-      if (vAllBodyVoBB3.size() > 0) {
-        GeneralBb3VO bb3VOs[] = new GeneralBb3VO[vAllBodyVoBB3.size()];
-        vAllBodyVoBB3.copyInto(bb3VOs);
-        dmo.updateBillBb3(bb3VOs);
-      }
-      //
-      timerDebug.addExecutePhase("入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费");
-
-      if (VOs != null && VOs.length > 0) {
-        // String unitCode = VOs[0].getPk_corp();//del since v502
-        // 判断存货核算是否启用
-        myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ICreateCorpQueryService.class.getName());
-        // boolean bIAStartUp = myService0.isEnabled(unitCode,
-        // "IA");//del since
-        // v502
-        boolean bIAStartUp = myService0.isEnabled(strLoginCorp, "IA");
-        if (bIAStartUp) {
-          // 入库单反暂时,删除存货核算的相应单据
-          if (vGeneralHID.size() > 0) {
-            // 入库单头ID唯一性组合
-            Vector vTemp = new Vector();
-            vTemp.addElement(((String) vGeneralHID.elementAt(0)).trim());
-            for (int i = 1; i < vGeneralHID.size(); i++) {
-              String s1 = ((String) vGeneralHID.elementAt(i)).trim();
-              if (!vTemp.contains(s1))
-                vTemp.addElement(s1);
-            }
-            String sGeneralhid[] = new String[vTemp.size()];
-            vTemp.copyInto(sGeneralhid);
-            deleteBillFromOutter(sGeneralhid, cl, ProductCode.PROD_PO);
-          }
-          timerDebug.addExecutePhase("按入库单“表头ID[]”删除存货核算单据");
-
-          if (vGeneralBID.size() > 0) {
-            String sGeneralbid[] = new String[vGeneralBID.size()];
-            vGeneralBID.copyInto(sGeneralbid);
-            deleteBillFromOutterPart(sGeneralbid, cl);
-          }
-          timerDebug.addExecutePhase("按入库单“表体ID[]”删除存货核算单据");
-        }
-
-        if (myService0.isEnabled(strLoginCorp, "AP")) {
-          // 应付启用,删除暂估应付
-          // ******
-        	
-          deleteBillForZGAP(VOs,strLoginCorp);
-          // ******
-        }
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      PubDMO.throwBusinessException(e);
-    }
-    finally {
-      try {
-        // if (myService != null) {
-        // 对单据解锁
-        if (bLock)
-          LockTool.releaseLockForPks(sKeys, cOperator);
-        // }
-      }
-      catch (Exception e) {
-        /* 调用采购公用方法按规范抛出异常 */
-        PubDMO.throwBusinessException(e);
-      }
-    }
-    timerDebug.showAllExecutePhase("取消暂估BS时间分布：");
-  }
-
-  /**
-   * @作者 zhf
-   * @创建时间：2008-7-18上午08:56:34
-   * @param VOs
-   * @throws BusinessException
-   * @throws SystemException
-   * @throws NamingException
-   * @return EstimateVO[]
-   * @说明：(for v5.5) 返回不存在费用结算单的暂估vo
-   * @修改者：
-   * @修改时间：
-   * @修改说明：
-   */
-  public EstimateVO[] getAntiEstiVOs(EstimateVO[] VOs) throws BusinessException {
-    if (VOs != null && VOs.length > 0) {
-      ArrayList<String> list = new ArrayList<String>();
-      ArrayList<EstimateVO> estiVoList = new ArrayList<EstimateVO>();
-      HashMap feeTimesMap = null;
-      for (EstimateVO vo : VOs) {
-        String key = vo.getCgeneralbid().trim();
-        if (!list.contains(key)) {
-          list.add(key);
-        }
-      }
-      try {
-        if (list != null && list.size() > 0) {
-          SettleDMO setDmo = new SettleDMO();
-          feeTimesMap = setDmo.getFeeSettleTimes(list);
-        }
-        if (feeTimesMap != null && feeTimesMap.size() > 0) {
-          list.clear();
-          for (EstimateVO vo : VOs) {
-            Object[] obj = (Object[]) feeTimesMap.get(vo.getCgeneralbid().trim());
-            if (obj != null) {
-              if (PuPubVO.getString_TrimZeroLenAsNull(obj[0])==null || Integer.parseInt(PuPubVO.getString_TrimZeroLenAsNull(obj[0])) == 0) {
-                estiVoList.add(vo);
-              }
-            }
-
-          }
-        }
-      }
-      catch (Exception e) {
-        SCMEnv.out(e.getMessage());
-        PubDMO.throwBusinessException(e);
-      }
-      return estiVoList.toArray(new EstimateVO[] {});
-    }
-    return null;
-  }
-
-  /**
-   * 删除期初暂估应付单用
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param VOs
-   * @throws BusinessException
-   *           <p>
-   * @author czp
-   * @time 2008-5-20 下午08:35:36
-   */
-  private void deleteBillForZGAP_Init(EstimateVO VOs[])
-      throws BusinessException {
-    if (VOs == null || VOs.length == 0) {
-      return;
-    }
-    ArrayList<String> listHid = new ArrayList<String>();
-    for (EstimateVO vo : VOs) {
-      if (vo.getCgeneralhid() != null && !listHid.contains(vo.getCgeneralhid())) {
-        listHid.add(vo.getCgeneralhid());
-      }
-    }
-    String[] saHid = null;
-    if (listHid.size() > 0) {
-      saHid = new String[listHid.size()];
-      listHid.toArray(saHid);
-      // 检查是否存在这样的暂估应付单据，应对公司先没有启用暂估应付时做了一些暂估单据，然后想启用暂估应付，重新录入期初数据的应用场景
-      // 如果不存在下游单据则不调用这个删除动作
-      Object[][] oa2Ret = new PubImpl().queryArrayValue("arap_djfb", "ddlx",
-          new String[] {
-            "ddlx"
-          }, saHid, "dr=0");
-      if (oa2Ret != null) {
-        IArapBillPublic iArapBill = (IArapBillPublic) NCLocator.getInstance()
-            .lookup(IArapBillPublic.class.getName());
-        IArapForGYLPublic iArapGyl = (IArapForGYLPublic) NCLocator
-            .getInstance().lookup(IArapForGYLPublic.class.getName());
-        DJZBVO[] voaDj = null;
-        // since v53 : 目前收付未提供批量删除功能
-        for (String strHid : saHid) {
-          try {
-            voaDj = iArapBill.getDjvobySourcePk(strHid);
-          }
-          catch (Exception e) {
-            PubDMO.throwBusinessException(e);
-          }
-          for (DJZBVO dj : voaDj) {
-            ((DJZBHeaderVO) dj.getParentVO()).m_isOtherOpration = true;
-            dj.setm_OldVO((DJZBVO) dj.clone());
-            iArapGyl.deleteEff(dj);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * 删除暂估应付单
-   */
-  private void deleteBillForZGAP(EstimateVO VOs[],String loginCorp) throws BusinessException {
-    //过滤掉资产性存货
-    VOs=filteAssetInv(VOs);
-    Vector v1 = new Vector();
-    for (int i = 0; i < VOs.length; i++) {
-      if (VOs[i].getBzgyf().booleanValue())
-        v1.addElement(VOs[i]);
-    }
-    EstimateVO VO[] = new EstimateVO[v1.size()];
-    v1.copyInto(VO);
-
-    if (VO != null && VO.length > 0) {
-      v1 = new Vector();
-      for (int i = 0; i < VO.length; i++) {
-        // 生成应付单体
-        DJZBItemVO bodyVO = new DJZBItemVO();
-        bodyVO.setDdlx(VO[i].getCgeneralhid()); // 上层单据ID
-        bodyVO.setDdhh(VO[i].getCgeneralbid()); // 上层单据行ID(暂传“上层单据ID”)
-
-        DJZBVO tempVO = new DJZBVO();
-        tempVO.setParentVO(new DJZBHeaderVO());
-        tempVO.setChildrenVO(new DJZBItemVO[] {
-          bodyVO
-        });
-
-        v1.addElement(tempVO);
-      }
-
-      DJZBVO apVOs[] = new DJZBVO[v1.size()];
-      v1.copyInto(apVOs);
-
-      IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator.getInstance()
-          .lookup(IArapForGYLPublic.class.getName());
-
-      /* since v502,支持暂估应付生成多行 */
-      int jLen = 0;
-      String[] saBid = null;
-      Object[][] oa2Ret = null;
-      PubImpl queryTool = new PubImpl();
-      for (int i = 0; i < apVOs.length; i++) {
-        // iArap.deleteEffForCG(apVOs[i]);
-        jLen = apVOs[i].getChildrenVO().length;
-        saBid = new String[jLen];
-        Map<String,String> ddhh_corp=new HashMap<String,String>();
-        for (int j = 0; j < jLen; j++) {
-          saBid[j] = ((DJZBItemVO) apVOs[i].getChildrenVO()[j]).getDdhh();
-          ddhh_corp.put(saBid[j], loginCorp);
-        }
-        // 检查是否存在这样的暂估应付单据，应对公司先没有启用暂估应付时做了一些暂估单据，然后想启用暂估应付，重新录入期初数据的应用场景
-        // 如果不存在下游单据则不调用这个删除动作
-        oa2Ret = queryTool.queryArrayValue("arap_djfb", "ddhh", new String[] {"ddhh"}, saBid, "dr=0");
-        if (oa2Ret != null) {
-          //
-          iArap.deleteEff(ddhh_corp);
-        }
-      }
-    }
-  }
-
-  /**
-   * 功能描述:反暂估(入库单取消签字调用) 输入参数:GeneralBillVO[] 返回值:void
-   * 异常处理:java.rmi.RemoteException 日期：2003/06/10 作者：熊海情 修改：晁志平 FOR V30
-   */
-  public void antiEstimateBatch(GeneralBillVO VOs[]) throws BusinessException {
-
-    ICreateCorpQueryService myService0 = null;
-    nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
-    timerDebug.start();
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      String cOperator = VOs[0].getHeaderVO().getCoperatoridnow(); // 当前操作员
-
-      Vector vGeneralHID = new Vector();
-      Vector vGeneralBID = new Vector();
-
-      Vector vBodyVOs = new Vector();
-      ArrayList<String> stockRowList = new ArrayList<String>();
-
-      for (int i = 0; i < VOs.length; i++) {
-        GeneralBillItemVO bodyVO[] = VOs[i].getItemVOs();
-        if (bodyVO == null || bodyVO.length == 0)
-          continue;
-        for (int j = 0; j < bodyVO.length; j++) {
-          stockRowList.add(bodyVO[j].getCgeneralbid());
-        }
-      }
-      SettleDMO setDmo = new SettleDMO();
-      //查询暂估应付标志 by zhaoyha at 2009.8
-      Map<String, Object[]> mapZgyf=setDmo.queryStockZGYF(VOs);
-      
-      // 刷新状态：是否已经反暂过(存在则抛异常)
-      if (vGeneralBID.size() > 0) {
-        dmo.checkExistAntiEsti(vGeneralBID);
-      }
-      timerDebug.addExecutePhase("刷新状态：是否已经反暂过(存在则抛异常)");
-
-      // //zhf 做过费用结算不可反暂
-      HashMap feeSetMap = setDmo.getFeeSettleTimes(stockRowList);
-      if (feeSetMap != null && feeSetMap.size() > 0) {
-        for (int i = 0; i < VOs.length; i++) {
-          GeneralBillItemVO bodyVO[] = VOs[i].getItemVOs();
-
-          if (bodyVO == null || bodyVO.length == 0)
-            continue;
-          for (int j = 0; j < bodyVO.length; j++) {
-
-            if (feeSetMap.containsKey(bodyVO[j].getCgeneralbid())) {
-              Object oo = feeSetMap.get(bodyVO[j].getCgeneralbid());
-              if (null==oo || null==PuPubVO.getUFDouble_ZeroAsNull(((Object[])oo)[0])) {
-                vGeneralHID.addElement(bodyVO[j].getCgeneralhid());
-                vGeneralBID.addElement(bodyVO[j].getCgeneralbid());
-                vBodyVOs.add(bodyVO[j]);
-              }
-            }
-          }
-        }
-      }
-      // //end
-
-      // 判断是否全部反暂
-      if (vGeneralHID.size() > 0) {
-        String sGeneralhid[] = new String[vGeneralHID.size()];
-        vGeneralHID.copyInto(sGeneralhid);
-        String sGeneralbid[] = new String[vGeneralBID.size()];
-        vGeneralBID.copyInto(sGeneralbid);
-        UFBoolean bAll[] = dmo.isAntiEstimateAll(sGeneralhid, sGeneralbid);
-        vGeneralHID = new Vector(); // 全部反暂
-        vGeneralBID = new Vector(); // 部分反暂
-        for (int i = 0; i < bAll.length; i++) {
-          if (bAll[i].booleanValue())
-            vGeneralHID.addElement(sGeneralhid[i]);
-          else
-            vGeneralBID.addElement(sGeneralbid[i]);
-        }
-      }
-      else {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000002")/* @res "入库单不存在!" */);
-      }
-      timerDebug.addExecutePhase("判断是否全部反暂");
-
-      // 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
-      Vector v1 = new Vector();
-      Vector v2 = new Vector();
-      // for (int i = 0; i < VOs.length; i++) {
-      if (vBodyVOs.size() > 0) {
-        GeneralBillItemVO bodyVO[] = new GeneralBillItemVO[vBodyVOs.size()];
-        vBodyVOs.copyInto(bodyVO);
-        // if (bodyVO == null || bodyVO.length == 0)
-        // continue;
-        for (int j = 0; j < bodyVO.length; j++) {
-          GeneralHItemVO tempBodyVO = new GeneralHItemVO();
-          tempBodyVO.setCgeneralbid(bodyVO[j].getCgeneralbid());
-          tempBodyVO.setDzgdate(null);
-          tempBodyVO.setBzgflag(UFBoolean.FALSE);
-          tempBodyVO.setBzgyfflag(UFBoolean.FALSE);
-          v1.addElement(tempBodyVO);
-
-          GeneralBb3VO bb3VO = new GeneralBb3VO();
-          bb3VO.setCgeneralbid(bodyVO[j].getCgeneralbid());
-          bb3VO.setNpprice(null);
-          bb3VO.setNpmoney(null);
-          bb3VO.setNzygfprice(null);
-          bb3VO.setNzgyfmoney(null);
-          bb3VO.setNmaterialmoney(null);
-          v2.addElement(bb3VO);
-        }
-      }
-
-      if (v1.size() > 0) {
-        GeneralHItemVO[] bodyVOs = new GeneralHItemVO[v1.size()];
-        v1.copyInto(bodyVOs);
-        dmo.updateBillBody(bodyVOs);
-      }
-      if (v2.size() > 0) {
-        GeneralBb3VO bb3VOs[] = new GeneralBb3VO[v2.size()];
-        v2.copyInto(bb3VOs);
-        dmo.updateBillBb3(bb3VOs);
-      }
-      timerDebug.addExecutePhase("入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费");
-
-      // 反暂时,删除存货核算的相应单据
-      if (VOs != null && VOs.length > 0) {
-        String unitCode = VOs[0].getHeaderVO().getPk_corp();
-        myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ICreateCorpQueryService.class.getName());
-        boolean bIAStartUp = myService0.isEnabled(unitCode, "IA");
-
-        if (bIAStartUp) {
-
-          if (vGeneralHID.size() > 0) {
-            // 入库单头ID唯一性组合
-            Vector vTemp = new Vector();
-            vTemp.addElement(((String) vGeneralHID.elementAt(0)).trim());
-            for (int i = 1; i < vGeneralHID.size(); i++) {
-              String s1 = ((String) vGeneralHID.elementAt(i)).trim();
-              if (!vTemp.contains(s1))
-                vTemp.addElement(s1);
-            }
-
-            String sGeneralhid[] = new String[vTemp.size()];
-            vTemp.copyInto(sGeneralhid);
-
-            deleteBillFromOutter(sGeneralhid, PuUtils.getClintLink(unitCode,
-                cOperator, BsPuTool.getLoginDate()), ProductCode.PROD_PO);
-          }
-
-          if (vGeneralBID.size() > 0) {
-            String sGeneralbid[] = new String[vGeneralBID.size()];
-            vGeneralBID.copyInto(sGeneralbid);
-
-            deleteBillFromOutterPart(sGeneralbid, PuUtils.getClintLink(
-                unitCode, cOperator, BsPuTool.getLoginDate()));
-          }
-
-        }
-
-        if (myService0.isEnabled(unitCode, "AP")) {
-          // 应付启用,删除暂估应付
-          // ******
-          if (VOs != null && VOs.length > 0) {
-            
-            v1 = new Vector();
-            for (int i = 0; i < VOs.length; i++) {
-              GeneralBillItemVO bodyVO[] = VOs[i].getItemVOs();
-              if (bodyVO == null || bodyVO.length == 0)
-                continue;
-              UFBoolean bZGYF = UFBoolean.FALSE;
-              for (int j = 0; j < bodyVO.length; j++) {
-                // 生成应付单体
-                bZGYF = (UFBoolean)PuPubVO.getUFBoolean_NullAs(mapZgyf.get(bodyVO[i].getCgeneralbid())[0]
-                                   ,UFBoolean.FALSE);
-                if (!bZGYF.booleanValue())
-                  continue;
-                DJZBItemVO tempBodyVO = new DJZBItemVO();
-                tempBodyVO.setDdlx(bodyVO[j].getCgeneralhid()); // 上层单据ID
-                tempBodyVO.setDdhh(bodyVO[j].getCgeneralbid()); // 上层单据行ID(暂传“上层单据ID”)
-
-                DJZBVO tempVO = new DJZBVO();
-                tempVO.setParentVO(new DJZBHeaderVO());
-                tempVO.setChildrenVO(new DJZBItemVO[] {
-                  tempBodyVO
-                });
-
-                v1.addElement(tempVO);
-              }
-            }
-
-            DJZBVO apVOs[] = new DJZBVO[v1.size()];
-            v1.copyInto(apVOs);
-
-            if (apVOs != null && apVOs.length > 0) {
-              IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator
-                  .getInstance().lookup(IArapForGYLPublic.class.getName());
-              /* since v502,支持暂估应付生成多行 */
-              // for(int i = 0; i < apVOs.length; i++){
-              // iArap.deleteEffForCG(apVOs[i]);
-              // }
-              int jLen = 0;
-              String[] saBid = null;
-              for (int i = 0; i < apVOs.length; i++) {
-                // iArap.deleteEffForCG(apVOs[i]);
-                jLen = apVOs[i].getChildrenVO().length;
-                saBid = new String[jLen];
-                for (int j = 0; j < jLen; j++) {
-                  saBid[j] = ((DJZBItemVO) apVOs[i].getChildrenVO()[j])
-                      .getDdhh();
-                }
-                iArap.deleteEff(saBid);
-              }
-            }
-          }
-          // ******
-        }
-      }
-      timerDebug.addExecutePhase("反暂时,删除存货核算的相应单据");
-
-      timerDebug.showAllExecutePhase("采购提供接口：反暂估(入库单取消签字调用)时间分布");
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      PubDMO.throwBusinessException(e);
-    }
-
-  }
-
-  /**
-   * 功能描述:反暂估 输入参数:VO[],当前操作员ID 返回值:void
-   * 异常处理:NamingException,RemoteException,SQLException 作者：熊海情 修改：晁志平 FOR V30
-   * 修改：晁志平 解藕
-   */
-  public void antiEstimateForSc(CircularlyAccessibleValueObject[] voaVO,
-      String cOperator) throws BusinessException {
-    if (!(voaVO instanceof EstimateVO[])) {
-      SCMEnv.out("程序BUG：委外加工反暂估时传入错误的参数类型：" + voaVO.getClass());
-      SCMEnv.out("正确的参数类型应该为：“EstimateVO[]”");
-      return;
-    }
-    if (voaVO == null || voaVO.length == 0) {
-      SCMEnv.out("传入参数为空，直接返回！方法调用层次如下：");
-      return;
-    }
-    EstimateVO[] VOs = (EstimateVO[]) voaVO;
-    nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
-    timerDebug.start();
-
-    // zhf add for v55 进行了费用结算的暂估入库单不可反暂
-    VOs = getAntiEstiVOs(VOs);
-    // end
-
-    EstimateDMO dmo = null;
-    ICreateCorpQueryService myService0 = null;
-    try {
-      dmo = new EstimateDMO();
-      Vector v1 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        v1.addElement(VOs[i].getCgeneralbid());
-      }
-      // 刷新状态：是否已经反暂过(存在则抛异常)
-      if (v1.size() > 0) {
-        dmo.checkExistAntiEsti(v1);
-      }
-      timerDebug.addExecutePhase("刷新状态：是否已经反暂过(存在则抛异常)");
-
-      // 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
-      int iLen = VOs.length;
-      Vector vAllBodyVo = new Vector();
-      Vector vAllBody3Vo = new Vector();
-      for (int i = 0; i < iLen; i++) {
-        GeneralHItemVO bodyVO = new GeneralHItemVO();
-        bodyVO.setCgeneralbid(VOs[i].getCgeneralbid());
-        bodyVO.setBzgflag(new UFBoolean(false));
-        bodyVO.setBzgyfflag(new UFBoolean(false));
-        bodyVO.setDzgdate(null);
-        vAllBodyVo.addElement(bodyVO);
-
-        GeneralBb3VO bb3VO = new GeneralBb3VO();
-        bb3VO.setCgeneralbid(VOs[i].getCgeneralbid());
-        bb3VO.setNpprice(null);
-        bb3VO.setNpmoney(null);
-        bb3VO.setNzygfprice(null);
-        bb3VO.setNzgyfmoney(null);
-        bb3VO.setNmaterialmoney(null);
-        vAllBody3Vo.addElement(bb3VO);
-      }
-      if (vAllBodyVo.size() > 0) {
-        GeneralHItemVO bodyVO[] = new GeneralHItemVO[vAllBodyVo.size()];
-        vAllBodyVo.copyInto(bodyVO);
-        dmo.updateBillBody(bodyVO);
-      }
-      if (vAllBody3Vo.size() > 0) {
-        GeneralBb3VO bb3VO[] = new GeneralBb3VO[vAllBody3Vo.size()];
-        vAllBody3Vo.copyInto(bb3VO);
-        dmo.updateBillBb3(bb3VO);
-      }
-      timerDebug.addExecutePhase("入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费");
-
-      // 反暂时,删除存货核算的相应单据
-      if (VOs != null && VOs.length > 0) {
-        String unitCode = VOs[0].getPk_corp();
-        myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ICreateCorpQueryService.class.getName());
-        boolean bIAStartUp = myService0.isEnabled(unitCode, "IA");
-        if (bIAStartUp) {
-          Vector vGeneralHID = new Vector();
-          vGeneralHID.addElement(VOs[0].getCgeneralhid().trim());
-          for (int i = 1; i < VOs.length; i++) {
-            String s1 = VOs[i].getCgeneralhid().trim();
-            if (!vGeneralHID.contains(s1))
-              vGeneralHID.addElement(s1);
-          }
-          if (vGeneralHID.size() > 0) {
-            String sGeneralhid[] = new String[vGeneralHID.size()];
-            vGeneralHID.copyInto(sGeneralhid);
-            deleteBillFromOutter(sGeneralhid, PuUtils.getClintLink(unitCode,
-                cOperator, BsPuTool.getLoginDate()), ProductCode.PROD_SC);
-          }
-          else {
-            throw new BusinessException(nc.bs.ml.NCLangResOnserver
-                .getInstance().getStrByID("40040503", "UPP40040503-000002")/*
-                                                                             * @res
-                                                                             * "入库单不存在!"
-                                                                             */);
-          }
-        }
-      }
-      timerDebug.addExecutePhase("反暂时,删除存货核算的相应单据时间分布");
-
-      timerDebug.showAllExecutePhase("采购给委外加工提供的接口，反暂估时间分布");
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      PubDMO.throwBusinessException(e);
-    }
-    finally {
-    }
-  }
-
-  /**
-   * 功能描述:取消暂估--按入库单表头ID删除存货核算系统数据 输入参数:EstimateVO[],公司主键,当前操作员ID 作者：熊海情
-   * 创建：2001-5-24 14:41:50 修改：晁志平 FOR V30、V502
-   */
-  private void deleteBillFromOutter(String cGeneralhid[], ClientLink cl,
-      String strModuleCode) throws BusinessException {
-    try {
-      nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
-      timerDebug.start();
-      // IIAToPUBill myService = (IIAToPUBill)
-      // NCLocator.getInstance().lookup(IIAToPUBill.class.getName());
-      // myService.deleteBillFromOutterArray(cGeneralhid, strLoginCorp,
-      // cOperator);
-      if (ProductCode.PROD_PO.equals(strModuleCode)) {
-        IIAToPU myService = (IIAToPU) NCLocator.getInstance().lookup(
-            IIAToPU.class.getName());
-        myService.unEstimatePUForWholeBill(cGeneralhid, cl);
-      }
-      else if (ProductCode.PROD_SC.equals(strModuleCode)) {
-        IIAToSC myService = (IIAToSC) NCLocator.getInstance().lookup(
-            IIAToSC.class.getName());
-        myService.unEstimateSC(cGeneralhid, cl);
-      }
-      else {
-        throw new BusinessException("Impossible : not PO and not SC!");
-      }
-      timerDebug
-          .showExecuteTime("取消暂估-按入库单表体ID删除存货核算系统数据<BillBO.deleteBillFromOutterArray()>时间");
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-  }
-
-  /**
-   * 功能描述:取消暂估--按入库单表体ID删除存货核算系统数据 输入参数:EstimateVO[],当前操作员ID 作者：熊海情 创建：2001-5-24
-   * 14:41:50 修改：晁志平 FOR V30
-   */
-  private void deleteBillFromOutterPart(String cGeneralbid[], ClientLink cl)
-      throws BusinessException {
-    try {
-      nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
-      timerDebug.start();
-      // // IIAToPUBill myService = (IIAToPUBill) new
-      // //
-      // InterServBO().getInterInstance(ProductCode.PROD_IA,InterRegister.IA0101);
-      // IIAToPUBill myService = (IIAToPUBill)
-      // NCLocator.getInstance().lookup(
-      // IIAToPUBill.class.getName());
-      // myService.deleteBillItemForPUs(cGeneralbid, cOperator);
-      IIAToPU myService = (IIAToPU) NCLocator.getInstance().lookup(
-          IIAToPU.class.getName());
-      myService.unEstimatePU(cGeneralbid, cl);
-
-      timerDebug
-          .showExecuteTime("取消暂估-按入库单表体ID删除存货核算系统数据<BillBO.deleteBillItemForPUs()>时间");
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-  }
-
-  /**
-   * <p>
-   * 功能描述:作废期初暂估入库单,并修改订单的累计入库数量
-   * <p>
-   * 输入参数:ArrayList
-   * <p>
-   * |-GeneralHVO[] , 入库单VO
-   * <p>
-   * |-String ，操作员ID
-   * <p>
-   * |-String ，公司主键
-   * <p>
-   * 返回值:无
-   * <p>
-   * 异常处理: BusinessException
-   * <p>
-   * 作者：熊海情
-   * <p>
-   * 修改：晁志平 V30 2004-06-03 增加数量容差控制
-   */
-  public void discard(ArrayList listPara) throws BusinessException {
-
-    if (listPara == null || listPara.size() < 3) {
-      SCMEnv.out("程序BUG：传入参数为空，直接返回!");
-      return;
-    }
-
-    GeneralHVO[] VOs = (GeneralHVO[]) listPara.get(0);
-    String cOperator = (String) listPara.get(1);
-    String strPkCorp = (String) listPara.get(2);
-
-    if (VOs == null || VOs.length == 0) {
-      SCMEnv.out("传入参数为空，直接返回!");
-      return;
-    }
-    int iLen = VOs.length;
-    boolean bLock = false;
-    // 组合所有需要加锁的主键
-    String sKeys[] = getGeneralLockKeys(VOs);
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-
-      // 对单据加锁
-      bLock = LockTool.setLockForPks(sKeys, cOperator);
-      if (!bLock) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000000")/*
-                                                           * @res
-                                                           * "正在进行相关操作，请稍后再试！"
-                                                           */);
-      }
-      // 准备入库单号哈希表{入库单头ID=入库单号}
-      HashMap<String, String> mapHidBillCode = new HashMap<String, String>();
-      for (int i = 0; i < iLen; i++) {
-        mapHidBillCode.put(VOs[i].getHeadVO().getPrimaryKey(), VOs[i]
-            .getHeadVO().getVbillcode());
-      }
-
-      // 检查1：查询不满足删除条件的入库单头ID(向量)
-      ArrayList<ArrayList<String>> listStatus = dmo.queryInitialBillStatus(VOs);
-      // 处理：已经结算过的(包括结算完成和未结算完成的)
-      ArrayList<String> listSettled = listStatus.get(0);
-      String strErrSettled = "";
-      for (int i = 0; i < listSettled.size(); i++) {
-        strErrSettled += mapHidBillCode.get(listSettled.get(i) + "");
-        strErrSettled += ",";
-      }
-      if (strErrSettled.length() > 0) {
-        strErrSettled = strErrSettled.substring(0, strErrSettled.length() - 1);
-      }
-      // 处理：已经删除的
-      String strErrDeleted = "";
-      ArrayList<String> listDeleted = listStatus.get(1);
-      for (int i = 0; i < listDeleted.size(); i++) {
-        strErrDeleted += mapHidBillCode.get(listDeleted.get(i) + "");
-        strErrDeleted += ",";
-      }
-      if (strErrDeleted.length() > 0) {
-        strErrDeleted = strErrDeleted.substring(0, strErrDeleted.length() - 1);
-      }
-      // 处理：已经生成采购发票的
-      String strErrInvoice = "";
-      ArrayList<String> listInvoice = listStatus.get(2);
-      for (int i = 0; i < listInvoice.size(); i++) {
-        strErrInvoice += mapHidBillCode.get(listInvoice.get(i) + "");
-        strErrInvoice += ",";
-      }
-      if (strErrInvoice.length() > 0) {
-        strErrInvoice = strErrInvoice.substring(0, strErrInvoice.length() - 1);
-      }
-      String strErrAll = "";
-      if (strErrSettled.trim().length() > 0) {
-        strErrAll += NCLangResOnserver.getInstance().getStrByID("40040503",
-            "UPP40040503-000004", null, new String[] {
-              strErrSettled
-            })/* @res入库单{0}已结算，不能作废！ */;
-        strErrAll += "\n";
-      }
-      if (strErrDeleted.trim().length() > 0) {
-        strErrAll += NCLangResOnserver.getInstance().getStrByID("40040503",
-            "UPP40040503-000003", null, new String[] {
-              strErrDeleted
-            })/* @res入库单{0}已作废！ */;
-        strErrAll += "\n";
-      }
-      if (strErrInvoice.trim().length() > 0) {
-        strErrAll += NCLangResOnserver.getInstance().getStrByID("40040503",
-            "UPP40040503-000086", null, new String[] {
-              strErrInvoice
-            })/* @res入库单{0}已开票，不能作废！ */;
-        strErrAll += "\n";
-      }
-      if (strErrAll.trim().length() > 0) {
-        throw new BusinessException(strErrAll);
-      }
-
-      // 检查2：判断时间戳是否改变
-      String sMessage = isTimeStampChangedForGeneral(VOs);
-      if (sMessage != null && sMessage.length() > 0) {
-        sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-            "40040503", "UPP40040503-000001")/*
-                                               * @res "请刷新！\n"
-                                               */;
-        throw new BusinessException(sMessage);
-      }
-      GeneralBillVO[] voaIcBill = new GeneralBillVO[iLen];
-      for (int i = 0; i < iLen; i++) {
-        String pk_calbody = dmo.getStorIDByWarehouseID(VOs[i].getHeadVO()
-            .getCwarehouseid());
-        if (pk_calbody != null && pk_calbody.trim().length() > 0) {
-          VOs[i].getHeadVO().setCstoreorganization(pk_calbody);
-        }
-        voaIcBill[i] = getChangedVO(VOs[i], false);
-      }
-      IICToPU_ICATP atp = (IICToPU_ICATP) NCLocator.getInstance().lookup(
-          IICToPU_ICATP.class.getName());
-      // since v55, Atp算法重构后的调整，并发检查之后(VO设置属性值之后)，数据库更新之前调用
-      ArrayList<ATPVO> listRetFromBefore = atp.modifyATPBeforeForPU(voaIcBill);
-
-      // 作废期初暂估入库单
-      dmo.discard(VOs, strPkCorp);
-
-      // since v53, 支持暂估应付, 删除暂估应付单据
-      ICreateCorpQueryService myService0 = (ICreateCorpQueryService) NCLocator
-          .getInstance().lookup(ICreateCorpQueryService.class.getName());
-      boolean bArApStartUp = myService0.isEnabled(strPkCorp, "AP");
-      ISysInitQry srvInitQry = (ISysInitQry) NCLocator.getInstance().lookup(
-          ISysInitQry.class.getName());
-      boolean bZgyfFlag = srvInitQry.getParaBoolean(strPkCorp, "PO52")
-          .booleanValue();
-      //
-      if (bZgyfFlag && bArApStartUp) {
-        ArrayList<String> listBid = new ArrayList<String>();
-        GeneralHItemVO[] items = null;
-        for (int i = 0; i < VOs.length; i++) {
-          items = VOs[i].getBodyVO();
-          for (int j = 0; j < items.length; j++) {
-            listBid.add(items[j].getCgeneralbid());
-          }
-        }
-        String strSqlWherePart = "and B.cgeneralbid in ";
-        strSqlWherePart += new TempTableUtil().getSubSql(listBid);
-        // 将采购入库单VO转换为暂估VO(采用查询思路，利用手工暂估查询将库存单据转换为暂估单据)
-        EstimateVO[] voaEst = new EstimateDMO().queryEstimate(strSqlWherePart,
-            "Y");
-        //
-        deleteBillForZGAP_Init(voaEst);
-      }
-      // 回退单据号
-      for (int i = 0; i < iLen; i++) {
-        returnBillCode(VOs[i].getHeadVO());
-      }
-      // since v55, Atp算法重构后的调整，数据库更新之后调用
-      atp.modifyATPAfterForPU(voaIcBill, listRetFromBefore);
-      //
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      PubDMO.throwBusinessException(e);
-    }
-    finally {
-      try {
-        // 对单据解锁
-        if (bLock) {
-          LockTool.releaseLockForPks(sKeys, cOperator);
-        }
-      }
-      catch (Exception e) {
-        /* 调用采购公用方法按规范抛出异常 */
-        PubDMO.throwBusinessException(e);
-      }
-    }
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述: 输入参数: 返回值: 异常处理: 日期:
-   */
-  private Vector doModification(StockVO stockVOs[], StockVO negStockVOs[],
-      SettlebillItemVO settlebillItemVOs[], String cOperator, UFDate dCurrDate)
-      throws BusinessException {
-    // 修改入库单
-    for (int i = 0; i < stockVOs.length; i++) {
-      if (negStockVOs[i] == null)
-        continue;
-
-      int nCount = -1;// 确定位置
-      String s1 = stockVOs[i].getCgeneralbid();
-      for (int j = 0; j < settlebillItemVOs.length; j++) {
-        String s2 = settlebillItemVOs[j].getCstockrow();
-        if (s2 != null && s1.equals(s2)) {
-          nCount = j;
-          break;
-        }
-      }
-      if (nCount < 0)
-        continue;
-
-      // 修改累计结算数量
-      UFDouble d1 = settlebillItemVOs[nCount].getNsettlenum();
-      if (d1 != null) {
-        double d = stockVOs[i].getNaccumsettlenum().doubleValue()
-            + d1.doubleValue();
-        stockVOs[i].setNaccumsettlenum(new UFDouble(d));
-      }
-      // 修改累计结算金额
-      UFDouble d2 = stockVOs[i].getNprice();
-      if (d1 != null && d2 != null) {
-        double d = stockVOs[i].getNaccumsettlemny().doubleValue()
-            + d1.doubleValue() * d2.doubleValue();
-        stockVOs[i].setNaccumsettlemny(new UFDouble(d).add(new UFDouble(0.0),
-            BsPuTool.getCCurrDecimal(null)));
-      }
-    }
-
-    // 修改负入库单
-    for (int i = 0; i < negStockVOs.length; i++) {
-      if (negStockVOs[i] == null)
-        continue;
-
-      int nCount = -1;// 确定位置
-      String s1 = negStockVOs[i].getCgeneralbid();
-      for (int j = 0; j < settlebillItemVOs.length; j++) {
-        String s2 = settlebillItemVOs[j].getCstockrow();
-        if (s2 != null && s1.equals(s2)) {
-          nCount = j;
-          break;
-        }
-      }
-      if (nCount < 0)
-        continue;
-
-      // 修改累计结算数量
-      UFDouble d1 = settlebillItemVOs[nCount].getNsettlenum();
-      if (d1 != null) {
-        double d = negStockVOs[i].getNaccumsettlenum().doubleValue()
-            + d1.doubleValue();
-        negStockVOs[i].setNaccumsettlenum(new UFDouble(d));
-      }
-      // 修改累计结算金额
-      UFDouble d2 = negStockVOs[i].getNprice();
-      if (d1 != null && d2 != null) {
-        double d = negStockVOs[i].getNaccumsettlemny().doubleValue()
-            + d1.doubleValue() * d2.doubleValue();
-        negStockVOs[i].setNaccumsettlemny(new UFDouble(d).add(
-            new UFDouble(0.0), BsPuTool.getCCurrDecimal(null)));
-      }
-    }
-
-    // 设置表头
-    SettlebillHeaderVO head = new SettlebillHeaderVO();
-    head.setPk_corp(stockVOs[0].getPk_corp());
-    head.setCaccountyear(null);
-    head.setDsettledate(dCurrDate);
-    head.setIbillstatus(new Integer(0));
-    head.setCbilltype(ScmConst.PO_SettleBill);
-    head.setCoperator(cOperator);
-    head.setVsettlebillcode(null);
-    head.setTmaketime((new UFDateTime(new Date())).toString());
-
-    SettlebillVO settlebillVO = new SettlebillVO(settlebillItemVOs.length);
-    settlebillVO.setParentVO(head);
-    settlebillVO.setChildrenVO(settlebillItemVOs);
-
-    // 组合正副入库单
-    Vector vv = new Vector();
-    if (stockVOs != null && stockVOs.length > 0) {
-      for (int i = 0; i < stockVOs.length; i++)
-        vv.addElement(stockVOs[i]);
-    }
-    if (negStockVOs != null && negStockVOs.length > 0) {
-      for (int i = 0; i < negStockVOs.length; i++)
-        vv.addElement(negStockVOs[i]);
-    }
-    StockVO tempStockVOs[] = new StockVO[vv.size()];
-    vv.copyInto(tempStockVOs);
-
-    // 插入结算单，更新入库单
-    long tTime = System.currentTimeMillis();
-    Vector vKey = new Vector();
-    try {
-      // 获取结算单号
-      String vSettlebillcode = generateSettleCode(stockVOs[0].getPk_corp());
-      settlebillVO.getHeadVO().setVsettlebillcode(vSettlebillcode);
-
-      nc.bs.ps.settle.SettleDMO dmo = new nc.bs.ps.settle.SettleDMO();
-      vKey = dmo.doOrderToInvoiceSettle(settlebillVO, tempStockVOs, null,
-          cOperator, null);
-      tTime = System.currentTimeMillis() - tTime;
-      SCMEnv.out("本次结算时间：" + tTime + " ms!");
-    }
-    catch (Exception e) {
-      SCMEnv.out("结算时出现异常，不影响暂估");
-      /* 支持结算时出现异常不回滚，此处异常不抛出 */
-      return null;
-    }
-
-    // 结算完毕，设置主键
-    if (vKey != null && vKey.size() > 1) {
-      String headKey = (String) vKey.elementAt(0);
-      for (int i = 1; i < vKey.size(); i++) {
-        String bodyKey = (String) vKey.elementAt(i);
-        settlebillItemVOs[i - 1].setCsettlebill_bid(bodyKey);
-        settlebillItemVOs[i - 1].setCsettlebillid(headKey);
-      }
-    }
-
-    Vector v = new Vector();
-    v.addElement(settlebillVO);
-    v.addElement(stockVOs);
-    v.addElement(negStockVOs);
-
-    return v;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述: 输入参数: 返回值: 异常处理: 日期:
-   */
-  private Vector doModificationForSC(StockVO stockVOs[],
-      SettlebillItemVO settlebillItemVOs[], String cOperator, UFDate dCurrDate)
-      throws BusinessException {
-    // 修改入库单
-    for (int i = 0; i < stockVOs.length; i++) {
-      int nCount = -1;// 确定位置
-      String s1 = stockVOs[i].getCgeneralbid();
-      for (int j = 0; j < settlebillItemVOs.length; j++) {
-        String s2 = settlebillItemVOs[j].getCstockrow();
-        if (s2 != null && s1.equals(s2)) {
-          nCount = j;
-          break;
-        }
-      }
-      if (nCount < 0)
-        continue;
-
-      // 修改累计结算数量
-      UFDouble d1 = settlebillItemVOs[nCount].getNsettlenum();
-      if (d1 != null) {
-        double d = stockVOs[i].getNaccumsettlenum().doubleValue()
-            + d1.doubleValue();
-        stockVOs[i].setNaccumsettlenum(new UFDouble(d));
-      }
-      // 修改累计结算金额
-      UFDouble d2 = stockVOs[i].getNprice();
-      if (d1 != null && d2 != null) {
-        double d = stockVOs[i].getNaccumsettlemny().doubleValue()
-            + d1.doubleValue() * d2.doubleValue();
-        stockVOs[i].setNaccumsettlemny(new UFDouble(d).add(new UFDouble(0.0),
-            BsPuTool.getCCurrDecimal(null)));
-      }
-    }
-
-    // 设置表头
-    SettlebillHeaderVO head = new SettlebillHeaderVO();
-    head.setPk_corp(stockVOs[0].getPk_corp());
-    head.setCaccountyear(null);
-    head.setDsettledate(dCurrDate);
-    head.setIbillstatus(new Integer(0));
-    head.setCbilltype(ScmConst.PO_SettleBill);
-    head.setCoperator(cOperator);
-    head.setVsettlebillcode(null);
-    head.setTmaketime((new UFDateTime(new Date())).toString());
-
-    SettlebillVO settlebillVO = new SettlebillVO(settlebillItemVOs.length);
-    settlebillVO.setParentVO(head);
-    settlebillVO.setChildrenVO(settlebillItemVOs);
-
-    // 插入结算单，更新入库单
-    long tTime = System.currentTimeMillis();
-    Vector vKey = new Vector();
-    try {
-      // 获取结算单号
-      String vSettlebillcode = generateSettleCode(stockVOs[0].getPk_corp());
-      settlebillVO.getHeadVO().setVsettlebillcode(vSettlebillcode);
-
-      nc.bs.ps.settle.SettleDMO dmo = new nc.bs.ps.settle.SettleDMO();
-      vKey = dmo
-          .doOrderToInvoiceSettle(settlebillVO, stockVOs, null, cOperator, null);
-      tTime = System.currentTimeMillis() - tTime;
-      SCMEnv.out("本次结算时间：" + tTime + " ms!");
-    }
-    catch (Exception e) {
-      SCMEnv.out("结算时出现异常，不影响暂估(SC)");
-      /* 支持结算时出现异常不回滚，此处异常不抛出 */
-      return null;
-    }
-
-    // 结算完毕，设置主键
-    if (vKey != null && vKey.size() > 1) {
-      String headKey = (String) vKey.elementAt(0);
-      for (int i = 1; i < vKey.size(); i++) {
-        String bodyKey = (String) vKey.elementAt(i);
-        settlebillItemVOs[i - 1].setCsettlebill_bid(bodyKey);
-        settlebillItemVOs[i - 1].setCsettlebillid(headKey);
-      }
-    }
-
-    Vector v = new Vector();
-    v.addElement(settlebillVO);
-    v.addElement(stockVOs);
-
-    return v;
-  }
-
-  /**
-   * 功能描述:保存入库单,并修改订单的累计入库数量 输入参数:
-   * 返回值:[[入库单头主键+新增入库单行主键+入库单号（新增入库单时）],[入库单头时间戳+更新的入库单行时间戳+更新的入库单子子表3行时间戳]]
-   * 异常处理:
-   */
-  public ArrayList doSave(GeneralHVO VO, boolean bAdd, ArrayList lModify,
-      String cOperator, OorderVO orderVOs[]) throws BusinessException {
-    //检查单据号是否重复(由前台转移过来) by zhaoyha at 2009.9
-    checkBeforeSave(VO);
-    
-    // 检查自定义项
-    IScm srv = (IScm) NCLocator.getInstance().lookup(IScm.class.getName());
-    srv.checkDefDataType(VO);
-    
-    //    
-    String sTime = (new UFDateTime(new Date())).toString();
-
-    GeneralHHeaderVO headVO = VO.getHeadVO();
-    GeneralHItemVO bodyVO[] = VO.getBodyVO();
-    GeneralBb3VO bb3VO[] = VO.getGrandVO();
-
-    headVO.setFreplenishflag(new Integer(0));
-    if (bodyVO != null && bodyVO.length > 0) {
-      for (int i = 0; i < bodyVO.length; i++) {
-        if (bodyVO[i].getNinnum() != null
-            && bodyVO[i].getNinnum().doubleValue() < 0) {
-          headVO.setFreplenishflag(new Integer(1));
-          break;
-        }
-      }
-    }
-
-    ArrayList list1 = new ArrayList();
-    ArrayList list2 = new ArrayList();
-    Vector vData0 = new Vector();
-    Vector vDataBB3 = new Vector();
-    EstimateDMO dmo = null;
-
-    try {
-      dmo = new EstimateDMO();
-    }
-    catch (Exception e) {
-      SCMEnv.out(e);
-      throw new BusinessException(e.getMessage());
-    }
-
-    // 存货库存组织匹配检查
-    Vector vTemp0 = new Vector();
-    for (int i = 0; i < bodyVO.length; i++) {
-      if (bodyVO[i].getBodyEditStatus() != 3)
-        vTemp0.addElement(bodyVO[i].getCbaseid());
-    }
-    String sBaseID[] = new String[vTemp0.size()];
-    vTemp0.copyInto(sBaseID);
-    UFBoolean bTemp[] = null;
-    try {
-      bTemp = dmo.isInvBelongWarehouse(sBaseID, headVO.getCwarehouseid());
-    }
-    catch (Exception e) {
-      throw new BusinessException(e.getMessage());
-    }
-    String sError = "";
-    for (int i = 0; i < bTemp.length; i++) {
-      if (!bTemp[i].booleanValue()) {
-        String[] value = new String[] {
-          String.valueOf(i + 1)
-        };
-        sError += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-            "40040503", "UPP40040503-000005", null, value)/*
-                                                           * @res "行" +
-                                                           * CommonConstant.BEGIN_MARK +
-                                                           * (i + 1) +
-                                                           * CommonConstant.END_MARK +
-                                                           * "存货不属于库存组织，不能保存！\n"
-                                                           */;
-
-      }
-    }
-    if (sError.trim().length() > 0) {
-      throw new BusinessException(sError);
-    }
-
-    // 通过仓库ID获得库存组织ID
-    if (headVO != null) {
-      String cwarehouseid = headVO.getCwarehouseid();
-      if (cwarehouseid != null && cwarehouseid.trim().length() > 0) {
-        try {
-          String pk_calbody = dmo.getStorIDByWarehouseID(cwarehouseid);
-          if (pk_calbody != null && pk_calbody.trim().length() > 0) {
-            headVO.setCstoreorganization(pk_calbody);
-          }
-        }
-        catch (Exception e) {
-          SCMEnv.out(e);
-          throw new BusinessException(e.getMessage());
-        }
-      }
-    }
-    // since v55
-    IICToPU_ICATP atp = (IICToPU_ICATP) NCLocator.getInstance().lookup(
-        IICToPU_ICATP.class.getName());
-    GeneralBillVO vo = getChangedVO(VO, bAdd);
-    // since v55, Atp算法重构后的调整，并发检查之后(VO设置属性值之后)，数据库更新之前调用
-    ArrayList<ATPVO> listRetFromBefore = atp.modifyATPBeforeForPU(vo);
-    // 增加入库单
-    if (bAdd) {
-      boolean bLock = false;
-      String sKey[] = null;
-      try {
-        // 获得需要加锁的主键（订单）
-        sKey = getOrderLockKeys(orderVOs);
-
-        // 对单据加锁
-        bLock = LockTool.setLockForPks(sKey, cOperator);
-        if (!bLock) {
-          throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-              .getStrByID("40040503", "UPP40040503-000000")/*
-                                                             * @res
-                                                             * "正在进行相关操作，请稍后再试！"
-                                                             */);
-        }
-        // 判断时间戳是否改变
-        String sMessage = isTimeStampChangedForOrder(orderVOs);
-        if (sMessage != null && sMessage.length() > 0) {
-          sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-              "40040503", "UPP40040503-000001")/*
-                                                 * @res "请刷新！\n"
-                                                 */;
-          throw new BusinessException(sMessage);
-        }
-
-        // 获得入库单号
-        String vBillCode = getBillCode(headVO);
-        headVO.setVbillcode(vBillCode);
-
-        headVO.setTmaketime(sTime);
-        headVO.setTlastmoditime(sTime);
-        headVO.setTaccounttime(sTime);
-        //
-        String key = dmo.insertHead(headVO);
-        list1.add(key);
-        vData0.addElement(key);
-
-        // since v53, 暂估应付标志
-        ICreateCorpQueryService myService0 = (ICreateCorpQueryService) NCLocator
-            .getInstance().lookup(ICreateCorpQueryService.class.getName());
-        boolean bArApStartUp = myService0.isEnabled(headVO.getPk_corp(), "AP");
-        ISysInitQry srvInitQry = (ISysInitQry) NCLocator.getInstance().lookup(
-            ISysInitQry.class.getName());
-        boolean bZgyfFlag = srvInitQry.getParaBoolean(headVO.getPk_corp(),
-            "PO52").booleanValue();
-        //
-        for (int i = 0; i < bodyVO.length; i++) {
-          if (bZgyfFlag) {
-            bodyVO[i].setBzgyfflag(UFBoolean.TRUE);
-          }
-          else {
-            bodyVO[i].setBzgyfflag(UFBoolean.FALSE);
-          }
-        }
-        //
-        String key0[] = dmo.insertBody(bodyVO, key, headVO.getPk_corp());
-        //
-        HashMap<String, OorderVO> mapOorderVo = new HashMap<String, OorderVO>();
-        for (OorderVO curVo : orderVOs) {
-          mapOorderVo.put(curVo.getCorder_bid(), curVo);
-        }
-        //
-        for (int i = 0; i < bodyVO.length; i++) {
-          bb3VO[i].setNpprice(bodyVO[i].getNprice());
-          bb3VO[i].setNpmoney(bodyVO[i].getNmny());
-          bb3VO[i].setNaccountnum1(new UFDouble(0.0));
-          bb3VO[i].setNaccountmny(new UFDouble(0.0));
-          // since v53, 支持暂估应付 test
-          if (bZgyfFlag) {
-            bb3VO[i].setNzygfprice(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getNtaxprice());
-            bb3VO[i].setNzgyfmoney(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getNtotalmoney());
-
-            // 暂估应付支持外币-----------------------------------------------------------
-            bb3VO[i].setCurrencytypeid(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getCurrencytypeid());
-            bb3VO[i].setNexchangeotobrate(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getNexchangeotobrate());
-            bb3VO[i].setNoriginalnetprice(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getNoriginalnetprice());
-            bb3VO[i].setNorgnettaxprice(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getNorgnettaxprice());
-            bb3VO[i].setNoriginalcurmny(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getNoriginalcurmny());
-            bb3VO[i].setNoriginaltaxpricemny(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getNoriginaltaxpricemny());
-            bb3VO[i].setNorgtaxMoney(mapOorderVo.get(
-                bodyVO[i].getCsourcebillbid()).getNorgtaxmoney());
-            // ------------------------------------------------------------------------------------------
-
-          }
-          //
-          list1.add(key0[i]);
-          vData0.addElement(key0[i]);
-        }
-        String keybb3[] = dmo.insertBb3(bb3VO, key0, key, headVO.getPk_corp());
-        if (keybb3 != null) {
-          int iLen = keybb3.length;
-          for (int i = 0; i < iLen; i++) {
-            vDataBB3.addElement(keybb3[i]);
-            //同时返回前台 by zhaoyha at 2009.3.13 for BGY
-            list1.add(keybb3[i]);
-          }
-        }
-        //
-        list1.add(vBillCode);
-        //        
-        for (int i = 0; i < key0.length; i++) {
-          bodyVO[i].setCgeneralhid(key);
-          bodyVO[i].setCgeneralbid(key0[i]);
-        }
-
-        // 修改订单数据
-        dmo.updateOrderStockNum(VO.isUserConfirmed(), lModify);
-
-        // since v53, 支持暂估应付
-        if (bZgyfFlag && bArApStartUp) {
-          ArrayList list = new ArrayList();
-          list.add(orderVOs[0].getCcurrencytypeid());
-          list.add(cOperator);
-          list.add(BsPuTool.getLoginDate());
-          list.add(headVO.getPk_corp());
-          list.add(null);// since v53
-          list.add(UFBoolean.TRUE);// since v53, 标识是期初暂估调用
-          String strSqlWherePart = "and B.cgeneralbid in ";
-          strSqlWherePart += new TempTableUtil().getSubSql(key0);
-          // 将采购入库单VO转换为暂估VO(采用查询思路，利用手工暂估查询将库存单据转换为暂估单据)
-          EstimateVO[] voaEst = new EstimateDMO().queryEstimate(
-              strSqlWherePart, "Y");      
-          // ------ by zhaoyha at 2008.10.21 ------------------------------
-          // 设置暂估应付的本币无税数据
-          for(EstimateVO estVo:voaEst){
-            OorderVO orderVo=mapOorderVo.get(estVo.getCsourcebillbid());
-            estVo.setNzgyfnotaxmoney(orderVo.getNzgyfnotaxmoney());
-            estVo.setNzgyfnotaxprice(orderVo.getNzgyfnotaxprice());
-          }
-          // ------ by zhaoyha at 2008.10.21 ------------------------------  
-          
-          // 调用公式计算前的设置：税率、扣税类别
-          setTaxRateDiscountType(voaEst);
-          //
-          saveBillForARAP(voaEst, list);
-        }
-      }
-      catch (Exception e) {
-        /* 调用采购公用方法按规范抛出异常 */
-        nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-      }
-      finally {
-        try {
-          // if (myService != null) {
-          // 对单据解锁
-          if (bLock)
-            LockTool.releaseLockForPks(sKey, cOperator);
-          // }
-        }
-        catch (Exception e) {
-          SCMEnv.out(e);
-          throw new BusinessException(e.getMessage());
-        }
-      }
-    }
-    // 增加入库单
-    else {
-      boolean bLock = false;
-
-      // 组合需要加锁的主键
-      Vector vTemp = new Vector();
-      vTemp.addElement(VO.getHeadVO().getCgeneralhid());
-      for (int i = 0; i < bodyVO.length; i++) {
-        if (bodyVO[i].getBodyEditStatus() == 3
-            || bodyVO[i].getBodyEditStatus() == 2) {
-          vTemp.addElement(bodyVO[i].getCgeneralbid());
-          vTemp.addElement(bb3VO[i].getCgeneralbb3());
-        }
-      }
-      String sKey[] = new String[vTemp.size()];
-      vTemp.copyInto(sKey);
-
-      try {
-        // 对单据加锁
-        bLock = LockTool.setLockForPks(sKey, cOperator);
-        if (!bLock)
-          throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-              .getStrByID("40040503", "UPP40040503-000000")/*
-                                                             * @res
-                                                             * "正在进行相关操作，请稍后再试！"
-                                                             */);
-
-        String key = (String) headVO.getAttributeValue("cgeneralhid");
-
-        headVO.setTlastmoditime(sTime);
-        headVO.setTaccounttime(sTime);
-
-        // 刷新期初暂估入库单状态
-        GeneralHVO tempVO[] = new GeneralHVO[1];
-        tempVO[0] = VO;
-
-        ArrayList listErrBillCodes = dmo.queryInitialBillStatus(tempVO);
-
-        UFBoolean bSettled = UFBoolean.FALSE;
-        UFBoolean bDeleted = UFBoolean.FALSE;
-        UFBoolean bInvoice = UFBoolean.FALSE;
-
-        ArrayList listSettled = (ArrayList) listErrBillCodes.get(0);
-        ArrayList listDeleted = (ArrayList) listErrBillCodes.get(1);
-        ArrayList listInvoice = (ArrayList) listErrBillCodes.get(2);
-
-        bSettled = new UFBoolean(listSettled != null && listSettled.size() > 0);
-        bDeleted = new UFBoolean(listDeleted != null && listDeleted.size() > 0);
-        bInvoice = new UFBoolean(listInvoice != null && listInvoice.size() > 0);
-
-        String strErrorCodes = "";
-        //
-        if (bSettled.booleanValue()) {
-          strErrorCodes = "[";
-          for (int i = 0; i < listSettled.size(); i++) {
-            strErrorCodes += listSettled.get(i);
-            strErrorCodes += ",";
-          }
-          strErrorCodes = strErrorCodes
-              .substring(0, strErrorCodes.length() - 1);
-          strErrorCodes += "]";
-          throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-              .getStrByID("40040503", "UPP40040503-000007")/* @res"入库单已结算，不能保存！" */
-              + "\n" + strErrorCodes);
-        }
-        //
-        if (bDeleted.booleanValue()) {
-          strErrorCodes = "[";
-          for (int i = 0; i < listDeleted.size(); i++) {
-            strErrorCodes += listDeleted.get(i);
-            strErrorCodes += ",";
-          }
-          strErrorCodes = strErrorCodes
-              .substring(0, strErrorCodes.length() - 1);
-          strErrorCodes += "]";
-          throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-              .getStrByID("40040503", "UPP40040503-000006")/* @res"入库单已作废，不能保存！" */
-              + "\n" + strErrorCodes);
-        }
-        //
-        if (bInvoice.booleanValue()) {
-          strErrorCodes = "[";
-          for (int i = 0; i < listInvoice.size(); i++) {
-            strErrorCodes += listInvoice.get(i);
-            strErrorCodes += ",";
-          }
-          strErrorCodes = strErrorCodes
-              .substring(0, strErrorCodes.length() - 1);
-          strErrorCodes += "]";
-          throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-              .getStrByID("40040503", "UPP40040503-000087")/* @res"入库单已开票，不能保存！" */
-              + "\n" + strErrorCodes);
-        }
-
-        // 判断时间戳是否改变
-        String sMessage = isTimeStampChangedForGeneral(new GeneralHVO[] {
-          VO
-        });
-        if (sMessage != null && sMessage.length() > 0) {
-          sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-              "40040503", "UPP40040503-000001")/*
-                                                 * @res "请刷新！\n"
-                                                 */;
-          throw new BusinessException(sMessage);
-        }
-        if (headVO.getHeadEditStatus() == 2) {
-          // 更改入库单表头
-          dmo.updateHead(headVO);
-          list1.add(key);
-          vData0.addElement(key);
-        }
-
-        Vector vInsert1 = new Vector();
-        Vector vDelete1 = new Vector();
-        Vector vUpdate1 = new Vector();
-        Vector vInsert2 = new Vector();
-        Vector vDelete2 = new Vector();
-        Vector vUpdate2 = new Vector();
-
-        for (int i = 0; i < bodyVO.length; i++) {
-          if (bodyVO[i].getBodyEditStatus() == 1) {
-            vInsert1.addElement(bodyVO[i]);
-            vInsert2.addElement(bb3VO[i]);
-          }
-          if (bodyVO[i].getBodyEditStatus() == 3) {
-            vDelete1.addElement(bodyVO[i]);
-            vDelete2.addElement(bb3VO[i]);
-          }
-          if (bodyVO[i].getBodyEditStatus() == 2) {
-            vUpdate1.addElement(bodyVO[i]);
-            vUpdate2.addElement(bb3VO[i]);
-          }
-        }
-
-        String key0[] = null;
-        String keybb3[] = null;
-        // 增加入库单行
-        if (vInsert1.size() > 0 && vInsert2.size() > 0) {
-          GeneralHItemVO itemVO[] = new GeneralHItemVO[vInsert1.size()];
-          vInsert1.copyInto(itemVO);
-
-          GeneralBb3VO grandVO[] = new GeneralBb3VO[vInsert2.size()];
-          vInsert2.copyInto(grandVO);
-
-          key0 = dmo.insertBody(itemVO, key, headVO.getPk_corp());
-          keybb3 = dmo.insertBb3(grandVO, key0, key, headVO.getPk_corp());
-        }
-
-        // 删除入库单行
-        if (vDelete1.size() > 0 && vDelete2.size() > 0) {
-          GeneralHItemVO itemVO[] = new GeneralHItemVO[vDelete1.size()];
-          vDelete1.copyInto(itemVO);
-
-          GeneralBb3VO grandVO[] = new GeneralBb3VO[vDelete2.size()];
-          vDelete2.copyInto(grandVO);
-
-          dmo.deleteBody(itemVO);
-          dmo.deleteBb3(grandVO);
-        }
-
-        // 更改入库单行
-        if (vUpdate1.size() > 0 && vUpdate2.size() > 0) {
-          GeneralHItemVO itemVO[] = new GeneralHItemVO[vUpdate1.size()];
-          vUpdate1.copyInto(itemVO);
-
-          GeneralBb3VO grandVO[] = new GeneralBb3VO[vUpdate2.size()];
-          vUpdate2.copyInto(grandVO);
-
-          dmo.updateBody(itemVO);
-          dmo.updateBb3(grandVO);
-        }
-
-        int j = 0;
-        for (int i = 0; i < bodyVO.length; i++) {
-          if (bodyVO[i].getBodyEditStatus() == 1) {
-            // 增加入库单行
-            list1.add(key0[j]);
-            vData0.addElement(key0[j]);
-            vDataBB3.addElement(keybb3[j]);
-            j++;
-          }
-          else if (bodyVO[i].getBodyEditStatus() == 3) {
-            // 删除入库单行
-          }
-          else if (bodyVO[i].getBodyEditStatus() == 2) {
-            // 更改入库单行
-            vData0.addElement(bodyVO[i].getCgeneralbid());
-            vDataBB3.addElement(bb3VO[i].getCgeneralbb3());
-          }
-          else {
-            // 入库单行未作任何修改
-          }
-        }
-        // 修改订单数据
-        dmo.updateOrderStockNum(VO.isUserConfirmed(), lModify);
-
-      }
-      catch (Exception e) {
-        /* 调用采购公用方法按规范抛出异常 */
-        PubDMO.throwBusinessException(e);
-      }
-      finally {
-        try {
-          // if (myService != null) {
-          // 对单据解锁
-          if (bLock)
-            LockTool.releaseLockForPks(sKey, cOperator);
-          // }
-        }
-        catch (Exception e) {
-          /* 调用采购公用方法按规范抛出异常 */
-          PubDMO.throwBusinessException(e);
-        }
-      }
-    }
-    // since v55, Atp算法重构后的调整，数据库更新之后调用
-    atp.modifyATPAfterForPU(vo, listRetFromBefore);
-    //
-    if (vData0 != null && vData0.size() > 0) {
-      // 入库单头时间戳+更新的入库单行时间戳+更新的入库单子表行时间戳 返回
-      nc.bs.pu.pub.PubDMO pubDMO = null;
-
-      String sHeadKey[] = new String[1];
-      sHeadKey[0] = (String) vData0.elementAt(0);
-
-      String sBodyKey[] = new String[vData0.size() - 1];
-      String sBb3Key[] = new String[vDataBB3.size()];
-      vDataBB3.copyInto(sBb3Key);
-      for (int i = 0; i < sBodyKey.length; i++)
-        sBodyKey[i] = (String) vData0.elementAt(i + 1);
-
-      try {
-        pubDMO = new nc.bs.pu.pub.PubDMO();
-        Object t[] = pubDMO.queryHBTsArrayByHBIDArray("45", sHeadKey, sBodyKey,
-            sBb3Key);
-        if (t != null && t.length > 0) {
-          String t1[] = (String[]) t[0];
-          String t2[] = (String[]) t[1];
-          String t3[] = (String[]) t[2];
-          if (t1 != null && t1.length > 0)
-            list2.add(t1[0]);
-          if (t2 != null && t2.length > 0 && t3 != null && t3.length > 0
-              && t2.length == t3.length) {
-            for (int i = 0; i < t2.length; i++) {
-              list2.add(t2[i]);
-              list2.add(t3[i]);
-            }
-          }
-        }
-      }
-      catch (Exception e) {
-        /* 调用采购公用方法按规范抛出异常 */
-        nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-      }
-
-      ArrayList list = new ArrayList();
-      list.add(list1);
-      list.add(list2);
-
-      return list;
-    }
-    return null;
-  }
-
-  /**
-   * 功能描述:暂估 输入参数:VO[],当前操作员ID,当前日期 创建：熊海情 修改：晁志平 FOR V30、V502
-   */
-  public void estimate(EstimateVO VOs[], ArrayList paraList)
-      throws BusinessException {
-    nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
-    timer.start();
-
-    EstimateDMO dmo = null;
-    ICreateCorpQueryService myService0 = null;
-    ISysInitQry myService1 = null;
-    nc.bs.pu.pub.PubImpl myService2 = null;
-    boolean bLock = false;
-
-    // String cOperator = (String)paraList.get(0);
-    // UFDate dCurrDate = (UFDate)paraList.get(1);
-    ClientLink cl = (ClientLink) paraList.get(0);
-    String strOperator = cl.getUser();
-    UFDate dateUserLogon = cl.getLogonDate();
-    String strLoginCorp = cl.getCorp();
-    String strEstMode = (String) paraList.get(1);
-    String strDifferDealMode = (String) paraList.get(2);
-    UFBoolean bZGYF = (UFBoolean) paraList.get(3);
-    String strCurrTypeID = (String) paraList.get(4);
-    UFBoolean ufbLockedFlag = UFBoolean.FALSE;
-    if (paraList.size() >= 6) {
-      ufbLockedFlag = (UFBoolean) paraList.get(5);
-    }
-    // 此处做区分，比如签字自动暂估不必加锁
-    boolean bNeedLock = ufbLockedFlag == null || !ufbLockedFlag.booleanValue();
-
-    // 组合所有需要加锁的主键
-    String[] saLockKey = null;
-
-    timer.addExecutePhase("组合所有需要加锁的主键");
-    String[] saSubLockedId = null;
-    try {
-      // 对单据加锁
-      if (bNeedLock) {
-        saLockKey = getEstimateLockKeys(VOs);
-        bLock = LockTool.setLockForPks(saLockKey, strOperator);
-      }
-
-      timer.addExecutePhase("加锁");
-
-      if (bNeedLock && !bLock) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000000")/*
-                                                           * @res
-                                                           * "正在进行相关操作，请稍后再试！"
-                                                           */);
-      }
-
-      // 判断时间戳是否改变
-      String sMessage = isTimeStampChanged(VOs);
-      if (sMessage != null && sMessage.length() > 0) {
-        sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-            "40040503", "UPP40040503-000001")/*
-                                               * @res "请刷新！\n"
-                                               */;
-        throw new BusinessException(sMessage);
-      }
-      timer.addExecutePhase("判断时间戳是否改变");
-
-      Vector v1 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        v1.addElement(VOs[i].getCgeneralbid());
-      }
-      //
-      dmo = new EstimateDMO();
-      // 状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)
-      if (v1.size() > 0) {
-        dmo.checkExistEsti(v1);
-      }
-      timer.addExecutePhase("状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)");
-
-      // 暂估时单价和金额的精度控制
-      myService2 = new nc.bs.pu.pub.PubImpl();
-      // sinve v502, 按登录公司取精度
-      // int digit[] = myService2.getDigitBatch(VOs[0].getPk_corp(), new
-      // String[] { "BD301", "BD505" });
-      int digit[] = myService2.getDigitBatch(strLoginCorp, new String[] {
-          "BD301", "BD505"
-      });
-      if (digit == null || digit.length == 0)
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000008")/*
-                                                           * @res
-                                                           * "获取本位币精度或单价精度异常!"
-                                                           */);
-
-      timer.addExecutePhase("暂估时单价和金额的精度控制");
-
-      // 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
-      Vector vAllBodyVoB = new Vector();
-      Vector vAllBodyVoBB3 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        GeneralHItemVO bodyVO = new GeneralHItemVO();
-        bodyVO.setCgeneralbid(VOs[i].getCgeneralbid());
-        bodyVO.setBzgflag(new UFBoolean(true));
-        bodyVO.setDzgdate(dateUserLogon);
-        bodyVO.setBzgyfflag(bZGYF);
-        vAllBodyVoB.addElement(bodyVO);
-
-        GeneralBb3VO bb3VO = new GeneralBb3VO();
-        if (VOs[i].getNprice() != null) {
-          bb3VO.setCgeneralbid(VOs[i].getCgeneralbid());
-          double d = PubDMO.getRoundDouble(digit[1], VOs[i].getNprice()
-              .doubleValue());
-          bb3VO.setNpprice(new UFDouble(d));
-          VOs[i].setNprice(bb3VO.getNpprice());
-          d = PubDMO.getRoundDouble(digit[1], VOs[i].getNtaxprice()
-              .doubleValue());
-          bb3VO.setNzygfprice(new UFDouble(d));
-          VOs[i].setNtaxprice(bb3VO.getNzgyfprice());
-        }
-        if (VOs[i].getNmoney() != null) {
-          double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNmoney()
-              .doubleValue());
-          bb3VO.setNpmoney(new UFDouble(d));
-          VOs[i].setNmoney(bb3VO.getNpmoney());
-          d = PubDMO.getRoundDouble(digit[0], VOs[i].getNtotalmoney()
-              .doubleValue());
-          bb3VO.setNzgyfmoney(new UFDouble(d));
-          VOs[i].setNtotalmoney(bb3VO.getNzgyfmoney());
-        }
-        if (VOs[i].getNmaterialmoney() != null) {
-          double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNmaterialmoney()
-              .doubleValue());
-          bb3VO.setNmaterialmoney(new UFDouble(d));
-          VOs[i].setNmaterialmoney(bb3VO.getNmaterialmoney());
-        }
-        // -----zhf add for 5.5
-        if (VOs[i].getCurrencytypeid() != null) {
-          bb3VO.setCurrencytypeid(VOs[i].getCurrencytypeid());
-        }
-        if (VOs[i].getNexchangeotobrate() != null) {
-          bb3VO.setNexchangeotobrate(VOs[i].getNexchangeotobrate());
-        }
-        if (VOs[i].getNoriginalcurmny() != null) {
-          // double d = PubDMO.getRoundDouble(digit[0], VOs[i]
-          // .getNoriginalcurmny().doubleValue());
-          bb3VO.setNoriginalcurmny(VOs[i].getNoriginalcurmny());
-        }
-        if (VOs[i].getNorgtaxmoney() != null) {
-          // double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNorgtaxmoney()
-          // .doubleValue());
-          bb3VO.setNorgtaxMoney(VOs[i].getNorgtaxmoney());
-        }
-        if (VOs[i].getNoriginalnetprice() != null) {
-          double d = PubDMO.getRoundDouble(digit[1], VOs[i]
-              .getNoriginalnetprice().doubleValue());
-          bb3VO.setNoriginalnetprice(new UFDouble(d));
-          d = PubDMO.getRoundDouble(digit[1], VOs[i].getNorgnettaxprice()
-              .doubleValue());
-          bb3VO.setNorgnettaxprice(new UFDouble(d));
-        }
-        if (VOs[i].getNoriginaltaxpricemny() != null) {
-          // double d = PubDMO.getRoundDouble(digit[0], VOs[i]
-          // .getNoriginaltaxpricemny().doubleValue());
-          bb3VO.setNoriginaltaxpricemny(VOs[i].getNoriginaltaxpricemny());
-        }
-
-        // 回写暂估费用信息
-
-        if (VOs[i].getNfeemny() != null
-            && Math.abs(VOs[i].getNfeemny().doubleValue()) > 0) {
-          double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNfeemny()
-              .doubleValue());
-          bb3VO.setNfeemny(new UFDouble(d));
-
-          bb3VO.setCfeeid(VOs[i].getCfeeid());
-        }
-
-        // ---------------------end----------------------
-        vAllBodyVoBB3.addElement(bb3VO);
-      }
-
-      timer.addExecutePhase("打标志、计算单价金额材料费--循环赋值");
-
-      if (vAllBodyVoB.size() > 0) {
-        GeneralHItemVO[] bodyVOs = new GeneralHItemVO[vAllBodyVoB.size()];
-        vAllBodyVoB.copyInto(bodyVOs);
-        dmo.updateBillBody(bodyVOs);
-      }
-
-      timer.addExecutePhase("打标志、计算单价金额材料费--更新子表");
-
-      if (vAllBodyVoBB3.size() > 0) {
-        GeneralBb3VO bb3VOs[] = new GeneralBb3VO[vAllBodyVoBB3.size()];
-        vAllBodyVoBB3.copyInto(bb3VOs);
-        dmo.updateBillBb3(bb3VOs);
-      }
-
-      timer.addExecutePhase("打标志、计算单价金额材料费--更新子表3");
-
-      // 判断存货核算是否启用
-      if (VOs != null && VOs.length > 0) {
-        String strInvoiceCorpId = VOs[0].getPk_invoicecorp();
-        myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ICreateCorpQueryService.class.getName());
-        // 暂估应付
-        if (bZGYF.booleanValue()
-            && myService0.isEnabled(strInvoiceCorpId, "AP")) {
-          ArrayList list = new ArrayList();
-          list.add(strCurrTypeID);
-          list.add(strOperator);
-          list.add(dateUserLogon);
-          list.add(strLoginCorp);
-          list.add(null);// since v53
-          list.add(null);// since v53
-          saveBillForARAP(VOs, list);
-        }
-        timer.showAllExecutePhase("暂估应付");
-
-        boolean bIAStartUp = myService0.isEnabled(strInvoiceCorpId, "IA");
-
-        myService1 = (ISysInitQry) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ISysInitQry.class.getName());
-        boolean bStockRB = true; // 入库单是否红蓝对冲
-        nc.vo.pub.para.SysInitVO initVO[] = myService1.querySysInit(
-            strInvoiceCorpId, "PO36");
-        if (initVO != null && initVO.length > 0) {
-          if (initVO[0].getValue().equals("否"))
-            bStockRB = false;
-        }
-        timer.addExecutePhase("入库单是否红蓝对冲");
-
-        if (bIAStartUp) {
-          // 调用接口,向存货核算系统传送数据
-
-          // 传存货前暂估费用摊入成本---------------zhf 2008/06/24 since for v55
-
-          for (int i = 0; i < VOs.length; i++) {
-            if (VOs[i].getNfeemny() != null
-                && Math.abs(VOs[i].getNfeemny().doubleValue()) > 0) {
-              // 存货金额=暂估金额+费用金额 存货单价=（暂估金额+费用金额）/暂估数量
-              UFDouble nmny = VOs[i].getNmoney().add(VOs[i].getNfeemny());
-              UFDouble nprice = nmny.div(VOs[i].getNinnum());
-
-              VOs[i].setNmoney(new UFDouble(PubDMO.getRoundDouble(digit[0],
-                  nmny.doubleValue())));
-              VOs[i].setNprice(nprice.add(nprice, digit[1]));
-            }
-          }
-          //          
-          saveBillFromOutter(VOs, strOperator, dateUserLogon, strLoginCorp,
-              ProductCode.PROD_PO);
-
-          timer.addExecutePhase("调用保存存货核算单据方法saveBillFromOutter()");
-          // 结算
-          if (bStockRB) {
-            saSubLockedId = settleForEstimate(VOs, strOperator, dateUserLogon,
-                strEstMode, strDifferDealMode);
-          }
-          timer.addExecutePhase("入库单红蓝对冲自动结算");
-        }
-
-        //
-        timer.showAllExecutePhase("暂估处理时间分布：\n");
-
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    finally {
-      // 对单据解锁
-      try {
-        if (bNeedLock && bLock || saSubLockedId != null
-            && saSubLockedId.length > 0) {
-          String[] saAllKey = saLockKey;
-          if (saSubLockedId != null && saSubLockedId.length > 0) {
-            ArrayList listAll = new ArrayList();
-            int iLen = saAllKey == null ? 0 : saAllKey.length;
-            for (int i = 0; i < iLen; i++) {
-              listAll.add(saAllKey[i]);
-            }
-            iLen = saSubLockedId.length;
-            for (int i = 0; i < iLen; i++) {
-              listAll.add(saSubLockedId[i]);
-            }
-            saAllKey = new String[listAll.size()];
-            saAllKey = (String[]) listAll.toArray(saAllKey);
-          }
-          LockTool.releaseLockForPks(saAllKey, strOperator);
-        }
-      }
-      catch (Exception e) {
-        /* 调用采购公用方法按规范抛出异常 */
-        nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-      }
-    }
-  }
-
-  /*
-   * 暂估应付保存
-   */
-  public void saveBillForARAP(EstimateVO VOs[], ArrayList paraList)
-      throws BusinessException {
-    /**
-     * 以下为2008.12.27需求变更:
-     * 1.采购入库单中如果存货为资产类存货,则不允许作暂估应付,也就是针对该行作暂估时即使暂估应付参数为是也不生成暂估应付单.
-     * 2.采购发票中存货为资产类存货的行,则不受暂估应付参数的控制,只要审核就可以传应付.
-     */
-    VOs=filteAssetInv(VOs);
-    if(VOs==null || VOs.length==0) return;
-    
-    //检查暂估数据是否有零的情况
-    checkEstimateForARAP(VOs);
-    
-    String sCurrTypeID = (String) paraList.get(0);
-    String cOperator = (String) paraList.get(1);
-    UFDate dCurrDate = (UFDate) paraList.get(2);
-    String strLoginCorp = (String) paraList.get(3);
-    // since v53
-    UFBoolean ufbChgDocFlag = PuPubVO.getUFBoolean_NullAs(paraList.get(4),
-        UFBoolean.TRUE);
-    // since v53 , 区分期初暂估调用
-    UFBoolean ufbInitFlag = PuPubVO.getUFBoolean_NullAs(paraList.get(5),
-        UFBoolean.FALSE);
-    //
-    nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
-    timer.start();
-
-    try {
-      nc.bs.ps.estimate.EstimateDMO dmo = new nc.bs.ps.estimate.EstimateDMO();
-
-      // 2006-09-12 xhq 支持应付单单据类型配置
-      IPFMetaModel myService = (IPFMetaModel) nc.bs.framework.common.NCLocator
-          .getInstance().lookup(IPFMetaModel.class.getName());
-      Hashtable tBillType = new Hashtable();// 应付单据类型
-      for (int i = 0; i < VOs.length; i++) {
-        String key = "25" + VOs[i].getCbiztype() + "APPROVE";
-        if (tBillType.get(key) == null) {
-          MessagedriveVO driveVO[] = myService.queryAllMsgdrvVOs(null, "25",
-              VOs[i].getCbiztype(), "APPROVE");
-          if (driveVO != null && driveVO.length > 0
-              && driveVO[0].getPk_billtype() != null) {
-            tBillType.put(key, driveVO[0].getPk_billtype());
-          }
-        }
-      }
-
-      Hashtable tBillTemplet = new Hashtable();// 应付单据模板
-      for (int i = 0; i < VOs.length; i++) {
-        String key = "25" + VOs[i].getCbiztype() + "APPROVE";
-        if (tBillType.get(key) == null) {
-          tBillType.put(key, "D1");
-        }
-        // since v502
-        // String key1 = VOs[i].getPk_corp() + tBillType.get(key);
-        String key1 = VOs[i].getPk_invoicecorp() + tBillType.get(key);
-        if (tBillTemplet.get(key1) == null) {
-          String ss[] = dmo.getDJDataForARAP(VOs[i].getPk_invoicecorp(),
-              tBillType.get(key).toString());
-          if (ss != null)
-            tBillTemplet.put(key1, ss);
-        }
-      }
-
-      // 暂估应付时,供应商取订单发票方,发票方不存在,取供应商 2006-08-25
-      Vector vTemp = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        String s = VOs[i].getCfirstbillhid();
-        if (s != null && !vTemp.contains(s))
-          vTemp.addElement(s);
-      }
-      Hashtable t = null;
-      if (vTemp.size() > 0) {
-        String corderid[] = new String[vTemp.size()];
-        vTemp.copyInto(corderid);
-        t = dmo.getOrderInvoiceReceiver(corderid);
-        if (t != null && t.size() > 0) {
-          for (int i = 0; i < VOs.length; i++) {
-            String s = VOs[i].getCfirstbillhid();
-            if (s != null && t.get(s) != null) {
-              String ss[] = (String[]) t.get(s);
-              if (ss != null && ss.length > 0 && ss[0] != null) {
-                // 设置为发票方后，即已经是收票公司(采购公司)档案ID，不必再做档案转换ID
-                VOs[i].setNeedChgVendorDoc(false);
-                VOs[i].setCprovidermangid(ss[0]);
-              }
-            }
-          }
-        }
-      }
-
-      // 查询供应商基本ID
-      String pk_cumandoc[] = new String[VOs.length];
-      for (int i = 0; i < VOs.length; i++)
-        pk_cumandoc[i] = VOs[i].getCprovidermangid();
-      SettleDMO settleDMO = new SettleDMO();
-      String pk_cubasdoc[] = settleDMO.queryVendorBaseIDForARAP(pk_cumandoc);
-      if (pk_cubasdoc != null && pk_cubasdoc.length > 0) {
-        for (int i = 0; i < VOs.length; i++) {
-          VOs[i].setCproviderbaseid(pk_cubasdoc[i]);
-        }
-      }
-      // 查询存货基本ID
-      Vector v1 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        if (VOs[i].getCbaseid() == null)
-          v1.addElement(VOs[i].getCmangid());
-      }
-      if (v1.size() > 0) {
-        pk_cumandoc = new String[v1.size()];
-        v1.copyInto(pk_cumandoc);
-        pk_cubasdoc = settleDMO.getInvBaseID(pk_cumandoc);
-        if (pk_cubasdoc != null && pk_cubasdoc.length > 0) {
-          int j = 0;
-          for (int i = 0; i < VOs.length; i++) {
-            if (VOs[i].getCbaseid() == null) {
-              VOs[i].setCbaseid(pk_cubasdoc[j]);
-              j++;
-            }
-          }
-        }
-      }
-
-      // VO转换
-      GeneralBillVO icVOs[] = new GeneralBillVO[VOs.length];
-      for (int i = 0; i < VOs.length; i++) {
-        icVOs[i] = switchVOFromEstimate2IC(VOs[i], strLoginCorp);
-      }
-      // since v502, 跨公司转换档案ID
-      if (ufbChgDocFlag.booleanValue()) {
-        changeDocIdsFromArrToPur(icVOs, strLoginCorp);
-      }
-
-      // icVOs = rearrangeGeneralBillVO(icVOs);
-
-      PfParameterVO voPfPara = new PfParameterVO();
-      voPfPara.m_currentDate = dCurrDate.toString();
-      voPfPara.m_coId = strLoginCorp;
-      String strSrcBillType = "45";
-      if (ufbInitFlag.booleanValue()) {
-        strSrcBillType = "4T";
-      }
-      
-      // 调用应付提供接口，查询目标业务类型
-      IArapBillMapQureyPublic iArapPub = (IArapBillMapQureyPublic) NCLocator.getInstance()
-          .lookup(IArapBillMapQureyPublic .class.getName());
-       
-      BillTypeMapVO billTypeMapVo=iArapPub.queryBillMap(strSrcBillType, "yf",BsPuTool.getLoginCorp(null));
-      String strTargetBillType="D1";
-      if(billTypeMapVo!=null && billTypeMapVo.getTargetbilltype()!=null
-          && billTypeMapVo.getTargetbilltype().trim().length()>0)
-        strTargetBillType=billTypeMapVo.getTargetbilltype();
-      
-      //进行VO对照转换
-      DJZBVO arapVO[] = (DJZBVO[]) PfUtilTools.runChangeDataAry(strSrcBillType,
-          strTargetBillType, icVOs, voPfPara);
-      if (arapVO == null || arapVO.length == 0)
-        return;
-
-      // arapVO = rearrangeDJZBVO(arapVO);
-
-      // 根据采购入库单生成应付单
-      v1 = new Vector();
-      Vector v2 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        // 后续处理:应付单头
-        DJZBHeaderVO headVO = (DJZBHeaderVO) arapVO[i].getParentVO();
-        headVO.setVouchid(VOs[i].getCgeneralhid());
-        
-        // V55 by zhaoyha at 2008.9.26
-        //String key = "25" + VOs[i].getCbiztype() + "APPROVE";
-        //headVO.setDjlxbm(billTypeMapVo.getTargetparenttype());
-        //headVO.setXslxbm(billTypeMapVo.getBusitype());
-        // V55 by zhaoyha end
-        
-        //String cBillType = tBillType.get(key).toString();
-        String ss[] = null;
-        // since v502
-        // key = VOs[i].getPk_corp() + tBillType.get(key);
-        
-        // V55 by zhaoyha at 2008.9.26
-        //  key = VOs[i].getPk_invoicecorp() + tBillType.get(key);
-        //  if (tBillTemplet.get(key) != null)
-        //    ss = (String[]) tBillTemplet.get(key);
-        //  if (ss != null && ss.length > 0 && PuPubVO.getString_TrimZeroLenAsNull(ss[0])!=null ) {
-        //    headVO.setYwbm(ss[0]);
-        //  }
-
-        // since v502,单一公司时用入库公司,跨公司时用收票公司
-        headVO.setDwbm(VOs[i].getPk_corp());
-        if (PuPubVO.getString_TrimZeroLenAsNull(VOs[i].getPk_invoicecorp()) != null) {
-          headVO.setDwbm(VOs[i].getPk_invoicecorp());
-        }
-        //
-        headVO.setLrr(cOperator);
-        headVO.setAttributeValue("zgyf", new Integer(1));// 暂估应付
-        //headVO.setDjlxbm(cBillType);
-        v1.addElement(headVO);
-
-        // 后续处理:应付单体
-        DJZBItemVO bodyVO[] = (DJZBItemVO[]) arapVO[i].getChildrenVO();
-        // since v502
-        // bodyVO[0].setDwbm(VOs[i].getPk_corp());
-        bodyVO[0].setDwbm(VOs[i].getPk_invoicecorp());
-        bodyVO[0].setFb_oid(VOs[i].getCgeneralbid());
-
-        bodyVO[0].setHbbm(VOs[i].getCproviderbaseid()); // 供应商基本ID
-        bodyVO[0].setCinventoryid(VOs[i].getCbaseid()); // 存货基本ID
-
-        // bodyVO[0].setFbye(new UFDouble(0)); // 辅币余额
-        // bodyVO[0].setDffbje(new UFDouble(0)); // 贷方辅币余额
-        bodyVO[0].setWldx(new Integer(1));
-
-        bodyVO[0].setDdhid(VOs[i].getCfirstbillhid());// 订单行ID
-        bodyVO[0].setDdh(VOs[i].getVfirstbillcode());// 订单号
-        bodyVO[0].setCkdid(VOs[i].getCgeneralbid());// 出入库单行ID
-        bodyVO[0].setFphid(null);// 发票行ID
-        bodyVO[0].setFph(null);// 发票号
-        bodyVO[0].setAttributeValue("ckdh", VOs[i].getVbillcode());// 出库单号
-        if (VOs[i].getCfirstbillhid() != null && t != null) {
-          if (t.get(VOs[i].getCfirstbillhid()) != null) {
-            ss = (String[]) t.get(VOs[i].getCfirstbillhid());
-            bodyVO[0].setSfkxyh(ss[1]);// 付款协议
-          }
-        }
-        // 币种
-        bodyVO[0].setBzbm(VOs[i].getCurrencytypeid());
-        bodyVO[0].setBbhl(VOs[i].getNexchangeotobrate());
-        bodyVO[0].setFbhl(null);
-        // 扣税类别
-        bodyVO[0].setKslb(VOs[i].getIdiscounttaxtype());
-        // 税率
-        bodyVO[0].setSl(VOs[i].getNtaxrate());
-        //bodyVO[0].setYwybm(VOs[i].getCoperatorid());// 业务员
-        v2.addElement(bodyVO[0]);
-      }
-
-      timer.addExecutePhase("VO 对照");
-
-      // 对应付单进行处理: 相同表头的单据组合成一张单据
-      DJZBHeaderVO headVOs[] = new DJZBHeaderVO[v1.size()];
-      v1.copyInto(headVOs);
-      DJZBItemVO bodyVOs[] = new DJZBItemVO[v2.size()];
-      v2.copyInto(bodyVOs);
-
-      // 组合VO[]
-      v1 = new Vector();
-      for (int i = 0; i < headVOs.length; i++) {
-        DJZBVO VO = new DJZBVO();
-        VO.setParentVO(headVOs[i]);
-        VO.setChildrenVO(new DJZBItemVO[] {
-          bodyVOs[i]
-        });
-        v1.addElement(VO);
-      }
-      DJZBVO apVOs[] = new DJZBVO[v1.size()];
-      v1.copyInto(apVOs);
-      timer.addExecutePhase("组合VO[]");
-
-      // 2008.11.17根据NCdp200591951问题,需求变更如下:
-      // 针对采购入库单暂估应付的问题,本版已将暂估应付从原来的脚本提为组件配置,
-      // 可以在以后版本考虑采购入库暂估时支持配置暂估应付对应的流程,V55版本先不作调整,
-      // 仍按照上次统一沟通的结果来处理:即走接口获取暂估应付的业务类型,
-      // 同时支持原来分单参数按照来源业务类型进行分单.
-      apVOs = getSplittedBillVos(apVOs, strLoginCorp);
-      timer.addExecutePhase("支持多行:按供应商分单");
-      // 设置收付接口对照表中的业务类型
-      for(DJZBVO apVo:apVOs){
-        DJZBHeaderVO headVo = (DJZBHeaderVO)apVo.getParentVO();
-        headVo.setXslxbm(billTypeMapVo.getBusitype());
-      }
-      
-
-      // 调用应付提供接口
-      IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator.getInstance()
-          .lookup(IArapForGYLPublic.class.getName());
-      VoTools tools = new VoTools();
-      for (int i = 0; i < apVOs.length; i++) {
-        // 重新计算合计项(调用应付提供接口)
-        tools.getSum(apVOs[i]);
-        // 保存暂估应付单
-        iArap.saveEffForCG(apVOs[i]);
-      }
-      //
-      timer.addExecutePhase("调用应付提供接口传送单据");
-
-      timer.showAllExecutePhase("无发票结算向应付传送数据时间分布--明细");
-
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      SCMEnv.out(e);
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return;
-  }
-
-  /**
-   * 
-   * 方法功能描述：
-   * <p>检查暂估应付的价格或金额是否为零
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * @param Vos
-   * @throws BusinessException
-   * <p>
-   * @author zhaoyha
-   * @time 2008-10-21 上午09:37:38
-   */
-  protected void checkEstimateForARAP(EstimateVO[] Vos) throws BusinessException{
-    if(Vos==null) return;
-    StringBuilder errMsg=new StringBuilder();
-    for(EstimateVO vo:Vos){
-      if(
-          PuPubVO.getUFDouble_NullAsZero(vo.getNorgnettaxprice()).doubleValue()==0.0
-          || 
-          PuPubVO.getUFDouble_NullAsZero(vo.getNoriginalnetprice()).doubleValue()==0.0
-          || 
-          PuPubVO.getUFDouble_NullAsZero(vo.getNoriginalcurmny()).doubleValue()==0.0
-          || 
-          PuPubVO.getUFDouble_NullAsZero(vo.getNoriginaltaxpricemny()).doubleValue()==0.0
-          || 
-          PuPubVO.getUFDouble_NullAsZero(vo.getNzgyfnotaxmoney()).doubleValue()==0.0
-          || 
-          PuPubVO.getUFDouble_NullAsZero(vo.getNzgyfnotaxprice()).doubleValue()==0.0
-          || 
-          PuPubVO.getUFDouble_NullAsZero(vo.getNtotalmoney()).doubleValue()==0.0
-          || 
-          PuPubVO.getUFDouble_NullAsZero(vo.getNtaxprice()).doubleValue()==0.0
-          ){
-        errMsg.append("\r\n")
-        .append(vo.getVbillcode());
-      }
-    }
-    if(errMsg.length()>0){
-      String headMsg=NCLangResOnserver.getInstance().getStrByID("4004050301",
-        "UPP4004050301-000012")/*res 以下入库单的暂估应付价格或金额为零，请检查：*/;
-      throw new BusinessException(headMsg+errMsg.toString());
-    }
-  }
-  
-  /**
-   * 分单处理。
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param voaSrc
-   * @return
-   *          <p>
-   * @author czp
-   * @time 2007-9-17 下午12:29:52
-   */
-  private DJZBVO[] getSplittedBillVos(DJZBVO[] apVOs, String strLoginCorp)
-      throws Exception {
-
-    // 分单参数
-    ISysInitQry qrySrv = (ISysInitQry) NCLocator.getInstance().lookup(
-        ISysInitQry.class.getName());
-    String strSplitPara = qrySrv.getParaString(strLoginCorp, "AP31");
-
-    // 不分单，表头任意取(目前取第1张单据)，表体全部组合到一起
-    if (strSplitPara == null || "不分单".equals(strSplitPara)) {/*-=notranslate=-*/
-      ArrayList<DJZBItemVO> listBodyAll = new ArrayList<DJZBItemVO>();
-      int iLenApVos = apVOs.length;
-      DJZBItemVO[] items = null;
-      for (int i = 0; i < iLenApVos; i++) {
-        items = (DJZBItemVO[]) apVOs[i].getChildrenVO();
-        for (DJZBItemVO item : items) {
-          listBodyAll.add(item);
-        }
-      }
-      //
-      DJZBVO voAllBodies = new DJZBVO();
-      voAllBodies.setParentVO(apVOs[0].getParentVO());
-      voAllBodies.setChildrenVO(listBodyAll.toArray(new DJZBItemVO[listBodyAll
-          .size()]));
-      //
-      return new DJZBVO[] {
-        voAllBodies
-      };
-    }
-
-    // 分单参数处理
-    String[] saHSplit = null;
-    String[] saBSplit = null;
-    if ("供应商".equals(strSplitPara)) {/*-=notranslate=-*/
-      saBSplit = new String[] {
-        "hbbm"
-      };
-    }
-    else if ("单据号".equals(strSplitPara)) {/*-=notranslate=-*/
-      saBSplit = new String[] {
-        "ckdh"
-      };
-    }
-    else if ("业务流程+供应商".equals(strSplitPara)) {/*-=notranslate=-*/
-      saHSplit = new String[] {
-        "xslxbm"
-      };
-      saBSplit = new String[] {
-        "hbbm"
-      };
-    }
-    else if ("业务流程".equals(strSplitPara)) {/*-=notranslate=-*/
-      saHSplit = new String[] {
-        "xslxbm"
-      };
-    }
-    // 分单
-    DJZBVO[] voaRet = (DJZBVO[]) SplitBillVOs.getSplitVOs(DJZBVO.class
-        .getName(), DJZBHeaderVO.class.getName(), DJZBItemVO.class.getName(),
-        apVOs, saHSplit, saBSplit);
-    //
-    return voaRet;
-  }
-
-  /**
-   * 库存采购入库单库房签字时，即时暂估
-   * 
-   * @throws NamingException
-   * @throws
-   * @see nc.itf.pu.inter.IPuToIc_EstimateImpl#estimateBatch(nc.vo.pub.AggregatedValueObject[])
-   *      <p>
-   *      输入参数:GeneralBillVO[]
-   *      <p>
-   *      返回值:void
-   *      <p>
-   *      异常处理:BusinessException
-   *      <p>
-   *      日期:2002/05/30
-   *      <p>
-   *      作者：熊海情
-   *      <p>
-   *      修改：晁志平 FOR V30
-   *      <p>
-   *      since V502, 重构到同一套暂估算法(重构后逻辑完全同手工结算)
-   */
-  public void estimateBatch(AggregatedValueObject[] saVo)
-      throws BusinessException {
-
-    // 无数据时日志并返回
-
-    if (saVo == null) {
-      SCMEnv.out("程序BUG：传入参数为空!直接返回！");/*-=notranslate=-*/
-      return;
-    }
-    if (!(saVo instanceof GeneralBillVO[])) {
-      SCMEnv.out("程序BUG：传入参数不是期望的类型：GeneralBillVO[]!直接返回！");/*-=notranslate=-*/
-      return;
-    }
-    // 按表体收票公司分单,保证每单来自同一个收票公司
-    GeneralBillVO[] generalbillvos = (GeneralBillVO[]) SplitBillVOs
-        .getSplitVOs(GeneralBillVO.class.getName(), GeneralBillHeaderVO.class
-            .getName(), GeneralBillItemVO.class.getName(), saVo, null,
-            new String[] {
-              "pk_invoicecorp"
-            });
-    // 过滤资产仓属性的入库单
-    ArrayList<String> wareList = new ArrayList<String>();
-    for (GeneralBillVO vo : generalbillvos) {
-      if (PuPubVO.getString_TrimZeroLenAsNull(vo.getHeaderVO()
-          .getCwarehouseid()) != null
-          && !wareList.contains(vo.getHeaderVO().getCwarehouseid())) {
-        wareList.add(vo.getHeaderVO().getCwarehouseid().trim());
-      }
-    }
-    HashMap wareInforMap = null;
-    if (wareList != null && wareList.size() > 0) {
-      String inWhere = new TempTableUtil().getSubSql(wareList);
-      try {
-        wareInforMap = new PubDMO().queryArrayValues("bd_stordoc",
-            "pk_stordoc", new String[] {
-              "iscapitalstor"
-            }, new String[] {
-              inWhere.substring(2, inWhere.trim().length() - 2)
-            }, " dr=0 ");
-      }
-      catch (Exception e) {
-        PubDMO.throwBusinessException(e);
-      }
-    }
-    if (wareInforMap == null)
-      return;
-    // 循环调用真正的自动暂估方法(存在效率优化空间,可以用收票公司再做以区分,实现真正的批量操作)：
-    for (int i = 0; i < generalbillvos.length; i++) {
-      if (!PuPubVO.getUFBoolean_NullAs(
-          wareInforMap.get(generalbillvos[i].getHeaderVO().getCwarehouseid()
-              .trim()), new UFBoolean(false)).booleanValue())// 过滤资产仓
-        estimateBatchReal(new GeneralBillVO[] {
-          generalbillvos[i]
-        });
-    }
-  }
-
-  /*
-   * 暂估具体操作
-   */
-  private void estimateBatchReal(GeneralBillVO[] generalbillvos)
-      throws BusinessException {
-
-    // 注意：结算公司取收票公司
-    String strInvoiceCorp = PuPubVO
-        .getString_TrimZeroLenAsNull(generalbillvos[0].getItemVOs()[0]
-            .getAttributeValue("pk_invoicecorp"));
-
-    // 平台参数获取{单价精度、本位币金额精度}
-
-    nc.bs.pu.pub.PubImpl myService1 = new PubImpl();
-    int digit[] = myService1.getDigitBatch(strInvoiceCorp, new String[] {
-        "BD301", "BD505"
-    });
-    if (digit == null || digit.length == 0) {
-      throw new BusinessException(NCLangResOnserver.getInstance().getStrByID(
-          "40040503", "UPP40040503-000008")
-      /* @res "获取本位币精度或单价精度异常!" */);
-    }
-
-    // 参数采购获取{是否暂估应付、本位币ID、价格优先规则}
-
-    String sCurrTypeId = null;
-    String sPricePolicy = null;
-    UFBoolean bZGYF = new UFBoolean(false);
-    String strEstPriceSource = null;
-    String strEstMode = null;
-    String strDifferDealMode = null;
-    ISysInitQry initQrySrv = (ISysInitQry) NCLocator.getInstance().lookup(
-        ISysInitQry.class.getName());
-    Hashtable hInit = initQrySrv.queryBatchParaValues(strInvoiceCorp,
-        new String[] {
-            "PO52", "BD301", "PO28", "PO27", "PO12", "PO13"
-        });
-    if (hInit != null && hInit.size() > 0) {
-      if (hInit.get("PO52") != null) {
-        Object o = hInit.get("PO52");
-        bZGYF = new UFBoolean(o.toString());
-      }
-      if (hInit.get("BD301") != null) {
-        sCurrTypeId = hInit.get("BD301").toString();
-      }
-      if (hInit.get("PO28") != null) {
-        sPricePolicy = hInit.get("PO28").toString();
-      }
-      if (hInit.get("PO27") != null) {
-        strEstPriceSource = hInit.get("PO27").toString();
-      }
-      if (hInit.get("PO12") != null) {
-        strEstMode = hInit.get("PO12").toString();
-      }
-      if (hInit.get("PO13") != null) {
-        strDifferDealMode = hInit.get("PO13").toString();
-      }
-    }
-
-    // 将采购入库单VO转换为暂估VO(采用查询思路，利用手工暂估查询处理单价等处理)
-    EstimateVO[] estimates = getEstVosByGeneralVos(generalbillvos,
-        strInvoiceCorp, strEstPriceSource);
-
-    // since v53,检查暂估金额为零的数据提示给用户
-    ArrayList<String> listBillNo = new ArrayList<String>();
-    ArrayList<String> listCrowNo = new ArrayList<String>();
-    ArrayList<String> listBaseId = new ArrayList<String>();
-    ArrayList<String> listBaseIdQuery = new ArrayList<String>();
-    for (EstimateVO currVo : estimates) {
-      if (PuPubVO.getUFDouble_ZeroAsNull(currVo.getNmoney()) == null) {
-        listBillNo.add(currVo.getVbillcode());
-        listCrowNo.add(PuPubVO.getString_TrimZeroLenAsNull(currVo
-            .getAttributeValue("crowno")));
-        listBaseId
-            .add(PuPubVO.getString_TrimZeroLenAsNull(currVo.getCbaseid()));
-        if (!listBaseIdQuery.contains(currVo.getCbaseid())) {
-          listBaseIdQuery.add(currVo.getCbaseid());
-        }
-      }
-    }
-    if (listBaseIdQuery.size() > 0) {
-      Object[][] oa2Ret = new PubImpl().queryArrayValue("bd_invbasdoc",
-          "pk_invbasdoc", new String[] {
-              "pk_invbasdoc", "invcode", "invname"
-          }, listBaseIdQuery.toArray(new String[listBaseIdQuery.size()]));
-      HashMap<String, ArrayList<String>> mapBaseIdInfos = new HashMap<String, ArrayList<String>>();
-      // {"invcode","invname"}
-      ArrayList<String> listInvInfos = new ArrayList<String>();
-      for (Object[] oaRslt : oa2Ret) {
-        if (oaRslt != null
-            && PuPubVO.getString_TrimZeroLenAsNull(oaRslt[0]) != null) {
-          listInvInfos = new ArrayList<String>();
-          listInvInfos.add(PuPubVO.getString_TrimZeroLenAsNull(oaRslt[1]));
-          listInvInfos.add(PuPubVO.getString_TrimZeroLenAsNull(oaRslt[2]));
-          mapBaseIdInfos.put(oaRslt[0].toString(), listInvInfos);
-        }
-      }
-      // 组织提示信息:部分存货未取得暂估价，签字自动暂估失败。未取得暂估价的存货详细信息{存货名称[存货编码],单据号,行号;}如下:{0}
-      StringBuffer sbErrInfo = new StringBuffer("");
-      // 变量取值：计算机[0101],CR0805120001,10;\n
-      for (int i = 0; i < listBaseId.size(); i++) {
-        listInvInfos = mapBaseIdInfos.get(listBaseId.get(i));
-        sbErrInfo.append(listInvInfos.get(1));
-        sbErrInfo.append("[");
-        sbErrInfo.append(listInvInfos.get(0));
-        sbErrInfo.append("],");
-        sbErrInfo.append(listBillNo.get(i));
-        sbErrInfo.append(",");
-        sbErrInfo.append(listCrowNo.get(i));
-        sbErrInfo.append(";");
-        sbErrInfo.append("\n");
-      }
-      throw new BusinessException(NCLangResOnserver.getInstance().getStrByID(
-          "4004050301", "UPP4004050301-000008", null, new String[] {
-            sbErrInfo.toString()
-          }));
-    }
-    // 调用暂估算法(同手工暂估)
-    ArrayList paraList = new ArrayList();
-    GeneralBillHeaderVO headVo = (GeneralBillHeaderVO) generalbillvos[0]
-        .getParentVO();
-    String strOperator = PuPubVO.getString_TrimZeroLenAsNull(headVo
-        .getAttributeValue("cregister"));
-    UFDate dateUserLogon = PuPubVO.getUFDate(headVo
-        .getAttributeValue("daccountdate"));
-    // //登录公司取收货公司,目前库存不支持跨公司签字
-    // String strLoginCorp = PuPubVO.getString_TrimZeroLenAsNull(
-    // generalbillvos[0].getParentVO().getAttributeValue("pk_corp"));
-    ClientLink cl = new ClientLink(strInvoiceCorp, strOperator, dateUserLogon,
-        null, null, null, null, null, null, false, null, null, null);
-    paraList.add(cl);
-    paraList.add(strEstMode);
-    paraList.add(strDifferDealMode);
-    paraList.add(bZGYF);
-    paraList.add(sCurrTypeId);
-    paraList.add(UFBoolean.TRUE);// 是否已经加过锁
-    //
-    estimate(estimates, paraList);
-    //
-    return;
-  }
-
-  /**
-   * 根据入库单VO获取暂估VO数据
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param generalbillvos
-   *          库存单据VO
-   * @param strInvoiceCorpId
-   *          收票公司
-   * @param strEstPriceSource
-   *          暂估单价来源
-   * @return 处理好的(可暂估的VO)暂估VO
-   *         <p>
-   * @author czp
-   * @time 2007-8-24 上午11:04:41
-   */
-  private EstimateVO[] getEstVosByGeneralVos(GeneralBillVO[] generalbillvos,
-      String strInvoiceCorpId, String strEstPriceSource)
-      throws BusinessException {
-    if (generalbillvos == null || generalbillvos.length == 0) {
-      SCMEnv.out("无数据直接返回");/*-=notranslate=-*/
-    }
-    // 拼接SQL条件片段
-    String strSqlWherePart = "and B.cgeneralbid in ";
-    ArrayList<String> listIDVal = new ArrayList<String>();
-    for (GeneralBillVO curVo : generalbillvos) {
-      for (GeneralBillItemVO item : (GeneralBillItemVO[]) curVo.getChildrenVO()) {
-        listIDVal.add(item.getPrimaryKey());
-      }
-    }
-    strSqlWherePart += new TempTableUtil().getSubSql(listIDVal);
-
-    //
-    EstimateVO[] estimates = null;
-    try {
-      // 查询暂估VO(按入库单头ID临时表条件)
-      estimates = new EstimateDMO().queryEstimate(strSqlWherePart, "N");
-      // 异常情况
-      if (estimates == null || estimates.length == 0) {
-        SCMEnv.out("根据采购入库单ID查询不到暂估数据");/*-=notranslate=-*/
-        return null;
-      }
-      // 设置本币币种:联动计算金额精度需要
-
-      String strLocalCurrId = CurrParamQuery.getInstance().getLocalCurrPK(
-          strInvoiceCorpId);
-      for (int i = 0; i < estimates.length; i++) {
-        estimates[i].setCcurrencytypeid(strLocalCurrId);
-      }
-
-      setEstimateVosInfos(estimates, strLocalCurrId, strInvoiceCorpId, "N");
-
-      // 设置库存组织、直运仓库
-      for (int i = 0; i < estimates.length; i++) {
-        if (!EstimateVO.NORMAL
-            .equals(estimates[i].getEstType(strInvoiceCorpId))) {
-          if (PuPubVO.getString_TrimZeroLenAsNull(estimates[i].getPkBody()) != null) {
-            // 不需要转换供应商档案ID，依赖于库存记录的是采购公司ID
-            estimates[i].setNeedChgVendorDoc(false);
-            //
-            estimates[i].setCcalbodyid(estimates[i].getPkBody());
-            estimates[i].setCwarehouseid(estimates[i].getCwarehouseidZY());
-          }
-        }
-      }
-    }
-    catch (SQLException e) {
-      PubDMO.throwBusinessException(e);
-    }
-    catch (SystemException e) {
-      PubDMO.throwBusinessException(e);
-    }
-    catch (NamingException e) {
-      PubDMO.throwBusinessException(e);
-    }
-    catch (Exception e) {
-      PubDMO.throwBusinessException(e);
-    }
-    // 返回
-    return estimates;
-  }
-
-  /**
-   * 对采购入库单VO设置暂估价、收货公司、库存组织等信息
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param generalbills
-   * @param strLoginCorpId
-   * @throws Exception
-   *           <p>
-   * @author czp
-   * @time 2007-8-8 下午05:07:18
-   */
-  private void setEstimateVosInfosForGeneralBills(
-      IGeneralBillVO[] generalbills, String strLoginCorpId) throws Exception {
-
-    EstimateVO estVo = null;
-    ArrayList<EstimateVO> listEstVos = new ArrayList<EstimateVO>();
-    IGeneralBillItemVO[] bodyVOs = null;
-    GeneralBillHeaderVO headVo = null;
-    for (IGeneralBillVO voCur : generalbills) {
-      headVo = (GeneralBillHeaderVO) generalbills[0].getParentVO();
-      bodyVOs = (IGeneralBillItemVO[]) voCur.getChildrenVO();
-      for (IGeneralBillItemVO itemVo : bodyVOs) {
-        estVo = new EstimateVO();
-        estVo.setCfirsttype(itemVo.getCfirsttype());
-        estVo.setCfirstbillbid(itemVo.getCfirstbillbid());
-        estVo.setCfirstbillhid(itemVo.getCfirstbillhid());
-        estVo.setCcalbodyid(headVo.getPk_calbody());
-        estVo.setPk_corp(headVo.getPk_corp());
-        estVo.setPk_purcorp(PuPubVO.getString_TrimZeroLenAsNull(headVo
-            .getAttributeValue("pk_purcorp")));
-        estVo.setPk_invoicecorp(PuPubVO.getString_TrimZeroLenAsNull(headVo
-            .getAttributeValue("pk_invoicecorp")));
-        estVo.setCbaseid(itemVo.getCinvbasid());
-        estVo.setNinnum(itemVo.getNinnum());
-        //
-        listEstVos.add(estVo);
-      }
-    }
-    //
-    EstimateVO[] estVos = null;
-    estVos = listEstVos.toArray(new EstimateVO[listEstVos.size()]);
-
-    // 调用统一算法：设置暂估单价
-
-    String strLocalCurrId = CurrParamQuery.getInstance().getLocalCurrPK(
-        strLoginCorpId);
-    setEstimateVosInfos(estVos, strLocalCurrId, strLoginCorpId, "N");
-
-    //
-    int iPos = 0;
-    for (IGeneralBillVO voCur : generalbills) {
-      headVo = (GeneralBillHeaderVO) generalbills[0].getParentVO();
-      // 如果是分收集结
-      if (EstimateVO.isFSJJAll(PuPubVO.getString_TrimZeroLenAsNull(estVos[iPos]
-          .getAttributeValue("pk_purcorp")), estVos[iPos].getPk_corp(), PuPubVO
-          .getString_TrimZeroLenAsNull(estVos[iPos]
-              .getAttributeValue("pk_invoicecorp")), strLoginCorpId)) {
-        headVo.setPk_calbody(estVos[iPos].getCcalbodyid());
-        headVo.setCwarehouseid(estVos[iPos].getCwarehouseidZY());
-      }
-      bodyVOs = (IGeneralBillItemVO[]) voCur.getChildrenVO();
-      for (IGeneralBillItemVO itemVo : bodyVOs) {
-        itemVo.setNprice(estVos[iPos].getNprice());
-        itemVo.setNmny(estVos[iPos].getNmoney());
-        itemVo.setNtaxprice(estVos[iPos].getNtaxprice());
-        itemVo.setNtaxmny(estVos[iPos].getNtotalmoney());
-        iPos++;
-      }
-    }
-  }
-
-  /**
-   * 对采购订单VO(暂估定义的结构)设置暂估价
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param VOs
-   * @param strLoginCorpId
-   * @throws Exception
-   *           <p>
-   * @author czp
-   * @time 2007-8-8 下午05:07:18
-   * @修改者 zhf
-   * @修改说明 暂估应付支持外币
-   * @修改时间 2008-06-25
-   */
-  private void setEstVosPricesForOorderBills(OorderVO[] orders,
-      String strLoginCorpId) throws Exception {
-    if (orders == null || orders.length == 0) {
-      return;
-    }
-    // 取得登录公司对应的本位币币种ID
-    BusinessCurrencyRateUtil rateUtil = new BusinessCurrencyRateUtil(
-        strLoginCorpId);
-    String strCurLocalId = CurrParamQuery.getInstance().getLocalCurrPK(
-        strLoginCorpId);
-    //
-    EstimateVO[] estVos = new EstimateVO[orders.length];
-    //
-    int i = 0;
-    for (OorderVO voCur : orders) {
-      estVos[i] = new EstimateVO();
-      estVos[i].setCfirsttype(ScmConst.PO_Order);
-      estVos[i].setCfirstbillbid(voCur.getCorder_bid());
-      estVos[i].setCfirstbillhid(voCur.getCorderid());
-      estVos[i].setCcalbodyid(voCur.getPk_arrvstoorg());
-      estVos[i].setPk_corp(voCur.getPk_arrvcorp());
-      estVos[i].setPk_purcorp(voCur.getPk_corp());
-      estVos[i].setPk_invoicecorp(voCur.getPk_invoicecorp());
-      estVos[i].setCbaseid(voCur.getCbaseid());
-      // since v53, 取供应商有效价格
-      estVos[i].setCmangid(voCur.getCmangid());
-      estVos[i].setCvendorid(voCur.getCvendormangid());
-      // 算法：1、订单数量>0，暂估数量=订单数量-累计入库数量 2、订单数量<0，暂估数量=订单数量+累计入库数量
-      estVos[i].setNinnum(voCur.getNgaugenum());
-      //
-      i++;
-    }
-
-    // 调用统一算法：设置暂估单价
-    String strLocalCurrId = CurrParamQuery.getInstance().getLocalCurrPK(
-        strLoginCorpId);
-    setEstimateVosInfos(estVos, strLocalCurrId, strLoginCorpId, "N");
-
-    //
-    i = 0;
-    for (EstimateVO voEstCur : estVos) {
-      orders[i].setNprice(voEstCur.getNprice());
-      orders[i].setNmoney(voEstCur.getNmoney());
-      //V55 by zhaoyha at 2008.9.27
-      orders[i].setNcbtaxprice(voEstCur.getNcbtaxprice());
-      orders[i].setNcbtotalmoney(voEstCur.getNcbtotalmoney());
-      
-      // since v53, 支持暂估应付
-      orders[i].setNtaxprice(voEstCur.getNtaxprice());
-      orders[i].setNtaxmoney(voEstCur.getNtaxmoney());
-      orders[i].setNtaxrate(voEstCur.getNtaxrate());
-      orders[i].setNnetprice(voEstCur.getNnetprice());
-      orders[i].setNnettaxprice(voEstCur.getNnettaxprice());
-      orders[i].setNtotalmoney(voEstCur.getNtotalmoney());
-      orders[i].setCcurrencytypeid(strCurLocalId);
-      //V55 by zhaoyha at 2008.9.27
-      orders[i].setNzgyfnotaxmoney(voEstCur.getNzgyfnotaxmoney());
-      orders[i].setNzgyfnotaxprice(voEstCur.getNzgyfnotaxprice());
-      //
-
-      // sinace v55 支持外币
-      orders[i].setCurrencytypeid(voEstCur.getCurrencytypeid());
-      orders[i].setNexchangeotobrate(voEstCur.getNexchangeotobrate());
-      orders[i].setNoriginalnetprice(voEstCur.getNoriginalnetprice());
-      orders[i].setNorgnettaxprice(voEstCur.getNorgnettaxprice());
-      orders[i].setNoriginalcurmny(voEstCur.getNoriginalcurmny());
-      orders[i].setNoriginaltaxpricemny(voEstCur.getNoriginaltaxpricemny());
-      orders[i].setNorgtaxmoney(voEstCur.getNorgtaxmoney());
-      //
-
-      if (EstimateVO.PURCHASE.equals(EstimateVO.getEstType(voEstCur
-          .getPk_purcorp(), voEstCur.getPk_corp(),
-          voEstCur.getPk_invoicecorp(), strLoginCorpId))) {
-        orders[i].setCwarehouseid(voEstCur.getCwarehouseidZY());
-        orders[i].setCstoreorganization(voEstCur.getPkBody());
-        orders[i].setPk_arrvcorp(strLoginCorpId);// 分收集结时，也认为是采购公司的期初暂估单据，不完善的地方是：前台无法区分此单据的集中采购类型了
-      }
-      i++;
-    }
-  }
-
-  /*
-   * 库存采购入库单GeneralBillVO[]转换为GeneralHItemVO[],GeneralBb3VO[]和EstimateVO[]组成的Vector
-   */
-  private Vector switchVOs(IGeneralBillVO VOs[], UFBoolean bZGYF, int digit[])
-      throws Exception {
-    Vector v1 = new Vector();
-    Vector v2 = new Vector();
-    Vector v3 = new Vector(), v33 = new Vector();
-    //
-    HashMap<String, BusinessCurrencyRateUtil> mapRateUtils = new HashMap<String, BusinessCurrencyRateUtil>();
-    BusinessCurrencyRateUtil rateUtil = null;
-    for (int i = 0; i < VOs.length; i++) {
-      GeneralBillHeaderVO headVO = (GeneralBillHeaderVO) VOs[i].getParentVO();
-      IGeneralBillItemVO bodyVO[] = (IGeneralBillItemVO[]) VOs[i]
-          .getChildrenVO();
-
-      if (bodyVO != null && bodyVO.length > 0) {
-        for (int j = 0; j < bodyVO.length; j++) {
-          // GeneralHItemVO
-          GeneralHItemVO itemVO = new GeneralHItemVO();
-          itemVO.setCgeneralhid(bodyVO[j].getCgeneralhid());
-          itemVO.setCgeneralbid(bodyVO[j].getCgeneralbid());
-          itemVO.setBzgflag(new UFBoolean(true));
-          itemVO.setDzgdate(headVO.getDaccountdate());
-          itemVO.setBzgyfflag(bZGYF);
-          v1.addElement(itemVO);
-
-          // GeneralBb3VO
-          GeneralBb3VO bb3VO = new GeneralBb3VO();
-          bb3VO.setCgeneralhid(bodyVO[j].getCgeneralhid());
-          bb3VO.setCgeneralbid(bodyVO[j].getCgeneralbid());
-          if (bodyVO[j].getNprice() != null) {
-            double d = PubDMO.getRoundDouble(digit[1], bodyVO[j].getNprice()
-                .doubleValue());
-            bb3VO.setNpprice(new UFDouble(d));
-            bodyVO[j].setNprice(bb3VO.getNpprice());
-          }
-          if (bodyVO[j].getNmny() != null) {
-            double d = PubDMO.getRoundDouble(digit[0], bodyVO[j].getNmny()
-                .doubleValue());
-            bb3VO.setNpmoney(new UFDouble(d));
-            bodyVO[j].setNmny(bb3VO.getNpmoney());
-          }
-          v2.addElement(bb3VO);
-
-          // estimateVO
-          EstimateVO estVO = new EstimateVO();
-          estVO.setBzgyf(bZGYF);
-          estVO.setCbaseid(bodyVO[j].getCinvbasid());
-          estVO.setCbilltypecode(headVO.getCbilltypecode());
-          estVO.setCbiztype(headVO.getCbiztypeid());
-          estVO.setCdptid(headVO.getCdptid());
-          estVO.setCfirstbillbid(bodyVO[j].getCfirstbillbid());
-          estVO.setCfirstbillhid(bodyVO[j].getCfirstbillhid());
-          estVO.setCfirsttype(bodyVO[j].getCfirsttype());
-          estVO.setCgeneralbid(bodyVO[j].getCgeneralbid());
-          estVO.setCgeneralhid(bodyVO[j].getCgeneralhid());
-          estVO.setCmangid(bodyVO[j].getCinventoryid());
-          estVO.setCoperatorid(headVO.getCoperatorid());
-          estVO.setCprojectid(bodyVO[j].getCprojectid());
-          estVO.setCprojectphaseid(bodyVO[j].getCprojectphaseid());
-          estVO.setCprovidermangid(headVO.getCproviderid());
-          // estVO.setCproviderbaseid()???
-          estVO.setDbilldate(headVO.getDbilldate());
-          estVO.setNinnum(bodyVO[j].getNinnum());
-
-          estVO.setNprice(bodyVO[j].getNprice());
-          estVO.setNmoney(bodyVO[j].getNmny());
-          estVO.setNtaxprice(bodyVO[j].getNtaxprice());
-          estVO.setNtotalmoney(bodyVO[j].getNtaxmny());
-
-          estVO.setPk_corp(headVO.getPk_corp());
-          // since v502,支持集团业务，补充全部公司
-          estVO.setPk_purcorp(PuPubVO.getString_TrimZeroLenAsNull(headVO
-              .getAttributeValue("pk_purcorp")));
-          estVO.setPk_invoicecorp(PuPubVO.getString_TrimZeroLenAsNull(bodyVO[j]
-              .getAttributeValue("pk_invoicecorp")));
-
-          /*
-           * sinv V502,设置发票公司本位币种ID,支持运算后的精度处理，保持与前台模板编辑时的精度处理一致
-           * 特别说明：本代码放在发票公司正确设置之后
-           */
-          rateUtil = (BusinessCurrencyRateUtil) mapRateUtils.get(estVO
-              .getPk_invoicecorp());
-          if (rateUtil == null) {
-            rateUtil = new BusinessCurrencyRateUtil(estVO.getPk_invoicecorp());
-            mapRateUtils.put(estVO.getPk_invoicecorp(), rateUtil);
-          }
-          estVO.setCcurrencytypeid(CurrParamQuery.getInstance().getLocalCurrPK(
-              estVO.getPk_invoicecorp()));
-          //
-          estVO.setVuserdefh1(headVO.getVuserdef1());
-          estVO.setVuserdefh2(headVO.getVuserdef2());
-          estVO.setVuserdefh3(headVO.getVuserdef3());
-          estVO.setVuserdefh4(headVO.getVuserdef4());
-          estVO.setVuserdefh5(headVO.getVuserdef5());
-          estVO.setVuserdefh6(headVO.getVuserdef6());
-
-          estVO.setBMoney(bodyVO[j].getBMoney());
-          estVO.setNPricePolicy(bodyVO[j].getNPricePolicy());
-
-          v3.addElement(estVO);
-          v33.addElement(estVO.getCprovidermangid());
-        }
-      }
-    }
-
-    EstimateVO estimates[] = new EstimateVO[v3.size()];
-    v3.copyInto(estimates);
-
-    // 获取供应商基本ID
-    String pk_cumandoc[] = new String[v33.size()];
-    v33.copyInto(pk_cumandoc);
-    String pk_cubasdoc[] = new SettleDMO()
-        .queryVendorBaseIDForARAP(pk_cumandoc);
-    for (int i = 0; i < pk_cubasdoc.length; i++) {
-      estimates[i].setCproviderbaseid(pk_cubasdoc[i]);
-    }
-
-    GeneralHItemVO itemVO[] = new GeneralHItemVO[v1.size()];
-    v1.copyInto(itemVO);
-    GeneralBb3VO bb3VO[] = new GeneralBb3VO[v2.size()];
-    v2.copyInto(bb3VO);
-
-    v1 = new Vector();
-    v1.addElement(itemVO);
-    v1.addElement(bb3VO);
-    v1.addElement(estimates);
-    return v1;
-  }
-
-  /**
-   * 功能描述:暂估(委外调用) 输入参数:VO[],当前操作员ID,当前日期 返回值:void
-   * 异常处理:NamingException,RemoteException,SQLException 作者：熊海情 修改：晁志平 FOR V30
-   */
-  public void estimateForSc(CircularlyAccessibleValueObject[] saVo,
-      String cOperator, UFDate dCurrDate) throws BusinessException {
-    if (saVo == null || saVo.length == 0) {
-      SCMEnv.out("传入参数为空，直接返回！方法调用层次如下：");
-      SCMEnv.out(new Exception());
-      return;
-    }
-    EstimateVO[] VOs = (EstimateVO[]) saVo;
-    nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
-    timerDebug.start();
-
-    EstimateDMO dmo = null;
-    ICreateCorpQueryService myService0 = null;
-    ISysInitQry myService1 = null;
-    nc.bs.pu.pub.PubImpl myService2 = null;
-    try {
-      dmo = new EstimateDMO();
-      Vector vBid = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        vBid.addElement(VOs[i].getCgeneralbid());
-      }
-      // 状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)
-      if (vBid.size() > 0) {
-        dmo.checkExistEsti(vBid);
-      }
-      timerDebug.addExecutePhase("状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)");
-
-      // 获取委外参数：计划价产品入库是否忽略差异
-      myService1 = (ISysInitQry) nc.bs.framework.common.NCLocator.getInstance()
-          .lookup(ISysInitQry.class.getName());
-      nc.vo.pub.para.SysInitVO initVO[] = myService1.querySysInit(VOs[0]
-          .getPk_corp(), "SC05");
-      if (initVO == null || initVO.length == 0)
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000010")/*
-                                                           * @res
-                                                           * "无法获取委外参数SC05！"
-                                                           */);
-      String sCross = initVO[0].getValue(); // 是否忽略差异
-      timerDebug.addExecutePhase(nc.bs.ml.NCLangResOnserver.getInstance()
-          .getStrByID("40040503", "UPP40040503-000011")/*
-                                                         * @res
-                                                         * "获取委外参数：计划价产品入库是否忽略差异"
-                                                         */);
-
-      // 暂估时单价和金额的精度控制
-      myService2 = new nc.bs.pu.pub.PubImpl();
-      int digit[] = myService2.getDigitBatch(VOs[0].getPk_corp(), new String[] {
-          "BD301", "BD505"
-      });
-      if (digit == null || digit.length == 0)
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000008")/*
-                                                           * @res
-                                                           * "获取本位币精度或单价精度异常!"
-                                                           */);
-      timerDebug.addExecutePhase("获取本位币精度或单价精度");
-
-      // 如果忽略差异，则根据存货基础ID和仓库ID获取存货的计价方式/计划价
-      int nPriceMethod[] = new int[VOs.length];
-      UFDouble dPlanPrice[] = new UFDouble[VOs.length];
-      for (int i = 0; i < VOs.length; i++)
-        nPriceMethod[i] = -1;
-      if (sCross != null && sCross.trim().length() > 0 && sCross.equals("是")) {
-        Vector vMangid = new Vector();
-        Vector vWareid = new Vector();
-        for (int i = 0; i < VOs.length; i++) {
-          vMangid.addElement(VOs[i].getCmangid());
-          vWareid.addElement(VOs[i].getCwarehouseid());
-        }
-        String sMangID[] = new String[vMangid.size()];
-        String sWarehouseID[] = new String[vWareid.size()];
-        vMangid.copyInto(sMangID);
-        vWareid.copyInto(sWarehouseID);
-        ArrayList list = dmo.queryPriceMethod(sMangID, sWarehouseID);
-        if (list != null && list.size() > 0) {
-          for (int i = 0; i < list.size(); i++) {
-            ArrayList list0 = (ArrayList) list.get(i);
-            nPriceMethod[i] = ((Integer) list0.get(0)).intValue();
-            dPlanPrice[i] = (UFDouble) list0.get(1);
-          }
-        }
-      }
-      timerDebug.addExecutePhase("如果忽略差异，则根据存货基础ID和仓库ID获取存货的计价方式/计划价");
-
-      //
-      String sTemp[] = new String[vBid.size()];
-      vBid.copyInto(sTemp);
-
-      ArrayList list1 = dmo.queryStockBody(sTemp);
-      timerDebug.addExecutePhase("查询入库单表体数据");
-
-      ArrayList list2 = dmo.queryBb3(VOs);
-      timerDebug.addExecutePhase("查询入库单子表3数据");
-
-      Vector v1 = new Vector();
-      Vector v2 = new Vector();
-
-      // 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
-      Vector vAllBodyVoB = new Vector();
-      Vector vAllBodyVoBB3 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        GeneralHItemVO bodyVO[] = (GeneralHItemVO[]) list1.get(i);
-        GeneralBb3VO bb3VO[] = (GeneralBb3VO[]) list2.get(i);
-
-        if (bodyVO != null && bodyVO.length > 0) {
-          for (int j = 0; j < bodyVO.length; j++) {
-            if (nPriceMethod[j] == 5) {
-              // 计划价产品入库时,入库单行为非暂估、结算完毕状态，单价为计划价
-              bodyVO[j].setIsok(new UFBoolean(true));
-              bodyVO[j].setBzgflag(new UFBoolean(true));
-              bodyVO[j].setDzgdate(dCurrDate);
-              VOs[i].setNprice(dPlanPrice[i] == null ? null : dPlanPrice[i]
-                  .add(new UFDouble(0.0), BsPuTool.getPriceDigit(null)));
-              //
-              // double d = VOs[i].getNinnum().doubleValue()*
-              // VOs[i].getNprice().doubleValue();
-              // VOs[i].setNmoney(new UFDouble(d));
-              VOs[i].setNmoney(VOs[i].getNinnum().multiply(VOs[i].getNprice(),
-                  BsPuTool.getCCurrDecimal(null)));
-              VOs[i].setNmaterialmoney(new UFDouble(0.0));
-
-              v2.addElement(VOs[i]);
-            }
-            else {
-              bodyVO[j].setBzgflag(new UFBoolean(true));
-              bodyVO[j].setDzgdate(dCurrDate);
-
-              v1.addElement(VOs[i]);
-            }
-            vAllBodyVoB.addElement(bodyVO[j]);
-          }
-        }
-        if (bb3VO != null && bb3VO.length > 0) {
-          for (int j = 0; j < bb3VO.length; j++) {
-            if (VOs[i].getNprice() != null) {
-              double d = PubDMO.getRoundDouble(digit[1], VOs[i].getNprice()
-                  .doubleValue());
-              bb3VO[j].setNpprice(new UFDouble(d));
-            }
-            if (VOs[i].getNmoney() != null) {
-              double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNmoney()
-                  .doubleValue());
-              bb3VO[j].setNpmoney(new UFDouble(d));
-            }
-            if (VOs[i].getNmaterialmoney() != null) {
-              double d = PubDMO.getRoundDouble(digit[0], VOs[i]
-                  .getNmaterialmoney().doubleValue());
-              bb3VO[j].setNmaterialmoney(new UFDouble(d));
-            }
-            vAllBodyVoBB3.addElement(bb3VO[j]);
-          }
-        }
-      }
-      if (vAllBodyVoB.size() > 0) {
-        GeneralHItemVO[] bodyVOs = new GeneralHItemVO[vAllBodyVoB.size()];
-        vAllBodyVoB.copyInto(bodyVOs);
-        dmo.updateBody(bodyVOs);
-      }
-      if (vAllBodyVoBB3.size() > 0) {
-        GeneralBb3VO bb3VOs[] = new GeneralBb3VO[vAllBodyVoBB3.size()];
-        vAllBodyVoBB3.copyInto(bb3VOs);
-        dmo.updateBb3(bb3VOs);
-      }
-      timerDebug.addExecutePhase("入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费");
-
-      // 调用接口,向存货核算系统传送数据
-      if (VOs != null && VOs.length > 0) {
-        String unitCode = VOs[0].getPk_corp();
-        myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ICreateCorpQueryService.class.getName());
-        boolean bIAStartUp = myService0.isEnabled(unitCode, "IA");
-
-        if (bIAStartUp) {
-          if (v1.size() > 0) {
-            EstimateVO VOs1[] = new EstimateVO[v1.size()];
-            v1.copyInto(VOs1);
-
-            // 获取库存单据信息
-            VOs1 = queryBillInfoForIA(VOs1);
-            //
-            saveBillFromOutter(VOs1, cOperator, dCurrDate,
-                VOs1[0].getPk_corp(), ProductCode.PROD_SC);
-          }
-          if (v2.size() > 0) {
-            EstimateVO VOs2[] = new EstimateVO[v2.size()];
-            v2.copyInto(VOs2);
-
-            VOs2 = queryBillInfoForIA(VOs2);
-
-            saveBillFromOutterForSC(VOs2, VOs2[0].getPk_corp(), cOperator,
-                dCurrDate);
-          }
-        }
-      }
-      timerDebug.addExecutePhase("调用接口,向存货核算系统传送数据");
-
-      timerDebug.showAllExecutePhase("采购提供接口，暂估(委外调用)时间分布");
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-  }
-
-  private EstimateVO[] queryBillInfoForIA(EstimateVO VOs[])
-      throws BusinessException {
-    try {
-      // 查询存货表体VO所需的数据
-      Vector v = queryStockBodyForIA(VOs);
-      if (v == null || v.size() == 0) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000018")/*
-                                                           * @res
-                                                           * "查询存货表体VO所需的数据,没有符合条件的数据！"
-                                                           */);
-      }
-
-      // 设置存货表体VO所需的数据
-      for (int i = 0; i < VOs.length; i++) {
-        Vector vTemp = (Vector) v.elementAt(i);
-        GeneralHItemVO itemVO = (GeneralHItemVO) vTemp.elementAt(0);
-
-        VOs[i].setPk_invoicecorp(itemVO.getPk_corp());
-        VOs[i].setVfree1(itemVO.getVfree1());
-        VOs[i].setVfree2(itemVO.getVfree2());
-        VOs[i].setVfree3(itemVO.getVfree3());
-        VOs[i].setVfree4(itemVO.getVfree4());
-        VOs[i].setVfree5(itemVO.getVfree5());
-
-        VOs[i].setVuserdef1(itemVO.getVuserdef1());
-        VOs[i].setVuserdef2(itemVO.getVuserdef2());
-        VOs[i].setVuserdef3(itemVO.getVuserdef3());
-        VOs[i].setVuserdef4(itemVO.getVuserdef4());
-        VOs[i].setVuserdef5(itemVO.getVuserdef5());
-        VOs[i].setVuserdef6(itemVO.getVuserdef6());
-        VOs[i].setVuserdef7(itemVO.getVuserdef7());
-        VOs[i].setVuserdef8(itemVO.getVuserdef8());
-        VOs[i].setVuserdef9(itemVO.getVuserdef9());
-        VOs[i].setVuserdef10(itemVO.getVuserdef10());
-
-        VOs[i].setVuserdef11(itemVO.getVuserdef11());
-        VOs[i].setVuserdef12(itemVO.getVuserdef12());
-        VOs[i].setVuserdef13(itemVO.getVuserdef13());
-        VOs[i].setVuserdef14(itemVO.getVuserdef14());
-        VOs[i].setVuserdef15(itemVO.getVuserdef15());
-        VOs[i].setVuserdef16(itemVO.getVuserdef16());
-        VOs[i].setVuserdef17(itemVO.getVuserdef17());
-        VOs[i].setVuserdef18(itemVO.getVuserdef18());
-        VOs[i].setVuserdef19(itemVO.getVuserdef19());
-        VOs[i].setVuserdef20(itemVO.getVuserdef20());
-
-        VOs[i].setPk_defdocb1(itemVO.getPk_defdoc1());
-        VOs[i].setPk_defdocb2(itemVO.getPk_defdoc2());
-        VOs[i].setPk_defdocb3(itemVO.getPk_defdoc3());
-        VOs[i].setPk_defdocb4(itemVO.getPk_defdoc4());
-        VOs[i].setPk_defdocb5(itemVO.getPk_defdoc5());
-        VOs[i].setPk_defdocb6(itemVO.getPk_defdoc6());
-        VOs[i].setPk_defdocb7(itemVO.getPk_defdoc7());
-        VOs[i].setPk_defdocb8(itemVO.getPk_defdoc8());
-        VOs[i].setPk_defdocb9(itemVO.getPk_defdoc9());
-        VOs[i].setPk_defdocb10(itemVO.getPk_defdoc10());
-
-        VOs[i].setPk_defdocb11(itemVO.getPk_defdoc11());
-        VOs[i].setPk_defdocb12(itemVO.getPk_defdoc12());
-        VOs[i].setPk_defdocb13(itemVO.getPk_defdoc13());
-        VOs[i].setPk_defdocb14(itemVO.getPk_defdoc14());
-        VOs[i].setPk_defdocb15(itemVO.getPk_defdoc15());
-        VOs[i].setPk_defdocb16(itemVO.getPk_defdoc16());
-        VOs[i].setPk_defdocb17(itemVO.getPk_defdoc17());
-        VOs[i].setPk_defdocb18(itemVO.getPk_defdoc18());
-        VOs[i].setPk_defdocb19(itemVO.getPk_defdoc19());
-        VOs[i].setPk_defdocb20(itemVO.getPk_defdoc20());
-
-        VOs[i].setCprojectid(itemVO.getCprojectid());
-        VOs[i].setCprojectphaseid(itemVO.getCprojectphaseid());
-
-        VOs[i].setCvendorid(itemVO.getCvendorid());
-      }
-
-      // 查询存货表头VO所需的数据
-      String sGeneralhid[] = new String[VOs.length];
-      String sWarehouseid[] = new String[VOs.length];
-      for (int i = 0; i < VOs.length; i++) {
-        sGeneralhid[i] = VOs[i].getCgeneralhid();
-        sWarehouseid[i] = VOs[i].getCwarehouseid();
-      }
-
-      Vector vv = queryStockHeadForIA(sGeneralhid, sWarehouseid);
-      if (vv == null || vv.size() == 0) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000019")/*
-                                                           * @res
-                                                           * "查询存货表头VO所需的数据,没有符合条件的数据！"
-                                                           */);
-      }
-
-      // 设置存货表头VO所需的数据
-      for (int i = 0; i < VOs.length; i++) {
-        Vector vTemp = (Vector) vv.elementAt(i);
-        GeneralHHeaderVO hVO = (GeneralHHeaderVO) vTemp.elementAt(0);
-
-        VOs[i].setVuserdefh1(hVO.getVuserdef1());
-        VOs[i].setVuserdefh2(hVO.getVuserdef2());
-        VOs[i].setVuserdefh3(hVO.getVuserdef3());
-        VOs[i].setVuserdefh4(hVO.getVuserdef4());
-        VOs[i].setVuserdefh5(hVO.getVuserdef5());
-        VOs[i].setVuserdefh6(hVO.getVuserdef6());
-        VOs[i].setVuserdefh7(hVO.getVuserdef7());
-        VOs[i].setVuserdefh8(hVO.getVuserdef8());
-        VOs[i].setVuserdefh9(hVO.getVuserdef9());
-        VOs[i].setVuserdefh10(hVO.getVuserdef10());
-
-        VOs[i].setVuserdefh11(hVO.getVuserdef11());
-        VOs[i].setVuserdefh12(hVO.getVuserdef12());
-        VOs[i].setVuserdefh13(hVO.getVuserdef13());
-        VOs[i].setVuserdefh14(hVO.getVuserdef14());
-        VOs[i].setVuserdefh15(hVO.getVuserdef15());
-        VOs[i].setVuserdefh16(hVO.getVuserdef16());
-        VOs[i].setVuserdefh17(hVO.getVuserdef17());
-        VOs[i].setVuserdefh18(hVO.getVuserdef18());
-        VOs[i].setVuserdefh19(hVO.getVuserdef19());
-        VOs[i].setVuserdefh20(hVO.getVuserdef20());
-
-        VOs[i].setPk_defdoch1(hVO.getPk_defdoc1());
-        VOs[i].setPk_defdoch2(hVO.getPk_defdoc2());
-        VOs[i].setPk_defdoch3(hVO.getPk_defdoc3());
-        VOs[i].setPk_defdoch4(hVO.getPk_defdoc4());
-        VOs[i].setPk_defdoch5(hVO.getPk_defdoc5());
-        VOs[i].setPk_defdoch6(hVO.getPk_defdoc6());
-        VOs[i].setPk_defdoch7(hVO.getPk_defdoc7());
-        VOs[i].setPk_defdoch8(hVO.getPk_defdoc8());
-        VOs[i].setPk_defdoch9(hVO.getPk_defdoc9());
-        VOs[i].setPk_defdoch10(hVO.getPk_defdoc10());
-
-        VOs[i].setPk_defdoch11(hVO.getPk_defdoc11());
-        VOs[i].setPk_defdoch12(hVO.getPk_defdoc12());
-        VOs[i].setPk_defdoch13(hVO.getPk_defdoc13());
-        VOs[i].setPk_defdoch14(hVO.getPk_defdoc14());
-        VOs[i].setPk_defdoch15(hVO.getPk_defdoc15());
-        VOs[i].setPk_defdoch16(hVO.getPk_defdoc16());
-        VOs[i].setPk_defdoch17(hVO.getPk_defdoc17());
-        VOs[i].setPk_defdoch18(hVO.getPk_defdoc18());
-        VOs[i].setPk_defdoch19(hVO.getPk_defdoc19());
-        VOs[i].setPk_defdoch20(hVO.getPk_defdoc20());
-
-        VOs[i].setCdispatcherid(hVO.getCdispatcherid());
-        VOs[i].setBcalculatecost(hVO.getBcalculatecost());
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return VOs;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:生成结算单体 输入参数: 返回值: 异常处理: 日期:2003/05/30
-   */
-  private SettlebillItemVO[] generateSettlebillItem(StockVO stockVOs[],
-      StockVO negStockVOs[]) {
-    if (negStockVOs == null || negStockVOs.length == 0)
-      return null;
-
-    int iLocalMnyDigit = 2;
-    try {
-      iLocalMnyDigit = BsPuTool.getCCurrDecimal(negStockVOs[0].getPk_corp());
-    }
-    catch (Exception e) {
-      SCMEnv.out(e);
-    }
-    // 生成结算单
-    Vector v = new Vector();
-    for (int i = 0; i < negStockVOs.length; i++) {
-      if (negStockVOs[i] == null)
-        continue;
-
-      SettlebillItemVO bodyVO = new SettlebillItemVO();
-      bodyVO.setPk_corp(negStockVOs[i].getPk_corp());
-      bodyVO.setCinvoice_bid(null);
-      bodyVO.setCinvoiceid(null);
-      bodyVO.setCstockrow(negStockVOs[i].getCgeneralbid());
-      bodyVO.setCstockid(negStockVOs[i].getCgeneralhid());
-      bodyVO.setCmangid(negStockVOs[i].getCmangid());
-      bodyVO.setCbaseid(negStockVOs[i].getCbaseid());
-      //结算单表体要加入库存入库单类型 since 55
-      bodyVO.setVstockbilltype(negStockVOs[i].getBillTypeNullAs45());
-      // 结算数量：入库单行未结算数量
-      bodyVO.setNsettlenum(negStockVOs[i].getNnosettlenum());
-      // 结算单价：暂估单价
-      bodyVO.setNprice(negStockVOs[i].getNprice());
-      // 结算金额：结算单价*结算数量
-      UFDouble d1 = bodyVO.getNprice();
-      if (d1 == null)
-        d1 = new UFDouble(0);
-      // double d = bodyVO.getNsettlenum().doubleValue() *
-      // d1.doubleValue();
-      // bodyVO.setNmoney(new UFDouble(d));
-      bodyVO.setNmoney(bodyVO.getNsettlenum().multiply(d1, iLocalMnyDigit));
-
-      // 暂估金额：入库单行暂估单价*结算数量
-      d1 = negStockVOs[i].getNprice();
-      if (d1 == null) {
-        d1 = new UFDouble(0);
-      }
-      // d = bodyVO.getNsettlenum().doubleValue() * d1.doubleValue();
-      // bodyVO.setNgaugemny(new UFDouble(d));
-      bodyVO.setNgaugemny(bodyVO.getNsettlenum().multiply(d1, iLocalMnyDigit));
-
-      // 获得入库单号
-      bodyVO.setVbillcode(negStockVOs[i].getVbillcode());
-      // 获得发票号
-      bodyVO.setVinvoicecode(null);
-      v.addElement(bodyVO);
-
-      SettlebillItemVO bodyVO1 = new SettlebillItemVO();
-      bodyVO1.setPk_corp(stockVOs[i].getPk_corp());
-      bodyVO1.setCinvoice_bid(null);
-      bodyVO1.setCinvoiceid(null);
-      bodyVO1.setCstockrow(stockVOs[i].getCgeneralbid());
-      bodyVO1.setCstockid(stockVOs[i].getCgeneralhid());
-      bodyVO1.setCmangid(stockVOs[i].getCmangid());
-      bodyVO1.setCbaseid(stockVOs[i].getCbaseid());
-
-      // 结算数量：入库单行未结算数量
-      bodyVO1.setNsettlenum(stockVOs[i].getNnosettlenum());
-      // 结算单价：暂估单价
-      bodyVO1.setNprice(stockVOs[i].getNprice());
-      // 结算金额：结算单价*结算数量
-      d1 = bodyVO1.getNprice();
-      if (d1 == null) {
-        d1 = new UFDouble(0);
-      }
-      // d = bodyVO1.getNsettlenum().doubleValue() * d1.doubleValue();
-      // bodyVO1.setNmoney(new UFDouble(d));
-      bodyVO1.setNmoney(bodyVO1.getNsettlenum().multiply(d1, iLocalMnyDigit));
-
-      // 暂估金额：入库单行暂估单价*结算数量
-      d1 = stockVOs[i].getNprice();
-      if (d1 == null)
-        d1 = new UFDouble(0);
-      // d = bodyVO1.getNsettlenum().doubleValue() * d1.doubleValue();
-      // bodyVO1.setNgaugemny(new UFDouble(d));
-      bodyVO1
-          .setNgaugemny(bodyVO1.getNsettlenum().multiply(d1, iLocalMnyDigit));
-
-      // 获得入库单号
-      bodyVO1.setVbillcode(stockVOs[i].getVbillcode());
-      //结算单表体要加入库存入库单类型 since 55
-      bodyVO1.setVstockbilltype(stockVOs[i].getBillTypeNullAs45());
-      // 获得发票号
-      bodyVO1.setVinvoicecode(null);
-      v.addElement(bodyVO1);
-    }
-
-    if (v.size() == 0)
-      return null;
-
-    SettlebillItemVO settlebillItemVOs[] = new SettlebillItemVO[v.size()];
-    v.copyInto(settlebillItemVOs);
-
-    return settlebillItemVOs;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:生成结算单体 输入参数: 返回值: 异常处理: 日期:2003/05/30
-   */
-  private SettlebillItemVO[] generateSettlebillItemForSC(StockVO VOs[]) {
-    // 生成结算单
-    Vector v = new Vector();
-    int iLocalMnyDigit = 2;
-    try {
-      iLocalMnyDigit = BsPuTool.getCCurrDecimal(VOs[0].getPk_corp());
-    }
-    catch (Exception e) {
-      SCMEnv.out(e);
-    }
-    for (int i = 0; i < VOs.length; i++) {
-      SettlebillItemVO bodyVO = new SettlebillItemVO();
-      bodyVO.setPk_corp(VOs[i].getPk_corp());
-      bodyVO.setCinvoice_bid(null);
-      bodyVO.setCinvoiceid(null);
-      bodyVO.setCstockrow(VOs[i].getCgeneralbid());
-      bodyVO.setCstockid(VOs[i].getCgeneralhid());
-      bodyVO.setCmangid(VOs[i].getCmangid());
-      bodyVO.setCbaseid(VOs[i].getCbaseid());
-
-      // 结算数量：入库单行未结算数量
-      bodyVO.setNsettlenum(VOs[i].getNinnum());
-      // 结算单价：暂估单价
-      bodyVO.setNprice(VOs[i].getNprice());
-      // 结算金额：结算单价*结算数量
-      UFDouble d1 = bodyVO.getNprice();
-      if (d1 == null)
-        d1 = new UFDouble(0);
-      // double d = bodyVO.getNsettlenum().doubleValue() *
-      // d1.doubleValue();
-      // bodyVO.setNmoney(new UFDouble(d));
-      bodyVO.setNmoney(bodyVO.getNsettlenum().multiply(d1, iLocalMnyDigit));
-
-      // 暂估金额：入库单行暂估单价*结算数量
-      // bodyVO.setNgaugemny(new UFDouble(d));
-      bodyVO.setNmoney(bodyVO.getNsettlenum().multiply(d1, iLocalMnyDigit));
-
-      // 获得入库单号
-      bodyVO.setVbillcode(VOs[i].getVbillcode());
-      // 获得发票号
-      bodyVO.setVinvoicecode(null);
-      v.addElement(bodyVO);
-
-    }
-
-    if (v.size() == 0)
-      return null;
-
-    SettlebillItemVO settlebillItemVOs[] = new SettlebillItemVO[v.size()];
-    v.copyInto(settlebillItemVOs);
-
-    return settlebillItemVOs;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:获得结算单号 输入参数: 返回值: 异常处理: 日期:2003/05/30
-   */
-  private String generateSettleCode(String pk_corp) throws BusinessException {
-    // 获取结算单号
-    String vSettlebillcode = "";
-    BillcodeGenerater myService = null;
-    try {
-      nc.bs.ps.settle.SettleDMO dmo = new nc.bs.ps.settle.SettleDMO();
-      myService = new BillcodeGenerater();
-      nc.vo.pub.billcodemanage.BillCodeObjValueVO vo = new nc.vo.pub.billcodemanage.BillCodeObjValueVO();
-      vo.setAttributeValue("公司", pk_corp);
-      do {
-        vSettlebillcode = myService.getBillCode(ScmConst.PO_SettleBill,
-            pk_corp, null, vo);
-      }
-      while (dmo.isSettlebillCodeDuplicate(pk_corp, vSettlebillcode));
-    }
-    catch (Exception e) {
-      SCMEnv.out(e);
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return vSettlebillcode;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:获得入库单号 输入参数: 返回值: 异常处理: 日期:2002/04/05
-   */
-
-  private String getBillCode(GeneralHHeaderVO head) throws BusinessException {
-    String vBillcode = null;
-    BillcodeGenerater myService = null;
-
-    // 获取入库单号
-    try {
-      nc.vo.pub.billcodemanage.BillCodeObjValueVO vo = new nc.vo.pub.billcodemanage.BillCodeObjValueVO();
-
-      String sNames[] = {
-          "仓库", "当前操作员", "收发类别"
-      };
-      String sKeys[] = {
-          "cwarehouseid", "coperatorid", "cdispatcherid"
-      };
-      for (int i = 0; i < sNames.length; i++) {
-        Object o = head.getAttributeValue(sKeys[i]);
-        vo.setAttributeValue(sNames[i], o);
-      }
-      vo.setAttributeValue("库存组织", getStoreOrg(head.getCwarehouseid()));
-
-      vBillcode = head.getVbillcode();
-      if (vBillcode == null || vBillcode.length() == 0)
-        vBillcode = null;
-
-      myService = new BillcodeGenerater();
-
-      vBillcode = myService.getBillCode("45", head.getPk_corp(), vBillcode, vo);
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return vBillcode;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:期初暂估采购入库单保存时，调用可用量接口，将采购入库单VO转换为标准的入库单VO 输入参数: 返回值: 异常处理:
-   * 日期:2003/10/08
-   */
-  private GeneralBillVO getChangedVO(GeneralHVO sourceVO, boolean bAdd) {
-    GeneralHHeaderVO headVO = sourceVO.getHeadVO();
-    GeneralHItemVO bodyVO[] = sourceVO.getBodyVO();
-    if (headVO == null || bodyVO == null || bodyVO.length == 0)
-      return null;
-
-    GeneralBillHeaderVO head = new GeneralBillHeaderVO();
-    head.setCgeneralhid(headVO.getCgeneralhid());
-    head.setPk_corp(headVO.getPk_corp());
-    head.setCbiztypeid(headVO.getCbiztype());
-    head.setCbilltypecode(headVO.getCbilltypecode());
-    head.setVbillcode(headVO.getVbillcode());
-    head.setDbilldate(headVO.getDbilldate());
-    head.setCwarehouseid(headVO.getCwarehouseid());
-    head.setCdispatcherid(headVO.getCdispatcherid());
-    head.setCdptid(headVO.getCdptid());
-    head.setCoperatorid(headVO.getCoperatorid());
-    head.setCregister(headVO.getCregister());
-    head.setCauditorid(headVO.getCauditorid());
-    head.setCinventoryid(headVO.getCinventoryid());
-    head.setCcustomerid(headVO.getCcustomerid());
-    // since v55删除
-    // head.setVdiliveraddress(headVO.getVdiliveraddress());
-    head.setCdilivertypeid(headVO.getCdilivertypeid());
-    head.setCwastewarehouseid(headVO.getCwastewarehouseid());
-    head.setCbizid(headVO.getCbizid());
-    head.setCproviderid(headVO.getCproviderid());
-    head.setVnote(headVO.getVnote());
-    head.setFbillflag(headVO.getFbillflag());
-    head.setVuserdef1(headVO.getVuserdef1());
-    head.setVuserdef2(headVO.getVuserdef2());
-    head.setVuserdef3(headVO.getVuserdef3());
-    head.setVuserdef4(headVO.getVuserdef4());
-    head.setVuserdef5(headVO.getVuserdef5());
-    head.setVuserdef6(headVO.getVuserdef6());
-    head.setPk_calbody(headVO.getCstoreorganization());
-    head.setTs(headVO.getTs());
-
-    if (bAdd) {
-      head.setStatus(nc.vo.pub.VOStatus.NEW);
-    }
-    else {
-      int n = headVO.getHeadEditStatus();
-      if (n == 0)
-        head.setStatus(nc.vo.pub.VOStatus.UNCHANGED);
-      if (n == 1)
-        head.setStatus(nc.vo.pub.VOStatus.NEW);
-      if (n == 2)
-        head.setStatus(nc.vo.pub.VOStatus.UPDATED);
-      if (n == 3)
-        head.setStatus(nc.vo.pub.VOStatus.DELETED);
-    }
-
-    Vector vTemp = new Vector();
-    for (int i = 0; i < bodyVO.length; i++) {
-      GeneralBillItemVO body = new GeneralBillItemVO();
-      body.setCgeneralhid(bodyVO[i].getCgeneralhid());
-      body.setCgeneralbid(bodyVO[i].getCgeneralbid());
-      body.setCinventoryid(bodyVO[i].getCinventoryid());
-      body.setNshouldoutnum(bodyVO[i].getNshouldoutnum());
-      body.setNshouldoutassistnum(bodyVO[i].getNshouldoutassistnum());
-      body.setNoutnum(bodyVO[i].getNoutnum());
-      body.setNoutassistnum(bodyVO[i].getNoutassistnum());
-      body.setNshouldinnum(bodyVO[i].getNshouldinnum());
-      body.setNneedinassistnum(bodyVO[i].getNneedinassistnum());
-      body.setNinnum(bodyVO[i].getNinnum());
-      body.setNinassistnum(bodyVO[i].getNinassistnum());
-      body.setNtranoutnum(bodyVO[i].getNtranoutnum());
-      body.setNprice(bodyVO[i].getNprice());
-      body.setNmny(bodyVO[i].getNmny());
-      body.setNplannedprice(bodyVO[i].getNplannedprice());
-      body.setNplannedmny(bodyVO[i].getNplannedmny());
-      body.setCsourcebillhid(bodyVO[i].getCsourcebillhid());
-      body.setCsourcebillbid(bodyVO[i].getCsourcebillbid());
-      body.setCsourcetype(bodyVO[i].getCsourcetype());
-      body.setVsourcebillcode(bodyVO[i].getVsourcebillcode());
-      body.setFlargess(bodyVO[i].getFlargess());
-      body.setBzgflag(bodyVO[i].getBzgflag());
-      body.setIsok(bodyVO[i].getIsok());
-      body.setCfirsttype(bodyVO[i].getCfirsttype());
-      body.setCfirstbillhid(bodyVO[i].getCfirstbillhid());
-      body.setCfirstbillbid(bodyVO[i].getCfirstbillbid());
-      body.setCrowno(bodyVO[i].getCrowno());
-      body.setTs(bodyVO[i].getTs());
-      if (bAdd) {
-        body.setStatus(nc.vo.pub.VOStatus.NEW);
-      }
-      else {
-        int n = bodyVO[i].getBodyEditStatus();
-        if (n == 0)
-          body.setStatus(nc.vo.pub.VOStatus.UNCHANGED);
-        if (n == 1)
-          body.setStatus(nc.vo.pub.VOStatus.NEW);
-        if (n == 2)
-          body.setStatus(nc.vo.pub.VOStatus.UPDATED);
-        if (n == 3)
-          body.setStatus(nc.vo.pub.VOStatus.DELETED);
-      }
-
-      vTemp.addElement(body);
-    }
-    GeneralBillItemVO body[] = new GeneralBillItemVO[vTemp.size()];
-    vTemp.copyInto(body);
-
-    GeneralBillVO destVO = new GeneralBillVO();
-    destVO.setParentVO(head);
-    destVO.setChildrenVO(body);
-
-    return destVO;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:获得需要加锁的主键集合 输入参数:暂估入库单VO集合 返回值: 异常处理:
-   * 
-   * @return java.lang.String[]
-   * @param VOs
-   *          nc.vo.ps.estimate.EstimateVO[]
-   */
-  private String[] getEstimateLockKeys(EstimateVO[] VOs) {
-    if (VOs == null || VOs.length == 0)
-      return null;
-
-    Vector v = new Vector();
-
-    // 入库单表头主键唯一性集合
-    v.addElement(VOs[0].getCgeneralhid().trim());
-    for (int i = 1; i < VOs.length; i++) {
-      String s1 = VOs[i].getCgeneralhid().trim();
-      if (!v.contains(s1))
-        v.addElement(s1);
-    }
-
-    // 入库单表体主键唯一性集合
-    v.addElement(VOs[0].getCgeneralbid().trim());
-    for (int i = 1; i < VOs.length; i++) {
-      String s1 = VOs[i].getCgeneralbid().trim();
-      if (!v.contains(s1))
-        v.addElement(s1);
-    }
-
-    // 入库单结算子表主键唯一性集合
-    v.addElement(VOs[0].getCgeneralbb3().trim());
-    for (int i = 1; i < VOs.length; i++) {
-      String s1 = VOs[i].getCgeneralbb3().trim();
-      if (!v.contains(s1))
-        v.addElement(s1);
-    }
-
-    // 返回
-    if (v.size() > 0) {
-      String keys[] = new String[v.size()];
-      v.copyInto(keys);
-      return keys;
-    }
-
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:获得自由项0,供显示 输入参数: 返回值: 异常处理:
-   */
-  public String[][] getFreeItem0(GeneralHVO VOs[]) throws BusinessException {
-    if (VOs == null || VOs.length == 0)
-      return null;
-    String ss[][] = new String[VOs.length][];
-
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      // 获得所有自由项0
-      ArrayList list = dmo.getFreeItem0(VOs);
-      // 分配自由项0
-      for (int k = 0; k < VOs.length; k++) {
-        ArrayList list1 = (ArrayList) list.get(k);
-
-        GeneralHItemVO bodyVO[] = VOs[k].getBodyVO();
-        if (list1 == null || list1.size() == 0) {
-          ss[k] = null;
-          continue;
-        }
-        String s[] = new String[bodyVO.length];
-
-        for (int i = 0; i < bodyVO.length; i++) {
-          FreeVO freeVO = null;
-          Object obj = list1.get(i);
-
-          if (obj == null) {
-            s[i] = null;
-            continue;
-          }
-          freeVO = (FreeVO) obj;
-
-          Vector vName = new Vector();
-          for (int j = 1; j <= 10; j++) {
-            Object temp = freeVO.getAttributeValue("vfreename" + j);
-            if (temp != null && temp.toString().trim().length() > 0)
-              vName.addElement(temp);
-          }
-          if (vName.size() == 0) {
-            s[i] = null;
-            continue;
-          }
-
-          Vector vValue = new Vector();
-          for (int j = 1; j <= 5; j++) {
-            Object temp = bodyVO[i].getAttributeValue("vfree" + j);
-            if (temp != null && temp.toString().trim().length() > 0)
-              vValue.addElement(temp);
-          }
-          if (vValue.size() == 0) {
-            s[i] = null;
-            continue;
-          }
-
-          s[i] = "";
-          for (int j = 0; j < vValue.size(); j++)
-            s[i] += "[" + vName.elementAt(j) + ":" + vValue.elementAt(j) + "]";
-        }
-
-        ss[k] = s;
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return ss;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:获得需要加锁的主键集合 输入参数:入库单VO集合 返回值: 异常处理:
-   * 
-   * @return java.lang.String[]
-   * @param VOs
-   *          nc.vo.ps.estimate.EstimateVO[]
-   */
-  private String[] getGeneralLockKeys(GeneralHVO[] VOs) {
-    if (VOs == null || VOs.length == 0)
-      return null;
-
-    Vector v = new Vector();
-
-    for (int i = 0; i < VOs.length; i++) {
-      v.addElement(VOs[i].getHeadVO().getCgeneralhid());
-
-      GeneralHItemVO items[] = VOs[i].getBodyVO();
-      for (int j = 0; j < items.length; j++)
-        v.addElement(items[j].getCgeneralbid());
-
-      GeneralBb3VO bb3VOs[] = VOs[i].getGrandVO();
-      for (int j = 0; j < bb3VOs.length; j++)
-        v.addElement(bb3VOs[j].getCgeneralbb3());
-    }
-
-    // 返回
-    if (v.size() > 0) {
-      String keys[] = new String[v.size()];
-      v.copyInto(keys);
-      return keys;
-    }
-
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:获得需要加锁的主键集合(订单) 输入参数:订单VO 返回值: 异常处理: 日期:2002/04/10
-   */
-  private String[] getOrderLockKeys(OorderVO VOs[]) {
-    // 组合所有需要加锁的主键
-    Vector v = new Vector();
-
-    // 订单主键唯一性集合
-    if (VOs != null && VOs.length > 0) {
-      // 订单表头主键唯一性集合
-      v.addElement(VOs[0].getCorderid().trim());
-      for (int i = 1; i < VOs.length; i++) {
-        String s1 = VOs[i].getCorderid().trim();
-        if (!v.contains(s1))
-          v.addElement(s1);
-      }
-
-      // 订单表体主键唯一性集合
-      v.addElement(VOs[0].getCorder_bid().trim());
-      for (int i = 1; i < VOs.length; i++) {
-        String s1 = VOs[i].getCorder_bid().trim();
-        if (!v.contains(s1))
-          v.addElement(s1);
-      }
-    }
-
-    String sLockedKeys[] = new String[v.size()];
-    v.copyInto(sLockedKeys);
-
-    return sLockedKeys;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:业务员的主键获得所属部门的ID 输入参数:业务员ID 返回值:部门ID 异常处理:
-   */
-  public String getRefDeptKey(String cPsnID) throws BusinessException {
-    FormulaParse f = new FormulaParse();
-
-    // 获得部门
-    String sExpress = "getColValue(bd_psndoc,pk_deptdoc,pk_psndoc,cPsnID)";
-    f.setExpress(sExpress);
-    f.addVariable("cPsnID", cPsnID);
-//    VarryVO varry = f.getVarry();
-//    Hashtable table = new Hashtable();
-//    String sParam[] = new String[1];
-//    sParam[0] = cPsnID;
-//    table.put(varry.getVarry()[0], sParam);
-//    f.setDataS(table);
-    String sDeptID[] = f.getValueS();
-
-    if (sDeptID != null && sDeptID.length > 0)
-      return sDeptID[0];
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:业务员的主键获得所属部门的名称 输入参数:业务员ID 返回值:部门名称 异常处理:
-   */
-  public String getRefDeptName(String cPsnID) throws BusinessException {
-    FormulaParse f = new FormulaParse();
-
-    // 获得部门
-    String sExpress = "getColValue(bd_psndoc,pk_deptdoc,pk_psndoc,cPsnID)";
-    f.setExpress(sExpress);
-    VarryVO varry = f.getVarry();
-    Hashtable table = new Hashtable();
-    String sParam[] = new String[1];
-    sParam[0] = cPsnID;
-    table.put(varry.getVarry()[0], sParam);
-    f.setDataS(table);
-    String sDeptID[] = f.getValueS();
-
-    sExpress = "getColValue(bd_deptdoc,deptname,pk_deptdoc,cDeptID)";
-    f.setExpress(sExpress);
-    varry = f.getVarry();
-    table.put(varry.getVarry()[0], sDeptID);
-    f.setDataS(table);
-    String sDeptName[] = f.getValueS();
-
-    if (sDeptName != null && sDeptName.length > 0)
-      return sDeptName[0];
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:业务员的主键转换为其在人员档案中的主键 输入参数:当前操作员ID 返回值:当前操作员在人员档案中的ID 异常处理:
-   */
-  public String getRefOperatorKey(String cOperatorID) throws BusinessException {
-    FormulaParse f = new FormulaParse();
-
-    // 获得业务员
-    String sExpress = "getColValue(sm_userandclerk,pk_psndoc,userid,cOperatorID)";
-    f.setExpress(sExpress);
-    VarryVO varry = f.getVarry();
-    Hashtable table = new Hashtable();
-    String sParam[] = new String[1];
-    sParam[0] = cOperatorID;
-    table.put(varry.getVarry()[0], sParam);
-    f.setDataS(table);
-    String sPsnKey[] = f.getValueS();
-
-    if (sPsnKey != null && sPsnKey.length > 0)
-      return sPsnKey[0];
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述: 输入参数: 返回值: 异常处理: 日期:
-   * 
-   * @return java.lang.String
-   * @param sSource
-   *          java.lang.String
-   * @param sReplace
-   *          java.lang.String
-   */
-  private String getReplacedSQL(String sSource, String sOld, String sReplace) {
-    if (sReplace == null || sReplace.trim().length() == 0)
-      return sSource;
-
-    int nStart = sSource.indexOf(sOld);
-    if (nStart < 0)
-      return sSource;
-    int nMiddle = sSource.indexOf("'", nStart + 1);
-    if (nMiddle < 0)
-      return sSource;
-    int nEnd = sSource.indexOf("'", nMiddle + 1);
-
-    String s1 = sSource.substring(0, nStart);
-    String s2 = sSource.substring(nEnd + 1);
-
-    String s = s1 + sReplace + s2;
-
-    return s;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:业务类型ID获得收发类别(提供批次处理) 输入参数:业务类型ID 返回值:收发类别ID 异常处理:
-   * 修改日期：2003/02/11 xhq
-   */
-  public String[] getRSModeBatch(String cBusitypeID[]) throws BusinessException {
-    FormulaParse f = new FormulaParse();
-
-    // 获得收发类别
-    String sExpress = "getColValue(bd_busitype,receipttype,pk_busitype,cBusitypeID)";
-    f.setExpress(sExpress);
-    f.addVariable("cBusitypeID", cBusitypeID);
-    //VarryVO varry = f.getVarry();
-    //Hashtable table = new Hashtable();
-    //table.put(varry.getVarry()[0], cBusitypeID);
-    //f.setDataS(table);
-    String sRSMode[] = f.getValueS();
-
-    if (sRSMode != null && sRSMode.length > 0)
-      return sRSMode;
-    return null;
-  }
-
-  /**
-   * 功能:获得需要加锁的主键集合 输入:入库单VO集合 返回:String[] 创建:2004-06-24 作者:晁志平
-   */
-  private String[] getStockLockKeys(StockVO[] VOs) {
-    if (VOs == null || VOs.length == 0)
-      return null;
-
-    Vector v = new Vector();
-
-    // 入库单表头主键唯一性集合
-    for (int i = 0; i < VOs.length; i++) {
-      if (VOs[i] == null)
-        continue;
-      String s1 = VOs[i].getCgeneralhid();
-      if (s1 != null && !v.contains(s1))
-        v.addElement(s1);
-    }
-
-    // 入库单表体主键唯一性集合
-    for (int i = 0; i < VOs.length; i++) {
-      if (VOs[i] == null)
-        continue;
-      String s1 = VOs[i].getCgeneralbid();
-      if (s1 != null && !v.contains(s1))
-        v.addElement(s1);
-    }
-
-    // 入库单结算子表主键唯一性集合
-    for (int i = 0; i < VOs.length; i++) {
-      if (VOs[i] == null)
-        continue;
-      String s1 = VOs[i].getCgeneralbb3();
-      if (s1 != null && !v.contains(s1))
-        v.addElement(s1);
-    }
-
-    // 返回
-    if (v.size() > 0) {
-      String keys[] = new String[v.size()];
-      v.copyInto(keys);
-      return keys;
-    }
-
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:仓库ID获得库存组织ID 输入参数:仓库ID 返回值:库存组织ID 异常处理:
-   */
-  public String getStoreOrg(String cWarehouseID) throws BusinessException {
-    FormulaParse f = new FormulaParse();
-
-    // 获得库存组织ID
-    String sExpress = "getColValue(bd_stordoc,pk_calbody,pk_stordoc,cWarehouseID)";
-    f.setExpress(sExpress);
-    VarryVO varry = f.getVarry();
-    Hashtable table = new Hashtable();
-    String sParam[] = new String[1];
-    sParam[0] = cWarehouseID;
-    f.addVariable(varry.getVarry()[0], sParam);
-    //table.put(varry.getVarry()[0], sParam);
-    //f.setDataS(table);
-    String sStoreOrg[] = f.getValueS();
-
-    if (sStoreOrg != null && sStoreOrg.length > 0)
-      return sStoreOrg[0];
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:判断入库单的单据号是否重复 输入参数:单位编码，单据号，表头主键（修改时） 返回值:无 异常处理:无
-   */
-  public boolean isCodeDuplicate(String unitCode, String billCode, String key)
-      throws BusinessException {
-
-    boolean b = false;
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      b = dmo.isCodeDuplicate(unitCode, billCode, key);
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return b;
-  }
-
-  /**
-   * 功能:并发处理时间戳(暂估) 输入:暂估VO[] 返回:String,错误提示字符串 异常:RemoteException 日期:2002/04/10
-   * 作者:熊海情 修改:晁志平 FOR V30 修正BUG：未查询到新时间戳时未报错
-   */
-  private String isTimeStampChanged(EstimateVO VOs[]) throws BusinessException {
-
-    if (VOs == null || VOs.length == 0) {
-      SCMEnv.out("输入参数为空，直接返回!调用堆栈如下：");
-      SCMEnv.out(new Exception());
-      return null;
-    }
-
-    int iLen = VOs.length;
-
-    String saHid[] = new String[iLen];
-    String saHts[] = new String[iLen];
-    String saBid[] = new String[iLen];
-    String saBts[] = new String[iLen];
-    String saBbid[] = new String[iLen];
-    String saBbts[] = new String[iLen];
-
-    for (int i = 0; i < iLen; i++) {
-      saHid[i] = VOs[i].getCgeneralhid();
-      saHts[i] = VOs[i].getTs1();
-      saBid[i] = VOs[i].getCgeneralbid();
-      saBts[i] = VOs[i].getTs2();
-      saBbid[i] = VOs[i].getCgeneralbb3();
-      saBbts[i] = VOs[i].getTs3();
-    }
-
-    return isTimeStampChanged45(saHid, saHts, saBid, saBts, saBbid, saBbts);
-  }
-
-  /**
-   * 功能:并发处理时间戳(采购入库单) 参数： String[] saHid, 采购入库单表头ID String[] saHts,
-   * 采购入库单表头ID对应的时间戳 String[] saBid, 采购入库单表体ID String[] saBts, 采购入库单表体ID对应的时间戳
-   * String[] saBbid,采购入库单子表3ID String[] saBbts,采购入库单子表3ID对应的时间戳 返回:错误串
-   * 日期:2004-06-23 作者：晁志平
-   */
-  private String isTimeStampChanged45(String[] saHid, String[] saHts,
-      String[] saBid, String[] saBts, String[] saBbid, String[] saBbts)
-      throws BusinessException {
-    String sMessage = "";
-    int iLen = 0;
-    try {
-      nc.bs.pu.pub.PubDMO pubDMO = new nc.bs.pu.pub.PubDMO();
-      Object oaTs[] = pubDMO.queryHBTsArrayByHBIDArray("45", saHid, saBid,
-          saBbid);
-      String saHts1[] = null;
-      String saBts1[] = null;
-      String saBbts1[] = null;
-      if (oaTs != null && oaTs.length > 0) {
-        saHts1 = (String[]) oaTs[0];
-        saBts1 = (String[]) oaTs[1];
-        saBbts1 = (String[]) oaTs[2];
-      }
-      else {
-        SCMEnv
-            .out("程序BUG：nc.bs.pu.pub.PubDMO.queryHBTsArrayByHBIDArray(String,String[],String[],String[])返回NULL");
-        return null;
-      }
-      String strTmp0 = null, strTmp1 = null;
-      // 判断表头时间戳是否改变
-      if (saHid != null && saHid.length > 0) {
-        iLen = saHts == null ? 0 : saHts.length;
-        if (saHts1 != null && saHts1.length > 0 && saHts1.length == iLen) {
-          for (int i = 0; i < iLen; i++) {
-            strTmp0 = saHts[i] == null ? "" : saHts[i].trim();
-            strTmp1 = saHts1[i] == null ? "" : saHts1[i].trim();
-            if (!strTmp0.equals(strTmp1)) {
-              sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-                  "40040503", "UPP40040503-000012")/*
-                                                     * @res "入库单表头发生并发操作！\n"
-                                                     */;
-              break;
-            }
-          }
-        }
-        else {
-          sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-              "40040503", "UPP40040503-000012")/*
-                                                 * @res "入库单表头发生并发操作！\n"
-                                                 */;
-        }
-      }
-      // 判断表体时间戳是否改变
-      if (saBid != null && saBid.length > 0) {
-        iLen = saBts == null ? 0 : saBts.length;
-        if (saBts1 != null && saBts1.length > 0 && saBts1.length == iLen) {
-          for (int i = 0; i < iLen; i++) {
-            strTmp0 = saBts[i] == null ? "" : saBts[i].trim();
-            strTmp1 = saBts1[i] == null ? "" : saBts1[i].trim();
-            if (!strTmp0.equals(strTmp1)) {
-              sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-                  "40040503", "UPP40040503-000013")/*
-                                                     * @res "入库单表体发生并发操作！\n"
-                                                     */;
-              break;
-            }
-          }
-        }
-        else {
-          sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-              "40040503", "UPP40040503-000013")/*
-                                                 * @res "入库单表体发生并发操作！\n"
-                                                 */;
-        }
-      }
-      // 判断子子表时间戳是否改变
-      if (saBbid != null && saBbid.length > 0) {
-        iLen = saBbts == null ? 0 : saBbts.length;
-        if (saBbts1 != null && saBbts1.length > 0 && saBbts1.length == iLen) {
-          for (int i = 0; i < iLen; i++) {
-            strTmp0 = saBbts[i] == null ? "" : saBbts[i].trim();
-            strTmp1 = saBbts1[i] == null ? "" : saBbts1[i].trim();
-            if (!strTmp0.equals(strTmp1)) {
-              sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-                  "40040503", "UPP40040503-000014")/*
-                                                     * @res "入库单子子表发生并发操作！\n"
-                                                     */;
-              break;
-            }
-          }
-        }
-        else {
-          sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-              "40040503", "UPP40040503-000014")/*
-                                                 * @res "入库单子子表发生并发操作！\n"
-                                                 */;
-        }
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return sMessage;
-  }
-
-  /**
-   * 功能:并发处理时间戳(期初暂估时对期初暂估入库单) 输入:GeneralHVO[] 返回:错误串 异常:RemoteException
-   * 日期:2002/04/10 作者:熊海情 修改:晁志平 FOR V30 修正BUG：未查询到时间戳时未抛异常
-   */
-  private String isTimeStampChangedForGeneral(GeneralHVO VOs[])
-      throws BusinessException {
-
-    if (VOs == null || VOs.length == 0) {
-      SCMEnv.out("输入参数为空，直接返回!调用堆栈如下：");
-      SCMEnv.out(new Exception());
-      return null;
-    }
-    int iLen = VOs.length;
-    Vector vId = new Vector();
-    Vector vTs = new Vector();
-    // 表头ID及TS
-    for (int i = 0; i < iLen; i++) {
-      if (VOs[i] == null || VOs[i].getHeadVO() == null) {
-        continue;
-      }
-      vId.addElement(VOs[i].getHeadVO().getCgeneralhid());
-      vTs.addElement(VOs[i].getHeadVO().getTs());
-    }
-    String[] saHid = null, saHts = null;
-    if (vId.size() > 0) {
-      saHid = new String[vId.size()];
-      vId.copyInto(saHid);
-      saHts = new String[vId.size()];
-      vTs.copyInto(saHts);
-    }
-    // 表体ID及TS
-    GeneralHItemVO[] bodyVOs = null;
-    vId = new Vector();
-    vTs = new Vector();
-    int jLen = 0;
-    for (int i = 0; i < iLen; i++) {
-      bodyVOs = VOs[i].getBodyVO();
-      jLen = bodyVOs == null ? 0 : bodyVOs.length;
-      for (int j = 0; j < jLen; j++) {
-        if (bodyVOs[j] == null) {
-          continue;
-        }
-        vId.addElement(bodyVOs[j].getCgeneralbid());
-        vTs.addElement(bodyVOs[j].getTs());
-      }
-    }
-    String[] saBid = null, saBts = null;
-    if (vId.size() > 0) {
-      saBid = new String[vId.size()];
-      vId.copyInto(saBid);
-      saBts = new String[vId.size()];
-      vTs.copyInto(saBts);
-    }
-    // 表体子表3ID及TS
-    GeneralBb3VO[] bodyB3VOs = null;
-    vId = new Vector();
-    vTs = new Vector();
-    for (int i = 0; i < iLen; i++) {
-      bodyB3VOs = VOs[i].getGrandVO();
-      jLen = bodyB3VOs == null ? 0 : bodyB3VOs.length;
-      for (int j = 0; j < jLen; j++) {
-        if (bodyB3VOs[j] == null) {
-          continue;
-        }
-        vId.addElement(bodyB3VOs[j].getCgeneralbb3());
-        vTs.addElement(bodyB3VOs[j].getTs());
-      }
-    }
-    String[] saBbid = null, saBbts = null;
-    if (vId.size() > 0) {
-      saBbid = new String[vId.size()];
-      vId.copyInto(saBbid);
-      saBbts = new String[vId.size()];
-      vTs.copyInto(saBbts);
-    }
-    //
-    return isTimeStampChanged45(saHid, saHts, saBid, saBts, saBbid, saBbts);
-  }
-
-  /**
-   * 功能:并发处理时间戳(期初暂估时对订单) 输入:OorderVO[] 返回:错误串 异常:RemoteException 日期:2002/04/10
-   * 作者:熊海情 修改:晁志平 FOR V30 修正BUG：未查询到时间戳时未抛异常
-   */
-  private String isTimeStampChangedForOrder(OorderVO VOs[])
-      throws BusinessException {
-
-    if (VOs == null || VOs.length == 0) {
-      SCMEnv.out("输入参数为空，直接返回!调用堆栈如下：");
-      SCMEnv.out(new Exception());
-      return null;
-    }
-
-    int iLen = VOs.length;
-
-    String sMessage = "";
-
-    try {
-      nc.bs.pu.pub.PubDMO pubDMO = new nc.bs.pu.pub.PubDMO();
-
-      String[] saHid = new String[VOs.length];
-      String[] saBid = new String[VOs.length];
-      for (int i = 0; i < VOs.length; i++) {
-        saHid[i] = VOs[i].getCorderid();
-        saBid[i] = VOs[i].getCorder_bid();
-      }
-      // 并发处理
-      Object[] oaTs = pubDMO.queryHBTsArrayByHBIDArray(ScmConst.PO_Order,
-          saHid, saBid, null);
-      String[] saHts = null;
-      String[] saBts = null;
-      if (oaTs != null && oaTs.length > 0) {
-        saHts = (String[]) oaTs[0];
-        saBts = (String[]) oaTs[1];
-      }
-      else {
-        SCMEnv
-            .out("程序BUG：nc.bs.pu.pub.PubDMO.queryHBTsArrayByHBIDArray(String,String[],String[],String[])返回NULL");
-        return null;
-      }
-      String strTsOld = null, strTsNew = null;
-      // 判断表头时间戳是否改变
-      if (saHts != null && saHts.length > 0 && saHts.length == iLen) {
-        for (int i = 0; i < VOs.length; i++) {
-          strTsOld = saHts[i] == null ? "" : saHts[i].trim();
-          strTsNew = VOs[i].getTs1() == null ? "" : VOs[i].getTs1().trim();
-          if (!strTsOld.equals(strTsNew)) {
-            sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-                "40040503", "UPP40040503-000015")/*
-                                                   * @res "表头已改变！\n"
-                                                   */;
-            break;
-          }
-        }
-      }
-      else {
-        sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-            "40040503", "UPP40040503-000015")/*
-                                               * @res "表头已改变！\n"
-                                               */;
-      }
-      // 判断表体时间戳是否改变
-      if (saBts != null && saBts.length > 0 && saBts.length == iLen) {
-        for (int i = 0; i < VOs.length; i++) {
-          strTsOld = saBts[i] == null ? "" : saBts[i].trim();
-          strTsNew = VOs[i].getTs2() == null ? "" : VOs[i].getTs2().trim();
-          if (!strTsOld.equals(strTsNew)) {
-            sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-                "40040503", "UPP40040503-000016")/*
-                                                   * @res "表体已改变！\n"
-                                                   */;
-            break;
-          }
-        }
-      }
-      else {
-        sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-            "40040503", "UPP40040503-000016")/*
-                                               * @res "表体已改变！\n"
-                                               */;
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return sMessage;
-  }
-
-  /**
-   * 支持数据权限处理，拆分查询条件是用户录入自定义查询条件，还是UI端系统拼接的数据权限查询条件
-   * 
-   * @param voaCond
-   * @return{0、非权限条件VO[]；1、权限条件查询串}
-   */
-  private ArrayList dealCondVosForPowerForOrder(ConditionVO[] voaCond) {
-
-    // 拆分用户录入VO、数据权限VO
-    ArrayList listUserInputVos = new ArrayList();
-    ArrayList listPowerVos = new ArrayList();
-
-    int iLen = voaCond.length;
-
-    for (int i = 0; i < iLen; i++) {
-      if (voaCond[i].getOperaCode().trim().equalsIgnoreCase("IS")
-          && voaCond[i].getValue().trim().equalsIgnoreCase("NULL")) {
-        listPowerVos.add(voaCond[i]);
-        i++;
-        listPowerVos.add(voaCond[i]);
-      }
-      else {
-        listUserInputVos.add(voaCond[i]);
-      }
-    }
-
-    // 组织返回VO
-    ArrayList listRet = new ArrayList();
-
-    // 用户录入
-    ConditionVO[] voaCondUserInput = null;
-    if (listUserInputVos.size() > 0) {
-      voaCondUserInput = new ConditionVO[listUserInputVos.size()];
-      listUserInputVos.toArray(voaCondUserInput);
-    }
-    listRet.add(voaCondUserInput);
-
-    // 数据权限VO==>查询条件串
-    ConditionVO[] voaCondPower = null;
-    if (listPowerVos.size() > 0) {
-      voaCondPower = new ConditionVO[listPowerVos.size()];
-      listPowerVos.toArray(voaCondPower);
-      String strPowerWherePart = voaCondPower[0].getWhereSQL(voaCondPower);
-      // 将非标准的字段替换掉
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "custcode", "b.pk_cubasdoc");
-      //    
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "invcode", "b.pk_invbasdoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cbaseid", "po_order_b.cbaseid");
-      //    
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cinvclassid", "po_order_b.cbaseid");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "invclasscode", "pk_invbasdoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil
-          .replaceAllString(
-              strPowerWherePart,
-              "bd_invcl where 0=0  and pk_invcl",
-              "bd_invcl, bd_invbasdoc where bd_invcl.pk_invcl = bd_invbasdoc.pk_invcl and bd_invcl.pk_invcl");
-      //
-      listRet.add(strPowerWherePart);
-    }
-    else {
-      listRet.add(null);
-    }
-
-    return listRet;
-  }
-
-  /**
-   * 支持数据权限处理，拆分查询条件是用户录入自定义查询条件，还是UI端系统拼接的数据权限查询条件
-   * 
-   * @param voaCond
-   * @return{0、非权限条件VO[]；1、权限条件查询串}
-   */
-  private ArrayList dealCondVosForPower(ConditionVO[] voaCond) {
-
-    // 拆分用户录入VO、数据权限VO
-    ArrayList listUserInputVos = new ArrayList();
-    ArrayList listPowerVos = new ArrayList();
-
-    int iLen = voaCond.length;
-
-    for (int i = 0; i < iLen; i++) {
-      if (voaCond[i].getOperaCode().trim().equalsIgnoreCase("IS")
-          && voaCond[i].getValue().trim().equalsIgnoreCase("NULL")) {
-        listPowerVos.add(voaCond[i]);
-        i++;
-        listPowerVos.add(voaCond[i]);
-      }
-      else {
-        listUserInputVos.add(voaCond[i]);
-      }
-    }
-
-    // 组织返回VO
-    ArrayList listRet = new ArrayList();
-
-    // 用户录入
-    ConditionVO[] voaCondUserInput = null;
-    if (listUserInputVos.size() > 0) {
-      voaCondUserInput = new ConditionVO[listUserInputVos.size()];
-      listUserInputVos.toArray(voaCondUserInput);
-    }
-    listRet.add(voaCondUserInput);
-
-    // 数据权限VO==>查询条件串
-    ConditionVO[] voaCondPower = null;
-    if (listPowerVos.size() > 0) {
-      voaCondPower = new ConditionVO[listPowerVos.size()];
-      listPowerVos.toArray(voaCondPower);
-      String strPowerWherePart = voaCondPower[0].getWhereSQL(voaCondPower);
-      // 将非标准的字段替换掉
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "custcode", "pk_cumandoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cvendorbaseid", "cproviderid");
-
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "psncode", "pk_psndoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "coperator", "cbizid");
-
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "invcode is  NULL ) or (invcode",
-          "cinvbasid is  NULL ) or (cinvbasid");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "invcode", "b.pk_invbasdoc");
-
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cinvclassid", "cinvbasid");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "invclasscode", "pk_invbasdoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil
-          .replaceAllString(
-              strPowerWherePart,
-              "bd_invcl where 0=0  and pk_invcl",
-              "bd_invcl, bd_invbasdoc where bd_invcl.pk_invcl = bd_invbasdoc.pk_invcl and bd_invcl.pk_invcl");
-      //   
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "deptcode", "pk_deptdoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cdeptid", "cdptid");
-
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "storcode", "pk_stordoc");
-      //
-      listRet.add(strPowerWherePart);
-    }
-    else {
-      listRet.add(null);
-    }
-
-    return listRet;
-  }
-
-  /**
-   * 处理暂估查询条件。
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param strLoginCorpId
-   *          登录公司ID
-   * @param conditionVOs
-   *          查询条件VO数组
-   * @param strZG
-   *          暂估标志{区分查询 已暂估过的 还是 未暂估过的 数据}
-   * @return SQL条件串
-   *         <p>
-   * @author czp
-   * @time 2007-7-10 下午02:07:14
-   */
-  private String getWherePartSQLForEstimate(String strLoginCorpId,
-      ConditionVO[] conditionVOs, String strZG) {
-
-    String strSqlWherePart = "";
-
-    ArrayList listRet = dealCondVosForPower(conditionVOs);
-    conditionVOs = (ConditionVO[]) listRet.get(0);
-    String strDataPowerSql = (String) listRet.get(1);
-    int iLen = conditionVOs == null ? 0 : conditionVOs.length;
-    for (int i = 0; i < iLen; i++) {
-      String sName = conditionVOs[i].getFieldCode().trim();
-      String sOpera = conditionVOs[i].getOperaCode().trim();
-      String sValue = conditionVOs[i].getValue();
-      String sSQL = conditionVOs[i].getSQLStr();
-      String sReplace = null;
-
-      if (sName.equals("dbilldate") && sValue != null && sValue.length() > 0) {
-        sReplace = "dbilldate " + sOpera + " '" + sValue + "'";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("dzgdate") && sValue != null && sValue.length() > 0) {
-        sReplace = "dzgdate " + sOpera + " '" + sValue + "'";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("vbillcode") && sValue != null
-          && sValue.length() > 0) {
-        sReplace = "vbillcode " + sOpera + " '" + sValue + "'";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("cvendorbaseid") && sValue != null
-          && sValue.length() > 0) {
-        if (strLoginCorpId != null)
-          sReplace = "cproviderid in (select pk_cumandoc from bd_cumandoc A, bd_cubasdoc B where A.pk_corp = '"
-              + strLoginCorpId
-              + "' and custcode "
-              + sOpera
-              + " '"
-              + sValue
-              + "' and A.pk_cubasdoc = B.pk_cubasdoc and (custflag = '1' or custflag = '3'))";
-        else
-          sReplace = "cproviderid in (select pk_cumandoc from bd_cumandoc A, bd_cubasdoc B where custcode "
-              + sOpera
-              + " '"
-              + sValue
-              + "'and A.pk_cubasdoc = B.pk_cubasdoc and (custflag = '1' or custflag = '3'))";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("cdeptid") && sValue != null && sValue.length() > 0) {
-        if (strLoginCorpId != null)
-          sReplace = "cdptid in (select pk_deptdoc from bd_deptdoc where pk_corp = '"
-              + strLoginCorpId
-              + "' and deptcode "
-              + sOpera
-              + " '"
-              + sValue
-              + "')";
-        else
-          sReplace = "cdptid in (select pk_deptdoc from bd_deptdoc where deptcode "
-              + sOpera + " '" + sValue + "')";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("cbiztype") && sValue != null
-          && sValue.length() > 0) {
-        sReplace = "cbiztype in (select pk_busitype from bd_busitype where busicode "
-            + sOpera + " '" + sValue + "')";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("coperator") && sValue != null
-          && sValue.length() > 0) {
-        if (strLoginCorpId != null)
-          sReplace = "cbizid in (select pk_psndoc from bd_psndoc where pk_corp = '"
-              + strLoginCorpId
-              + "' and psncode "
-              + sOpera
-              + " '"
-              + sValue
-              + "')";
-        else
-          sReplace = "cbizid in (select pk_psndoc from bd_psndoc where psncode "
-              + sOpera + " '" + sValue + "')";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("cbillmaker") && sValue != null
-          && sValue.length() > 0) {
-        sReplace = "A.coperatorid in (select cuserid from sm_user where user_code "
-            + sOpera + " '" + sValue + "')";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("invcode")) {
-        if (strLoginCorpId != null) {
-          sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc ";
-          sReplace += "where bd_invbasdoc.invcode ";
-          sReplace += sOpera;
-          sReplace += "'";
-          sReplace += sValue;
-          sReplace += "') ";
-        }
-        else {
-          sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc ";
-          sReplace += "where bd_invbasdoc.invcode ";
-          sReplace += sOpera;
-          sReplace += "'";
-          sReplace += sValue;
-          sReplace += "') ";
-        }
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      // 入库单头自定义项
-      else if (sName.indexOf("vuserdef") >= 0 && sValue != null
-          && sValue.length() > 0) {
-        sReplace = "A." + sName + " " + sOpera + " '" + sValue + "'";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else if (sName.equals("cinvclassid") && sValue != null
-          && sValue.length() > 0) {
-        try {
-          nc.bs.ps.estimate.EstimateDMO ddmo = new nc.bs.ps.estimate.EstimateDMO();
-          String sClassCode[] = ddmo.getSubInvClassCode(sValue);
-
-          if (sClassCode != null && sClassCode.length > 0) {
-            sValue = "(";
-            for (int j = 0; j < sClassCode.length; j++) {
-              if (j < sClassCode.length - 1)
-                sValue += "invclasscode " + sOpera + " '" + sClassCode[j]
-                    + "' or ";
-              else
-                sValue += "invclasscode " + sOpera + " '" + sClassCode[j]
-                    + "')";
-            }
-            sReplace = "B.cinvbasid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invcl C where "
-                + "A.pk_invcl = C.pk_invcl and " + sValue + ")";
-          }
-          else {
-            sReplace = "B.cinvbasid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invcl C where "
-                + "A.pk_invcl = C.pk_invcl and invclasscode "
-                + sOpera
-                + " '"
-                + sValue + "')";
-          }
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          strSqlWherePart += s;
-        }
-        catch (Exception e) {
-          /* 不影响业务操作，此异常不必抛出 */
-          SCMEnv.out(e);
-          return null;
-        }
-      }
-      else if (sName.equals("cwarehouseid") && sValue != null
-          && sValue.length() > 0) {
-        if (strLoginCorpId != null)
-          sReplace = "cwarehouseid in (select pk_stordoc from bd_stordoc where pk_corp = '"
-              + strLoginCorpId
-              + "' and storcode "
-              + sOpera
-              + " '"
-              + sValue
-              + "')";
-        else
-          sReplace = "cwarehouseid in (select pk_stordoc from bd_stordoc where storcode "
-              + sOpera + " '" + sValue + "')";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-
-      }
-      else if (sName.equals("cprojectid") && sValue != null
-          && sValue.length() > 0) {
-        sReplace = "B.cprojectid in (select B.pk_jobmngfil from bd_jobbasfil A, bd_jobmngfil B where A.jobcode "
-            + sOpera + " '" + sValue + "' and A.pk_jobbasfil = B.pk_jobbasfil)";
-        String s = getReplacedSQL(sSQL, sName, sReplace);
-        strSqlWherePart += s;
-      }
-      else {
-        strSqlWherePart += conditionVOs[i].getSQLStr();
-      }
-
-    }
-    strSqlWherePart = PubDMO.processFirst(strSqlWherePart);
-
-    // 过滤赠品行
-    strSqlWherePart += " and coalesce(B.flargess,'N') = 'N' ";
-    // VMI业务类型入库单不暂估
-    strSqlWherePart += " and BT.verifyrule not in ('V','N')  ";
-
-    // //不支持跨公司暂估:V51逻辑, del since v53
-    // if (sZG.trim().equals("N")) sCondition += " and A.pk_corp =
-    // B.pk_invoicecorp ";
-    // "and A.pk_corp = " + "'" + unitCode + "' ";
-
-    // since V502,支持分收集结的采购公司暂估，不支持分收集结的收货公司暂估(收货公司暂估内部交易完成)
-
-    // 仓库“是否计算存货成本”属性过滤(只约束普通暂估，FENGPING)--zhf add 过滤掉资产仓
-    strSqlWherePart += "and (coalesce(S.iscalculatedinvcost,'N') = 'Y' or A.cwarehouseid is null) and coalesce(S.iscapitalstor,'N') = 'N' ";
-    // 普通暂估
-    strSqlWherePart += " and ( A.pk_corp = '" + strLoginCorpId + "' ";
-    strSqlWherePart += " and A.pk_corp = B.pk_invoicecorp ";
-    // 分收集结采购公司暂估
-    strSqlWherePart += " or A.pk_purcorp <> A.pk_corp ";
-    strSqlWherePart += " and A.pk_purcorp = '" + strLoginCorpId + "' ";
-    strSqlWherePart += " and A.pk_purcorp = B.pk_invoicecorp ";
-    strSqlWherePart += " ) ";
-
-    // 数据权限
-    if (strDataPowerSql != null) {
-      strSqlWherePart += " and " + strDataPowerSql;
-    }
-
-    // 其它条件
-    strSqlWherePart += "and (cbilltypecode = '45' or cbilltypecode='46') and A.dr = 0 and B.dr = 0 and (A.fbillflag = 3 or A.fbillflag = 4) ";
-
-    // 不支持跨公司暂估:V51逻辑, del since v53
-    // if (unitCode != null) {
-    // sql += "and A.pk_corp = " + "'" + unitCode + "' ";
-    // }
-
-    strSqlWherePart += "and upper(bzgflag) = '" + strZG + "' ";
-
-    // 已结算的入库单不能暂估
-    if ("N".equalsIgnoreCase(strZG)) {
-      strSqlWherePart += "and naccountnum1 = 0.0 and  abs(ninnum) > 0.0 ";
-    }
-
-    // 已结算(包括做过费用结算)的暂估入库单不能取消暂估
-    if ("Y".equalsIgnoreCase(strZG)) {
-      strSqlWherePart += "and naccountnum1 = 0.0  and isnull(nfeesettletimes,0) = 0 ";
-    }
-
-    return strSqlWherePart;
-  }
-
-  /**
-   * 通过单位编码返回指定公司所有记录VO数组。如果单位编码为空返回所有记录。 创建日期：(2001-5-30)
-   * 
-   * <p>------- 效率优化 by zhaoyha at 2009.2.9 --------------------------
-   * <p>为提高效率,在这里缓存暂估入库单的来源订单信息(批查,防止一条一条查)
-   * 主要优化思路是:
-   *    对来源的订单信息,在nc.bs.ps.estimate.EstimateImpl.
-   *    setEstimateVosInfos(EstimateVO[], String, String, String)中一次查出
-   *    保存到HashMap中,传到EstimateDMO类中,当前是作为类域(poSrcOdersInfo,scSrcOdersInfo)
-   *    ,没有走参数,以后可以考虑用参数传过来.<b>但为了保证减少内存占用量,这两个
-   *    HashMap用完之后,在EstimateImpl.setEstimateVosInfos()中清空了</b>
-   * <p>
-   * <p> ------ V55 by zhaoyha end ----------------------------------- 
-   * 
-   * @return nc.vo.ps.estimate.EstimateVO[] 查到的VO对象数组
-   * @param strLoginCorpId
-   *          公司主键
-   * @exception BusinessException
-   *              异常说明。
-   * @since v502, 支持分收集结的跨公司暂估， by czp , 2007-06-29
-   */
-  public EstimateVO[] queryEstimate(String strLoginCorpId,
-      ConditionVO[] conditionVOs, String strZG, String strEstPriceSource)
-      throws BusinessException {
-
-    EstimateVO[] estimates = null;
-
-    try {    
-      nc.vo.scm.pu.Timer traceTimer = new nc.vo.scm.pu.Timer();
-      traceTimer.start();
-      EstimateDMO dmo = new EstimateDMO();
-
-      // since v502,重构，抽取方法
-      String strSqlWherePart = getWherePartSQLForEstimate(strLoginCorpId,
-          conditionVOs, strZG);
-      traceTimer.addExecutePhase("暂估入库单查询条件生成");
-      // 查询入库单，组织暂估VO数组
-      estimates = dmo.queryEstimate(strSqlWherePart, strZG);
-      traceTimer.addExecutePhase("暂估入库单查询");
-      String strLocalCurrId = CurrParamQuery.getInstance().getLocalCurrPK(
-          strLoginCorpId);
-
-      // 设置本币币种:联动计算金额精度需要
-      if (estimates != null && estimates.length > 0) {
-        for (int i = 0; i < estimates.length; i++) {
-          estimates[i].setCcurrencytypeid(strLocalCurrId);
-        }
-      }
-      traceTimer.addExecutePhase("暂估入库单设置精度联动");
-      // 设置暂估VO{暂估价(单价或含税单价)、扣税类别、税率、含税(无税)优先}
-      setEstimateVosInfos(estimates, strLocalCurrId, strLoginCorpId, strZG);
-      traceTimer.addExecutePhase("暂估入库单询价");
-      traceTimer.stop();
-      traceTimer.showAllExecutePhase("暂估入库单查询后台运行");
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return estimates;
-  }
-
-  /**
-   * 
-   * 方法功能描述：
-   * <p>从入库单中查询出暂估VO
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * @param strLoginCorpId 当前公司ID
-   * @param sqlWherePart 查询条件
-   * @param strZG "N"查未暂估,"Y"查已暂估
-   * @return 暂估VO数组,可能为null
-   * @throws BusinessException
-   * <p>
-   * @author zhaoyha
-   * @time 2008-10-6 下午08:51:40
-   */
-  public EstimateVO[] queryEstimate(String strLoginCorpId,String sqlWherePart, String strZG)
-      throws BusinessException {
-    EstimateVO[] estimates = null;
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      // 查询入库单，组织暂估VO数组
-      estimates = dmo.queryEstimate(sqlWherePart, strZG);
-      String strLocalCurrId = CurrParamQuery.getInstance().getLocalCurrPK(
-          strLoginCorpId);
-      // 设置本币币种:联动计算金额精度需要
-      if (estimates != null && estimates.length > 0) {
-        for (int i = 0; i < estimates.length; i++) {
-          estimates[i].setCcurrencytypeid(strLocalCurrId);
-        }
-      }
-      // 设置暂估VO{暂估价(单价或含税单价)、扣税类别、税率、含税(无税)优先}
-      setEstimateVosInfos(estimates, strLocalCurrId, strLoginCorpId, strZG);
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      PubDMO.throwBusinessException(e);
-    }
-    return estimates;
-  }
-  
-  /**
-   * 供应商默认交易币种 zhf
-   */
-  private HashMap getVendorCurrPk(EstimateVO[] estimates) throws Exception {
-    ArrayList<String> list = new ArrayList<String>();
-    HashMap retMap = null;
-    for (EstimateVO vo : estimates) {
-      if ((vo.getCfirsttype() == null || vo.getCfirstbillbid() == null)
-          && vo.getCvendorid() != null
-          && vo.getCvendorid().trim().length() != 0) {
-        if (!list.contains(vo.getCvendorid())) {
-          list.add(vo.getCvendorid());
-        }
-      }
-    }
-
-    if (list != null && list.size() > 0) {
-      String inWhere = new TempTableUtil().getSubSql(list);
-      retMap = (HashMap) new PubDMO().queryArrayValues("bd_cumandoc",
-          "pk_cumandoc", new String[] {
-            "pk_currtype1"
-          }, new String[] {
-            inWhere.substring(2, inWhere.length() - 2)
-          }, " dr=0");
-    }
-    return retMap;
-  }
-
-  /**
-   * @作者 zhf
-   * @说明：(for v5.5)设置外币币种和折本汇率；取价规则为入库单价 取本位币 其余都按取外币优先顺序---来源订单原币币种
-   * @修改说明：由V55最新需求，只取来源订单币种，如果没有来源订单就取本位币 by zhaoyha at 2008.9.23
-   */
-  private void setOrgCurrPkExchRate(EstimateVO estimate, HashMap t21,
-      HashMap t61, HashMap mapVendorCurrPk,
-      BusinessCurrencyRateUtil dmoCurrArith, String strEstPriceSource,
-      String sLocalCurId) throws Exception {
-    // 最新进价 取本位币 其余都按取外币优先顺序 来源订单原币币种 供应商默认交易币种 公司本位币
-    // 由V55最新需求，只取来源订单币种，如果没有来源订单就取本位币
-    String orgCurrPk = sLocalCurId;
-    UFDouble exchRate = new UFDouble(1.0);
-
-    //    if (! "入库单价".equals(strEstPriceSource)) {
-
-    Object[] objs = null;
-    if (estimate.getCfirsttype() != null
-        && estimate.getCfirstbillbid() != null) {
-      if (ScmConst.PO_Order.equalsIgnoreCase(estimate.getCfirsttype().trim())) {
-        objs = (Object[]) t21.get(estimate.getCfirstbillbid());
-      }
-      else if (ScmConst.SC_Order.equals((estimate.getCfirsttype().trim()))) {
-        objs = (Object[]) t61.get(estimate.getCfirstbillbid());
-      }
-      if(objs!=null && objs[0]!=null) orgCurrPk = (String) objs[0];
-    }
-    //      else {// 取供应商默认交易币种
-    //        if (estimate.getCvendorid() != null
-    //            && estimate.getCvendorid().trim().length() != 0) {
-    //          objs = (Object[]) mapVendorCurrPk.get(estimate.getCvendorid());
-    //          orgCurrPk = (String) objs[0];
-    //        }
-    //        else {
-    //          orgCurrPk = sLocalCurId;
-    //        }
-    //      }
-    if (!sLocalCurId.equalsIgnoreCase(orgCurrPk.trim())) {
-      exchRate = dmoCurrArith.getRate(orgCurrPk, sLocalCurId, BsPuTool
-          .getLoginDate().toString());
-    }
-    //    }
-
-    estimate.setCurrencytypeid(orgCurrPk);
-    estimate.setNexchangeotobrate(exchRate);
-
-  }
-
-  /**
-   * 设置暂估VO{暂估价、扣税类别、税率、含税(无税)优先}
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param estimates
-   *          暂估VO数组, 非空
-   * @param strLoginCorpId
-   *          登录公司ID, 非空
-   * @param strZG
-   *          是否已经暂估过, 非空
-   * @param strEstPriceSource
-   *          暂估单价来源, 可空
-   * @throws Exception
-   * @author czp
-   * @time 2007-8-8 下午03:48:21
-   */
-  public void setEstimateVosInfos(EstimateVO[] estimates,
-      String strLocalCurrId, String strLoginCorpId, String strZG)
-      throws Exception {
-    //
-    if (estimates == null || estimates.length == 0) {
-      return;
-    }
-    Timer traceTimer =new Timer();
-    traceTimer.start();
-    // 获取单价和金额精度
-    BusinessCurrencyRateUtil dmoCurrArith = new BusinessCurrencyRateUtil(
-        strLoginCorpId);
-    int nMoneyDecimal = 0;
-    String sPricePolicy = null;
-    ISysInitQry myService = (ISysInitQry) nc.bs.framework.common.NCLocator
-        .getInstance().lookup(ISysInitQry.class.getName());
-    int nPriceDecimal = myService.getParaInt(strLoginCorpId, "BD505");
-    nMoneyDecimal = BsPuTool.getCCurrDecimal(strLoginCorpId);
-    sPricePolicy = myService.getParaString(strLoginCorpId, "PO28");
-    if (sPricePolicy == null) {
-      sPricePolicy = OrderPubVO.PRICE_PRIOR_TO_TAXPRICE_NAME;
-    }
-    // since v502 ,设置内部结算库存组织(取计划价或向存货核算传数据时用到)
-    setCalBodyStorDocIds(estimates, strLoginCorpId, BsPuTool
-        .getCCurrDecimal(strLoginCorpId));
-    //
-    EstimateDMO dmo = new EstimateDMO();
-
-    // 调用公式计算前的设置：税率、扣税类别
-    setTaxRateDiscountType(estimates);
-    traceTimer.addExecutePhase("暂估询价前处理");
-
-    // 做暂估操作时要处理暂估价
-
-    if (strZG.trim().equals("N")) {
-
-      // 获取参数PO45:计划价存货是否按计划价暂估
-      String sPara = "N";
-      try {
-        ISysInitQry myService1 = (ISysInitQry) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ISysInitQry.class.getName());
-        SysInitVO initVO = myService.queryByParaCode(strLoginCorpId, "PO45");
-        if (initVO != null)
-          sPara = initVO.getValue();
-      }
-      catch (Exception e) {
-        throw new SQLException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000021")/*
-                                                           * @res
-                                                           * "获取参数PO45时出现异常，请稍后再试！"
-                                                           */);
-      }
-
-      SysInitVO initVO = null;
-      initVO = nc.ui.pub.para.SysInitBO_Client.queryByParaCode(strLoginCorpId,
-          "PO270");
-      String strOldValue = initVO.getValue();
-      if (null == strOldValue || strOldValue.trim().length() == 0) {
-        throw new BusinessException("Parameter Error : Check 'PO270' please");
-      }
-
-      HashMap t21 = new HashMap(), t61 = new HashMap(), mapVendorCurrPk = new HashMap();
-      t21 = getOrderOrgInfor(estimates, ScmConst.PO_Order);
-      t61 = getOrderOrgInfor(estimates, ScmConst.SC_Order);
-      //为优化效率增加处理 by zhaoyha at 2009.2.9
-      dmo.setSourceOdersInfo(t21, ScmConst.PO_Order);
-      dmo.setSourceOdersInfo(t61, ScmConst.SC_Order);
-      
-      mapVendorCurrPk = getVendorCurrPk(estimates);
-
-      String strValue = null;
-      UFDouble dOldPrice = null;
-      UFDouble dNewPrice = null;
-      String strEstPriceSource = null;
-      traceTimer.addExecutePhase("暂估询价前查询入库单处理");
-      if (strOldValue.indexOf('2')>=0//"计划价".equals(strEstPriceSource.trim())
-          || "Y".equalsIgnoreCase(sPara) || "是".equals(sPara)) {
-        setPriceJHJ(estimates, strLoginCorpId, nMoneyDecimal);
-      }
-      traceTimer.addExecutePhase("暂估询价设置每行的计划价");
-
-      for (int i = 0; i < estimates.length; i++) {
-        strValue = strOldValue;
-        while (true) {
-          Timer dtimer1=new Timer();
-          strEstPriceSource = AppConstant.getNameByIndex(strValue.substring(0,
-              1));
-          // 设置外币币种、折本汇率
-          setOrgCurrPkExchRate(estimates[i], t21, t61, mapVendorCurrPk,
-              dmoCurrArith, strEstPriceSource, strLocalCurrId);
-
-          strValue = strValue.substring(1, strValue.length());
-          dOldPrice = getPriceForCompare(estimates[i], strEstPriceSource,
-              sPricePolicy);
-          // 获取计划价(两种情况：1、普通暂估时直接用收货公司库存组织 2、分收集结时用采购公司结算库存组织)
-          dtimer1.start();
-//          if ("计划价".equals(strEstPriceSource.trim())
-//              || "Y".equalsIgnoreCase(sPara) || "是".equals(sPara)) {
-//            setPriceJHJ(estimates[i], strLoginCorpId, nMoneyDecimal);
-//          }
-//          dtimer1.addExecutePhase("计划价查询");
-          // 处理单价
-          if (strEstPriceSource != null
-              && strEstPriceSource.trim().length() > 0) {
-            ArrayList paraList = new ArrayList();
-            paraList.add(strEstPriceSource);
-            paraList.add(new Integer(nPriceDecimal));
-            paraList.add(new Integer(nMoneyDecimal));
-            paraList.add(sPricePolicy);
-            paraList.add(sPara);
-            paraList.add(strLoginCorpId);
-            // zhf add for v55
-            paraList.add(dmoCurrArith);
-            paraList.add(strLocalCurrId);
-            // zhf -----end
-
-            estimates[i] = dmo.replacePriceForEstimate(estimates[i], paraList);
-          }
-          dtimer1.addExecutePhase("其它价格询价");
-          dtimer1.stop();
-          dtimer1.showAllExecutePhase("询价比例分析");
-          dNewPrice = getPriceForCompare(estimates[i], strEstPriceSource,
-              sPricePolicy);
-          /* 参数处理完 或者 (新价不空且新价<>旧价) */
-          if (strValue.length() == 0
-              || PuPubVO.getUFDouble_NullAsZero(dNewPrice).doubleValue() != 0
-              && PuPubVO.getUFDouble_NullAsZero(dNewPrice).compareTo(
-                  PuPubVO.getUFDouble_NullAsZero(dOldPrice)) != 0
-              || "订单价".equals(strEstPriceSource)
-              && PuPubVO.getUFDouble_NullAsZero(dNewPrice).doubleValue() != 0) {
-            break;
-          }
-        }
-      }
-      //为优化效率增加处理 by zhaoyha at 2009.2.9
-      //释放掉内在
-      dmo.setSourceOdersInfo(null, ScmConst.PO_Order);
-      dmo.setSourceOdersInfo(null, ScmConst.SC_Order);
-    }
-    traceTimer.addExecutePhase("暂估询价执行");
-    // 设置收票公司本位币
-    setLocalCurrForInvoiceCorp(estimates);
-    traceTimer.addExecutePhase("暂估询价后处理");
-    traceTimer.showAllExecutePhase("暂估询价");
-
-    //计算已经暂估，但未存储起来的数据 by zhaoyha at 2008.9.24
-    if ("Y".equalsIgnoreCase(strZG)) {
-
-      for(EstimateVO vo:estimates){
-        //如果没有币，则设置为本位币，防止查询以前的数据报错
-        if(vo.getCurrencytypeid()==null || vo.getCurrencytypeid().trim().length()==0){
-          vo.setCurrencytypeid(strLocalCurrId);
-          vo.setNexchangeotobrate(new UFDouble(1.00));
-        }
-        
-        //计算暂估应付的本币无税单价金额
-        UFDouble noriginalnetprice = PuPubVO.getUFDouble_NullAsZero(vo.getNoriginalnetprice());
-        UFDouble norgnettaxprice = PuPubVO.getUFDouble_NullAsZero(vo.getNorgnettaxprice());
-        UFDouble tempRate=PuPubVO.getUFDouble_NullAsZero(noriginalnetprice.div(norgnettaxprice));//税率计算
-        //UFDouble totalMoney=PuPubVO.getUFDouble_NullAsZero(vo.getNtotalmoney());
-        //UFDouble taxPrice=PuPubVO.getUFDouble_NullAsZero(vo.getNtaxprice());
-        //vo.setNzgyfnotaxmoney(totalMoney.multiply(tempRate).add(new UFDouble(0.0),nMoneyDecimal));
-        //vo.setNzgyfnotaxprice(taxPrice.multiply(tempRate).add(new UFDouble(0.0),nPriceDecimal));
-        UFDouble noTaxMoney=PuPubVO.getUFDouble_NullAsZero(vo.getNmoney());
-        UFDouble noTaxPrice=PuPubVO.getUFDouble_NullAsZero(vo.getNprice());
-
-        //将税率也设置上
-        if (vo.getIdiscounttaxtype().intValue() == 0){// 应税内含
-          if(tempRate.doubleValue()==0) //如果未暂估应付或原币价格为零,则无法反算税率,直接置零
-          {
-            vo.setNtaxrate(tempRate);
-            vo.setNcbtaxprice(vo.getNprice());
-            vo.setNcbtotalmoney(vo.getNmoney());
-          }
-          else
-            vo.setNtaxrate((new UFDouble(1.0).sub(tempRate,4)).multiply(new UFDouble(100.0)));
-          //计算暂估成本的本币含税单价
-          vo.setNcbtaxprice(noTaxPrice.div(new UFDouble(1.0).sub(vo.getNtaxrate().div(new UFDouble(100.0))),
-                nPriceDecimal));
-        }
-        else{// 应税外加
-          tempRate=PuPubVO.getUFDouble_NullAsZero(norgnettaxprice.div(noriginalnetprice));
-          if(tempRate.doubleValue()==0)
-          {
-            vo.setNtaxrate(tempRate);
-            vo.setNcbtaxprice(vo.getNprice());
-            vo.setNcbtotalmoney(vo.getNmoney());
-          }
-          else
-            vo.setNtaxrate((tempRate.sub(new UFDouble(1.0),4)).multiply(new UFDouble(100.0)));
-        //计算暂估成本的本币含税单价
-          vo.setNcbtaxprice(noTaxPrice.multiply(new UFDouble(1.0).add(vo.getNtaxrate().div(new UFDouble(100.0))),
-              nPriceDecimal));
-        }
-        //计算暂估成本的本币含税金额
-        vo.setNcbtotalmoney(vo.getNcbtaxprice().multiply(vo.getNinnum(),nMoneyDecimal));
-      }
-    }
-  }
-
-  /**
-   * 返回待暂估入库单的来源订单（采购订单，委外加工订单）的原币信息 来源订单行id-------订单原币币种id，订单折本汇率 zhf
-   * 为提高效率,在这里一次性查出来源订单的信息 by zhaoyha at 2009.2.9
-   */
-  private HashMap getOrderOrgInfor(EstimateVO[] VOs, String orderType)
-      throws Exception {
-
-    HashMap retMap = null;
-    Set<String> orderIds = new HashSet<String>();
-    for (int i = 0; i < VOs.length; i++) {
-      if (VOs[i].getCfirsttype() != null
-          && orderType.equalsIgnoreCase(VOs[i].getCfirsttype())
-          && VOs[i].getCfirstbillbid() != null)
-        orderIds.add(VOs[i].getCfirstbillbid());
-    }
-
-    // 来源是订单 订单主键---外币币种，折本汇率
-    if (orderIds != null && orderIds.size() > 0) {
-      String tableName = null;
-      String[] selectCols=null;
-      String addWhere = "";
-      if (ScmConst.PO_Order.equalsIgnoreCase(orderType)) {
-        tableName = "po_order,po_order_b";// 采购订单
-        selectCols=new String[]{"ccurrencytypeid", "nexchangeotobrate","nordernum","nmoney",
-            "ntaxpricemny","noriginalnetprice","norgnettaxprice","nexchangeotobrate",
-            "nexchangeotobrate","ccurrencytypeid", "pk_invoicecorp","noriginalcurmny",
-            "noriginaltaxpricemny"};
-        addWhere=" po_order.corderid = po_order_b.corderid and "
-          +OrderPubVO.SQL_PO_HEAD
-          +" and po_order_b.dr=0 ";
-      }
-      else {
-        tableName = "sc_order_b";// 委外订单
-        selectCols=new String[]{"ccurrencytypeid", "nexchangeotobrate","nordernum","nmoney",
-            "ntaxpricemny","noriginalnetprice","norgnettaxprice","nexchangeotobrate",
-            "nexchangeotobrate","ccurrencytypeid", "pk_corp","noriginalcurmny",
-            "noriginaltaxpricemny"};
-        addWhere=" dr=0 ";
-      }
-//      retMap = (HashMap) new PubDMO().queryArrayValues(tableName, "corder_bid",
-//          new String[] {"ccurrencytypeid", "nexchangeotobrate"},
-//          orderIds.toArray(new String[0]), " dr=0");
-      retMap = (HashMap) new PubDMO().queryArrayValues(tableName, "corder_bid",
-          selectCols,orderIds.toArray(new String[0]), addWhere);
-    }
-    return retMap;
-  }
-
-  /**
-   * 取用来比较的单价
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param voEst
-   *          暂估VO
-   * @param strEstPriceSource
-   *          暂估价来源
-   * @param sPricePolicy
-   *          价格优先策略
-   * @return
-   *          <p>
-   * @author czp
-   * @time 2008-5-26 下午04:45:27
-   */
-  private UFDouble getPriceForCompare(EstimateVO voEst,
-      String strEstPriceSource, String sPricePolicy) {
-
-    UFDouble dPrice = null;
-
-    if (OrderPubVO.TAXPRICE_PRIOR_TO_PRICE_NAME.equals(sPricePolicy)) {
-      //dPrice = voEst.getNtaxprice();
-      dPrice = voEst.getNcbtaxprice();
-    }
-    else {
-      dPrice = voEst.getNprice();
-    }
-    return dPrice;
-  }
-
-  /**
-   * 设置收票公司(为空时取收货公司)对应的本位币币种ID
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * <p>
-   * 
-   * @author czp
-   * @time 2007-8-21 下午01:36:20
-   */
-  public void setLocalCurrForInvoiceCorp(EstimateVO[] estimates)
-      throws BusinessException {
-    if (estimates == null || estimates.length == 0) {
-      return;
-    }
-    // 哈希：{收票公司(如果收票公司为空，取收货公司) = 本位币币种ID}
-    HashMap<String, String> mapCurrTypeId = new HashMap<String, String>();
-    String strKey = null;
-    BusinessCurrencyRateUtil rateUtil = null;
-    // 循环设置暂估VO的本位币币种ID
-    for (int i = 0; i < estimates.length; i++) {
-      strKey = estimates[i].getPk_corp();
-      if (PuPubVO.getString_TrimZeroLenAsNull(estimates[i].getPk_invoicecorp()) != null) {
-        strKey = estimates[i].getPk_invoicecorp();
-      }
-      // 如果已经缓存过本位币种ID，则直接设置继续
-      if (mapCurrTypeId.containsKey(strKey)) {
-        estimates[i].setCcurrencytypeid((String) mapCurrTypeId.get(strKey));
-        continue;
-      }
-      // 没有缓存过本位币种ID，缓存
-      try {
-        rateUtil = new BusinessCurrencyRateUtil(strKey);
-      }
-      catch (Exception e) {
-        PubDMO.throwBusinessException(e);
-      }
-      mapCurrTypeId.put(strKey, CurrParamQuery.getInstance().getLocalCurrPK(
-          strKey));
-      // 设置本位币种ID后继续
-      estimates[i].setCcurrencytypeid((String) mapCurrTypeId.get(strKey));
-    }
-  }
-
-  /**
-   * 设置：税率、扣税类别
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * <p>
-   * 
-   * @author czp
-   * @time 2007-8-21 上午09:51:44
-   */
-  public void setTaxRateDiscountType(EstimateVO[] estimates)
-      throws BusinessException {
-
-    if (estimates == null || estimates.length == 0) {
-      return;
-    }
-    // 区分来源为:来源于委外或采购，缓存两种订单的行ID
-    Vector vPuOrderBId = new Vector();
-    Vector vScOrderBId = new Vector();
-    // 记录存货基本ID(采购入库单非来源于采购订单或委外订单)
-    Vector vBaseId = new Vector();
-    for (int i = 0; i < estimates.length; i++) {
-      if (estimates[i].getCfirsttype() == null) {
-        // 非来源于订单(采购、委外)，设置为应税外加
-        vBaseId.add(estimates[i].getCbaseid());
-        // estimates[i].setIdiscounttaxtype(1);
-      }
-      // 来源于采购订单
-      else if (estimates[i].getCfirsttype().equals(ScmConst.PO_Order)) {
-        if (!vPuOrderBId.contains(estimates[i].getCfirstbillbid())) {
-          vPuOrderBId.addElement(estimates[i].getCfirstbillbid());
-        }
-      }
-      // 来源于委外订单
-      else if (estimates[i].getCfirsttype().equals(ScmConst.SC_Order)) {
-        if (!vScOrderBId.contains(estimates[i].getCfirstbillbid())) {
-          vScOrderBId.addElement(estimates[i].getCfirstbillbid());
-        }
-      }
-      // 非来源于采购订单或委外订单时，记录存货基本ID
-      else {
-        if (!vBaseId.contains(estimates[i].getCbaseid()))
-          vBaseId.add(estimates[i].getCbaseid());
-        // estimates[i].setIdiscounttaxtype(1);
-      }
-    }
-    //
-    UFDouble ufdTaxRate = null;
-    // 来源于采购订单或委外订单的处理:取订单的税率、扣税类别
-    if (vPuOrderBId.size() > 0 || vScOrderBId.size() > 0) {
-
-      EstimateDMO dmo = null;
-      String sID[] = null;
-      Hashtable hashPuOrder = new Hashtable();
-      Hashtable hashScOrder = new Hashtable();
-      try {
-        dmo = new EstimateDMO();
-        if (vPuOrderBId.size() > 0) {
-          sID = new String[vPuOrderBId.size()];
-          vPuOrderBId.toArray(sID);
-          hashPuOrder = dmo.queryOrderTaxRate(sID, false);
-        }
-        if (vScOrderBId.size() > 0) {
-          sID = new String[vScOrderBId.size()];
-          vScOrderBId.toArray(sID);
-          hashScOrder = dmo.queryOrderTaxRate(sID, true);
-        }
-      }
-      catch (NamingException ne) {
-        PubDMO.throwBusinessException(ne);
-      }
-      catch (SystemException se) {
-        PubDMO.throwBusinessException(se);
-      }
-      catch (SQLException sqlExc) {
-        PubDMO.throwBusinessException(sqlExc);
-      }
-      Object[] oaRateDis = null;
-
-      //
-      if (hashPuOrder != null && hashPuOrder.size() > 0 || hashScOrder != null
-          && hashScOrder.size() > 0) {
-        for (int i = 0; i < estimates.length; i++) {
-          if (estimates[i].getCfirsttype() == null) {
-            continue;
-          }
-          // 只处理来源于采购订单或委外订单的情况
-          if (!(estimates[i].getCfirsttype().equals(ScmConst.PO_Order))
-              && !(estimates[i].getCfirsttype().equals(ScmConst.SC_Order))) {
-            continue;
-          }
-          // 来源于采购订单
-          if (estimates[i].getCfirsttype().equals(ScmConst.PO_Order)
-              && hashPuOrder.get(estimates[i].getCfirstbillbid()) != null) {
-            oaRateDis = (Object[]) hashPuOrder.get(estimates[i]
-                .getCfirstbillbid());
-          }
-          // 来源于委外订单
-          else if (estimates[i].getCfirsttype().equals(ScmConst.SC_Order)
-              && hashScOrder.get(estimates[i].getCfirstbillbid()) != null) {
-            oaRateDis = (Object[]) hashScOrder.get(estimates[i]
-                .getCfirstbillbid());
-          }
-          // 设值
-          ufdTaxRate = new UFDouble(0);
-          Integer iDiscountTaxType = new Integer(1);
-          if (oaRateDis[0] != null) {
-            ufdTaxRate = new UFDouble(oaRateDis[0].toString());
-          }
-          if (oaRateDis[1] != null) {
-            iDiscountTaxType = (Integer) oaRateDis[1];
-          }
-          estimates[i].setNtaxrate(ufdTaxRate);
-          estimates[i].setIdiscounttaxtype(iDiscountTaxType);
-        }
-      }
-    }
-    // 非来源于采购订单也非来源于委外订单时的处理:取存货对应的税目税率,扣税类别为应税外加
-    if (vBaseId.size() > 0) {
-      String[] saBaseId = new String[vBaseId.size()];
-      vBaseId.copyInto(saBaseId);
-      HashMap hashRates = null;
-      try {
-        hashRates = new PubDMO()
-            .queryArrayValues(
-                "bd_invbasdoc left outer join bd_taxitems on bd_invbasdoc.pk_taxitems = bd_taxitems.pk_taxitems",
-                "bd_invbasdoc.pk_invbasdoc", new String[] {
-                  "bd_taxitems.taxratio"
-                }, saBaseId, null);
-      }
-      catch (NamingException ne) {
-        PubDMO.throwBusinessException(ne);
-      }
-      catch (SystemException se) {
-        PubDMO.throwBusinessException(se);
-      }
-      if (hashRates != null && hashRates.size() > 0) {
-        Object[] oaValue = null;
-        for (int i = 0; i < estimates.length; i++) {
-          if (estimates[i].getCfirsttype() == null) {
-            ufdTaxRate = new UFDouble(0);
-            oaValue = (Object[]) hashRates.get(estimates[i].getCbaseid());
-            if (oaValue != null && oaValue.length > 0) {
-              ufdTaxRate = PuPubVO.getUFDouble_NullAsZero(oaValue[0]);
-            }
-            estimates[i].setNtaxrate(ufdTaxRate);
-            estimates[i].setIdiscounttaxtype(new Integer(1));
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * 设置：内部结算库存组织ID及直运仓库ID到暂估VO，以备用(设置计划价或向存货核算传递数据)
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param estimates
-   *          <p>
-   * @author czp
-   * @time 2007-6-29 下午03:35:06
-   */
-  private void setCalBodyStorDocIds(EstimateVO[] estimates,
-      String strLoginCorpId, int nMoneyDecimal) throws BusinessException {
-    if (estimates == null || estimates.length == 0) {
-      return;
-    }
-    // 设置库存组织ID(如果是分收集结采购公司暂估，则库存组织取“采购入库单源头采购订单上采购组织定义的内部结算库存组织”)
-    int iLen = estimates.length;
-    ArrayList<String> listHid = new ArrayList<String>();
-    for (int i = 0; i < iLen; i++) {
-      // 只有来源为采购订单才可能是分收集结模式
-      if (!"21".equals(estimates[i].getCfirsttype())) {
-        continue;
-      }
-      if (estimates[i].getCfirstbillhid() == null) {
-        continue;
-      }
-      // 不必重复记录订单ID
-      if (listHid.contains(estimates[i].getCfirstbillhid())) {
-        continue;
-      }
-      // 分收集结暂估(采购公司自动＋手工，收货公司自动)才有必要处理内部结算库存组织，否则直接使用收货公司库存组织即可
-      if (EstimateVO.NORMAL.equals(estimates[i].getEstType(strLoginCorpId))) {
-        continue;
-      }
-      listHid.add(estimates[i].getCfirstbillhid());
-    }
-    if (listHid.size() == 0) {
-      return;
-    }
-    // 查询采购组织{订单ID=采购组织对应的内部结算库存组织}
-    Hashtable hashRet = null;
-    PubDMO dmo = null;
-    try {
-      dmo = new PubDMO();
-      hashRet = dmo.queryHtResultFromAnyTable(
-      // tables:
-          "bd_purorg, (select corderid, cpurorganization from po_order "
-              + "where corderid in " + new TempTableUtil().getSubSql(listHid) + // 临时表
-              " and dr = 0) tmp, bd_stordoc",
-          // key:
-          "tmp.corderid",
-          // values:
-          new String[] {
-              "bd_purorg.settlestockorg", "bd_stordoc.pk_stordoc"
-          },
-          // where:
-          "tmp.cpurorganization = bd_purorg.pk_purorg "
-              + "and bd_purorg.settlestockorg = bd_stordoc.pk_calbody "
-              + "and coalesce(bd_stordoc.isdirectstore,'N')='Y' "
-              + "and bd_purorg.dr = 0 ");
-
-      // 暂时性修改：解决成本域库存组织没有仓库的问题，导致以上SQL查找不到数据.IA接受没有仓库的数据
-      if (hashRet == null || hashRet.size() == 0) {
-        hashRet = dmo.queryHtResultFromAnyTable(
-        // tables:
-            "bd_purorg, (select corderid, cpurorganization from po_order "
-                + "where corderid in " + new TempTableUtil().getSubSql(listHid)
-                + // 临时表
-                " and dr = 0) tmp ",
-            // key:
-            "tmp.corderid",
-            // values:
-            new String[] {
-              "bd_purorg.settlestockorg"
-            },
-            // where:
-            "tmp.cpurorganization = bd_purorg.pk_purorg ");
-      }
-
-    }
-    catch (Exception e) {
-      PubDMO.throwBusinessException(e);
-    }
-    /*
-     * 设置：内部结算库存组织ID到暂估VO，以备用(设置计划价或向存货核算传递)
-     */
-    Vector vecRet = null;
-    Object[] oaRet = null;
-    //
-    if (hashRet != null && hashRet.size() > 0) {
-      for (int i = 0; i < iLen; i++) {
-        // 目前只有采购订单才支持跨公司情况，委外订单未支持
-        if (!"21".equals(estimates[i].getCfirsttype())
-            || estimates[i].getCfirstbillhid() == null
-            || EstimateVO.NORMAL
-                .equals(estimates[i].getEstType(strLoginCorpId))) {
-          continue;
-        }
-        // 如果没有查询到内部结算库存组织，则为空
-        if (!hashRet.containsKey(estimates[i].getCfirstbillhid())) {
-          continue;
-        }
-        vecRet = (Vector) hashRet.get(estimates[i].getCfirstbillhid());
-        if (vecRet == null || vecRet.size() == 0 || vecRet.elementAt(0) == null) {
-          continue;
-        }
-        // 设置内部结算库存组织
-        oaRet = (Object[]) vecRet.elementAt(0);
-        // 检查是否取得内部结算库存组织
-        if (oaRet == null || oaRet.length == 0 || oaRet[0] == null) {
-          Hashtable hashRetUnitName = null;
-          try {
-            hashRetUnitName = dmo.queryHtResultFromAnyTable("bd_corp",
-                "pk_corp", new String[] {
-                    "unitcode", "unitname"
-                }, "pk_corp = '" + estimates[i].getPk_purcorp() + "'");
-          }
-          catch (SQLException e) {
-            PubDMO.throwBusinessException(e);
-          }
-          Object[] oaRetUnitCodeName = (Object[]) ((Vector) hashRetUnitName
-              .get(estimates[i].getPk_purcorp())).get(0);
-          String strUnitCode = oaRetUnitCodeName[0] + "";
-          String strUnitName = oaRetUnitCodeName[1] + "";
-          throw new BusinessException(NCLangResOnserver.getInstance()
-              .getStrByID("40040503", "UPP40040503-000100", null, new String[] {
-                  strUnitCode, strUnitName
-              })
-          /* @res"采购公司未定义内部结算库存组织!公司编码：{0}，公司名称：{1}" */);
-        }
-        estimates[i].setPkBody(oaRet[0].toString().trim());
-        if (oaRet.length == 2)
-          // 设置直运仓
-          estimates[i].setCwarehouseidZY(oaRet[1].toString().trim());
-      }
-    }
-  }
-
-  /**
-   * 设置:暂估VO的计划单价(取档案计划价)。如果没有取得档案的计划价，将暂估VO的计划单价设置为空(本方法不处理金额)
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param estVOs
-   *          <p> 暂估VO数据
-   * @author czp
-   * @time 2007-6-29 下午03:35:06
-   * @modify by zhaoyha at 2009.1.17
-   * @说明 修改为批查方式,为提高效率.
-   */
-  private void setPriceJHJ(EstimateVO[] estVOs, String strLoginCorpId,
-      int nMoneyDecimal) throws BusinessException {
-    if (estVOs == null || estVOs.length==0) {
-      return;
-    }
-    int iLen = 0;
-    /*
-     * 缓存：存货基本ID+收票公司ID+内部结算库存组织ID，以备用(查询计划价)
-     */
-    ArrayList<String> listBaseId = new ArrayList<String>();
-    ArrayList<String> listInvoiceCorpId = new ArrayList<String>();
-    ArrayList<String> listCalbodyId = new ArrayList<String>();
-    
-    for(EstimateVO estVO:estVOs)
-
-    // 本情况是：分收集结暂估(采购公司自动＋手工，收货公司自动)模式下采购公司暂估时未定义内部结算库存组织
-    if ((!estVO.getEstType(strLoginCorpId).equals(EstimateVO.NORMAL))
-        && estVO.getPkBody() == null) {
-
-    }
-    else {
-      listBaseId.add(estVO.getCbaseid());
-      listInvoiceCorpId.add(estVO.getPk_invoicecorp());
-      // 分情况设置库存组织
-      if ((!estVO.getEstType(strLoginCorpId).equals(EstimateVO.NORMAL))) {
-        listCalbodyId.add(estVO.getPkBody());
-      }
-      else {
-        listCalbodyId.add(estVO.getCcalbodyid());
-      }
-    }
-    // 查询物料生产档案计划价{采购公司ID+库存组织(收货库存组织 或 内部结算库存组织)+存货基本ID=计划价}
-    ArrayList listTmp = null;
-    ArrayList listCorp = new ArrayList();
-    ArrayList listStor = new ArrayList();
-    ArrayList listInv = new ArrayList();
-    iLen = listBaseId.size();
-    for (int i = 0; i < iLen; i++) {
-      listTmp = new ArrayList();
-      listTmp.add(new Integer(i));
-      listTmp.add(listInvoiceCorpId.get(i));
-      listCorp.add(listTmp);
-      listTmp = new ArrayList();
-      listTmp.add(new Integer(i));
-      listTmp.add(listCalbodyId.get(i));
-      listStor.add(listTmp);
-      listTmp = new ArrayList();
-      listTmp.add(new Integer(i));
-      listTmp.add(listBaseId.get(i));
-      listInv.add(listTmp);
-    }
-    HashMap<String, ArrayList> mapJHJ = null;
-    try {
-      TempTableDMO dmo = new TempTableDMO();
-      String strTblCorp = dmo.getTempStringTable(TempTableVO.TEMPTABLE_3_A,
-          new String[] {
-              TempTableVO.TEMPPKFIELD_PU, TempTableVO.TEMPBUSINESSID_PU
-          }, new String[] {
-              "int", "char(20)"
-          }, TempTableVO.TEMPPKFIELD_PU, listCorp);
-      String strTblStor = dmo.getTempStringTable(TempTableVO.TEMPTABLE_3_B,
-          new String[] {
-              TempTableVO.TEMPPKFIELD_PU, TempTableVO.TEMPBUSINESSID_PU
-          }, new String[] {
-              "int", "char(20)"
-          }, TempTableVO.TEMPPKFIELD_PU, listStor);
-      String strTblInv = dmo.getTempStringTable(TempTableVO.TEMPTABLE_3_C,
-          new String[] {
-              TempTableVO.TEMPPKFIELD_PU, TempTableVO.TEMPBUSINESSID_PU
-          }, new String[] {
-              "int", "char(20)"
-          }, TempTableVO.TEMPPKFIELD_PU, listInv);
-      // From、Where子句
-      String strSqlFromWhere = "from bd_produce, ";
-      strSqlFromWhere += strTblCorp + ",";
-      strSqlFromWhere += strTblStor + ",";
-      strSqlFromWhere += strTblInv + " ";
-      strSqlFromWhere += "where ";
-      strSqlFromWhere += "bd_produce.pk_corp = " + strTblCorp + "."
-          + TempTableVO.TEMPBUSINESSID_PU + " ";
-      strSqlFromWhere += "and bd_produce.pk_calbody = " + strTblStor + "."
-          + TempTableVO.TEMPBUSINESSID_PU + " ";
-      strSqlFromWhere += "and bd_produce.pk_invbasdoc = " + strTblInv + "."
-          + TempTableVO.TEMPBUSINESSID_PU + " ";
-      strSqlFromWhere += "and " + strTblCorp + "." + TempTableVO.TEMPPKFIELD_PU;
-      strSqlFromWhere += "=" + strTblStor + "." + TempTableVO.TEMPPKFIELD_PU
-          + " ";
-      strSqlFromWhere += "and " + strTblStor + "." + TempTableVO.TEMPPKFIELD_PU;
-      strSqlFromWhere += "=" + strTblInv + "." + TempTableVO.TEMPPKFIELD_PU
-          + " ";
-      // 完整的SQL语句
-      String strSql = "select bd_produce.pk_corp,bd_produce.pk_calbody,bd_produce.pk_invbasdoc,bd_produce.jhj,bd_produce.pricemethod ";
-      strSql += strSqlFromWhere;
-      //
-      mapJHJ = new EstimateDMO().getHashJHJ(strSql);
-    }
-    catch (Exception e) {
-      PubDMO.throwBusinessException(e);
-    }
-    // 将计划价、记价方式设置到暂估VO{按：收票公司ID+内部结算库存组织ID+存货基本ID}
-    String strComKey = null;
-    UFDouble ufdNum = null;
-    ArrayList listPriceAndMethod = null;
-    UFDouble ufdPrice = null;
-    Integer iPriceMethod = null;
-    // iLen = estimates.length;
-    if (mapJHJ != null && mapJHJ.size() > 0) {
-      for(EstimateVO estVO:estVOs)
-
-      // 本情况是：分收集结模式下采购公司暂估时未定义内部结算库存组织
-      if ((!estVO.getEstType(strLoginCorpId).equals(EstimateVO.NORMAL))
-          && estVO.getPkBody() == null) {
-
-      }
-      else {
-        // 按：收票公司ID+库存组织ID(可能是内部结算库存组织)+存货基本ID
-        strComKey = estVO.getPk_invoicecorp();
-        // 分情况设置库存组织
-        if ((!estVO.getEstType(strLoginCorpId).equals(EstimateVO.NORMAL))) {
-          strComKey += estVO.getPkBody();
-        }
-        else {
-          strComKey += estVO.getCcalbodyid();
-        }
-        strComKey += estVO.getCbaseid();
-        //
-        listPriceAndMethod = (ArrayList<UFDouble>) mapJHJ.get(strComKey);
-        // 与V51计划价方式处理相同(未取得计划价时也不采用入库单价)
-        if (listPriceAndMethod == null || listPriceAndMethod.size() == 0) {
-          estVO.setNpriceJhj(null);
-        }
-        else {
-          ufdPrice = (UFDouble) listPriceAndMethod.get(0);
-          iPriceMethod = (Integer) listPriceAndMethod.get(1);
-          // 与V51计划价方式处理相同(未取得计划价时也不采用入库单价)
-          if (ufdPrice == null || ufdPrice.doubleValue() == 0.0) {
-            estVO.setNpriceJhj(null);
-          }
-          else {
-            // 设置记价方式
-            estVO.setPriceMethod(iPriceMethod);
-            // 设置计划价
-            estVO.setNpriceJhj(ufdPrice);
-          }
-        }
-      }
-
-    }
-    // 与V51计划价方式处理相同(未取得计划价时也不采用入库单价)
-    else {
-      for(EstimateVO estVO:estVOs)
-        estVO.setNpriceJhj(null);
-
-    }
-    //
-    return;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:查询期初暂估入库单表体及结算子子表 输入参数: 返回值: 异常处理: 修改日期：2003/02/20
-   */
-  public ArrayList queryInitialBody(String pkHead, String ts)
-      throws BusinessException {
-
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-
-      String temp = " and B.cgeneralhid = '" + pkHead
-          + "' and upper(bzgflag) = 'Y' and B.ts = '" + ts + "'";
-
-      GeneralHItemVO itemVO[] = dmo.queryInitialBody(temp);
-
-      if (itemVO != null && itemVO.length > 0) {
-        // 自由项
-        GeneralHVO VO = new GeneralHVO();
-        VO.setChildrenVO(itemVO);
-        String vfree[][] = getFreeItem0(new GeneralHVO[] {
-          VO
-        });
-        if (vfree != null && vfree.length > 0) {
-          for (int j = 0; j < itemVO.length; j++) {
-            itemVO[j].setVfree(vfree[0][j]);
-          }
-        }
-
-        // 根据入库单表体,查询结算子子表
-        GeneralBb3VO bb3VO[] = dmo.queryStockBb3(itemVO);
-
-        if (bb3VO != null && bb3VO.length > 0) {
-          ArrayList list = new ArrayList();
-          list.add(itemVO);
-          list.add(bb3VO);
-          return list;
-        }
-        else
-          return null;
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return null;
-  }
-
-  /**
-   * 功能:查询期初暂估入库单表体--临时表方案 输入:String[],入库单表头ID[]；String[],入库单表头TS[]
-   * 返回:ArrayList{GeneralHItemVO[],GeneralBb3VO[];...} 异常:SQLException
-   * 日期:2003/02/20 修改:晁志平 FOR V30 效率优化，采用临时表方案拼接查询条件
-   */
-  public ArrayList queryInitialBodyBatch(String pkHead[], String ts[])
-      throws BusinessException {
-    if (pkHead == null || pkHead.length == 0) {
-      SCMEnv.out("传入表头ID参数为空，直接返回NULL");
-      return null;
-    }
-    if (ts == null || ts.length == 0) {
-      SCMEnv.out("传入表头Ts参数为空，直接返回NULL");
-      return null;
-    }
-    if (ts.length != pkHead.length) {
-      SCMEnv.out("传入表头ID与表头Ts参数长度不一致，直接返回NULL");
-      return null;
-    }
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      /*
-       * String temp = " and upper(bzgflag) = 'Y' and ("; for (int i = 0; i <
-       * pkHead.length - 1; i++) { temp += "(B.cgeneralhid = '" + pkHead[i] + "'
-       * and B.ts = '" + ts[i] + "') or "; } temp += "(B.cgeneralhid = '" +
-       * pkHead[pkHead.length - 1] + "' and B.ts = '" + ts[pkHead.length - 1] +
-       * "')) ";
-       */
-      GeneralHItemVO itemVO[] = dmo.queryInitialBodys(pkHead, ts);
-
-      if (itemVO != null && itemVO.length > 0) {
-        // 自由项
-        GeneralHVO VO = new GeneralHVO();
-        VO.setChildrenVO(itemVO);
-        String vfree[][] = getFreeItem0(new GeneralHVO[] {
-          VO
-        });
-        if (vfree != null && vfree.length > 0) {
-          for (int j = 0; j < itemVO.length; j++) {
-            itemVO[j].setVfree(vfree[0][j]);
-          }
-        }
-
-        // 根据入库单表体,查询结算子子表
-        GeneralBb3VO bb3VO[] = dmo.queryStockBb3(itemVO);
-
-        if (bb3VO != null && bb3VO.length > 0) {
-          ArrayList list = new ArrayList();
-          for (int i = 0; i < pkHead.length; i++) {
-            String s1 = pkHead[i].trim();
-            Vector v1 = new Vector();
-            Vector v2 = new Vector();
-            for (int j = 0; j < itemVO.length; j++) {
-              String s2 = itemVO[j].getCgeneralhid().trim();
-              if (s1.equals(s2))
-                v1.addElement(itemVO[j]);
-            }
-            for (int j = 0; j < bb3VO.length; j++) {
-              String s3 = bb3VO[j].getCgeneralhid().trim();
-              if (s1.equals(s3))
-                v2.addElement(bb3VO[j]);
-            }
-
-            GeneralHItemVO tempBodyVO[] = new GeneralHItemVO[v1.size()];
-            v1.copyInto(tempBodyVO);
-            GeneralBb3VO tempBb3VO[] = new GeneralBb3VO[v2.size()];
-            v2.copyInto(tempBb3VO);
-
-            if (tempBodyVO == null || tempBodyVO.length == 0)
-              return null;
-            if (tempBb3VO == null || tempBb3VO.length == 0)
-              return null;
-
-            ArrayList list0 = new ArrayList();
-            list0.add(tempBodyVO);
-            list0.add(tempBb3VO);
-
-            list.add(list0);
-          }
-          return list;
-
-        }
-        else
-          return null;
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述: 输入参数: 返回值: 异常处理: 日期:
-   * 
-   * @return nc.vo.ps.settle.StockVO[]
-   * @param VO
-   *          nc.vo.ps.settle.StockVO[]
-   */
-  private StockVO[] queryNegStockByStock(StockVO[] VO) throws BusinessException {
-    if (VO == null || VO.length == 0)
-      return null;
-
-    // 来源单据行ID唯一性组合
-    Vector vID = new Vector();
-    vID.addElement(VO[0].getCfirstbillbid());
-    for (int i = 1; i < VO.length; i++) {
-      String s = VO[i].getCfirstbillbid();
-      if (!vID.contains(s))
-        vID.addElement(s);
-    }
-
-    // 设置查询条件
-    String unitCode = VO[0].getPk_corp();
-    String sCondition = " and upper(isok) = 'N' and upper(bzgflag) = 'Y' and cfirstbillbid in ";
-    /*
-     * ('"; for (int i = 0; i < vID.size() - 1; i++) sCondition +=
-     * vID.elementAt(i) + "','"; sCondition += vID.elementAt(vID.size() - 1) +
-     * "')";
-     */
-    try {
-      // 临时表
-      String strSetId = null;
-      nc.bs.scm.pub.TempTableDMO dmoTempTbl = new nc.bs.scm.pub.TempTableDMO();
-      String[] sTemp = new String[vID.size()];
-      vID.copyInto(sTemp);
-      strSetId = dmoTempTbl.insertTempTable(sTemp,
-          nc.vo.scm.pub.TempTableVO.TEMPTABLE_PU56,
-          nc.vo.scm.pub.TempTableVO.TEMPPKFIELD_PU);
-      if (strSetId == null || strSetId.trim().equals("()")) {
-        strSetId = " ('ErrorPk') ";
-      }
-      sCondition += strSetId;
-
-      SettleDMO dmo = new SettleDMO();
-      int iDigitLocalCurrType = BsPuTool.getCCurrDecimal(unitCode);
-      StockVO stockVOs[] = dmo.queryStock(unitCode, sCondition,
-          iDigitLocalCurrType, false);
-
-      // 比较查询出的副入库单是否已存在,若存在,应删除
-      if (stockVOs != null && stockVOs.length > 0) {
-        Vector vTemp = new Vector();
-        for (int i = 0; i < VO.length; i++) {
-          if (!vTemp.contains(VO[i].getCgeneralbid()))
-            vTemp.addElement(VO[i].getCgeneralbid());
-        }
-        Vector vvTemp = new Vector();
-        for (int i = 0; i < stockVOs.length; i++) {
-          if (!vTemp.contains(stockVOs[i].getCgeneralbid()))
-            vvTemp.addElement(stockVOs[i]);
-        }
-        stockVOs = new StockVO[vvTemp.size()];
-        vvTemp.copyInto(stockVOs);
-      }
-      //
-
-      if (stockVOs != null && stockVOs.length > 0) {
-        Vector vTemp = new Vector();
-        for (int i = 0; i < stockVOs.length; i++)
-          vTemp.addElement(stockVOs[i].getCprovidermangid());
-        String sVendorMangID[] = new String[vTemp.size()];
-        vTemp.copyInto(sVendorMangID);
-        String sVendorBaseID[] = dmo.getVendorBaseKey(sVendorMangID);
-
-        // 计算未结算数量，本币未结算金额
-        for (int i = 0; i < stockVOs.length; i++) {
-          stockVOs[i].setCproviderbaseid(sVendorBaseID[i]);
-          UFDouble d1 = stockVOs[i].getNinnum();
-          UFDouble d2 = stockVOs[i].getNaccumsettlenum();
-          if (d1 == null || d1.toString().trim().length() == 0)
-            d1 = new UFDouble(0);
-          if (d2 == null || d2.toString().trim().length() == 0)
-            d2 = new UFDouble(0);
-          double d = d1.doubleValue() - d2.doubleValue();
-          stockVOs[i].setNnosettlenum(new UFDouble(d));
-          d1 = stockVOs[i].getNmoney();
-          d2 = stockVOs[i].getNaccumsettlemny();
-          if (d1 == null || d1.toString().trim().length() == 0)
-            d1 = new UFDouble(0);
-          if (d2 == null || d2.toString().trim().length() == 0)
-            d2 = new UFDouble(0);
-          d = d1.doubleValue() - d2.doubleValue();
-          stockVOs[i].setNnosettlemny(new UFDouble(d).add(new UFDouble(0.0),
-              BsPuTool.getCCurrDecimal(null)));
-        }
-
-        // 未结算数量相反，暂估金额相反
-        Vector vStockVOs = new Vector();
-        for (int i = 0; i < VO.length; i++) {
-          boolean bFound = false;
-          String s1 = VO[i].getCsourcebillbid();
-          if (s1 == null || s1.trim().length() == 0) {
-            vStockVOs.addElement(null);
-            continue;
-          }
-          UFDouble nNum1 = VO[i].getNnosettlenum();
-          UFDouble nMoney1 = VO[i].getNmoney();
-          for (int j = 0; j < stockVOs.length; j++) {
-            String s2 = stockVOs[j].getCsourcebillbid();
-            if (s2 == null || s2.trim().length() == 0)
-              continue;
-            UFDouble nNum2 = stockVOs[j].getNnosettlenum();
-            UFDouble nMoney2 = stockVOs[j].getNmoney();
-            if (s1.equals(s2)
-                && (nNum1.doubleValue() == -1 * nNum2.doubleValue())
-                && (nMoney1.doubleValue() == -1 * nMoney2.doubleValue())) {
-              vStockVOs.addElement(stockVOs[j]);
-              bFound = true;
-              break;
-            }
-          }
-
-          if (!bFound)
-            vStockVOs.addElement(null);
-        }
-        if (vStockVOs.size() > 0) {
-          StockVO VOs[] = new StockVO[vStockVOs.size()];
-          vStockVOs.copyInto(VOs);
-          return VOs;
-        }
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return null;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:订单查询(不包括费用属性的存货) 输入参数: 返回值: 异常处理:
-   */
-  public OorderVO[] queryOrder(String strLoginCorpId,
-      ConditionVO conditionVO[], String biztypeID[], String sEstPriceSource)
-      throws BusinessException {
-
-    OorderVO[] orders = null;
-    int nPriceDecimal = 2;
-    int nMoneyDecimal = 0;
-
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-
-      // 分解查询条件
-      String sCondition = "";
-
-      ArrayList listRet = dealCondVosForPowerForOrder(conditionVO);
-      conditionVO = (ConditionVO[]) listRet.get(0);
-      String strDataPowerSql = (String) listRet.get(1);
-
-      for (int i = 0; i < conditionVO.length; i++) {
-        String sName = conditionVO[i].getFieldCode().trim();
-        String sOpera = conditionVO[i].getOperaCode().trim();
-        String sValue = conditionVO[i].getValue();
-        String sSQL = conditionVO[i].getSQLStr();
-        String sReplace = null;
-
-        if (sName.equals("dorderdate") && sValue != null && sValue.length() > 0) {
-          sReplace = "po_order.dorderdate " + sOpera + " '" + sValue + "'";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        if (sName.equals("vordercode") && sValue != null && sValue.length() > 0) {
-          sReplace = "po_order.vordercode " + sOpera + " '" + sValue + "'";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        if (sName.equals("cvendorbaseid") && sValue != null
-            && sValue.length() > 0) {
-          if (strLoginCorpId != null)
-            sReplace = "po_order.cvendorbaseid in (select A.pk_cubasdoc from bd_cubasdoc A,bd_cumandoc B where B.pk_corp = '"
-                + strLoginCorpId
-                + "' and A.pk_cubasdoc = B.pk_cubasdoc and custcode "
-                + sOpera
-                + " '" + sValue + "' and (custflag = '1' or custflag = '3'))";
-          else
-            sReplace = "po_order.cvendorbaseid in (select A.pk_cubasdoc from bd_cubasdoc A,bd_cumandoc B where A.pk_cubasdoc = B.pk_cubasdoc and custcode "
-                + sOpera
-                + " '"
-                + sValue
-                + "' and (custflag = '1' or custflag = '3'))";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        if (sName.equals("cbaseid") && sValue != null && sValue.length() > 0) {
-          if (strLoginCorpId != null)
-            sReplace = "po_order_b.cbaseid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invmandoc B where B.pk_corp = '"
-                + strLoginCorpId
-                + "' and A.pk_invbasdoc = B.pk_invbasdoc and invcode "
-                + sOpera
-                + " '" + sValue + "')";
-          else
-            sReplace = "po_order_b.cbaseid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invmandoc B where A.pk_invbasdoc = B.pk_invbasdoc and invcode "
-                + sOpera + " '" + sValue + "')";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        if (sName.equals("cinvclassid") && sValue != null
-            && sValue.length() > 0) {
-          try {
-            String sClassCode[] = dmo.getSubInvClassCode(sValue);
-
-            if (sClassCode != null && sClassCode.length > 0) {
-              sValue = "(";
-              for (int j = 0; j < sClassCode.length; j++) {
-                if (j < sClassCode.length - 1)
-                  sValue += "invclasscode " + sOpera + " '" + sClassCode[j]
-                      + "' or ";
-                else
-                  sValue += "invclasscode " + sOpera + " '" + sClassCode[j]
-                      + "')";
-              }
-              sReplace = "po_order_b.cbaseid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invmandoc B,bd_invcl C where B.pk_corp = '"
-                  + strLoginCorpId
-                  + "' and A.pk_invbasdoc = B.pk_invbasdoc and A.pk_invcl = C.pk_invcl and "
-                  + sValue + ")";
-            }
-            else {
-              sReplace = "po_order_b.cbaseid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invmandoc B,bd_invcl C where B.pk_corp = '"
-                  + strLoginCorpId
-                  + "' and A.pk_invbasdoc = B.pk_invbasdoc and A.pk_invcl = C.pk_invcl and invclasscode "
-                  + sOpera + " '" + sValue + "')";
-            }
-            String s = getReplacedSQL(sSQL, sName, sReplace);
-            sCondition += s;
-          }
-          catch (Exception e) {
-            /* 此异常不必抛出,直接返回NULL */
-            SCMEnv.out(e);
-            return null;
-          }
-        }
-
-        if (sName.equals("cbiztype") && sValue != null && sValue.length() > 0) {
-          sReplace = "po_order.cbiztype in (select pk_busitype from bd_busitype where busicode "
-              + sOpera + " '" + sValue + "')";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-      }
-
-      sCondition = PubDMO.processFirst(sCondition);
-
-      String s = " and po_order.cbiztype in (";
-      for (int i = 0; i < biztypeID.length; i++) {
-        if (i != biztypeID.length - 1)
-          s += "'" + biztypeID[i] + "',";
-        else
-          s += "'" + biztypeID[i] + "')";
-      }
-      sCondition += s;
-
-      // 订单头查询条件
-      sCondition += " and coalesce(po_order.bislatest, 'Y') = 'Y' ";
-      // 订单体查询条件
-      sCondition += " and po_order_b.iisactive = "
-          + nc.vo.po.OrderItemVO.IISACTIVE_ACTIVE;
-
-      // 支持集中采购,since v502, 支持分收集结模式的订单生成期初暂估, by czp&fengping
-      sCondition += " and (po_order_b.pk_invoicecorp = po_order_b.pk_arrvcorp and po_order_b.pk_invoicecorp = '"
-          + strLoginCorpId + "' ";
-      sCondition += " or po_order_b.pk_arrvcorp <> '" + strLoginCorpId
-          + "' and po_order_b.pk_invoicecorp = '" + strLoginCorpId + "') ";
-
-      if (strDataPowerSql != null)
-        sCondition += " and " + strDataPowerSql;
-
-      orders = dmo.queryOrder(strLoginCorpId, sCondition);
-
-      // 获取单价和金额精度,公司,since v502, 重构到一处算法，by czp&fengping
-      setEstVosPricesForOorderBills(orders, strLoginCorpId);
-
-      // ISysInitQry myService =
-      // (ISysInitQry)nc.bs.framework.common.NCLocator.getInstance().lookup(ISysInitQry.class.getName());
-      // nPriceDecimal = myService.getParaInt(unitCode,"BD505");
-      // UFDouble dTemp = VMIDMO.getDigitRMB(unitCode);
-      // while(dTemp.doubleValue() < 1){
-      // dTemp = dTemp.multiply(10);
-      // nMoneyDecimal++;
-      // }
-      //
-      // //计算暂估数量，暂估单价，暂估金额
-      // if (orders == null || orders.length == 0)
-      // return orders;
-      // for (int i = 0; i < orders.length; i++) {
-      // UFDouble d1 = orders[i].getNordernum();
-      // UFDouble d2 = orders[i].getNaccumstorenum();
-      // UFDouble d3 = orders[i].getNmoney();
-      // if (d2 == null)
-      // d2 = new UFDouble(0.0);
-      // if (d1 != null && d2 != null) {
-      // double d = d1.doubleValue() - d2.doubleValue();
-      // orders[i].setNgaugenum(new UFDouble(d));
-      // }
-      // if (d1 != null && d3 != null && d1.doubleValue() != 0.0) {
-      // double d = d3.doubleValue() / d1.doubleValue();
-      // orders[i].setNprice(new
-      // UFDouble(PubDMO.getRoundDouble(nPriceDecimal,d)));
-      // }
-      // UFDouble d4 = orders[i].getNgaugenum();
-      // UFDouble d5 = orders[i].getNprice();
-      // if (d4 != null && d5 != null) {
-      // double d = d4.doubleValue() * d5.doubleValue();
-      // orders[i].setNmoney(new
-      // UFDouble(PubDMO.getRoundDouble(nMoneyDecimal,d)));
-      // }
-      // }
-      //
-      // if (sEstPriceSource != null && sEstPriceSource.trim().length() >
-      // 0) {
-      // orders = dmo.replacePriceForOrder(orders, sEstPriceSource,
-      // nPriceDecimal, nMoneyDecimal);
-      // }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return orders;
-  }
-
-  /**
-   * 
-   * 父类方法重写
-   * 
-   * @see nc.itf.ps.estimate.IEstimate#queryOrder(java.lang.String, java.lang.String)
-   */
-  public OorderVO[] queryOrder(String strLoginCorpId, String sCondition) throws BusinessException {
-
-    OorderVO[] orders = null;
-    int nPriceDecimal = 2;
-    int nMoneyDecimal = 0;
-
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-
-      // 订单头查询条件
-      sCondition += " and coalesce(po_order.bislatest, 'Y') = 'Y' ";
-      // 订单体查询条件
-      sCondition += " and po_order_b.iisactive = "
-          + nc.vo.po.OrderItemVO.IISACTIVE_ACTIVE;
-
-      // 支持集中采购,since v502, 支持分收集结模式的订单生成期初暂估, by czp&fengping
-      sCondition += " and (po_order_b.pk_invoicecorp = po_order_b.pk_arrvcorp and po_order_b.pk_invoicecorp = '"
-          + strLoginCorpId + "' ";
-      sCondition += " or po_order_b.pk_arrvcorp <> '" + strLoginCorpId
-          + "' and po_order_b.pk_invoicecorp = '" + strLoginCorpId + "') ";
-
-
-      orders = dmo.queryOrder(strLoginCorpId, sCondition);
-
-      // 获取单价和金额精度,公司,since v502, 重构到一处算法，by czp&fengping
-      setEstVosPricesForOorderBills(orders, strLoginCorpId);
-
-      // ISysInitQry myService =
-      // (ISysInitQry)nc.bs.framework.common.NCLocator.getInstance().lookup(ISysInitQry.class.getName());
-      // nPriceDecimal = myService.getParaInt(unitCode,"BD505");
-      // UFDouble dTemp = VMIDMO.getDigitRMB(unitCode);
-      // while(dTemp.doubleValue() < 1){
-      // dTemp = dTemp.multiply(10);
-      // nMoneyDecimal++;
-      // }
-      //
-      // //计算暂估数量，暂估单价，暂估金额
-      // if (orders == null || orders.length == 0)
-      // return orders;
-      // for (int i = 0; i < orders.length; i++) {
-      // UFDouble d1 = orders[i].getNordernum();
-      // UFDouble d2 = orders[i].getNaccumstorenum();
-      // UFDouble d3 = orders[i].getNmoney();
-      // if (d2 == null)
-      // d2 = new UFDouble(0.0);
-      // if (d1 != null && d2 != null) {
-      // double d = d1.doubleValue() - d2.doubleValue();
-      // orders[i].setNgaugenum(new UFDouble(d));
-      // }
-      // if (d1 != null && d3 != null && d1.doubleValue() != 0.0) {
-      // double d = d3.doubleValue() / d1.doubleValue();
-      // orders[i].setNprice(new
-      // UFDouble(PubDMO.getRoundDouble(nPriceDecimal,d)));
-      // }
-      // UFDouble d4 = orders[i].getNgaugenum();
-      // UFDouble d5 = orders[i].getNprice();
-      // if (d4 != null && d5 != null) {
-      // double d = d4.doubleValue() * d5.doubleValue();
-      // orders[i].setNmoney(new
-      // UFDouble(PubDMO.getRoundDouble(nMoneyDecimal,d)));
-      // }
-      // }
-      //
-      // if (sEstPriceSource != null && sEstPriceSource.trim().length() >
-      // 0) {
-      // orders = dmo.replacePriceForOrder(orders, sEstPriceSource,
-      // nPriceDecimal, nMoneyDecimal);
-      // }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return orders;
-  }
-
-  
-  
-  /**
-   * 此处插入方法说明。 功能描述:来源是订单的入库单的业务类型 输入参数: 返回值: 异常处理:
-   */
-  public String[] querySpeBiztypeID(String unitCode) throws BusinessException {
-    String s[] = null;
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      s = dmo.querySpeBiztypeID(unitCode);
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return s;
-  }
-
-  /**
-   * 支持数据权限处理，拆分查询条件是用户录入自定义查询条件，还是UI端系统拼接的数据权限查询条件
-   * 
-   * @param voaCond
-   * @return{0、非权限条件VO[]；1、权限条件查询串}
-   */
-  private ArrayList dealCondVosForPowerForInitial(ConditionVO[] voaCond) {
-
-    // 拆分用户录入VO、数据权限VO
-    ArrayList listUserInputVos = new ArrayList();
-    ArrayList listPowerVos = new ArrayList();
-
-    int iLen = voaCond.length;
-
-    for (int i = 0; i < iLen; i++) {
-      if (voaCond[i].getOperaCode().trim().equalsIgnoreCase("IS")
-          && voaCond[i].getValue().trim().equalsIgnoreCase("NULL")) {
-        listPowerVos.add(voaCond[i]);
-        i++;
-        listPowerVos.add(voaCond[i]);
-      }
-      else {
-        listUserInputVos.add(voaCond[i]);
-      }
-    }
-
-    // 组织返回VO
-    ArrayList listRet = new ArrayList();
-
-    // 用户录入
-    ConditionVO[] voaCondUserInput = null;
-    if (listUserInputVos.size() > 0) {
-      voaCondUserInput = new ConditionVO[listUserInputVos.size()];
-      listUserInputVos.toArray(voaCondUserInput);
-    }
-    listRet.add(voaCondUserInput);
-
-    // 数据权限VO==>查询条件串
-    ConditionVO[] voaCondPower = null;
-    if (listPowerVos.size() > 0) {
-      voaCondPower = new ConditionVO[listPowerVos.size()];
-      listPowerVos.toArray(voaCondPower);
-      String strPowerWherePart = voaCondPower[0].getWhereSQL(voaCondPower);
-      // 将非标准的字段替换掉
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "custcode", "pk_cumandoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cvendorbaseid", "cproviderid");
-
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "invcode", "b.pk_invbasdoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cbaseid", "cinvbasid");
-
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cinvclassid", "cinvbasid");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "invclasscode", "pk_invbasdoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil
-          .replaceAllString(
-              strPowerWherePart,
-              "bd_invcl where 0=0  and pk_invcl",
-              "bd_invcl, bd_invbasdoc where bd_invcl.pk_invcl = bd_invbasdoc.pk_invcl and bd_invcl.pk_invcl");
-      //   
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "deptcode", "pk_deptdoc");
-      strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
-          strPowerWherePart, "cdeptid", "cdptid");
-      //
-      listRet.add(strPowerWherePart);
-    }
-    else {
-      listRet.add(null);
-    }
-
-    return listRet;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:查询期初暂估入库单 输入参数: 返回值: 异常处理:
-   */
-  public GeneralHVO[] queryStockForEstimate(String unitCode,
-      ConditionVO conditionVO[]) throws BusinessException {
-
-    GeneralHVO[] generals = null;
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      // 分解查询条件
-      String sCondition = "";
-
-      ArrayList listRet = dealCondVosForPowerForInitial(conditionVO);
-      conditionVO = (ConditionVO[]) listRet.get(0);
-      String strDataPowerSql = (String) listRet.get(1);
-
-      for (int i = 0; i < conditionVO.length; i++) {
-        String sName = conditionVO[i].getFieldCode().trim();
-        String sOpera = conditionVO[i].getOperaCode().trim();
-        String sValue = conditionVO[i].getValue();
-        String sSQL = conditionVO[i].getSQLStr();
-        
-        String sReplace = null;
-
-        if (sName.equals("dbilldate") && sValue != null && sValue.length() > 0) {
-          sReplace = "dbilldate " + sOpera + " '" + sValue + "'";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        if (sName.equals("vordercode") && sValue != null && sValue.length() > 0) {
-          sReplace = "vsourcebillcode " + sOpera + " '" + sValue + "'";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        if (sName.equals("vbillcode") && sValue != null && sValue.length() > 0) {
-          sReplace = "vbillcode " + sOpera + " '" + sValue + "'";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-        
-        if (sName.equals("coperatorid") && sValue != null
-            && sValue.length() > 0) {
-          // sReplace = "coperatorid " + sOpera + " '" + sValue + "'";
-          sReplace = "coperatorid in (select cuserid from sm_user where user_code "
-              + sOpera + " '" + sValue + "')";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        if (sName.equals("cwarehouseid") && sValue != null
-            && sValue.length() > 0) {
-          sReplace = "cwarehouseid in (select pk_stordoc from bd_stordoc where storcode "
-              + sOpera + " '" + sValue + "')";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-          //      
-          // sReplace = "cwarehouseid " + sOpera + " '" + sValue +
-          // "'";
-          // String s = getReplacedSQL(sSQL, sName, sReplace);
-          // sCondition += s;
-        }
-
-        if (sName.equals("cbaseid") && sValue != null && sValue.length() > 0) {
-          sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc where invcode "
-              + sOpera + " '" + sValue + "')";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        if (sName.equals("cinvclassid") && sValue != null
-            && sValue.length() > 0) {
-          try {
-            String sClassCode[] = dmo.getSubInvClassCode(sValue);
-
-            if (sClassCode != null && sClassCode.length > 0) {
-              sValue = "(";
-              for (int j = 0; j < sClassCode.length; j++) {
-                if (j < sClassCode.length - 1)
-                  sValue += "invclasscode " + sOpera + " '" + sClassCode[j]
-                      + "' or ";
-                else
-                  sValue += "invclasscode " + sOpera + " '" + sClassCode[j]
-                      + "')";
-              }
-              sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc B,bd_invcl C where "
-                  + sValue + " and B.pk_invcl = C.pk_invcl)";
-            }
-            else {
-              sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc B,bd_invcl C where "
-                  + "invclasscode "
-                  + sOpera
-                  + " '"
-                  + sValue
-                  + "' and B.pk_invcl = C.pk_invcl)";
-            }
-            String s = getReplacedSQL(sSQL, sName, sReplace);
-            sCondition += s;
-          }
-          catch (Exception e) {
-            /* 此异常不必抛出,直接返回NULL */
-            SCMEnv.out(e);
-            return null;
-          }
-        }
-
-        if (sName.equals("cvendorbaseid") && sValue != null
-            && sValue.length() > 0) {
-          if (unitCode != null)
-            sReplace = "cproviderid in (select pk_cumandoc from bd_cumandoc A, bd_cubasdoc B where A.pk_corp = '"
-                + unitCode
-                + "' and custcode "
-                + sOpera
-                + " '"
-                + sValue
-                + "' and A.pk_cubasdoc = B.pk_cubasdoc and (custflag = '1' or custflag = '3'))";
-          else
-            sReplace = "cproviderid in (select pk_cumandoc from bd_cumandoc A, bd_cubasdoc B where custcode "
-                + sOpera
-                + " '"
-                + sValue
-                + "'and A.pk_cubasdoc = B.pk_cubasdoc and (custflag = '1' or custflag = '3'))";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-
-        // 打印次数
-        if (sName.equals("iprintcount") && sValue != null
-            && sValue.length() > 0) {
-          String s = " and (A.iprintcount" + sOpera + sValue + ")";
-          sCondition += s;
-        }
-
-        if (sName.equals("cgeneralhid") && sValue != null
-            && sValue.length() > 0) {
-          String s = " and (A.cgeneralhid " + sOpera + "'" + sValue + "')";
-          sCondition += s;
-        }
-
-        // 收货公司
-        if (sName.equals("pk_stockcorp") && sValue != null
-            && sValue.length() > 0) {
-          sReplace = "A.pk_corp in (select pk_corp from bd_corp where unitcode "
-              + sOpera + " '" + sValue + "')";
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-        
-        // 表体备注
-        if (sName.equals("ic_general_b.vnotebody") && sValue != null
-            && sValue.length() > 0) {
-          String snValue=" '"+sValue+"'";
-          if("like".equalsIgnoreCase(sOpera.trim()))
-            snValue=" '%" +sValue+"%'";
-          sReplace="B.vnotebody "+sOpera+snValue;
-          String s = getReplacedSQL(sSQL, sName, sReplace);
-          sCondition += s;
-        }
-        
-      }
-
-      sCondition = PubDMO.processFirst(sCondition);
-
-      if (strDataPowerSql != null)
-        sCondition += " and " + strDataPowerSql;
-
-      // 收票公司=登录公司
-      sCondition += " and B.pk_invoicecorp = '" + unitCode + "' ";
-      //
-      GeneralHHeaderVO hVO[] = dmo.queryStockHead(null, sCondition);
-      if (hVO == null || hVO.length == 0)
-        return null;
-
-      // 根据入库单表头，查询入库单表体(入库单未结算)
-      Vector v = new Vector();
-      String temp = "";
-      String key = hVO[0].getCgeneralhid();
-      if (key != null && key.trim().length() > 0) {
-        temp = " where dr = 0 and cgeneralhid = '" + key
-            + "' and upper(bzgflag) = 'Y'";
-      }
-      else {
-        temp = " where dr = 0 and upper(bzgflag) = 'Y'";
-      }
-
-      GeneralHItemVO itemVO[] = dmo.queryStockBodyForInitial(temp);
-      GeneralHVO vo = new GeneralHVO(itemVO.length);
-      vo.setParentVO(hVO[0]);
-      vo.setChildrenVO(itemVO);
-
-      if (itemVO != null && itemVO.length > 0) {
-        // 根据入库单表体,查询结算子子表
-        GeneralBb3VO bb3VO[] = dmo.queryStockBb3(itemVO);
-        vo.setGrandVO(bb3VO);
-      }
-
-      v.addElement(vo);
-
-      for (int i = 1; i < hVO.length; i++) {
-        GeneralHVO VO = new GeneralHVO(1);
-        VO.setParentVO(hVO[i]);
-
-        v.addElement(VO);
-      }
-
-      if (v.size() > 0) {
-        generals = new GeneralHVO[v.size()];
-        v.copyInto(generals);
-
-        // 自由项（第一张单据）
-        String vfree[][] = getFreeItem0(new GeneralHVO[] {
-          generals[0]
-        });
-        if (vfree != null && vfree.length > 0) {
-          GeneralHItemVO bodyVO[] = generals[0].getBodyVO();
-          if (bodyVO != null && bodyVO.length > 0) {
-            for (int j = 0; j < bodyVO.length; j++) {
-              bodyVO[j].setVfree(vfree[0][j]);
-            }
-          }
-        }
-      }
-
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return generals;
-  }
-
-  /**
-   * 功能描述:查询入库单表体。服务于存货核算。 输入参数: 返回值: 异常处理: 修改：2004-05-31 晁志平 FOR V30 向存货核算传递换算率
-   */
-  private Vector queryStockBodyForIA(EstimateVO VOs[]) throws BusinessException {
-    Vector v = new Vector();
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      Vector v1 = new Vector();
-      Vector v2 = new Vector();
-      Vector v3 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        v1.addElement(VOs[i].getCmangid());
-        v2.addElement(VOs[i].getCwarehouseid());
-        v3.addElement(VOs[i].getCgeneralbid());
-      }
-      String cMangID[] = new String[v1.size()];
-      v1.copyInto(cMangID);
-      String cWarehouseID[] = new String[v2.size()];
-      v2.copyInto(cWarehouseID);
-      String keys[] = new String[v3.size()];
-      v3.copyInto(keys);
-
-      GeneralHItemVO tempVO[] = dmo.queryStockBodyForIA(keys);
-      ArrayList list = dmo.queryPriceMethod(cMangID, cWarehouseID);
-
-      for (int i = 0; i < VOs.length; i++) {
-        ArrayList list1 = (ArrayList) list.get(i);
-
-        Vector vTemp = new Vector();
-        vTemp.addElement(tempVO[i]);
-        if (list1 != null && list1.size() > 1) {
-          vTemp.addElement(list1.get(0));
-          vTemp.addElement(list1.get(1));
-        }
-        else {
-          vTemp.addElement(null);
-          vTemp.addElement(null);
-        }
-
-        v.addElement(vTemp);
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return v;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:查询期初暂估入库单 输入参数: 返回值: 异常处理:
-   */
-  public GeneralHVO queryStockByHeadKey(String unitCode, String headKey)
-      throws BusinessException {
-    if (headKey == null || headKey.trim().length() == 0)
-      return null;
-    GeneralHVO[] generals = null;
-
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-
-      String sCondition = " and A.cgeneralhid = '" + headKey + "'";
-      GeneralHHeaderVO hVO[] = dmo.queryStockHead(unitCode, sCondition);
-      if (hVO == null || hVO.length == 0)
-        return null;
-
-      // 根据入库单表头，查询入库单表体(入库单未结算)
-      Vector v = new Vector();
-      String temp = "";
-      String key = hVO[0].getCgeneralhid();
-      if (key != null && key.trim().length() > 0) {
-        temp = " where dr = 0 and cgeneralhid = '" + key
-            + "' and upper(bzgflag) = 'Y'";
-      }
-      else {
-        temp = " where dr = 0 and upper(bzgflag) = 'Y'";
-      }
-
-      GeneralHItemVO itemVO[] = dmo.queryStockBodyForInitial(temp);
-      GeneralHVO vo = new GeneralHVO(itemVO.length);
-      vo.setParentVO(hVO[0]);
-      vo.setChildrenVO(itemVO);
-
-      if (itemVO != null && itemVO.length > 0) {
-        // 根据入库单表体,查询结算子子表
-        GeneralBb3VO bb3VO[] = dmo.queryStockBb3(itemVO);
-        vo.setGrandVO(bb3VO);
-      }
-
-      v.addElement(vo);
-
-      for (int i = 1; i < hVO.length; i++) {
-        GeneralHVO VO = new GeneralHVO(1);
-        VO.setParentVO(hVO[i]);
-
-        v.addElement(VO);
-      }
-
-      if (v.size() > 0) {
-        generals = new GeneralHVO[v.size()];
-        v.copyInto(generals);
-
-        // 自由项（第一张单据）
-        String vfree[][] = getFreeItem0(new GeneralHVO[] {
-          generals[0]
-        });
-        if (vfree != null && vfree.length > 0) {
-          GeneralHItemVO bodyVO[] = generals[0].getBodyVO();
-          if (bodyVO != null && bodyVO.length > 0) {
-            for (int j = 0; j < bodyVO.length; j++) {
-              bodyVO[j].setVfree(vfree[0][j]);
-            }
-          }
-        }
-      }
-
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return generals[0];
-  }
-
-  /**
-   * 功能描述:查询入库单表头。服务于存货核算。 输入参数: 返回值: 异常处理:
-   */
-  private Vector queryStockHeadForIA(String sGeneralhid[],
-      String sWarehouseid[]) throws BusinessException {
-
-    Vector v = new Vector();
-    try {
-      EstimateDMO dmo = new EstimateDMO();
-      GeneralHHeaderVO tempVO[] = dmo.queryStockHeadForIA(sGeneralhid);
-      String temp[] = dmo.queryStoreOrgID(sWarehouseid);
-
-      for (int i = 0; i < sGeneralhid.length; i++) {
-        Vector vTemp = new Vector();
-        vTemp.addElement(tempVO[i]);
-        vTemp.addElement(temp[i]);
-
-        v.addElement(vTemp);
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-
-    return v;
-  }
-
-  /**
-   * 功能描述:回退入库单号 输入参数: 返回值: 异常处理: 日期:2004-06-02
-   */
-
-  private void returnBillCode(GeneralHHeaderVO head) throws BusinessException {
-    String vBillcode = null;
-
-    // 获取入库单号
-    try {
-      nc.vo.pub.billcodemanage.BillCodeObjValueVO vo = new nc.vo.pub.billcodemanage.BillCodeObjValueVO();
-
-      String sNames[] = {
-          "仓库", "当前操作员", "收发类别"
-      };
-      String sKeys[] = {
-          "cwarehouseid", "coperatorid", "cdispatcherid"
-      };
-      for (int i = 0; i < sNames.length; i++) {
-        Object o = head.getAttributeValue(sKeys[i]);
-        vo.setAttributeValue(sNames[i], o);
-      }
-      vo.setAttributeValue("库存组织", getStoreOrg(head.getCwarehouseid()));
-
-      vBillcode = head.getVbillcode();
-      if (vBillcode == null || vBillcode.length() == 0)
-        vBillcode = null;
-
-      IBillcodeRuleService bo = (IBillcodeRuleService) nc.bs.framework.common.NCLocator
-          .getInstance().lookup(IBillcodeRuleService.class.getName());
-      bo.returnBillCodeOnDelete(head.getPk_corp(), "45", vBillcode, vo);
-
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-  }
-
-  /**
-   * 功能描述:入库单暂估时向存货核算系统传送数据(成批单据传送)
-   */
-  private void saveBillFromOutter(EstimateVO[] VOs, String cOperator,
-      UFDate dCurrDate, String strLoginCorpId, String strModuleCode)
-      throws BusinessException {
-    nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
-    timer.start();
-
-    try {
-      // 将暂估VO转换为存货VO，包含部分后续处理
-      BillVO[] billVOs = transferIAData(VOs, cOperator, dCurrDate,
-          strLoginCorpId);
-      timer.addExecutePhase("暂估VO转换为存货VO[VO对照及后续处理]");
-      //
-      String sTime = (new UFDateTime(new Date())).toString();
-      // 检查重复表体行
-      String strErrLines = "";
-      HashMap<String, String> mapErrLine = new HashMap<String, String>();
-      for (int i = 0; i < billVOs.length; i++) {
-        ((BillHeaderVO) billVOs[i].getParentVO()).setVbillcode(null);
-        ((BillHeaderVO) billVOs[i].getParentVO()).setTmaketime(sTime);
-        ((BillHeaderVO) billVOs[i].getParentVO()).setTlastmaketime(sTime);
-        ((BillHeaderVO) billVOs[i].getParentVO()).setClastoperatorid(cOperator);
-        BillItemVO bodyVO[] = (BillItemVO[]) billVOs[i].getChildrenVO();
-        if (bodyVO != null && bodyVO.length > 0) {
-          for (int j = 0; j < bodyVO.length; j++) {
-            bodyVO[j].setVbillcode(null);
-            bodyVO[j].setIrownumber(new Integer(j));
-            if (PuPubVO.getString_TrimZeroLenAsNull(bodyVO[j]
-                .getCsourcebillitemid()) != null
-                && mapErrLine.containsKey(bodyVO[j].getCsourcebillitemid())) {
-              strErrLines += NCLangResOnserver.getInstance().getStrByID("4004050301", "UPP4004050301-000003", null, new String[]{bodyVO[j].getCicbillcode(),bodyVO[j].getCsourcebillitemid()})/*入库单号：{0}入库单行主键：{1}\n*/;
-            }
-            else {
-              mapErrLine.put(bodyVO[j].getCsourcebillitemid(), "");
-            }
-          }
-        }
-      }
-      timer.addExecutePhase("保存存货核算单据前检查");
-
-      // 保存存货核算单据前检查
-      if (strErrLines.length() > 0) {
-        throw new BusinessException(NCLangResOnserver.getInstance().getStrByID("4004050301", "UPP4004050301-000005", null, new String[]{strErrLines})/*本次要传递给存货核算单据中存在重复的入库单行：\n{0}*/);
-      }
-      // IIAToPUBill myService = (IIAToPUBill)
-      // NCLocator.getInstance().lookup(IIAToPUBill.class.getName());
-      // 保存前处理
-      SettleImpl.dealBeforeCallIaSave(billVOs);
-      timer.addExecutePhase("保存前处理");
-
-      // 调用IA保存
-      // myService.saveBillFromOutterArray(billVOs, s1, s2);
-      ClientLink cl = PuUtils
-          .getClintLink(strLoginCorpId, cOperator, dCurrDate);
-      if (ProductCode.PROD_PO.equals(strModuleCode)) {
-        IIAToPU myService = (IIAToPU) NCLocator.getInstance().lookup(
-            IIAToPU.class.getName());
-        myService.estimatePU(billVOs, cl);
-      }
-      else if (ProductCode.PROD_SC.equals(strModuleCode)) {
-        IIAToSC myService = (IIAToSC) NCLocator.getInstance().lookup(
-            IIAToSC.class.getName());
-        myService.estimateSC(billVOs, cl);
-      }
-      else {
-        throw new BusinessException("Impossible : not PO and not SC!");
-      }
-      timer.addExecutePhase("执行IA保存接口方法");
-
-      // 保存存货核算单据后检查：针对碧桂园等项目出现过生成重复单据情况做此检查
-      ArrayList<String> listIcBids = new EstimateDMO().getIdsFromIA(billVOs);
-      if (listIcBids != null && listIcBids.size() > 0) {
-        strErrLines = "";
-        mapErrLine = new HashMap<String, String>();
-        for (int i = 0; i < billVOs.length; i++) {
-          BillItemVO bodyVO[] = (BillItemVO[]) billVOs[i].getChildrenVO();
-          if (bodyVO != null && bodyVO.length > 0) {
-            for (int j = 0; j < bodyVO.length; j++) {
-              if (PuPubVO.getString_TrimZeroLenAsNull(bodyVO[j]
-                  .getCsourcebillitemid()) != null
-                  && listIcBids.contains(bodyVO[j].getCsourcebillitemid())) {
-                strErrLines += NCLangResOnserver.getInstance().getStrByID("4004050301", "UPP4004050301-000003", null, new String[]{bodyVO[j].getCicbillcode(),bodyVO[j].getCsourcebillitemid()})/*入库单号：{0}入库单行主键：{1}\n*/;
-              }
-            }
-          }
-        }
-        //
-        if (strErrLines.length() > 0) {
-          throw new BusinessException(NCLangResOnserver.getInstance().getStrByID("4004050301", "UPP4004050301-000005", null, new String[]{strErrLines})/*本次要传递给存货核算单据中存在重复的入库单行：\n{0}*/);
-        }
-      }
-      //
-      timer.addExecutePhase("保存存货核算单据后检查");
-      //
-      timer.showAllExecutePhase("存货核算保存方法[数据准备、存货核算保存、保存后检查]时间消耗情况：\n");
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:入库单暂估时向存货核算系统传送数据 (成批单据传送) 输入参数: 返回值: 异常处理:
-   */
-  private void saveBillFromOutterForSC(EstimateVO VOs[], String strLoginCorp,
-      String cOperator, UFDate dCurrDate) throws BusinessException {
-    Vector vTemp = new Vector();
-    for (int i = 0; i < VOs.length; i++) {
-      StockVO VO = new StockVO();
-      VO.setPk_corp(VOs[i].getPk_corp());
-      VO.setCgeneralhid(VOs[i].getCgeneralhid());
-      VO.setCgeneralbid(VOs[i].getCgeneralbid());
-      VO.setCgeneralbb3(VOs[i].getCgeneralbb3());
-      VO.setNinnum(VOs[i].getNinnum());
-      VO.setNprice(VOs[i].getNprice());
-      VO.setNmoney(VOs[i].getNmoney());
-      VO.setNnosettlenum(VOs[i].getNinnum());
-      VO.setNnosettlemny(VOs[i].getNmoney());
-      VO.setNaccumsettlenum(new UFDouble(0));
-      VO.setNaccumsettlemny(new UFDouble(0));
-      VO.setCmangid(VOs[i].getCmangid());
-      VO.setCbaseid(VOs[i].getCbaseid());
-      VO.setCprovidermangid(VOs[i].getCprovidermangid());
-      VO.setCproviderbaseid(VOs[i].getCproviderbaseid());
-      vTemp.addElement(VO);
-    }
-    StockVO stockVOs[] = new StockVO[vTemp.size()];
-    vTemp.copyInto(stockVOs);
-
-    // 生成结算单体
-    SettlebillItemVO settlebillItemVOs[] = generateSettlebillItemForSC(stockVOs);
-    if (settlebillItemVOs == null || settlebillItemVOs.length == 0)
-      return;
-
-    // 修改参与结算的入库单的累计结算数量/累计结算金额
-    Vector v = doModificationForSC(stockVOs, settlebillItemVOs, cOperator,
-        dCurrDate);
-
-    SettlebillVO settlebillVO = (SettlebillVO) v.elementAt(0);
-    stockVOs = (StockVO[]) v.elementAt(1);
-
-    // IIAToPUBill myService = null;
-    try {
-      // myService = (IIAToPUBill) NCLocator.getInstance().lookup(
-      // IIAToPUBill.class.getName());
-      BillVO billVOs[] = transferIADataForSC(VOs, cOperator, dCurrDate,
-          settlebillVO);
-
-      // 对存货核算单进行处理: 相同表头的单据组合成一张单据
-      // (1) 存货核算单据来源单据头ID唯一性组合
-      v = new Vector();
-      Vector vTemp0 = new Vector();
-      vTemp0.addElement(((BillHeaderVO) billVOs[0].getParentVO()).getCbillid()
-          .trim());
-      v.addElement(billVOs[0]);
-      for (int i = 1; i < billVOs.length; i++) {
-        String s1 = ((BillHeaderVO) billVOs[i].getParentVO()).getCbillid()
-            .trim();
-        if (!vTemp0.contains(s1)) {
-          vTemp0.addElement(s1);
-          v.addElement(billVOs[i]);
-        }
-      }
-
-      // (3) 所有存货核算单据体的来源单据头ID相同, 归为同一张存货核算单据
-      Vector vv = new Vector();
-      for (int i = 0; i < v.size(); i++) {
-        BillVO tempVO = (BillVO) v.elementAt(i);
-        String s1 = ((BillHeaderVO) tempVO.getParentVO()).getCbillid().trim();
-        vTemp = new Vector();
-        for (int j = 0; j < billVOs.length; j++) {
-          String s2 = ((BillHeaderVO) billVOs[j].getParentVO()).getCbillid()
-              .trim();
-          if (s1.equals(s2)) {
-            BillItemVO tempItemVO[] = (BillItemVO[]) billVOs[j].getChildrenVO();
-            for (int k = 0; k < tempItemVO.length; k++)
-              vTemp.addElement(tempItemVO[k]);
-          }
-        }
-
-        BillItemVO tempItemVOs[] = new BillItemVO[vTemp.size()];
-        vTemp.copyInto(tempItemVOs);
-
-        // 重新设置表体行号
-        for (int j = 0; j < tempItemVOs.length; j++)
-          tempItemVOs[j].setIrownumber(new Integer(j));
-
-        tempVO.setChildrenVO(tempItemVOs);
-        vv.addElement(tempVO);
-      }
-
-      // (4) 整理需向存货传送的单据
-      billVOs = null;
-      billVOs = new BillVO[vv.size()];
-      vv.copyInto(billVOs);
-
-      // 传送数据
-      if (billVOs == null || billVOs.length == 0)
-        return;
-
-      String s1 = ((BillHeaderVO) billVOs[0].getParentVO())
-          .getCsourcemodulename();
-      String s2 = ((BillItemVO[]) billVOs[0].getChildrenVO())[0]
-          .getCsourcebilltypecode();
-      //
-      String sTime = (new UFDateTime(new Date())).toString();
-      for (int i = 0; i < billVOs.length; i++) {
-        ((BillHeaderVO) billVOs[i].getParentVO()).setVbillcode(null);
-        ((BillHeaderVO) billVOs[i].getParentVO()).setTlastmaketime(sTime);
-        ((BillHeaderVO) billVOs[i].getParentVO()).setTmaketime(sTime);
-        ((BillHeaderVO) billVOs[i].getParentVO()).setClastoperatorid(cOperator);
-        BillItemVO bodyVO[] = (BillItemVO[]) billVOs[i].getChildrenVO();
-        if (bodyVO != null && bodyVO.length > 0) {
-          for (int j = 0; j < bodyVO.length; j++)
-            bodyVO[j].setVbillcode(null);
-        }
-      }
-      // 保存前处理
-      SettleImpl.dealBeforeCallIaSave(billVOs);
-      // 调用IA保存
-      // myService.saveBillFromOutterArray(billVOs, s1, s2);
-      IIAToSC srvIa = (IIAToSC) NCLocator.getInstance().lookup(
-          IIAToSC.class.getName());
-      srvIa.estimateSC(billVOs, PuUtils.getClintLink(strLoginCorp, cOperator,
-          dCurrDate));
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-  }
-
-  /**
-   * 功能描述:暂估中，已暂估正负入库单可自动结算 日期:2003/05/29 作者：熊海情 修改：晁志平 For V30 增加返回值{调用者解锁用主键}
-   */
-  private String[] settleForEstimate(EstimateVO VOs[], String cOperator,
-      UFDate dCurrDate, String sEstMode, String sDifferMode)
-      throws BusinessException {
-    // 暂估入库单VO转换为结算入库单VO
-    StockVO stockVOs[] = switchStockVO(VOs);
-    // 查询已暂估的负入库单VO
-    StockVO negStockVOs[] = queryNegStockByStock(stockVOs);
-    // 生成结算单体
-    SettlebillItemVO settlebillItemVOs[] = generateSettlebillItem(stockVOs,
-        negStockVOs);
-    if (settlebillItemVOs == null || settlebillItemVOs.length == 0)
-      return null;
-    // 修改参与结算的入库单的累计结算数量/累计结算金额
-    Vector v = doModification(stockVOs, negStockVOs, settlebillItemVOs,
-        cOperator, dCurrDate);
-    SettlebillVO settlebillVO = (SettlebillVO) v.elementAt(0);
-    stockVOs = (StockVO[]) v.elementAt(1);
-    negStockVOs = (StockVO[]) v.elementAt(2);
-
-    // 对参与结算的已暂估的负入库单做加锁，在调用者解锁
-    String[] saIdForLock = getStockLockKeys(negStockVOs);
-
-    // 向存货核算传送数据
-    nc.bs.ps.settle.SettleImpl myService0 = null;
-    boolean bLock = false;
-    try {
-      bLock = LockTool.setLockForPks(saIdForLock, cOperator);
-      if (!bLock) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000017")/*
-                                                           * @res
-                                                           * "暂估自动结算用到的已结入库单正在被使用，请稍后再试!"
-                                                           */);
-      }
-      myService0 = new nc.bs.ps.settle.SettleImpl();
-      ArrayList listPara = new ArrayList();
-      listPara.add(sEstMode);
-      listPara.add(sDifferMode);
-      listPara.add(settlebillVO);
-      listPara.add(cOperator);
-      listPara.add(dCurrDate);
-      listPara.add(null);
-      listPara.add(null);
-      listPara.add(null);// since v55
-      listPara.add(null);// since v55
-      myService0.saveBillFromOutter1(listPara);
-    }
-    catch (Exception e) {
-      // 出现异常时释放锁
-      if (bLock) {
-        LockTool.releaseLockForPks(saIdForLock, cOperator);
-      }
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return saIdForLock;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:暂估入库单VO转换为结算入库单VO 输入参数: 返回值: 异常处理: 日期:2003/05/29
-   * 
-   * @return nc.vo.ps.settle.StockVO[]
-   * @param VO
-   *          nc.vo.ps.estimate.EstimateVO[]
-   * @modify by czp since v502 ，支持跨公司暂估
-   */
-  private StockVO[] switchStockVO(EstimateVO[] VO) throws BusinessException {
-    Vector v = new Vector();
-
-    for (int i = 0; i < VO.length; i++) {
-      StockVO vo = new StockVO();
-      vo.setCdeptid(null);
-      vo.setCoperatorid(null);
-      vo.setCprovidermangid(VO[i].getCprovidermangid());
-      vo.setCproviderbaseid(VO[i].getCproviderbaseid());
-
-      // since v502 修改， 支持跨公司暂估------------
-      // vo.setPk_corp(VO[i].getPk_corp());
-      vo.setPk_corp(VO[i].getPk_invoicecorp());
-      vo.setPk_stockcorp(VO[i].getPk_corp());
-      vo.setPk_purcorp(VO[i].getPk_purcorp());
-      // -------------------------------------------
-
-      vo.setVbillcode(VO[i].getVbillcode());
-      vo.setCgeneralhid(VO[i].getCgeneralhid());
-      vo.setCgeneralbid(VO[i].getCgeneralbid());
-      vo.setCgeneralbb3(VO[i].getCgeneralbb3());
-      vo.setCmangid(VO[i].getCmangid());
-      vo.setCbaseid(VO[i].getCbaseid());
-
-      // 数量：入库数量
-      vo.setNinnum(VO[i].getNinnum());
-      // 单价：暂估单价
-      vo.setNprice(VO[i].getNprice());
-      // 金额：暂估金额
-      vo.setNmoney(VO[i].getNmoney());
-      // 累计结算数量
-      vo.setNaccumsettlenum(VO[i].getNsettlenum());
-      // 累计结算金额
-      vo.setNaccumsettlemny(VO[i].getNsettlemny());
-
-      // 未结算数量
-      UFDouble d1 = vo.getNinnum();
-      UFDouble d2 = vo.getNaccumsettlenum();
-      if (d1 == null)
-        d1 = new UFDouble(0);
-      if (d2 == null)
-        d2 = new UFDouble(0);
-      double d = d1.doubleValue() - d2.doubleValue();
-      vo.setNnosettlenum(new UFDouble(d));
-      // 未结算金额
-      d1 = vo.getNmoney();
-      d2 = vo.getNaccumsettlemny();
-      if (d1 == null)
-        d1 = new UFDouble(0);
-      if (d2 == null)
-        d2 = new UFDouble(0);
-      d = d1.doubleValue() - d2.doubleValue();
-      vo.setNnosettlemny(new UFDouble(d).add(new UFDouble(0.0), BsPuTool
-          .getCCurrDecimal(null)));
-
-      // 来源信息
-      vo.setCsourcebillhid(VO[i].getCsourcebillhid());
-      vo.setCsourcebillbid(VO[i].getCsourcebillbid());
-      vo.setVsourcebillcode(null);
-      // 源头信息
-      vo.setCfirstbillhid(VO[i].getCfirstbillhid());
-      vo.setCfirstbillbid(VO[i].getCfirstbillbid());
-
-      vo.setVuserdefh1(VO[i].getVuserdefh1());
-      vo.setVuserdefh2(VO[i].getVuserdefh2());
-      vo.setVuserdefh3(VO[i].getVuserdefh3());
-      vo.setVuserdefh4(VO[i].getVuserdefh4());
-      vo.setVuserdefh5(VO[i].getVuserdefh5());
-      vo.setVuserdefh6(VO[i].getVuserdefh6());
-      vo.setVuserdefh7(VO[i].getVuserdefh7());
-      vo.setVuserdefh8(VO[i].getVuserdefh8());
-      vo.setVuserdefh9(VO[i].getVuserdefh9());
-      vo.setVuserdefh10(VO[i].getVuserdefh10());
-
-      vo.setVuserdefh11(VO[i].getVuserdefh11());
-      vo.setVuserdefh12(VO[i].getVuserdefh12());
-      vo.setVuserdefh13(VO[i].getVuserdefh13());
-      vo.setVuserdefh14(VO[i].getVuserdefh14());
-      vo.setVuserdefh15(VO[i].getVuserdefh15());
-      vo.setVuserdefh16(VO[i].getVuserdefh16());
-      vo.setVuserdefh17(VO[i].getVuserdefh17());
-      vo.setVuserdefh18(VO[i].getVuserdefh18());
-      vo.setVuserdefh19(VO[i].getVuserdefh19());
-      vo.setVuserdefh20(VO[i].getVuserdefh20());
-
-      vo.setPk_defdoch1(VO[i].getPk_defdoch1());
-      vo.setPk_defdoch2(VO[i].getPk_defdoch2());
-      vo.setPk_defdoch3(VO[i].getPk_defdoch3());
-      vo.setPk_defdoch4(VO[i].getPk_defdoch4());
-      vo.setPk_defdoch5(VO[i].getPk_defdoch5());
-      vo.setPk_defdoch6(VO[i].getPk_defdoch6());
-      vo.setPk_defdoch7(VO[i].getPk_defdoch7());
-      vo.setPk_defdoch8(VO[i].getPk_defdoch8());
-      vo.setPk_defdoch9(VO[i].getPk_defdoch9());
-      vo.setPk_defdoch10(VO[i].getPk_defdoch10());
-
-      vo.setPk_defdoch11(VO[i].getPk_defdoch11());
-      vo.setPk_defdoch12(VO[i].getPk_defdoch12());
-      vo.setPk_defdoch13(VO[i].getPk_defdoch13());
-      vo.setPk_defdoch14(VO[i].getPk_defdoch14());
-      vo.setPk_defdoch15(VO[i].getPk_defdoch15());
-      vo.setPk_defdoch16(VO[i].getPk_defdoch16());
-      vo.setPk_defdoch17(VO[i].getPk_defdoch17());
-      vo.setPk_defdoch18(VO[i].getPk_defdoch18());
-      vo.setPk_defdoch19(VO[i].getPk_defdoch19());
-      vo.setPk_defdoch20(VO[i].getPk_defdoch20());
-
-      vo.setVuserdefb1(VO[i].getVuserdef1());
-      vo.setVuserdefb2(VO[i].getVuserdef2());
-      vo.setVuserdefb3(VO[i].getVuserdef3());
-      vo.setVuserdefb4(VO[i].getVuserdef4());
-      vo.setVuserdefb5(VO[i].getVuserdef5());
-      vo.setVuserdefb6(VO[i].getVuserdef6());
-      vo.setVuserdefb7(VO[i].getVuserdef7());
-      vo.setVuserdefb8(VO[i].getVuserdef8());
-      vo.setVuserdefb9(VO[i].getVuserdef9());
-      vo.setVuserdefb10(VO[i].getVuserdef10());
-
-      vo.setVuserdefb11(VO[i].getVuserdef11());
-      vo.setVuserdefb12(VO[i].getVuserdef12());
-      vo.setVuserdefb13(VO[i].getVuserdef13());
-      vo.setVuserdefb14(VO[i].getVuserdef14());
-      vo.setVuserdefb15(VO[i].getVuserdef15());
-      vo.setVuserdefb16(VO[i].getVuserdef16());
-      vo.setVuserdefb17(VO[i].getVuserdef17());
-      vo.setVuserdefb18(VO[i].getVuserdef18());
-      vo.setVuserdefb19(VO[i].getVuserdef19());
-      vo.setVuserdefb20(VO[i].getVuserdef20());
-
-      vo.setPk_defdocb1(VO[i].getPk_defdocb1());
-      vo.setPk_defdocb2(VO[i].getPk_defdocb2());
-      vo.setPk_defdocb3(VO[i].getPk_defdocb3());
-      vo.setPk_defdocb4(VO[i].getPk_defdocb4());
-      vo.setPk_defdocb5(VO[i].getPk_defdocb5());
-      vo.setPk_defdocb6(VO[i].getPk_defdocb6());
-      vo.setPk_defdocb7(VO[i].getPk_defdocb7());
-      vo.setPk_defdocb8(VO[i].getPk_defdocb8());
-      vo.setPk_defdocb9(VO[i].getPk_defdocb9());
-      vo.setPk_defdocb10(VO[i].getPk_defdocb10());
-
-      vo.setPk_defdocb11(VO[i].getPk_defdocb11());
-      vo.setPk_defdocb12(VO[i].getPk_defdocb12());
-      vo.setPk_defdocb13(VO[i].getPk_defdocb13());
-      vo.setPk_defdocb14(VO[i].getPk_defdocb14());
-      vo.setPk_defdocb15(VO[i].getPk_defdocb15());
-      vo.setPk_defdocb16(VO[i].getPk_defdocb16());
-      vo.setPk_defdocb17(VO[i].getPk_defdocb17());
-      vo.setPk_defdocb18(VO[i].getPk_defdocb18());
-      vo.setPk_defdocb19(VO[i].getPk_defdocb19());
-      vo.setPk_defdocb20(VO[i].getPk_defdocb20());
-
-      if (vo.getCsourcebillhid() != null
-          && vo.getCsourcebillhid().trim().length() > 0
-          && (VO[i].getBzgyf() == null || !VO[i].getBzgyf().booleanValue()))
-        v.addElement(vo);
-    }
-
-    if (v.size() > 0) {
-      StockVO VOs[] = new StockVO[v.size()];
-      v.copyInto(VOs);
-      return VOs;
-    }
-
-    return null;
-  }
-
-  /*
-   * 暂估VO转换为库存入库单VO,服务于暂估VO对照 2007-03-19 xhq
-   */
-  private GeneralBillVO switchVOFromEstimate2IC(EstimateVO estVO,
-      String strLoginCorpId) {
-    GeneralBillItemVO bodyVO = new GeneralBillItemVO();
-
-    bodyVO.setCgeneralbid(estVO.getCgeneralbid());
-    bodyVO.setCgeneralhid(estVO.getCgeneralhid());
-
-    bodyVO.setCinventoryid(estVO.getCmangid());
-
-    bodyVO.setVbatchcode(estVO.getVbatchcode());
-    bodyVO.setNinnum(estVO.getNinnum());
-    bodyVO.setNmny(estVO.getNmoney());
-    bodyVO.setNprice(estVO.getNprice());
-
-    bodyVO.setCaccountunitid(estVO.getCastunitid());
-    bodyVO.setHsl(estVO.getHsl());
-    bodyVO.setNinassistnum(estVO.getNinassistnum());
-
-    bodyVO.setCfirstbillhid(estVO.getCfirstbillhid());
-    bodyVO.setCfirstbillbid(estVO.getCfirstbillbid());
-    bodyVO.setCfirsttype(estVO.getCfirsttype());
-
-    bodyVO.setVfree1(estVO.getVfree1());
-    bodyVO.setVfree2(estVO.getVfree2());
-    bodyVO.setVfree3(estVO.getVfree3());
-    bodyVO.setVfree4(estVO.getVfree4());
-    bodyVO.setVfree5(estVO.getVfree5());
-
-    bodyVO.setCprojectid(estVO.getCprojectid());
-    bodyVO.setCprojectphaseid(estVO.getCprojectphaseid());
-
-    bodyVO.setVuserdef1(estVO.getVuserdef1());
-    bodyVO.setVuserdef2(estVO.getVuserdef2());
-    bodyVO.setVuserdef3(estVO.getVuserdef3());
-    bodyVO.setVuserdef4(estVO.getVuserdef4());
-    bodyVO.setVuserdef5(estVO.getVuserdef5());
-    bodyVO.setVuserdef6(estVO.getVuserdef6());
-    bodyVO.setVuserdef7(estVO.getVuserdef7());
-    bodyVO.setVuserdef8(estVO.getVuserdef8());
-    bodyVO.setVuserdef9(estVO.getVuserdef9());
-    bodyVO.setVuserdef10(estVO.getVuserdef10());
-
-    bodyVO.setAttributeValue("vuserdef11", estVO.getVuserdef11());
-    bodyVO.setAttributeValue("vuserdef12", estVO.getVuserdef12());
-    bodyVO.setAttributeValue("vuserdef13", estVO.getVuserdef13());
-    bodyVO.setAttributeValue("vuserdef14", estVO.getVuserdef14());
-    bodyVO.setAttributeValue("vuserdef15", estVO.getVuserdef15());
-    bodyVO.setAttributeValue("vuserdef16", estVO.getVuserdef16());
-    bodyVO.setAttributeValue("vuserdef17", estVO.getVuserdef17());
-    bodyVO.setAttributeValue("vuserdef18", estVO.getVuserdef18());
-    bodyVO.setAttributeValue("vuserdef19", estVO.getVuserdef19());
-    bodyVO.setAttributeValue("vuserdef20", estVO.getVuserdef20());
-
-    bodyVO.setAttributeValue("pk_defdoc1", estVO.getPk_defdocb1());
-    bodyVO.setAttributeValue("pk_defdoc2", estVO.getPk_defdocb2());
-    bodyVO.setAttributeValue("pk_defdoc3", estVO.getPk_defdocb3());
-    bodyVO.setAttributeValue("pk_defdoc4", estVO.getPk_defdocb4());
-    bodyVO.setAttributeValue("pk_defdoc5", estVO.getPk_defdocb5());
-    bodyVO.setAttributeValue("pk_defdoc6", estVO.getPk_defdocb6());
-    bodyVO.setAttributeValue("pk_defdoc7", estVO.getPk_defdocb7());
-    bodyVO.setAttributeValue("pk_defdoc8", estVO.getPk_defdocb8());
-    bodyVO.setAttributeValue("pk_defdoc9", estVO.getPk_defdocb9());
-    bodyVO.setAttributeValue("pk_defdoc10", estVO.getPk_defdocb10());
-
-    bodyVO.setAttributeValue("pk_defdoc11", estVO.getPk_defdocb11());
-    bodyVO.setAttributeValue("pk_defdoc12", estVO.getPk_defdocb12());
-    bodyVO.setAttributeValue("pk_defdoc13", estVO.getPk_defdocb13());
-    bodyVO.setAttributeValue("pk_defdoc14", estVO.getPk_defdocb14());
-    bodyVO.setAttributeValue("pk_defdoc15", estVO.getPk_defdocb15());
-    bodyVO.setAttributeValue("pk_defdoc16", estVO.getPk_defdocb16());
-    bodyVO.setAttributeValue("pk_defdoc17", estVO.getPk_defdocb17());
-    bodyVO.setAttributeValue("pk_defdoc18", estVO.getPk_defdocb18());
-    bodyVO.setAttributeValue("pk_defdoc19", estVO.getPk_defdocb19());
-    bodyVO.setAttributeValue("pk_defdoc20", estVO.getPk_defdocb20());
-
-    bodyVO.setDbizdate(estVO.getDbizdate());
-    bodyVO.setCvendorid(estVO.getCvendorid());
-
-    // since v502---------------------
-    bodyVO.setAttributeValue("pk_corp", estVO.getPk_corp());
-    bodyVO.setAttributeValue("pk_invoicecorp", estVO.getPk_invoicecorp());
-    bodyVO.setCinvbasid(estVO.getCbaseid());
-    bodyVO.setCastunitid(estVO.getCastunitid());// 辅计量
-    // -------------------------------
-
-    // zhf v55 支持传应付vo转换调整
-    bodyVO.setAttributeValue("noriginalnetprice", estVO.getNoriginalnetprice());
-    bodyVO.setAttributeValue("norgnettaxprice", estVO.getNorgnettaxprice());
-    bodyVO.setAttributeValue("noriginalcurmny", estVO.getNoriginalcurmny());
-    bodyVO.setAttributeValue("noriginaltaxpricemny", estVO
-        .getNoriginaltaxpricemny());
-
-    // bodyVO.setAttributeValue("nprice", estVO.getNprice());
-    // bodyVO.setAttributeValue("ntaxprice", estVO.getNtaxprice());
-    
-    // ----- v55 by zhaoyha at 2008.9.22 --------------
-    // 暂估成本和暂估应付单独处理
-    //bodyVO.setAttributeValue("nmoney", estVO.getNmoney());
-    bodyVO.setAttributeValue("nmoney", estVO.getNzgyfnotaxmoney());
-    bodyVO.setAttributeValue("ntotalmoney", estVO.getNtotalmoney());
-    bodyVO.setAttributeValue("norgtaxmoney", PuPubVO.getUFDouble_NullAsZero(estVO.getNoriginaltaxpricemny()).sub(
-        PuPubVO.getUFDouble_NullAsZero(estVO.getNoriginalcurmny())));
-    bodyVO.setAttributeValue("ntaxmoney", PuPubVO.getUFDouble_NullAsZero(estVO.getNtotalmoney()).sub(
-        PuPubVO.getUFDouble_NullAsZero(estVO.getNzgyfnotaxmoney())));
-    // ------ end by zhaoyha ----------------------------
-    
-    // zhf end ---------------------------------------------------------
-    
-    bodyVO.setCcorrespondbid(estVO.getCcorrespondbid());
-    bodyVO.setCcorrespondcode(estVO.getCcorrespondcode());
-    bodyVO.setCcorrespondhid(estVO.getCcorrespondhid());
-
-    GeneralBillHeaderVO headVO = new GeneralBillHeaderVO();
-    headVO.setPk_corp(estVO.getPk_corp());
-    // since v502---------------------
-    headVO.setAttributeValue("pk_purcorp", estVO.getPk_purcorp());
-    // -------------------------------
-    headVO.setCbilltypecode(estVO.getCbilltypecode());
-    headVO.setCgeneralhid(estVO.getCgeneralhid());
-
-    headVO.setCdispatcherid(estVO.getCdispatcherid());
-
-    headVO.setCbiztypeid(estVO.getCbiztype());
-
-    headVO.setPk_calbody(estVO.getCcalbodyid());
-    headVO.setCwarehouseid(estVO.getCwarehouseid());
-
-    // since v502,取采购公司(=收票公司)内部结算库存组织、直运仓--------------
-    if (!estVO.getEstType(strLoginCorpId).equals(EstimateVO.NORMAL)) {
-      headVO.setPk_calbody(estVO.getPkBody());
-      headVO.setCwarehouseid(estVO.getCwarehouseidZY());
-    }
-    // ----------------------------------------------------------------------------
-
-    headVO.setCdptid(estVO.getCdptid());
-
-    headVO.setCproviderid(estVO.getCprovidermangid());
-
-    headVO.setVnote(estVO.getVnote());
-
-    headVO.setCwhsmanagerid(estVO.getCwhsmanagerid());
-    headVO.setCbizid(estVO.getCoperatorid());
-
-    headVO.setVbillcode(estVO.getVbillcode());
-
-    /*
-     * since v502 ----------------------------------- bgn
-     * 如果是分收集结，需要记录暂估VO是否已经设置过供应商(收货公司档案ID)为收票方(收票公司档案ID)，
-     * 从而在对库存单据进行跨公司ID转换时决定是否要转换客商档案ID
-     * 在跨公司ID转换方法中，完成判断是否需要转换ID后即恢复单据号属性,跨公司ID转换方法：changeDocIdsFromArrToPur()
-     */
-    if (EstimateVO.isFSJJAll(estVO.getPk_purcorp(), estVO.getPk_corp(), estVO
-        .getPk_invoicecorp(), strLoginCorpId)) {
-      // 入库单号=入库单号+ 分隔符号 + {true:false}
-      headVO.setVbillcode(headVO.getVbillcode() + EstimateVO.SEPSIGN
-          + estVO.isNeedChgVendorDoc());
-    }
-    /* since v502 ----------------------------------- end */
-
-    headVO.setIscalculatedinvcost(estVO.getBcalculatecost());
-
-    headVO.setVuserdef1(estVO.getVuserdefh1());
-    headVO.setVuserdef2(estVO.getVuserdefh2());
-    headVO.setVuserdef3(estVO.getVuserdefh3());
-    headVO.setVuserdef4(estVO.getVuserdefh4());
-    headVO.setVuserdef5(estVO.getVuserdefh5());
-    headVO.setVuserdef6(estVO.getVuserdefh6());
-    headVO.setVuserdef7(estVO.getVuserdefh7());
-    headVO.setVuserdef8(estVO.getVuserdefh8());
-    headVO.setVuserdef9(estVO.getVuserdefh9());
-    headVO.setVuserdef10(estVO.getVuserdefh10());
-
-    headVO.setAttributeValue("vuserdef11", estVO.getVuserdefh11());
-    headVO.setAttributeValue("vuserdef12", estVO.getVuserdefh12());
-    headVO.setAttributeValue("vuserdef13", estVO.getVuserdefh13());
-    headVO.setAttributeValue("vuserdef14", estVO.getVuserdefh14());
-    headVO.setAttributeValue("vuserdef15", estVO.getVuserdefh15());
-    headVO.setAttributeValue("vuserdef16", estVO.getVuserdefh16());
-    headVO.setAttributeValue("vuserdef17", estVO.getVuserdefh17());
-    headVO.setAttributeValue("vuserdef18", estVO.getVuserdefh18());
-    headVO.setAttributeValue("vuserdef19", estVO.getVuserdefh19());
-    headVO.setAttributeValue("vuserdef20", estVO.getVuserdefh20());
-
-    headVO.setAttributeValue("pk_defdoc1", estVO.getPk_defdoch1());
-    headVO.setAttributeValue("pk_defdoc2", estVO.getPk_defdoch2());
-    headVO.setAttributeValue("pk_defdoc3", estVO.getPk_defdoch3());
-    headVO.setAttributeValue("pk_defdoc4", estVO.getPk_defdoch4());
-    headVO.setAttributeValue("pk_defdoc5", estVO.getPk_defdoch5());
-    headVO.setAttributeValue("pk_defdoc6", estVO.getPk_defdoch6());
-    headVO.setAttributeValue("pk_defdoc7", estVO.getPk_defdoch7());
-    headVO.setAttributeValue("pk_defdoc8", estVO.getPk_defdoch8());
-    headVO.setAttributeValue("pk_defdoc9", estVO.getPk_defdoch9());
-    headVO.setAttributeValue("pk_defdoc10", estVO.getPk_defdoch10());
-
-    headVO.setAttributeValue("pk_defdoc11", estVO.getPk_defdoch11());
-    headVO.setAttributeValue("pk_defdoc12", estVO.getPk_defdoch12());
-    headVO.setAttributeValue("pk_defdoc13", estVO.getPk_defdoch13());
-    headVO.setAttributeValue("pk_defdoc14", estVO.getPk_defdoch14());
-    headVO.setAttributeValue("pk_defdoc15", estVO.getPk_defdoch15());
-    headVO.setAttributeValue("pk_defdoc16", estVO.getPk_defdoch16());
-    headVO.setAttributeValue("pk_defdoc17", estVO.getPk_defdoch17());
-    headVO.setAttributeValue("pk_defdoc18", estVO.getPk_defdoch18());
-    headVO.setAttributeValue("pk_defdoc19", estVO.getPk_defdoch19());
-    headVO.setAttributeValue("pk_defdoc20", estVO.getPk_defdoch20());
-
-    //
-    headVO.setDbilldate(estVO.getDbilldate());
-
-    GeneralBillVO VO = new GeneralBillVO(1);
-    VO.setParentVO(headVO);
-    VO.setChildrenVO(new GeneralBillItemVO[] {
-      bodyVO
-    });
-    return VO;
-  }
-
-  /**
-   * 跨公司ID转换{收货公司->采购公司}，需要转换的档案包括：供应商、项目、存货。
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * 
-   * @param icVOs
-   *          库存单据VO数组
-   *          <p>
-   *          注意，将暂估VO转换为库存VO后，是否转换过供应商为收票方信息丢失，
-   *          <p>
-   *          为了标明是否需要转换供应商，将单据号=单据号+{true:false},需要在此方法中恢复单据号属性内容
-   * @throws BusinessException
-   *           <p>
-   * @author czp
-   * @time 2007-7-11 上午11:08:21
-   */
-  private void changeDocIdsFromArrToPur(GeneralBillVO[] vos, String strLoginCorp)
-      throws BusinessException {
-    if (vos == null || vos.length == 0) {
-      return;
-    }
-    // 获取要转换的档案VO及金额VO
-    ArrayList<ChgDocPkVO> listVendor = new ArrayList<ChgDocPkVO>();
-    ArrayList<ChgDocPkVO> listProject = new ArrayList<ChgDocPkVO>();
-    ArrayList<ChgDocPkVO> listInventory = new ArrayList<ChgDocPkVO>();
-    ChgDocPkVO chgDocVo = null;
-    String strArrCorp = null;
-    String strPurCorp = null;
-    String strInvoiceCorp = null;
-    GeneralBillItemVO[] items = null;
-    GeneralBillHeaderVO head = null;
-    UFDate ufdArrDate = null;
-    int iLen = vos.length;
-    int jLen = 0;
-    int iInvCntOld = 0;
-    for (int i = 0; i < iLen; i++) {
-      if (vos[i].getChildrenVO() == null || vos[i].getChildrenVO().length == 0) {
-        continue;
-      }
-      head = (GeneralBillHeaderVO) vos[i].getParentVO();
-      strPurCorp = (String) head.getAttributeValue("pk_purcorp");
-      strArrCorp = head.getPk_corp();
-      //
-      items = (GeneralBillItemVO[]) vos[i].getChildrenVO();
-      jLen = items.length;
-
-      // 用于判断本张单据是否存在分收集结入库单行
-      iInvCntOld = listInventory.size();
-
-      for (int j = 0; j < jLen; j++) {
-        //
-        if (items[j] == null) {
-          continue;
-        }
-        // 不是分收集结采购公司暂估时不必处理转换
-        strInvoiceCorp = PuPubVO.getString_TrimZeroLenAsNull(items[j]
-            .getAttributeValue("pk_invoicecorp"));
-        if (!EstimateVO.isFSJJAll(strPurCorp, strArrCorp, strInvoiceCorp,
-            strLoginCorp)) {
-          continue;
-        }
-        // 项目
-        if (items[j].getCprojectid() != null) {
-          chgDocVo = new ChgDocPkVO();
-          chgDocVo.setSrcCorpId(strArrCorp);
-          chgDocVo.setDstCorpId(strInvoiceCorp);
-          chgDocVo.setSrcManId(items[j].getCprojectid());
-          listProject.add(chgDocVo);
-        }
-        // 存货
-        chgDocVo = new ChgDocPkVO();
-        chgDocVo.setSrcCorpId(strArrCorp);
-        chgDocVo.setDstCorpId(strInvoiceCorp);
-        chgDocVo.setSrcManId(items[j].getCinventoryid());
-        listInventory.add(chgDocVo);
-      }
-      // 供应商
-      if (listInventory.size() > iInvCntOld) {
-        // 在将暂估VO转换成库存VO时，单据号=单据号+EstimateVO.SEPSIGN+{true:false}
-        if ("true".equalsIgnoreCase(head.getVbillcode().substring(
-            head.getVbillcode().indexOf(EstimateVO.SEPSIGN) + 1))) {
-          chgDocVo = new ChgDocPkVO();
-          chgDocVo.setSrcCorpId(strArrCorp);
-          chgDocVo.setDstCorpId(strPurCorp);
-          chgDocVo.setSrcManId(head.getCproviderid());
-          listVendor.add(chgDocVo);
-        }
-      }
-    }
-    // 转换
-    if (listInventory.size() == 0) {
-      return;
-    }
-    // 客商
-    ChgDocPkVO[] vendorVos = null;
-    vendorVos = (ChgDocPkVO[]) listVendor.toArray(new ChgDocPkVO[listVendor
-        .size()]);
-    vendorVos = ChgDataUtil.chgPkCuByCorp(vendorVos);
-    // 项目
-    ChgDocPkVO[] projectVos = null;
-    projectVos = (ChgDocPkVO[]) listProject.toArray(new ChgDocPkVO[listProject
-        .size()]);
-    projectVos = ChgDataUtil.chgPkjobByCorp(projectVos);
-    // 存货
-    ChgDocPkVO[] inventoryVos = null;
-    inventoryVos = (ChgDocPkVO[]) listInventory
-        .toArray(new ChgDocPkVO[listInventory.size()]);
-    inventoryVos = ChgDataUtil.chgPkInvByCorp(inventoryVos);
-
-    // 设置
-    int iPosProj = 0;
-    int iPosInv = 0;
-    int iPosVendor = 0;
-    for (int i = 0; i < iLen; i++) {
-      if (vos[i].getChildrenVO() == null || vos[i].getChildrenVO().length == 0) {
-        continue;
-      }
-      head = (GeneralBillHeaderVO) vos[i].getParentVO();
-      strPurCorp = (String) head.getAttributeValue("pk_purcorp");
-      strArrCorp = head.getPk_corp();
-      //
-      items = (GeneralBillItemVO[]) vos[i].getChildrenVO();
-      jLen = items.length;
-
-      // 用于判断本张单据是否存在分收集结入库单行
-      iInvCntOld = iPosInv;
-
-      for (int j = 0; j < jLen; j++) {
-        //
-        if (items[j] == null) {
-          continue;
-        }
-        // 不是分收集结采购公司暂估时不必处理转换
-        strInvoiceCorp = PuPubVO.getString_TrimZeroLenAsNull(items[j]
-            .getAttributeValue("pk_invoicecorp"));
-        if (!EstimateVO.isFSJJAll(strPurCorp, strArrCorp, strInvoiceCorp,
-            strLoginCorp)) {
-          continue;
-        }
-        // 项目
-        if (items[j].getCprojectid() != null) {
-          items[j].setCprojectid(projectVos[iPosProj].getDstManId());
-          iPosProj++;
-        }
-        // 存货
-        items[j].setCinventoryid(inventoryVos[iPosInv].getDstManId());
-        iPosInv++;
-      }
-      // 供应商
-      if (iPosInv > iInvCntOld) {
-        // 在将暂估VO转换成库存VO时，单据号=单据号+EstimateVO.SEPSIGN+{true:false}
-        if ("true".equalsIgnoreCase(head.getVbillcode().substring(
-            head.getVbillcode().indexOf(EstimateVO.SEPSIGN) + 1))) {
-          head.setCproviderid(vendorVos[iPosVendor].getDstManId());
-          iPosVendor++;
-        }
-      }
-      // 判断结束：单据号+EstimateVO.SEPSIGN+{true:false} ==> 单据号
-      if (head.getVbillcode().indexOf(EstimateVO.SEPSIGN) > 0) {
-        head.setVbillcode(head.getVbillcode().substring(0,
-            head.getVbillcode().indexOf(EstimateVO.SEPSIGN)));
-      }
-    }
-  }
-
-  /**
-   * 功能:依据暂估方式不同,向存货核算系统传递数据;单到回冲,传送暂估入库单;单到补差,传送采购入库单(成批单据传送)
-   * 输入:暂估VO[],当前操作员,当前日期 返回:BillVO[] 异常:javax.naming.NamingException,
-   * java.rmi.RemoteException, java.sql.SQLException 作者:熊海情
-   * <p>
-   * 修改:晁志平 FOR V30 删除查询入库单表头表体操作，表头表体对照信息由调用者参数传入
-   * <p>
-   * 修改:晁志平 FOR V502 支持分收集结采购公司暂估、单价精度
-   */
-
-  private BillVO[] transferIAData(EstimateVO[] voaEst, String cOperator,
-      UFDate dCurrDate, String strLoginCorp) throws BusinessException {
-    nc.bs.pu.pub.PubImpl myPubService = null;
-    if (voaEst == null || voaEst.length == 0) {
-      SCMEnv.out("传入参数为空，直接返回NULL；调用堆栈如下：");
-      SCMEnv.out(new Exception());
-      return null;
-    }
-    BillVO[] billVOs = null;
-    int iPriceDigit = 2;
-    try {
-      ISysInitQry queryService = (ISysInitQry) NCLocator.getInstance().lookup(
-          ISysInitQry.class.getName());
-      iPriceDigit = queryService.getParaInt(voaEst[0].getPk_invoicecorp(),
-          "BD505");
-      // 获取本位币精度
-      myPubService = new nc.bs.pu.pub.PubImpl();
-      // since v502,支持分收集结采购公司暂估
-      int nMnyDecimal[] = myPubService.getDigitBatch(voaEst[0]
-          .getPk_invoicecorp(), new String[] {
-        "BD301"
-      });
-      if (nMnyDecimal == null || nMnyDecimal.length == 0) {
-        nMnyDecimal = new int[1];
-        nMnyDecimal[0] = 2;
-      }
-
-      // VO转换:将暂估VO转换为库存VO(PU->IC)
-      GeneralBillVO[] icVOs = new GeneralBillVO[voaEst.length];
-      //
-      for (int i = 0; i < voaEst.length; i++) {
-        // since v502, FengPing&Chaozp,
-        // 如果是分收集结模式下的采购公司暂估，但采购组织下没有定义内部结算库存组织，则业务约束不可以自动结算
-        if ((!voaEst[i].getEstType(strLoginCorp).equals(EstimateVO.NORMAL))
-            && voaEst[i].getPkBody() == null) {
-          // //liyc修改 ------ czp需要确定
-          // if
-          // ((VOs[i].getEstType(strLoginCorp).equals(EstimateVO.PURCHASE))
-          // && VOs[i].getPkBody() == null) {
-          throw new BusinessException(NCLangResOnserver.getInstance()
-              .getStrByID("4004pub", "UPP4004pub-000256"
-              /* res"分收集结模式下的采购公司暂估，但采购组织下没有定义内部结算库存组织" */));
-        }
-        icVOs[i] = switchVOFromEstimate2IC(voaEst[i], strLoginCorp);
-      }
-
-      /*
-       * since v502 : VO对照前处理, 跨公司档案ID转换，从收货公司到采购公司(收票公司) 1)、供应商 2)、存货 3)、项目
-       */
-      changeDocIdsFromArrToPur(icVOs, strLoginCorp);
-
-      // 将单行的多个入库单VO，按表头ID重新组合
-      icVOs = rearrangeGeneralBillVO(icVOs);
-
-      // VO转换:将暂估VO转换为库存VO(IC->IA)
-      if (voaEst[0].getCbilltypecode().equals("45")) {
-        billVOs = (BillVO[]) PfUtilTools.runChangeDataAry("45", "I2", icVOs);
-      }
-      else if (voaEst[0].getCbilltypecode().equals("47")) {
-        billVOs = (BillVO[]) PfUtilTools.runChangeDataAry("47", "ID", icVOs);
-      }
-      if (billVOs == null || billVOs.length == 0) {
-        return null;
-      }
-      // 通版问题，支持前台排序后台匹配，此处不必打平处理，用暂估哈希表与表体对应
-      // // 将多行VO[]处理为单行VO[],便于匹配暂估VO处理
-      // billVOs = rearrangeBillVO(billVOs);
-
-      // 暂估哈希表,后续处理时用于和存货单据的表体对应
-      HashMap<String, EstimateVO> mapEstVo = new HashMap<String, EstimateVO>();
-      for (int i = 0; i < voaEst.length; i++) {
-        mapEstVo.put(voaEst[i].getCgeneralbid(), voaEst[i]);
-      }
-      // 后续处理:表体
-      EstimateVO voEst = null;
-      BillHeaderVO headVO = null;
-      BillItemVO bodyVOs[] = null;
-      for (int i = 0; i < billVOs.length; i++) {
-        //
-        headVO = (BillHeaderVO) billVOs[i].getParentVO();
-        //
-        bodyVOs = (BillItemVO[]) billVOs[i].getChildrenVO();
-        for (int j = 0; j < bodyVOs.length; j++) {
-          voEst = mapEstVo.get(bodyVOs[j].getCsourcebillitemid());
-          bodyVOs[j].setPk_corp(voEst.getPk_corp());
-          /*
-           * since v502, 分收集结采购公司暂估的特殊处理 1)、将存货单据的当前公司设置为暂估VO的收票公司
-           */
-          if (voEst.isFSJJAll(voEst.getPk_purcorp(), voEst.getPk_corp(), voEst
-              .getPk_invoicecorp(), strLoginCorp)) {
-            bodyVOs[j].setPk_corp(voEst.getPk_invoicecorp());
-          }
-          if (voEst.getCbilltypecode().equals("45")) {
-            bodyVOs[j].setCbilltypecode("I2");
-          }
-          else {
-            bodyVOs[j].setCbilltypecode("ID");
-          }
-          bodyVOs[j].setCbill_bid(voEst.getCgeneralbid());
-          bodyVOs[j].setCbillid(voEst.getCgeneralhid());
-
-          bodyVOs[j].setCsourcebillid(voEst.getCgeneralhid());
-          bodyVOs[j].setCsourcebillitemid(voEst.getCgeneralbid());
-          bodyVOs[j].setCsourcebilltypecode(voEst.getCbilltypecode());
-
-          UFDouble d1 = voEst.getNmoney();
-          UFDouble d2 = voEst.getNmaterialmoney();
-          if (d1 == null)
-            d1 = new UFDouble(0.0);
-          if (d2 == null)
-            d2 = new UFDouble(0.0);
-          double d = d1.doubleValue() + d2.doubleValue();
-          bodyVOs[j].setNmoney(new UFDouble(PubDMO.getRoundDouble(
-              nMnyDecimal[0], d)));
-          bodyVOs[j].setNdrawsummny(d2);
-
-          d1 = bodyVOs[j].getNmoney();
-          d2 = bodyVOs[j].getNnumber();
-
-          // since v502, 有单价直接取，解决精度问题
-          if (PuPubVO.getUFDouble_ZeroAsNull(voEst.getNprice()) != null) {
-            bodyVOs[j].setNprice(voEst.getNprice());
-          }
-          //
-          else if (d2 != null && d2.doubleValue() != 0.0) {
-            bodyVOs[j].setNprice(d1.div(d2, iPriceDigit));
-          }
-
-          bodyVOs[j].setCfirstbillid(voEst.getCfirstbillhid());
-          bodyVOs[j].setCfirstbillitemid(voEst.getCfirstbillbid());
-          bodyVOs[j].setCfirstbilltypecode(voEst.getCfirsttype());
-          bodyVOs[j].setIrownumber(new Integer(i));
-          bodyVOs[j].setVbillcode(voEst.getVbillcode());
-
-          bodyVOs[j].setDbizdate(voEst.getDbizdate());
-          // since v502, 在VO对照前已经处理为采购公司的档案ID
-          // bodyVO[0].setCvendorid(voEst.getCvendorid());
-          bodyVOs[j].setCvendorid(headVO.getCcustomvendorid());
-          bodyVOs[j].setDr(new Integer(0));
-
-          // V5新增:库存入库单相关信息
-          bodyVOs[j].setCicbilltype(voEst.getCbilltypecode());
-          bodyVOs[j].setCicbillcode(voEst.getVbillcode());
-          bodyVOs[j].setCicbillid(voEst.getCgeneralhid());
-          bodyVOs[j].setCicitemid(voEst.getCgeneralbid());
-          bodyVOs[j].setNchangerate(PuPubVO.getUFDouble_ZeroAsNull(bodyVOs[j]
-              .getNchangerate()));
-        }
-        // 表头相关处理
-        if (voEst.getCbilltypecode().trim().equals("47")) {
-          headVO.setCbilltypecode("ID");
-        }
-        else {
-          headVO.setCbilltypecode("I2");
-        }
-        headVO.setCbillid(voEst.getCgeneralhid());
-        headVO.setDbilldate(dCurrDate);
-        headVO.setCsourcemodulename("PO");
-        headVO.setFdispatchflag(new Integer(0));
-        headVO.setCoperatorid(cOperator);
-        headVO.setBestimateflag(new UFBoolean(true));
-        headVO.setCwarehousemanagerid(voEst.getCwhsmanagerid());
-        headVO.setCemployeeid(voEst.getCoperatorid());// estiVo.getCoperatorid()
-        // 即为入库单表头的业务员(cbizid)
-        // Czp 2004-07-21
-        headVO.setVbillcode(voEst.getVbillcode());
-        headVO.setBwithdrawalflag(new UFBoolean(false));
-        headVO.setBdisableflag(new UFBoolean(false));
-        headVO.setBauditedflag(new UFBoolean(false));
-        headVO.setDr(new Integer(0));
-        /*
-         * since v502, 分收集结采购(收货)公司暂估的特殊处理 1)、清空收货公司私有档案ID
-         * 2)、将存货单据的当前公司设置为暂估VO的收票公司
-         */
-        if (voEst.isFSJJAll(voEst.getPk_purcorp(), voEst.getPk_corp(), voEst
-            .getPk_invoicecorp(), strLoginCorp)) {
-          headVO.setCwarehousemanagerid(null);// 跨公司情况下，庫管员清空
-          headVO.setPk_corp(voEst.getPk_invoicecorp());
-        }
-        if (!headVO.getPk_corp().equals(voEst.getPk_invoicecorp())) {
-          headVO.setPk_corp(voEst.getPk_invoicecorp());
-        }
-      }
-      // 设置表体来源单据类型
-      for (int i = 0; i < billVOs.length; i++) {
-        headVO = (BillHeaderVO) billVOs[i].getParentVO();
-        bodyVOs = (BillItemVO[]) billVOs[i].getChildrenVO();
-        for (int j = 0; j < bodyVOs.length; j++) {
-          bodyVOs[j].setCbilltypecode(headVO.getCbilltypecode());
-          if (headVO.getCbilltypecode().equals("ID")) {
-            bodyVOs[j].setCsourcebilltypecode("47");
-          }
-        }
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    // 返回存货核算所需要的VO
-    return billVOs;
-  }
-
-  /**
-   * 此处插入方法说明。 功能描述:依据暂估方式不同,向存货核算系统传递数据 单到回冲,传送暂估入库单;单到补差,传送采购入库单 (成批单据传送)
-   * 输入参数:暂估VO,当前操作员,当前日期 返回值: 异常处理: 日期：2002/05/30(批次暂估，库存调用)
-   */
-  private BillVO[] transferIADataBatch(IGeneralBillVO[] VOs)
-      throws BusinessException {
-    nc.bs.pu.pub.PubImpl myPubService = null;
-    BillVO[] voRslts = null;
-    try {
-      // 获取本位币精度
-      myPubService = new nc.bs.pu.pub.PubImpl();
-      int nMnyDecimal[] = myPubService.getDigitBatch(VOs[0].getPk_corp(),
-          new String[] {
-            "BD301"
-          });
-      if (nMnyDecimal == null || nMnyDecimal.length == 0) {
-        nMnyDecimal = new int[1];
-        nMnyDecimal[0] = 2;
-      }
-
-      // VO转换
-      voRslts = (BillVO[]) PfUtilTools.runChangeDataAry("45", "I2", VOs);
-      if (voRslts == null || voRslts.length == 0)
-        return null;
-
-      // VO转换后续处理
-      for (int i = 0; i < VOs.length; i++) {
-        GeneralBillHeaderVO headVO = (GeneralBillHeaderVO) VOs[i].getParentVO();
-        IGeneralBillItemVO bodyVO[] = (IGeneralBillItemVO[]) VOs[i]
-            .getChildrenVO();
-
-        BillItemVO abodyVO[] = (BillItemVO[]) voRslts[i].getChildrenVO();
-        for (int j = 0; j < bodyVO.length; j++) {
-          // VO转换后续处理:存货核算体
-          abodyVO[j].setPk_corp(headVO.getPk_corp());
-          abodyVO[j].setCbilltypecode("I2");
-          abodyVO[j].setCbill_bid(bodyVO[j].getCgeneralbid());
-          abodyVO[j].setCbillid(bodyVO[j].getCgeneralhid());
-
-          abodyVO[j].setCsourcebillid(bodyVO[j].getCgeneralhid());
-          abodyVO[j].setCsourcebillitemid(bodyVO[j].getCgeneralbid());
-          abodyVO[j].setCsourcebilltypecode("45");
-
-          // V5新增:库存入库单相关信息
-          abodyVO[j].setCicbilltype("45");
-          abodyVO[j].setCicbillcode(headVO.getVbillcode());
-          abodyVO[j].setCicbillid(bodyVO[j].getCgeneralhid());
-          abodyVO[j].setCicitemid(bodyVO[j].getCgeneralbid());
-
-          // since v502, 直接使用在调用方已经处理过的结果
-          abodyVO[j].setNprice(bodyVO[j].getNprice());
-
-          /*
-           * del since v502, 此处理在调用方已经处理过 UFDouble d1 = bodyVO[j].getNmny();
-           * UFDouble d2 = null; if (d1 == null) d1 = new UFDouble(0.0); if (d2 ==
-           * null) d2 = new UFDouble(0.0); double d = d1.doubleValue() +
-           * d2.doubleValue(); abodyVO[j].setNmoney(new
-           * UFDouble(PubDMO.getRoundDouble(nMnyDecimal[0], d))); d1 =
-           * bodyVO[j].getNmny(); d2 = bodyVO[j].getNinnum(); if (d1 != null &&
-           * d2 != null && d2.doubleValue() != 0.0) { d = d1.doubleValue() /
-           * d2.doubleValue(); abodyVO[j].setNprice(new UFDouble(d)); }
-           */
-
-          abodyVO[j].setCfirstbillid(bodyVO[j].getCfirstbillhid());
-          abodyVO[j].setCfirstbillitemid(bodyVO[j].getCfirstbillbid());
-          abodyVO[j].setCfirstbilltypecode(bodyVO[j].getCfirsttype());
-          abodyVO[j].setIrownumber(new Integer(j));
-          abodyVO[j].setVbillcode(headVO.getVbillcode());
-
-          abodyVO[j].setDbizdate(bodyVO[j].getDbizdate());
-          abodyVO[j].setCvendorid(bodyVO[j].getCvendorid());
-          abodyVO[j].setNchangerate(PuPubVO.getUFDouble_ZeroAsNull(abodyVO[j]
-              .getNchangerate()));
-        }
-
-        // VO转换后续处理:生成存货核算头
-        BillHeaderVO aheadVO = (BillHeaderVO) voRslts[i].getParentVO();
-        aheadVO.setPk_corp(headVO.getPk_corp());
-        if (headVO.getCbilltypecode().trim().equals("47"))
-          aheadVO.setCbilltypecode("ID");
-        else
-          aheadVO.setCbilltypecode("I2");
-        aheadVO.setCbillid(headVO.getCgeneralhid());
-
-        aheadVO.setDbilldate(headVO.getDaccountdate());
-        aheadVO.setCsourcemodulename("PO");
-        aheadVO.setFdispatchflag(new Integer(0));
-        aheadVO.setCoperatorid(headVO.getCregister());
-
-        aheadVO.setBestimateflag(new UFBoolean(true));
-        aheadVO.setCwarehousemanagerid(headVO.getCwhsmanagerid());
-        aheadVO.setCemployeeid(headVO.getCbizid());
-
-        aheadVO.setVbillcode(headVO.getVbillcode());
-        aheadVO.setBwithdrawalflag(new UFBoolean(false));
-        aheadVO.setBdisableflag(new UFBoolean(false));
-        aheadVO.setBauditedflag(new UFBoolean(false));
-      }
-
-      // 返回
-      for (int i = 0; i < voRslts.length; i++) {
-        BillHeaderVO headVO = (BillHeaderVO) voRslts[i].getParentVO();
-        BillItemVO bodyVO[] = (BillItemVO[]) voRslts[i].getChildrenVO();
-        if (bodyVO == null || bodyVO.length == 0)
-          continue;
-        String s1 = ((BillHeaderVO) voRslts[i].getParentVO()).getCbillid();
-        for (int j = 0; j < bodyVO.length; j++) {
-          String s2 = bodyVO[j].getCbillid();
-          if (s1.equals(s2)) {
-            bodyVO[j].setCbilltypecode(headVO.getCbilltypecode());
-            if (headVO.getCbilltypecode().equals("ID"))
-              bodyVO[j].setCsourcebilltypecode("47");
-          }
-        }
-      }
-
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    return voRslts;
-  }
-
-  /**
-   * 功能描述:依据暂估方式不同,向存货核算系统传递数据 单到回冲,传送暂估入库单;单到补差,传送采购入库单 (成批单据传送)
-   * 输入参数:暂估VO,当前操作员,当前日期 返回值: 异常处理:
-   * 
-   * @param VOs
-   *          nc.vo.ps.estimate.EstimateVO[]
-   */
-  private BillVO[] transferIADataForSC(EstimateVO[] VOs, String cOperator,
-      UFDate dCurrDate, SettlebillVO VO) throws BusinessException {
-    nc.bs.pu.pub.PubImpl myPubService = null;
-    BillVO[] vosRstl = null;
-    int iPriceDigit = 2;
-    try {
-      ISysInitQry queryService = (ISysInitQry) NCLocator.getInstance().lookup(
-          ISysInitQry.class.getName());
-      iPriceDigit = queryService
-          .getParaInt(VOs[0].getPk_invoicecorp(), "BD505");
-      // 获取本位币精度
-      myPubService = new nc.bs.pu.pub.PubImpl();
-      int nMnyDecimal[] = myPubService.getDigitBatch(VOs[0].getPk_corp(),
-          new String[] {
-            "BD301"
-          });
-      if (nMnyDecimal == null || nMnyDecimal.length == 0) {
-        nMnyDecimal = new int[1];
-        nMnyDecimal[0] = 2;
-      }
-
-      // 查询存货表体VO所需的数据
-      Vector v = queryStockBodyForIA(VOs);
-      if (v == null || v.size() == 0) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000018")/*
-                                                           * @res
-                                                           * "查询存货表体VO所需的数据,没有符合条件的数据！"
-                                                           */);
-      }
-
-      // VO转换
-      GeneralBillVO icVOs[] = new GeneralBillVO[VOs.length];
-      for (int i = 0; i < VOs.length; i++) {
-        // 目前只支持单公司模式
-        icVOs[i] = switchVOFromEstimate2IC(VOs[i], VOs[0].getPk_corp());
-      }
-
-      icVOs = rearrangeGeneralBillVO(icVOs);
-
-      vosRstl = (BillVO[]) PfUtilTools.runChangeDataAry("47", "ID", icVOs);
-      if (vosRstl == null || vosRstl.length == 0)
-        return null;
-
-      vosRstl = rearrangeBillVO(vosRstl);
-
-      // VO转换后续处理:存货表体
-      SettlebillItemVO billItemVO[] = VO.getBodyVO();
-      Vector v0 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        BillItemVO bodyVO[] = (BillItemVO[]) vosRstl[i].getChildrenVO();
-        Vector vTemp = (Vector) v.elementAt(i);
-        GeneralHItemVO itemVO = (GeneralHItemVO) vTemp.elementAt(0);
-
-        bodyVO[0].setPk_corp(VOs[i].getPk_corp());
-        bodyVO[0].setCbilltypecode("ID");
-        bodyVO[0].setCbill_bid(VOs[i].getCgeneralbid());
-        bodyVO[0].setCbillid(VOs[i].getCgeneralhid());
-
-        bodyVO[0].setCsourcebillid(billItemVO[i].getCsettlebillid());
-        bodyVO[0].setCsourcebillitemid(billItemVO[i].getCsettlebill_bid());
-        bodyVO[0].setCsourcebilltypecode(ScmConst.PO_SettleBill);
-
-        // V5新增:库存入库单相关信息
-        bodyVO[0].setCicbilltype(VOs[i].getCbilltypecode());
-        bodyVO[0].setCicbillcode(VOs[i].getVbillcode());
-        bodyVO[0].setCicbillid(VOs[i].getCgeneralhid());
-        bodyVO[0].setCicitemid(VOs[i].getCgeneralbid());
-
-        UFDouble d1 = VOs[i].getNmoney();
-        UFDouble d2 = VOs[i].getNmaterialmoney();
-        if (d1 == null)
-          d1 = new UFDouble(0.0);
-        if (d2 == null)
-          d2 = new UFDouble(0.0);
-        double d = d1.doubleValue() + d2.doubleValue();
-        bodyVO[0].setNmoney(new UFDouble(PubDMO.getRoundDouble(nMnyDecimal[0],
-            d)));
-        bodyVO[0].setNdrawsummny(d2);
-
-        d1 = bodyVO[0].getNmoney();
-        d2 = bodyVO[0].getNnumber();
-        if (d2 != null && d2.doubleValue() != 0.0) {
-          bodyVO[0].setNprice(d1.div(d2, iPriceDigit));
-        }
-
-        bodyVO[0].setCfirstbillid(itemVO.getCfirstbillhid());
-        bodyVO[0].setCfirstbillitemid(itemVO.getCfirstbillbid());
-        bodyVO[0].setCfirstbilltypecode(itemVO.getCfirsttype());
-        bodyVO[0].setIrownumber(new Integer(i));
-        bodyVO[0].setVbillcode(VOs[i].getVbillcode());
-        bodyVO[0].setVsourcebillcode(VOs[i].getVbillcode());
-
-        bodyVO[0].setDbizdate(itemVO.getDbizdate());
-        bodyVO[0].setCvendorid(itemVO.getCvendorid());
-        bodyVO[0].setNchangerate(PuPubVO.getUFDouble_ZeroAsNull(bodyVO[0]
-            .getNchangerate()));
-
-        v0.addElement(bodyVO[0]);
-      }
-      BillItemVO bodyVO[] = new BillItemVO[v0.size()];
-      v0.copyInto(bodyVO);
-
-      // 入库单主表ID和仓库ID唯一性组合
-      v0 = new Vector();
-      Vector vGeneralHID = new Vector();
-      Vector vWarehouseID = new Vector();
-      vGeneralHID.addElement(VOs[0].getCgeneralhid().trim());
-      vWarehouseID.addElement(VOs[0].getCwarehouseid());
-      for (int i = 1; i < VOs.length; i++) {
-        String s1 = VOs[i].getCgeneralhid().trim();
-        if (!vGeneralHID.contains(s1)) {
-          vGeneralHID.addElement(s1);
-          vWarehouseID.addElement(VOs[i].getCwarehouseid());
-          v0.addElement(vosRstl[i].getParentVO());
-        }
-      }
-
-      // 查询存货表头VO所需的数据
-      String sGeneralhid[] = new String[vGeneralHID.size()];
-      String sWarehouseid[] = new String[vWarehouseID.size()];
-      vGeneralHID.copyInto(sGeneralhid);
-      vWarehouseID.copyInto(sWarehouseid);
-
-      Vector vv = queryStockHeadForIA(sGeneralhid, sWarehouseid);
-      if (vv == null || vv.size() == 0) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000019")/*
-                                                           * @res
-                                                           * "查询存货表头VO所需的数据,没有符合条件的数据！"
-                                                           */);
-      }
-
-      // VO转换后续处理:存货表头
-      BillHeaderVO headVO[] = new BillHeaderVO[sGeneralhid.length];
-      v0.copyInto(headVO);
-      for (int i = 0; i < headVO.length; i++) {
-        headVO[i] = new BillHeaderVO();
-        Vector vTemp = (Vector) vv.elementAt(i);
-        GeneralHHeaderVO hVO = (GeneralHHeaderVO) vTemp.elementAt(0);
-        Object o = vTemp.elementAt(1);
-        String sStoreOrgID = null;
-        if (o != null)
-          sStoreOrgID = (String) o;
-
-        if (hVO.getCbilltypecode().trim().equals("47"))
-          headVO[i].setCbilltypecode("ID");
-        else
-          headVO[i].setCbilltypecode("I2");
-        headVO[i].setCbillid(hVO.getCgeneralhid());
-
-        headVO[i].setDbilldate(dCurrDate);
-        headVO[i].setCsourcemodulename("PO");
-        headVO[i].setFdispatchflag(new Integer(0));
-
-        headVO[i].setCoperatorid(cOperator);
-        headVO[i].setBestimateflag(new UFBoolean(true));
-        headVO[i].setCwarehousemanagerid(hVO.getCwhsmanagerid());
-        headVO[i].setCemployeeid(hVO.getCbizid());
-
-        headVO[i].setVbillcode(hVO.getVbillcode());
-        headVO[i].setBwithdrawalflag(new UFBoolean(false));
-        headVO[i].setBdisableflag(new UFBoolean(false));
-        headVO[i].setBauditedflag(new UFBoolean(false));
-      }
-
-      // 重新组合表头、表体
-      vosRstl = (BillVO[]) SplitBillVOs.getSplitVOs(nc.vo.ia.bill.BillVO.class
-          .getName(), nc.vo.ia.bill.BillHeaderVO.class.getName(),
-          nc.vo.ia.bill.BillItemVO.class.getName(), vosRstl, new String[] {
-            "pk_corp"
-          }, new String[] {
-            "cicbillid"
-          });
-
-      // 设置表体来源单据号
-      BillHeaderVO header = null;
-      BillItemVO[] bodyVOs = null;
-      for (int i = 0; i < vosRstl.length; i++) {
-        header = (BillHeaderVO) vosRstl[i].getParentVO();
-        bodyVOs = (BillItemVO[]) vosRstl[i].getChildrenVO();
-        for (int j = 0; j < bodyVOs.length; j++) {
-          bodyVOs[j].setCbilltypecode(header.getCbilltypecode());
-        }
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    // 返回存货核算所需要的VO
-    return vosRstl;
-  }
-
-  public void beforSaveSysinit(String pk_org, String initcode,
-      String paraValue, String pkValue) throws SQLException {
-    // TODO 自动生成方法存根
-    // 调用应付提供的接口
-    try {
-      if (paraValue != null && paraValue.equals("N")) {
-        IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator.getInstance()
-            .lookup(IArapForGYLPublic.class.getName());
-        UFBoolean bModify = iArap.canModify(pk_org);
-        if (!bModify.booleanValue()) {
-          throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-              .getStrByID("40040503", "UPP40040503-000094")/*
-                                                             * @res
-                                                             * "暂估应付未冲减完毕,不能修改参数!"
-                                                             */);
-        }
-      }
-    }
-    catch (Exception e) {
-      SCMEnv.out(e);
-      throw new SQLException(e.getMessage());
-    }
-  }
-
-  public void afterSaveSysinit(String pk_org, String initcode,
-      String paraValue, String pkValue) throws BusinessException {
-    // TODO 自动生成方法存根
-
-  }
-
-  /*
-   * VO转换前组合库存入库单VO{将单行的多个入库单VO，按表头ID重新组合} 效率优化 2007-05-31 xhq 重构：2008-03-05，
-   * czp
-   */
-  private GeneralBillVO[] rearrangeGeneralBillVO(GeneralBillVO icVOs[]) {
-    GeneralBillVO[] voaRet = (GeneralBillVO[]) SplitBillVOs.getSplitVOs(
-        nc.vo.ic.pub.bill.GeneralBillVO.class.getName(),
-        nc.vo.ic.pub.bill.GeneralBillHeaderVO.class.getName(),
-        nc.vo.ic.pub.bill.GeneralBillItemVO.class.getName(), icVOs,
-        new String[] {
-          "cgeneralhid"
-        }, null);
-    return voaRet;
-  }
-
-  /*
-   * VO转换后整平存货入库单VO 效率优化 2007-05-31 xhq
-   */
-  private BillVO[] rearrangeBillVO(BillVO[] billVOs) {
-    Vector vTemp = new Vector();
-    for (int i = 0; i < billVOs.length; i++) {
-      BillHeaderVO headVO = (BillHeaderVO) billVOs[i].getParentVO();
-      BillItemVO bodyVO[] = (BillItemVO[]) billVOs[i].getChildrenVO();
-      for (int j = 0; j < bodyVO.length; j++) {
-        BillVO tempVO = new BillVO(1);
-        tempVO.setParentVO(headVO);
-        tempVO.setChildrenVO(new BillItemVO[] {
-          bodyVO[j]
-        });
-        vTemp.addElement(tempVO);
-      }
-    }
-
-    BillVO VOs[] = new BillVO[vTemp.size()];
-    vTemp.copyInto(VOs);
-    return VOs;
-  }
-  
-  /**
-   * 
-   * 方法功能描述：过滤掉暂估VO中的资产类存货。
-   * <p>
-   * <b>examples:</b>
-   * <p>
-   * 使用示例
-   * <p>
-   * <b>参数说明</b>
-   * @param estVos
-   * @return 过滤掉资产存货的暂估VO(总不为null,长度可能为0)
-   * @throws BusinessException
-   * <p>
-   * @author zhaoyha
-   * @time 2008-12-29 上午11:33:06
-   */
-  private EstimateVO[] filteAssetInv(EstimateVO[] estVos) throws BusinessException{
-    //保存所有存货的基本档案
-    ArrayList<String> invBasIDs=new ArrayList<String>();
-    for(EstimateVO vo:estVos)
-      invBasIDs.add(vo.getCbaseid());
-    Map assetInvs=null;
-    try{
-      PubDMO dmo=new PubDMO();
-      assetInvs=dmo.queryArrayValues("bd_invbasdoc", 
-          "pk_invbasdoc", new String[]{"asset"}, invBasIDs.toArray(new String[0]),"asset='Y' ");
-    }catch(Exception e){
-      PubDMO.throwBusinessException(e);
-    }
-    if(assetInvs==null || assetInvs.size()==0) return estVos;
-    //将资产存货过滤掉
-    ArrayList<EstimateVO> retVos=new ArrayList<EstimateVO>();
-    Set<String> assetInvIDs=assetInvs.keySet();
-    for(EstimateVO vo:estVos)
-      if(!assetInvIDs.contains(vo.getCbaseid()))
-        retVos.add(vo);
-    return retVos.toArray(new EstimateVO[0]);
-  }
-  
-  /**
-   * 此处插入方法说明。 功能描述:检查入库单号是否重复 输入参数: 返回值: 异常处理:
-   * 
-   * @return boolean
-   * @param VO
-   *          nc.vo.ps.estimate.GeneralHVO
-   */
-  private void checkBeforeSave(GeneralHVO VO) throws BusinessException{
-    boolean b = false;
-    try {
-      if (StringUtil.isEmptyWithTrim(VO.getHeadVO().getPrimaryKey()))
-        b = isCodeDuplicate(BsPuTool.getLoginCorp(null), VO.getHeadVO()
-            .getVbillcode(), null);
-      else
-        b = isCodeDuplicate(BsPuTool.getLoginCorp(null), VO.getHeadVO()
-            .getVbillcode(), VO.getHeadVO().getCgeneralhid().trim());
-    }
-    catch (Exception e) {
-      SCMEnv.out(e);
-      PubDMO.throwBusinessException(e);
-    }
-    if(b)
-      new BusinessException(NCLangResOnserver.getInstance().
-          getStrByID("40040503", "UPP40040503-000083")/* @res "入库单号重复，不能保存！" */);
-  }
-
-/**
- * @function 费用暂估动作
- *
- * @author QuSida
- *
- * @param VOs
- * @param paraList
- * @throws BusinessException 
- *
- * @date 2010-9-20 下午02:40:02
- */
-public void feeEstimate(EstimateVO[] VOs, ArrayList paraList)
-		throws BusinessException {
-	// TODO Auto-generated method stub
-
-    nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
-    timer.start();
-
-    EstimateDMO dmo = null;
-    ICreateCorpQueryService myService0 = null;
-    ISysInitQry myService1 = null;
-    nc.bs.pu.pub.PubImpl myService2 = null;
-    boolean bLock = false;
-
-    // String cOperator = (String)paraList.get(0);
-    // UFDate dCurrDate = (UFDate)paraList.get(1);
-    ClientLink cl = (ClientLink) paraList.get(0);
-    String strOperator = cl.getUser();
-    UFDate dateUserLogon = cl.getLogonDate();
-    String strLoginCorp = cl.getCorp();
-    String strEstMode = (String) paraList.get(1);
-    String strDifferDealMode = (String) paraList.get(2);
-    UFBoolean bZGYF = (UFBoolean) paraList.get(3);
-    String strCurrTypeID = (String) paraList.get(4);
-    UFBoolean ufbLockedFlag = UFBoolean.FALSE;
-    if (paraList.size() >= 6) {
-      ufbLockedFlag = (UFBoolean) paraList.get(5);
-    }
-    // 此处做区分，比如签字自动暂估不必加锁
-    boolean bNeedLock = ufbLockedFlag == null || !ufbLockedFlag.booleanValue();
-
-    // 组合所有需要加锁的主键
-    String[] saLockKey = null;
-
-    timer.addExecutePhase("组合所有需要加锁的主键");
-    String[] saSubLockedId = null;
-    try {
-      // 对单据加锁
-      if (bNeedLock) {
-        saLockKey = getEstimateLockKeys(VOs);
-        bLock = LockTool.setLockForPks(saLockKey, strOperator);
-      }
-
-      timer.addExecutePhase("加锁");
-
-      if (bNeedLock && !bLock) {
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000000")/*
-                                                           * @res
-                                                           * "正在进行相关操作，请稍后再试！"
-                                                           */);
-      }
-
-      // 判断时间戳是否改变
-      String sMessage = isTimeStampChanged(VOs);
-      if (sMessage != null && sMessage.length() > 0) {
-        sMessage += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
-            "40040503", "UPP40040503-000001")/*
-                                               * @res "请刷新！\n"
-                                               */;
-        throw new BusinessException(sMessage);
-      }
-      timer.addExecutePhase("判断时间戳是否改变");
-
-      Vector v1 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        v1.addElement(VOs[i].getCgeneralbid());
-      }
-      //
-      dmo = new EstimateDMO();
-      // 状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)
-      if (v1.size() > 0) {
-        dmo.checkExistEsti(v1);
-      }
-      timer.addExecutePhase("状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)");
-
-      // 暂估时单价和金额的精度控制
-      myService2 = new nc.bs.pu.pub.PubImpl();
-      // sinve v502, 按登录公司取精度
-      // int digit[] = myService2.getDigitBatch(VOs[0].getPk_corp(), new
-      // String[] { "BD301", "BD505" });
-      int digit[] = myService2.getDigitBatch(strLoginCorp, new String[] {
-          "BD301", "BD505"
-      });
-      if (digit == null || digit.length == 0)
-        throw new BusinessException(nc.bs.ml.NCLangResOnserver.getInstance()
-            .getStrByID("40040503", "UPP40040503-000008")/*
-                                                           * @res
-                                                           * "获取本位币精度或单价精度异常!"
-                                                           */);
-
-      timer.addExecutePhase("暂估时单价和金额的精度控制");
-
-      // 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
-      Vector vAllBodyVoB = new Vector();
-      Vector vAllBodyVoBB3 = new Vector();
-      for (int i = 0; i < VOs.length; i++) {
-        GeneralHItemVO bodyVO = new GeneralHItemVO();
-        bodyVO.setCgeneralbid(VOs[i].getCgeneralbid());
-        bodyVO.setBzgflag(new UFBoolean(true));
-        bodyVO.setDzgdate(dateUserLogon);
-        bodyVO.setBzgyfflag(bZGYF);
-        vAllBodyVoB.addElement(bodyVO);
-
-        GeneralBb3VO bb3VO = new GeneralBb3VO();
-        if (VOs[i].getNprice() != null) {
-          bb3VO.setCgeneralbid(VOs[i].getCgeneralbid());
-          double d = PubDMO.getRoundDouble(digit[1], VOs[i].getNprice()
-              .doubleValue());
-          bb3VO.setNpprice(new UFDouble(d));
-          VOs[i].setNprice(bb3VO.getNpprice());
-          d = PubDMO.getRoundDouble(digit[1], VOs[i].getNtaxprice()
-              .doubleValue());
-          bb3VO.setNzygfprice(new UFDouble(d));
-          VOs[i].setNtaxprice(bb3VO.getNzgyfprice());
-        }
-        if (VOs[i].getNmoney() != null) {
-          double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNmoney()
-              .doubleValue());
-          bb3VO.setNpmoney(new UFDouble(d));
-          VOs[i].setNmoney(bb3VO.getNpmoney());
-          d = PubDMO.getRoundDouble(digit[0], VOs[i].getNtotalmoney()
-              .doubleValue());
-          bb3VO.setNzgyfmoney(new UFDouble(d));
-          VOs[i].setNtotalmoney(bb3VO.getNzgyfmoney());
-        }
-        if (VOs[i].getNmaterialmoney() != null) {
-          double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNmaterialmoney()
-              .doubleValue());
-          bb3VO.setNmaterialmoney(new UFDouble(d));
-          VOs[i].setNmaterialmoney(bb3VO.getNmaterialmoney());
-        }
-        // -----zhf add for 5.5
-        if (VOs[i].getCurrencytypeid() != null) {
-          bb3VO.setCurrencytypeid(VOs[i].getCurrencytypeid());
-        }
-        if (VOs[i].getNexchangeotobrate() != null) {
-          bb3VO.setNexchangeotobrate(VOs[i].getNexchangeotobrate());
-        }
-        if (VOs[i].getNoriginalcurmny() != null) {
-          // double d = PubDMO.getRoundDouble(digit[0], VOs[i]
-          // .getNoriginalcurmny().doubleValue());
-          bb3VO.setNoriginalcurmny(VOs[i].getNoriginalcurmny());
-        }
-        if (VOs[i].getNorgtaxmoney() != null) {
-          // double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNorgtaxmoney()
-          // .doubleValue());
-          bb3VO.setNorgtaxMoney(VOs[i].getNorgtaxmoney());
-        }
-        if (VOs[i].getNoriginalnetprice() != null) {
-          double d = PubDMO.getRoundDouble(digit[1], VOs[i]
-              .getNoriginalnetprice().doubleValue());
-          bb3VO.setNoriginalnetprice(new UFDouble(d));
-          d = PubDMO.getRoundDouble(digit[1], VOs[i].getNorgnettaxprice()
-              .doubleValue());
-          bb3VO.setNorgnettaxprice(new UFDouble(d));
-        }
-        if (VOs[i].getNoriginaltaxpricemny() != null) {
-          // double d = PubDMO.getRoundDouble(digit[0], VOs[i]
-          // .getNoriginaltaxpricemny().doubleValue());
-          bb3VO.setNoriginaltaxpricemny(VOs[i].getNoriginaltaxpricemny());
-        }
-
-        // 回写暂估费用信息
-
-        if (VOs[i].getNfeemny() != null
-            && Math.abs(VOs[i].getNfeemny().doubleValue()) > 0) {
-          double d = PubDMO.getRoundDouble(digit[0], VOs[i].getNfeemny()
-              .doubleValue());
-          bb3VO.setNfeemny(new UFDouble(d));
-
-          bb3VO.setCfeeid(VOs[i].getCfeeid());
-        }
-
-        // ---------------------end----------------------
-        vAllBodyVoBB3.addElement(bb3VO);
-      }
-
-      timer.addExecutePhase("打标志、计算单价金额材料费--循环赋值");
-
-      if (vAllBodyVoB.size() > 0) {
-        GeneralHItemVO[] bodyVOs = new GeneralHItemVO[vAllBodyVoB.size()];
-        vAllBodyVoB.copyInto(bodyVOs);
-        dmo.updateBillBody(bodyVOs);
-      }
-
-      timer.addExecutePhase("打标志、计算单价金额材料费--更新子表");
-
-      if (vAllBodyVoBB3.size() > 0) {
-        GeneralBb3VO bb3VOs[] = new GeneralBb3VO[vAllBodyVoBB3.size()];
-        vAllBodyVoBB3.copyInto(bb3VOs);
-        dmo.updateBillBb3(bb3VOs);
-      }
-
-      timer.addExecutePhase("打标志、计算单价金额材料费--更新子表3");
-
-      // 判断存货核算是否启用
-      if (VOs != null && VOs.length > 0) {
-        String strInvoiceCorpId = VOs[0].getPk_invoicecorp();
-        myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ICreateCorpQueryService.class.getName());
-        // 暂估应付
-        if (bZGYF.booleanValue()
-            && myService0.isEnabled(strInvoiceCorpId, "AP")) {
-          ArrayList list = new ArrayList();
-          list.add(strCurrTypeID);
-          list.add(strOperator);
-          list.add(dateUserLogon);
-          list.add(strLoginCorp);
-          list.add(null);// since v53
-          list.add(null);// since v53
-          EstimateVO[] newVOs = getArapVOs(VOs);           
-          saveFeeBillForARAP(newVOs, list);
-        }
-        timer.showAllExecutePhase("暂估应付");
-
-        boolean bIAStartUp = myService0.isEnabled(strInvoiceCorpId, "IA");
-
-        myService1 = (ISysInitQry) nc.bs.framework.common.NCLocator
-            .getInstance().lookup(ISysInitQry.class.getName());
-        boolean bStockRB = true; // 入库单是否红蓝对冲
-        nc.vo.pub.para.SysInitVO initVO[] = myService1.querySysInit(
-            strInvoiceCorpId, "PO36");
-        if (initVO != null && initVO.length > 0) {
-          if (initVO[0].getValue().equals("否"))
-            bStockRB = false;
-        }
-        timer.addExecutePhase("入库单是否红蓝对冲");
-
-        if (bIAStartUp) {
-          // 调用接口,向存货核算系统传送数据
-
-          // 传存货前暂估费用摊入成本---------------zhf 2008/06/24 since for v55
-
-          for (int i = 0; i < VOs.length; i++) {
-            if (VOs[i].getNfeemny() != null
-                && Math.abs(VOs[i].getNfeemny().doubleValue()) > 0) {
-              // 存货金额=暂估金额+费用金额 存货单价=（暂估金额+费用金额）/暂估数量
-              UFDouble nmny = VOs[i].getNmoney().add(VOs[i].getNfeemny());
-              UFDouble nprice = nmny.div(VOs[i].getNinnum());
-
-              VOs[i].setNmoney(new UFDouble(PubDMO.getRoundDouble(digit[0],
-                  nmny.doubleValue())));
-              VOs[i].setNprice(nprice.add(nprice, digit[1]));
-            }
-          }
-          //          
-          saveBillFromOutter(VOs, strOperator, dateUserLogon, strLoginCorp,
-              ProductCode.PROD_PO);
-
-          timer.addExecutePhase("调用保存存货核算单据方法saveBillFromOutter()");
-          // 结算
-          if (bStockRB) {
-            saSubLockedId = settleForEstimate(VOs, strOperator, dateUserLogon,
-                strEstMode, strDifferDealMode);
-          }
-          timer.addExecutePhase("入库单红蓝对冲自动结算");
-        }
-
-        //
-        timer.showAllExecutePhase("暂估处理时间分布：\n");
-
-      }
-    }
-    catch (Exception e) {
-      /* 调用采购公用方法按规范抛出异常 */
-      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-    }
-    finally {
-      // 对单据解锁
-      try {
-        if (bNeedLock && bLock || saSubLockedId != null
-            && saSubLockedId.length > 0) {
-          String[] saAllKey = saLockKey;
-          if (saSubLockedId != null && saSubLockedId.length > 0) {
-            ArrayList listAll = new ArrayList();
-            int iLen = saAllKey == null ? 0 : saAllKey.length;
-            for (int i = 0; i < iLen; i++) {
-              listAll.add(saAllKey[i]);
-            }
-            iLen = saSubLockedId.length;
-            for (int i = 0; i < iLen; i++) {
-              listAll.add(saSubLockedId[i]);
-            }
-            saAllKey = new String[listAll.size()];
-            saAllKey = (String[]) listAll.toArray(saAllKey);
-          }
-          LockTool.releaseLockForPks(saAllKey, strOperator);
-        }
-      }
-      catch (Exception e) {
-        /* 调用采购公用方法按规范抛出异常 */
-        nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-      }
-    }
-  	
-}
-/**
- * @function 得到要保存为应付单VO的费用暂估VO数组
- *
- * @author QuSida
- *
- * @param vos
- *
- * @return EstimateVO[]
- *
- * @date 2010-9-20 下午02:38:46
- */
-private EstimateVO[] getArapVOs(EstimateVO[] vos){
-	if(vos == null || vos.length == 0)
+		nc.itf.pu.inter.IPuToSc_EstimateBO, IEstimate,
+		nc.bs.pub.para.IBeforSaveSysinit {
+
+	/**
+	 * EstimateImpl 构造子注解。
+	 */
+	public EstimateImpl() {
+		super();
+	}
+
+	/**
+	 * 功能描述:取消暂估 输入参数:EstimateVO[],当前操作员ID 作者：熊海情 创建：2001-5-24 14:41:50 修改：晁志平
+	 * FOR V30、V502
+	 */
+	public void antiEstimate(EstimateVO VOs[], ClientLink cl)
+			throws BusinessException {
+
+		String cOperator = cl.getUser();
+		String strLoginCorp = cl.getCorp();
+
+		EstimateDMO dmo = null;
+		ICreateCorpQueryService myService0 = null;
+		boolean bLock = false;
+
+		nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
+		timerDebug.start();
+
+		if (VOs == null || VOs.length == 0) {
+			SCMEnv.out("传递参数为空，直接返回");
+			return;
+		}
+
+		// 组合所有需要加锁的主键
+		String sKeys[] = getEstimateLockKeys(VOs);
+
+		try {
+			dmo = new EstimateDMO();
+			// 对单据加锁
+			bLock = LockTool.setLockForPks(sKeys, cOperator);
+			if (!bLock) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000000")/*
+													 * @res "正在进行相关操作，请稍后再试！"
+													 */);
+			}
+
+			timerDebug.addExecutePhase("组合所有需要加锁的主键及对单据加锁");
+
+			// 判断时间戳是否改变
+			String sMessage = isTimeStampChanged(VOs);
+			if (sMessage != null && sMessage.length() > 0) {
+				sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+						.getStrByID("40040503", "UPP40040503-000001")/*
+																	 * @res
+																	 * "请刷新！\n"
+																	 */;
+				throw new BusinessException(sMessage);
+			}
+
+			timerDebug.addExecutePhase("判断时间戳是否改变");
+
+			Vector vGeneralHID = new Vector();
+			Vector vGeneralBID = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				vGeneralHID.addElement(VOs[i].getCgeneralhid());
+				vGeneralBID.addElement(VOs[i].getCgeneralbid());
+			}
+			// 刷新状态：是否已经反暂过(存在则抛异常)
+			if (vGeneralBID.size() > 0) {
+				dmo.checkExistAntiEsti(vGeneralBID);
+			}
+
+			timerDebug.addExecutePhase("刷新状态：是否已经反暂过(存在则抛异常)");
+
+			// 判断是否全部反暂
+			if (vGeneralHID.size() > 0) {
+				String sGeneralhid[] = new String[vGeneralHID.size()];
+				vGeneralHID.copyInto(sGeneralhid);
+				String sGeneralbid[] = new String[vGeneralBID.size()];
+				vGeneralBID.copyInto(sGeneralbid);
+
+				// 判断是否全部反暂
+				UFBoolean bAll[] = dmo.isAntiEstimateAll(sGeneralhid,
+						sGeneralbid);
+				vGeneralHID = new Vector(); // 全部反暂
+				vGeneralBID = new Vector(); // 部分反暂
+				for (int i = 0; i < bAll.length; i++) {
+					if (bAll[i].booleanValue())
+						vGeneralHID.addElement(sGeneralhid[i]);
+					else
+						vGeneralBID.addElement(sGeneralbid[i]);
+				}
+			} else {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000002")/* @res "入库单不存在!" */);
+			}
+
+			timerDebug.addExecutePhase("判断是否全部反暂");
+
+			//
+			Vector vAllBodyVoB = new Vector();
+			Vector vAllBodyVoBB3 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				GeneralHItemVO bodyVO = new GeneralHItemVO();
+				bodyVO.setBzgflag(new UFBoolean(false));
+				bodyVO.setBzgyfflag(new UFBoolean(false));
+				bodyVO.setDzgdate(null);
+				bodyVO.setCgeneralbid(VOs[i].getCgeneralbid());
+				vAllBodyVoB.addElement(bodyVO);
+
+				GeneralBb3VO bb3VO = new GeneralBb3VO();
+				bb3VO.setNpprice(null);
+				bb3VO.setNpmoney(null);
+				bb3VO.setNzygfprice(null);
+				bb3VO.setNzgyfmoney(null);
+				bb3VO.setNmaterialmoney(null);
+
+				bb3VO.setCurrencytypeid(null);
+				bb3VO.setNexchangeotobrate(null);
+
+				bb3VO.setNoriginalnetprice(null);
+				bb3VO.setNoriginalcurmny(null);
+				bb3VO.setNorgnettaxprice(null);
+				bb3VO.setNorgtaxMoney(null);
+				bb3VO.setNoriginaltaxpricemny(null);
+
+				bb3VO.setCfeeid(null);
+				bb3VO.setNfeemny(null);
+
+				bb3VO.setCgeneralbid(VOs[i].getCgeneralbid());
+				vAllBodyVoBB3.addElement(bb3VO);
+			}
+			if (vAllBodyVoB.size() > 0) {
+				GeneralHItemVO[] bodyVOs = new GeneralHItemVO[vAllBodyVoB
+						.size()];
+				vAllBodyVoB.copyInto(bodyVOs);
+				dmo.updateBillBody(bodyVOs);
+			}
+			if (vAllBodyVoBB3.size() > 0) {
+				GeneralBb3VO bb3VOs[] = new GeneralBb3VO[vAllBodyVoBB3.size()];
+				vAllBodyVoBB3.copyInto(bb3VOs);
+				dmo.updateBillBb3(bb3VOs);
+			}
+			//
+			timerDebug.addExecutePhase("入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费");
+
+			if (VOs != null && VOs.length > 0) {
+				// String unitCode = VOs[0].getPk_corp();//del since v502
+				// 判断存货核算是否启用
+				myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(
+								ICreateCorpQueryService.class.getName());
+				// boolean bIAStartUp = myService0.isEnabled(unitCode,
+				// "IA");//del since
+				// v502
+				boolean bIAStartUp = myService0.isEnabled(strLoginCorp, "IA");
+				if (bIAStartUp) {
+					// 入库单反暂时,删除存货核算的相应单据
+					if (vGeneralHID.size() > 0) {
+						// 入库单头ID唯一性组合
+						Vector vTemp = new Vector();
+						vTemp.addElement(((String) vGeneralHID.elementAt(0))
+								.trim());
+						for (int i = 1; i < vGeneralHID.size(); i++) {
+							String s1 = ((String) vGeneralHID.elementAt(i))
+									.trim();
+							if (!vTemp.contains(s1))
+								vTemp.addElement(s1);
+						}
+						String sGeneralhid[] = new String[vTemp.size()];
+						vTemp.copyInto(sGeneralhid);
+						deleteBillFromOutter(sGeneralhid, cl,
+								ProductCode.PROD_PO);
+					}
+					timerDebug.addExecutePhase("按入库单“表头ID[]”删除存货核算单据");
+
+					if (vGeneralBID.size() > 0) {
+						String sGeneralbid[] = new String[vGeneralBID.size()];
+						vGeneralBID.copyInto(sGeneralbid);
+						deleteBillFromOutterPart(sGeneralbid, cl);
+					}
+					timerDebug.addExecutePhase("按入库单“表体ID[]”删除存货核算单据");
+				}
+
+				if (myService0.isEnabled(strLoginCorp, "AP")) {
+					// 应付启用,删除暂估应付
+					// ******
+
+					deleteBillForZGAP(VOs, strLoginCorp);
+					// ******
+				}
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			PubDMO.throwBusinessException(e);
+		} finally {
+			try {
+				// if (myService != null) {
+				// 对单据解锁
+				if (bLock)
+					LockTool.releaseLockForPks(sKeys, cOperator);
+				// }
+			} catch (Exception e) {
+				/* 调用采购公用方法按规范抛出异常 */
+				PubDMO.throwBusinessException(e);
+			}
+		}
+		timerDebug.showAllExecutePhase("取消暂估BS时间分布：");
+	}
+
+	/**
+	 * @作者 zhf
+	 * @创建时间：2008-7-18上午08:56:34
+	 * @param VOs
+	 * @throws BusinessException
+	 * @throws SystemException
+	 * @throws NamingException
+	 * @return EstimateVO[]
+	 * @说明：(for v5.5) 返回不存在费用结算单的暂估vo
+	 * @修改者：
+	 * @修改时间：
+	 * @修改说明：
+	 */
+	public EstimateVO[] getAntiEstiVOs(EstimateVO[] VOs)
+			throws BusinessException {
+		if (VOs != null && VOs.length > 0) {
+			ArrayList<String> list = new ArrayList<String>();
+			ArrayList<EstimateVO> estiVoList = new ArrayList<EstimateVO>();
+			HashMap feeTimesMap = null;
+			for (EstimateVO vo : VOs) {
+				String key = vo.getCgeneralbid().trim();
+				if (!list.contains(key)) {
+					list.add(key);
+				}
+			}
+			try {
+				if (list != null && list.size() > 0) {
+					SettleDMO setDmo = new SettleDMO();
+					feeTimesMap = setDmo.getFeeSettleTimes(list);
+				}
+				if (feeTimesMap != null && feeTimesMap.size() > 0) {
+					list.clear();
+					for (EstimateVO vo : VOs) {
+						Object[] obj = (Object[]) feeTimesMap.get(vo
+								.getCgeneralbid().trim());
+						if (obj != null) {
+							if (PuPubVO.getString_TrimZeroLenAsNull(obj[0]) == null
+									|| Integer
+											.parseInt(PuPubVO
+													.getString_TrimZeroLenAsNull(obj[0])) == 0) {
+								estiVoList.add(vo);
+							}
+						}
+
+					}
+				}
+			} catch (Exception e) {
+				SCMEnv.out(e.getMessage());
+				PubDMO.throwBusinessException(e);
+			}
+			return estiVoList.toArray(new EstimateVO[] {});
+		}
 		return null;
-	
+	}
+
+	/**
+	 * 删除期初暂估应付单用
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param VOs
+	 * @throws BusinessException
+	 *             <p>
+	 * @author czp
+	 * @time 2008-5-20 下午08:35:36
+	 */
+	private void deleteBillForZGAP_Init(EstimateVO VOs[])
+			throws BusinessException {
+		if (VOs == null || VOs.length == 0) {
+			return;
+		}
+		ArrayList<String> listHid = new ArrayList<String>();
+		for (EstimateVO vo : VOs) {
+			if (vo.getCgeneralhid() != null
+					&& !listHid.contains(vo.getCgeneralhid())) {
+				listHid.add(vo.getCgeneralhid());
+			}
+		}
+		String[] saHid = null;
+		if (listHid.size() > 0) {
+			saHid = new String[listHid.size()];
+			listHid.toArray(saHid);
+			// 检查是否存在这样的暂估应付单据，应对公司先没有启用暂估应付时做了一些暂估单据，然后想启用暂估应付，重新录入期初数据的应用场景
+			// 如果不存在下游单据则不调用这个删除动作
+			Object[][] oa2Ret = new PubImpl().queryArrayValue("arap_djfb",
+					"ddlx", new String[] { "ddlx" }, saHid, "dr=0");
+			if (oa2Ret != null) {
+				IArapBillPublic iArapBill = (IArapBillPublic) NCLocator
+						.getInstance().lookup(IArapBillPublic.class.getName());
+				IArapForGYLPublic iArapGyl = (IArapForGYLPublic) NCLocator
+						.getInstance()
+						.lookup(IArapForGYLPublic.class.getName());
+				DJZBVO[] voaDj = null;
+				// since v53 : 目前收付未提供批量删除功能
+				for (String strHid : saHid) {
+					try {
+						voaDj = iArapBill.getDjvobySourcePk(strHid);
+					} catch (Exception e) {
+						PubDMO.throwBusinessException(e);
+					}
+					for (DJZBVO dj : voaDj) {
+						((DJZBHeaderVO) dj.getParentVO()).m_isOtherOpration = true;
+						dj.setm_OldVO((DJZBVO) dj.clone());
+						iArapGyl.deleteEff(dj);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 删除暂估应付单
+	 */
+	private void deleteBillForZGAP(EstimateVO VOs[], String loginCorp)
+			throws BusinessException {
+		// 过滤掉资产性存货
+		VOs = filteAssetInv(VOs);
+		Vector v1 = new Vector();
+		for (int i = 0; i < VOs.length; i++) {
+			if (VOs[i].getBzgyf().booleanValue())
+				v1.addElement(VOs[i]);
+		}
+		EstimateVO VO[] = new EstimateVO[v1.size()];
+		v1.copyInto(VO);
+
+		if (VO != null && VO.length > 0) {
+			v1 = new Vector();
+			for (int i = 0; i < VO.length; i++) {
+				// 生成应付单体
+				DJZBItemVO bodyVO = new DJZBItemVO();
+				bodyVO.setDdlx(VO[i].getCgeneralhid()); // 上层单据ID
+				bodyVO.setDdhh(VO[i].getCgeneralbid()); // 上层单据行ID(暂传“上层单据ID”)
+
+				DJZBVO tempVO = new DJZBVO();
+				tempVO.setParentVO(new DJZBHeaderVO());
+				tempVO.setChildrenVO(new DJZBItemVO[] { bodyVO });
+
+				v1.addElement(tempVO);
+			}
+
+			DJZBVO apVOs[] = new DJZBVO[v1.size()];
+			v1.copyInto(apVOs);
+
+			IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator
+					.getInstance().lookup(IArapForGYLPublic.class.getName());
+
+			/* since v502,支持暂估应付生成多行 */
+			int jLen = 0;
+			String[] saBid = null;
+			Object[][] oa2Ret = null;
+			PubImpl queryTool = new PubImpl();
+			for (int i = 0; i < apVOs.length; i++) {
+				// iArap.deleteEffForCG(apVOs[i]);
+				jLen = apVOs[i].getChildrenVO().length;
+				saBid = new String[jLen];
+				Map<String, String> ddhh_corp = new HashMap<String, String>();
+				for (int j = 0; j < jLen; j++) {
+					saBid[j] = ((DJZBItemVO) apVOs[i].getChildrenVO()[j])
+							.getDdhh();
+					ddhh_corp.put(saBid[j], loginCorp);
+				}
+				// 检查是否存在这样的暂估应付单据，应对公司先没有启用暂估应付时做了一些暂估单据，然后想启用暂估应付，重新录入期初数据的应用场景
+				// 如果不存在下游单据则不调用这个删除动作
+				oa2Ret = queryTool.queryArrayValue("arap_djfb", "ddhh",
+						new String[] { "ddhh" }, saBid, "dr=0");
+				if (oa2Ret != null) {
+					//
+					iArap.deleteEff(ddhh_corp);
+				}
+			}
+		}
+	}
+
+	/**
+	 * 功能描述:反暂估(入库单取消签字调用) 输入参数:GeneralBillVO[] 返回值:void
+	 * 异常处理:java.rmi.RemoteException 日期：2003/06/10 作者：熊海情 修改：晁志平 FOR V30
+	 */
+	public void antiEstimateBatch(GeneralBillVO VOs[]) throws BusinessException {
+
+		ICreateCorpQueryService myService0 = null;
+		nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
+		timerDebug.start();
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			String cOperator = VOs[0].getHeaderVO().getCoperatoridnow(); // 当前操作员
+
+			Vector vGeneralHID = new Vector();
+			Vector vGeneralBID = new Vector();
+
+			Vector vBodyVOs = new Vector();
+			ArrayList<String> stockRowList = new ArrayList<String>();
+
+			for (int i = 0; i < VOs.length; i++) {
+				GeneralBillItemVO bodyVO[] = VOs[i].getItemVOs();
+				if (bodyVO == null || bodyVO.length == 0)
+					continue;
+				for (int j = 0; j < bodyVO.length; j++) {
+					stockRowList.add(bodyVO[j].getCgeneralbid());
+				}
+			}
+			SettleDMO setDmo = new SettleDMO();
+			// 查询暂估应付标志 by zhaoyha at 2009.8
+			Map<String, Object[]> mapZgyf = setDmo.queryStockZGYF(VOs);
+
+			// 刷新状态：是否已经反暂过(存在则抛异常)
+			if (vGeneralBID.size() > 0) {
+				dmo.checkExistAntiEsti(vGeneralBID);
+			}
+			timerDebug.addExecutePhase("刷新状态：是否已经反暂过(存在则抛异常)");
+
+			// //zhf 做过费用结算不可反暂
+			HashMap feeSetMap = setDmo.getFeeSettleTimes(stockRowList);
+			if (feeSetMap != null && feeSetMap.size() > 0) {
+				for (int i = 0; i < VOs.length; i++) {
+					GeneralBillItemVO bodyVO[] = VOs[i].getItemVOs();
+
+					if (bodyVO == null || bodyVO.length == 0)
+						continue;
+					for (int j = 0; j < bodyVO.length; j++) {
+
+						if (feeSetMap.containsKey(bodyVO[j].getCgeneralbid())) {
+							Object oo = feeSetMap.get(bodyVO[j]
+									.getCgeneralbid());
+							if (null == oo
+									|| null == PuPubVO
+											.getUFDouble_ZeroAsNull(((Object[]) oo)[0])) {
+								vGeneralHID.addElement(bodyVO[j]
+										.getCgeneralhid());
+								vGeneralBID.addElement(bodyVO[j]
+										.getCgeneralbid());
+								vBodyVOs.add(bodyVO[j]);
+							}
+						}
+					}
+				}
+			}
+			// //end
+
+			// 判断是否全部反暂
+			if (vGeneralHID.size() > 0) {
+				String sGeneralhid[] = new String[vGeneralHID.size()];
+				vGeneralHID.copyInto(sGeneralhid);
+				String sGeneralbid[] = new String[vGeneralBID.size()];
+				vGeneralBID.copyInto(sGeneralbid);
+				UFBoolean bAll[] = dmo.isAntiEstimateAll(sGeneralhid,
+						sGeneralbid);
+				vGeneralHID = new Vector(); // 全部反暂
+				vGeneralBID = new Vector(); // 部分反暂
+				for (int i = 0; i < bAll.length; i++) {
+					if (bAll[i].booleanValue())
+						vGeneralHID.addElement(sGeneralhid[i]);
+					else
+						vGeneralBID.addElement(sGeneralbid[i]);
+				}
+			} else {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000002")/* @res "入库单不存在!" */);
+			}
+			timerDebug.addExecutePhase("判断是否全部反暂");
+
+			// 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
+			Vector v1 = new Vector();
+			Vector v2 = new Vector();
+			// for (int i = 0; i < VOs.length; i++) {
+			if (vBodyVOs.size() > 0) {
+				GeneralBillItemVO bodyVO[] = new GeneralBillItemVO[vBodyVOs
+						.size()];
+				vBodyVOs.copyInto(bodyVO);
+				// if (bodyVO == null || bodyVO.length == 0)
+				// continue;
+				for (int j = 0; j < bodyVO.length; j++) {
+					GeneralHItemVO tempBodyVO = new GeneralHItemVO();
+					tempBodyVO.setCgeneralbid(bodyVO[j].getCgeneralbid());
+					tempBodyVO.setDzgdate(null);
+					tempBodyVO.setBzgflag(UFBoolean.FALSE);
+					tempBodyVO.setBzgyfflag(UFBoolean.FALSE);
+					v1.addElement(tempBodyVO);
+
+					GeneralBb3VO bb3VO = new GeneralBb3VO();
+					bb3VO.setCgeneralbid(bodyVO[j].getCgeneralbid());
+					bb3VO.setNpprice(null);
+					bb3VO.setNpmoney(null);
+					bb3VO.setNzygfprice(null);
+					bb3VO.setNzgyfmoney(null);
+					bb3VO.setNmaterialmoney(null);
+					v2.addElement(bb3VO);
+				}
+			}
+
+			if (v1.size() > 0) {
+				GeneralHItemVO[] bodyVOs = new GeneralHItemVO[v1.size()];
+				v1.copyInto(bodyVOs);
+				dmo.updateBillBody(bodyVOs);
+			}
+			if (v2.size() > 0) {
+				GeneralBb3VO bb3VOs[] = new GeneralBb3VO[v2.size()];
+				v2.copyInto(bb3VOs);
+				dmo.updateBillBb3(bb3VOs);
+			}
+			timerDebug.addExecutePhase("入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费");
+
+			// 反暂时,删除存货核算的相应单据
+			if (VOs != null && VOs.length > 0) {
+				String unitCode = VOs[0].getHeaderVO().getPk_corp();
+				myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(
+								ICreateCorpQueryService.class.getName());
+				boolean bIAStartUp = myService0.isEnabled(unitCode, "IA");
+
+				if (bIAStartUp) {
+
+					if (vGeneralHID.size() > 0) {
+						// 入库单头ID唯一性组合
+						Vector vTemp = new Vector();
+						vTemp.addElement(((String) vGeneralHID.elementAt(0))
+								.trim());
+						for (int i = 1; i < vGeneralHID.size(); i++) {
+							String s1 = ((String) vGeneralHID.elementAt(i))
+									.trim();
+							if (!vTemp.contains(s1))
+								vTemp.addElement(s1);
+						}
+
+						String sGeneralhid[] = new String[vTemp.size()];
+						vTemp.copyInto(sGeneralhid);
+
+						deleteBillFromOutter(sGeneralhid, PuUtils.getClintLink(
+								unitCode, cOperator, BsPuTool.getLoginDate()),
+								ProductCode.PROD_PO);
+					}
+
+					if (vGeneralBID.size() > 0) {
+						String sGeneralbid[] = new String[vGeneralBID.size()];
+						vGeneralBID.copyInto(sGeneralbid);
+
+						deleteBillFromOutterPart(sGeneralbid, PuUtils
+								.getClintLink(unitCode, cOperator, BsPuTool
+										.getLoginDate()));
+					}
+
+				}
+
+				if (myService0.isEnabled(unitCode, "AP")) {
+					// 应付启用,删除暂估应付
+					// ******
+					if (VOs != null && VOs.length > 0) {
+
+						v1 = new Vector();
+						for (int i = 0; i < VOs.length; i++) {
+							GeneralBillItemVO bodyVO[] = VOs[i].getItemVOs();
+							if (bodyVO == null || bodyVO.length == 0)
+								continue;
+							UFBoolean bZGYF = UFBoolean.FALSE;
+							for (int j = 0; j < bodyVO.length; j++) {
+								// 生成应付单体
+								bZGYF = (UFBoolean) PuPubVO
+										.getUFBoolean_NullAs(
+												mapZgyf.get(bodyVO[i]
+														.getCgeneralbid())[0],
+												UFBoolean.FALSE);
+								if (!bZGYF.booleanValue())
+									continue;
+								DJZBItemVO tempBodyVO = new DJZBItemVO();
+								tempBodyVO.setDdlx(bodyVO[j].getCgeneralhid()); // 上层单据ID
+								tempBodyVO.setDdhh(bodyVO[j].getCgeneralbid()); // 上层单据行ID(暂传“上层单据ID”)
+
+								DJZBVO tempVO = new DJZBVO();
+								tempVO.setParentVO(new DJZBHeaderVO());
+								tempVO
+										.setChildrenVO(new DJZBItemVO[] { tempBodyVO });
+
+								v1.addElement(tempVO);
+							}
+						}
+
+						DJZBVO apVOs[] = new DJZBVO[v1.size()];
+						v1.copyInto(apVOs);
+
+						if (apVOs != null && apVOs.length > 0) {
+							IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator
+									.getInstance().lookup(
+											IArapForGYLPublic.class.getName());
+							/* since v502,支持暂估应付生成多行 */
+							// for(int i = 0; i < apVOs.length; i++){
+							// iArap.deleteEffForCG(apVOs[i]);
+							// }
+							int jLen = 0;
+							String[] saBid = null;
+							for (int i = 0; i < apVOs.length; i++) {
+								// iArap.deleteEffForCG(apVOs[i]);
+								jLen = apVOs[i].getChildrenVO().length;
+								saBid = new String[jLen];
+								for (int j = 0; j < jLen; j++) {
+									saBid[j] = ((DJZBItemVO) apVOs[i]
+											.getChildrenVO()[j]).getDdhh();
+								}
+								iArap.deleteEff(saBid);
+							}
+						}
+					}
+					// ******
+				}
+			}
+			timerDebug.addExecutePhase("反暂时,删除存货核算的相应单据");
+
+			timerDebug.showAllExecutePhase("采购提供接口：反暂估(入库单取消签字调用)时间分布");
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			PubDMO.throwBusinessException(e);
+		}
+
+	}
+
+	/**
+	 * 功能描述:反暂估 输入参数:VO[],当前操作员ID 返回值:void
+	 * 异常处理:NamingException,RemoteException,SQLException 作者：熊海情 修改：晁志平 FOR V30
+	 * 修改：晁志平 解藕
+	 */
+	public void antiEstimateForSc(CircularlyAccessibleValueObject[] voaVO,
+			String cOperator) throws BusinessException {
+		if (!(voaVO instanceof EstimateVO[])) {
+			SCMEnv.out("程序BUG：委外加工反暂估时传入错误的参数类型：" + voaVO.getClass());
+			SCMEnv.out("正确的参数类型应该为：“EstimateVO[]”");
+			return;
+		}
+		if (voaVO == null || voaVO.length == 0) {
+			SCMEnv.out("传入参数为空，直接返回！方法调用层次如下：");
+			return;
+		}
+		EstimateVO[] VOs = (EstimateVO[]) voaVO;
+		nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
+		timerDebug.start();
+
+		// zhf add for v55 进行了费用结算的暂估入库单不可反暂
+		VOs = getAntiEstiVOs(VOs);
+		// end
+
+		EstimateDMO dmo = null;
+		ICreateCorpQueryService myService0 = null;
+		try {
+			dmo = new EstimateDMO();
+			Vector v1 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				v1.addElement(VOs[i].getCgeneralbid());
+			}
+			// 刷新状态：是否已经反暂过(存在则抛异常)
+			if (v1.size() > 0) {
+				dmo.checkExistAntiEsti(v1);
+			}
+			timerDebug.addExecutePhase("刷新状态：是否已经反暂过(存在则抛异常)");
+
+			// 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
+			int iLen = VOs.length;
+			Vector vAllBodyVo = new Vector();
+			Vector vAllBody3Vo = new Vector();
+			for (int i = 0; i < iLen; i++) {
+				GeneralHItemVO bodyVO = new GeneralHItemVO();
+				bodyVO.setCgeneralbid(VOs[i].getCgeneralbid());
+				bodyVO.setBzgflag(new UFBoolean(false));
+				bodyVO.setBzgyfflag(new UFBoolean(false));
+				bodyVO.setDzgdate(null);
+				vAllBodyVo.addElement(bodyVO);
+
+				GeneralBb3VO bb3VO = new GeneralBb3VO();
+				bb3VO.setCgeneralbid(VOs[i].getCgeneralbid());
+				bb3VO.setNpprice(null);
+				bb3VO.setNpmoney(null);
+				bb3VO.setNzygfprice(null);
+				bb3VO.setNzgyfmoney(null);
+				bb3VO.setNmaterialmoney(null);
+				vAllBody3Vo.addElement(bb3VO);
+			}
+			if (vAllBodyVo.size() > 0) {
+				GeneralHItemVO bodyVO[] = new GeneralHItemVO[vAllBodyVo.size()];
+				vAllBodyVo.copyInto(bodyVO);
+				dmo.updateBillBody(bodyVO);
+			}
+			if (vAllBody3Vo.size() > 0) {
+				GeneralBb3VO bb3VO[] = new GeneralBb3VO[vAllBody3Vo.size()];
+				vAllBody3Vo.copyInto(bb3VO);
+				dmo.updateBillBb3(bb3VO);
+			}
+			timerDebug.addExecutePhase("入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费");
+
+			// 反暂时,删除存货核算的相应单据
+			if (VOs != null && VOs.length > 0) {
+				String unitCode = VOs[0].getPk_corp();
+				myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(
+								ICreateCorpQueryService.class.getName());
+				boolean bIAStartUp = myService0.isEnabled(unitCode, "IA");
+				if (bIAStartUp) {
+					Vector vGeneralHID = new Vector();
+					vGeneralHID.addElement(VOs[0].getCgeneralhid().trim());
+					for (int i = 1; i < VOs.length; i++) {
+						String s1 = VOs[i].getCgeneralhid().trim();
+						if (!vGeneralHID.contains(s1))
+							vGeneralHID.addElement(s1);
+					}
+					if (vGeneralHID.size() > 0) {
+						String sGeneralhid[] = new String[vGeneralHID.size()];
+						vGeneralHID.copyInto(sGeneralhid);
+						deleteBillFromOutter(sGeneralhid, PuUtils.getClintLink(
+								unitCode, cOperator, BsPuTool.getLoginDate()),
+								ProductCode.PROD_SC);
+					} else {
+						throw new BusinessException(nc.bs.ml.NCLangResOnserver
+								.getInstance().getStrByID("40040503",
+										"UPP40040503-000002")/*
+															 * @res "入库单不存在!"
+															 */);
+					}
+				}
+			}
+			timerDebug.addExecutePhase("反暂时,删除存货核算的相应单据时间分布");
+
+			timerDebug.showAllExecutePhase("采购给委外加工提供的接口，反暂估时间分布");
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			PubDMO.throwBusinessException(e);
+		} finally {
+		}
+	}
+
+	/**
+	 * 功能描述:取消暂估--按入库单表头ID删除存货核算系统数据 输入参数:EstimateVO[],公司主键,当前操作员ID 作者：熊海情
+	 * 创建：2001-5-24 14:41:50 修改：晁志平 FOR V30、V502
+	 */
+	private void deleteBillFromOutter(String cGeneralhid[], ClientLink cl,
+			String strModuleCode) throws BusinessException {
+		try {
+			nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
+			timerDebug.start();
+			// IIAToPUBill myService = (IIAToPUBill)
+			// NCLocator.getInstance().lookup(IIAToPUBill.class.getName());
+			// myService.deleteBillFromOutterArray(cGeneralhid, strLoginCorp,
+			// cOperator);
+			if (ProductCode.PROD_PO.equals(strModuleCode)) {
+				IIAToPU myService = (IIAToPU) NCLocator.getInstance().lookup(
+						IIAToPU.class.getName());
+				myService.unEstimatePUForWholeBill(cGeneralhid, cl);
+			} else if (ProductCode.PROD_SC.equals(strModuleCode)) {
+				IIAToSC myService = (IIAToSC) NCLocator.getInstance().lookup(
+						IIAToSC.class.getName());
+				myService.unEstimateSC(cGeneralhid, cl);
+			} else {
+				throw new BusinessException("Impossible : not PO and not SC!");
+			}
+			timerDebug
+					.showExecuteTime("取消暂估-按入库单表体ID删除存货核算系统数据<BillBO.deleteBillFromOutterArray()>时间");
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+	}
+
+	/**
+	 * 功能描述:取消暂估--按入库单表体ID删除存货核算系统数据 输入参数:EstimateVO[],当前操作员ID 作者：熊海情
+	 * 创建：2001-5-24 14:41:50 修改：晁志平 FOR V30
+	 */
+	private void deleteBillFromOutterPart(String cGeneralbid[], ClientLink cl)
+			throws BusinessException {
+		try {
+			nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
+			timerDebug.start();
+			// // IIAToPUBill myService = (IIAToPUBill) new
+			// //
+			// InterServBO().getInterInstance(ProductCode.PROD_IA,InterRegister.IA0101);
+			// IIAToPUBill myService = (IIAToPUBill)
+			// NCLocator.getInstance().lookup(
+			// IIAToPUBill.class.getName());
+			// myService.deleteBillItemForPUs(cGeneralbid, cOperator);
+			IIAToPU myService = (IIAToPU) NCLocator.getInstance().lookup(
+					IIAToPU.class.getName());
+			myService.unEstimatePU(cGeneralbid, cl);
+
+			timerDebug
+					.showExecuteTime("取消暂估-按入库单表体ID删除存货核算系统数据<BillBO.deleteBillItemForPUs()>时间");
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+	}
+
+	/**
+	 * <p>
+	 * 功能描述:作废期初暂估入库单,并修改订单的累计入库数量
+	 * <p>
+	 * 输入参数:ArrayList
+	 * <p>
+	 * |-GeneralHVO[] , 入库单VO
+	 * <p>
+	 * |-String ，操作员ID
+	 * <p>
+	 * |-String ，公司主键
+	 * <p>
+	 * 返回值:无
+	 * <p>
+	 * 异常处理: BusinessException
+	 * <p>
+	 * 作者：熊海情
+	 * <p>
+	 * 修改：晁志平 V30 2004-06-03 增加数量容差控制
+	 */
+	public void discard(ArrayList listPara) throws BusinessException {
+
+		if (listPara == null || listPara.size() < 3) {
+			SCMEnv.out("程序BUG：传入参数为空，直接返回!");
+			return;
+		}
+
+		GeneralHVO[] VOs = (GeneralHVO[]) listPara.get(0);
+		String cOperator = (String) listPara.get(1);
+		String strPkCorp = (String) listPara.get(2);
+
+		if (VOs == null || VOs.length == 0) {
+			SCMEnv.out("传入参数为空，直接返回!");
+			return;
+		}
+		int iLen = VOs.length;
+		boolean bLock = false;
+		// 组合所有需要加锁的主键
+		String sKeys[] = getGeneralLockKeys(VOs);
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+
+			// 对单据加锁
+			bLock = LockTool.setLockForPks(sKeys, cOperator);
+			if (!bLock) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000000")/*
+													 * @res "正在进行相关操作，请稍后再试！"
+													 */);
+			}
+			// 准备入库单号哈希表{入库单头ID=入库单号}
+			HashMap<String, String> mapHidBillCode = new HashMap<String, String>();
+			for (int i = 0; i < iLen; i++) {
+				mapHidBillCode.put(VOs[i].getHeadVO().getPrimaryKey(), VOs[i]
+						.getHeadVO().getVbillcode());
+			}
+
+			// 检查1：查询不满足删除条件的入库单头ID(向量)
+			ArrayList<ArrayList<String>> listStatus = dmo
+					.queryInitialBillStatus(VOs);
+			// 处理：已经结算过的(包括结算完成和未结算完成的)
+			ArrayList<String> listSettled = listStatus.get(0);
+			String strErrSettled = "";
+			for (int i = 0; i < listSettled.size(); i++) {
+				strErrSettled += mapHidBillCode.get(listSettled.get(i) + "");
+				strErrSettled += ",";
+			}
+			if (strErrSettled.length() > 0) {
+				strErrSettled = strErrSettled.substring(0, strErrSettled
+						.length() - 1);
+			}
+			// 处理：已经删除的
+			String strErrDeleted = "";
+			ArrayList<String> listDeleted = listStatus.get(1);
+			for (int i = 0; i < listDeleted.size(); i++) {
+				strErrDeleted += mapHidBillCode.get(listDeleted.get(i) + "");
+				strErrDeleted += ",";
+			}
+			if (strErrDeleted.length() > 0) {
+				strErrDeleted = strErrDeleted.substring(0, strErrDeleted
+						.length() - 1);
+			}
+			// 处理：已经生成采购发票的
+			String strErrInvoice = "";
+			ArrayList<String> listInvoice = listStatus.get(2);
+			for (int i = 0; i < listInvoice.size(); i++) {
+				strErrInvoice += mapHidBillCode.get(listInvoice.get(i) + "");
+				strErrInvoice += ",";
+			}
+			if (strErrInvoice.length() > 0) {
+				strErrInvoice = strErrInvoice.substring(0, strErrInvoice
+						.length() - 1);
+			}
+			String strErrAll = "";
+			if (strErrSettled.trim().length() > 0) {
+				strErrAll += NCLangResOnserver.getInstance().getStrByID(
+						"40040503", "UPP40040503-000004", null,
+						new String[] { strErrSettled })/* @res入库单{0}已结算，不能作废！ */;
+				strErrAll += "\n";
+			}
+			if (strErrDeleted.trim().length() > 0) {
+				strErrAll += NCLangResOnserver.getInstance().getStrByID(
+						"40040503", "UPP40040503-000003", null,
+						new String[] { strErrDeleted })/* @res入库单{0}已作废！ */;
+				strErrAll += "\n";
+			}
+			if (strErrInvoice.trim().length() > 0) {
+				strErrAll += NCLangResOnserver.getInstance().getStrByID(
+						"40040503", "UPP40040503-000086", null,
+						new String[] { strErrInvoice })/* @res入库单{0}已开票，不能作废！ */;
+				strErrAll += "\n";
+			}
+			if (strErrAll.trim().length() > 0) {
+				throw new BusinessException(strErrAll);
+			}
+
+			// 检查2：判断时间戳是否改变
+			String sMessage = isTimeStampChangedForGeneral(VOs);
+			if (sMessage != null && sMessage.length() > 0) {
+				sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+						.getStrByID("40040503", "UPP40040503-000001")/*
+																	 * @res
+																	 * "请刷新！\n"
+																	 */;
+				throw new BusinessException(sMessage);
+			}
+			GeneralBillVO[] voaIcBill = new GeneralBillVO[iLen];
+			for (int i = 0; i < iLen; i++) {
+				String pk_calbody = dmo.getStorIDByWarehouseID(VOs[i]
+						.getHeadVO().getCwarehouseid());
+				if (pk_calbody != null && pk_calbody.trim().length() > 0) {
+					VOs[i].getHeadVO().setCstoreorganization(pk_calbody);
+				}
+				voaIcBill[i] = getChangedVO(VOs[i], false);
+			}
+			IICToPU_ICATP atp = (IICToPU_ICATP) NCLocator.getInstance().lookup(
+					IICToPU_ICATP.class.getName());
+			// since v55, Atp算法重构后的调整，并发检查之后(VO设置属性值之后)，数据库更新之前调用
+			ArrayList<ATPVO> listRetFromBefore = atp
+					.modifyATPBeforeForPU(voaIcBill);
+
+			// 作废期初暂估入库单
+			dmo.discard(VOs, strPkCorp);
+
+			// since v53, 支持暂估应付, 删除暂估应付单据
+			ICreateCorpQueryService myService0 = (ICreateCorpQueryService) NCLocator
+					.getInstance().lookup(
+							ICreateCorpQueryService.class.getName());
+			boolean bArApStartUp = myService0.isEnabled(strPkCorp, "AP");
+			ISysInitQry srvInitQry = (ISysInitQry) NCLocator.getInstance()
+					.lookup(ISysInitQry.class.getName());
+			boolean bZgyfFlag = srvInitQry.getParaBoolean(strPkCorp, "PO52")
+					.booleanValue();
+			//
+			if (bZgyfFlag && bArApStartUp) {
+				ArrayList<String> listBid = new ArrayList<String>();
+				GeneralHItemVO[] items = null;
+				for (int i = 0; i < VOs.length; i++) {
+					items = VOs[i].getBodyVO();
+					for (int j = 0; j < items.length; j++) {
+						listBid.add(items[j].getCgeneralbid());
+					}
+				}
+				String strSqlWherePart = "and B.cgeneralbid in ";
+				strSqlWherePart += new TempTableUtil().getSubSql(listBid);
+				// 将采购入库单VO转换为暂估VO(采用查询思路，利用手工暂估查询将库存单据转换为暂估单据)
+				EstimateVO[] voaEst = new EstimateDMO().queryEstimate(
+						strSqlWherePart, "Y");
+				//
+				deleteBillForZGAP_Init(voaEst);
+			}
+			// 回退单据号
+			for (int i = 0; i < iLen; i++) {
+				returnBillCode(VOs[i].getHeadVO());
+			}
+			// since v55, Atp算法重构后的调整，数据库更新之后调用
+			atp.modifyATPAfterForPU(voaIcBill, listRetFromBefore);
+			//
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			PubDMO.throwBusinessException(e);
+		} finally {
+			try {
+				// 对单据解锁
+				if (bLock) {
+					LockTool.releaseLockForPks(sKeys, cOperator);
+				}
+			} catch (Exception e) {
+				/* 调用采购公用方法按规范抛出异常 */
+				PubDMO.throwBusinessException(e);
+			}
+		}
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述: 输入参数: 返回值: 异常处理: 日期:
+	 */
+	private Vector doModification(StockVO stockVOs[], StockVO negStockVOs[],
+			SettlebillItemVO settlebillItemVOs[], String cOperator,
+			UFDate dCurrDate) throws BusinessException {
+		// 修改入库单
+		for (int i = 0; i < stockVOs.length; i++) {
+			if (negStockVOs[i] == null)
+				continue;
+
+			int nCount = -1;// 确定位置
+			String s1 = stockVOs[i].getCgeneralbid();
+			for (int j = 0; j < settlebillItemVOs.length; j++) {
+				String s2 = settlebillItemVOs[j].getCstockrow();
+				if (s2 != null && s1.equals(s2)) {
+					nCount = j;
+					break;
+				}
+			}
+			if (nCount < 0)
+				continue;
+
+			// 修改累计结算数量
+			UFDouble d1 = settlebillItemVOs[nCount].getNsettlenum();
+			if (d1 != null) {
+				double d = stockVOs[i].getNaccumsettlenum().doubleValue()
+						+ d1.doubleValue();
+				stockVOs[i].setNaccumsettlenum(new UFDouble(d));
+			}
+			// 修改累计结算金额
+			UFDouble d2 = stockVOs[i].getNprice();
+			if (d1 != null && d2 != null) {
+				double d = stockVOs[i].getNaccumsettlemny().doubleValue()
+						+ d1.doubleValue() * d2.doubleValue();
+				stockVOs[i].setNaccumsettlemny(new UFDouble(d).add(
+						new UFDouble(0.0), BsPuTool.getCCurrDecimal(null)));
+			}
+		}
+
+		// 修改负入库单
+		for (int i = 0; i < negStockVOs.length; i++) {
+			if (negStockVOs[i] == null)
+				continue;
+
+			int nCount = -1;// 确定位置
+			String s1 = negStockVOs[i].getCgeneralbid();
+			for (int j = 0; j < settlebillItemVOs.length; j++) {
+				String s2 = settlebillItemVOs[j].getCstockrow();
+				if (s2 != null && s1.equals(s2)) {
+					nCount = j;
+					break;
+				}
+			}
+			if (nCount < 0)
+				continue;
+
+			// 修改累计结算数量
+			UFDouble d1 = settlebillItemVOs[nCount].getNsettlenum();
+			if (d1 != null) {
+				double d = negStockVOs[i].getNaccumsettlenum().doubleValue()
+						+ d1.doubleValue();
+				negStockVOs[i].setNaccumsettlenum(new UFDouble(d));
+			}
+			// 修改累计结算金额
+			UFDouble d2 = negStockVOs[i].getNprice();
+			if (d1 != null && d2 != null) {
+				double d = negStockVOs[i].getNaccumsettlemny().doubleValue()
+						+ d1.doubleValue() * d2.doubleValue();
+				negStockVOs[i].setNaccumsettlemny(new UFDouble(d).add(
+						new UFDouble(0.0), BsPuTool.getCCurrDecimal(null)));
+			}
+		}
+
+		// 设置表头
+		SettlebillHeaderVO head = new SettlebillHeaderVO();
+		head.setPk_corp(stockVOs[0].getPk_corp());
+		head.setCaccountyear(null);
+		head.setDsettledate(dCurrDate);
+		head.setIbillstatus(new Integer(0));
+		head.setCbilltype(ScmConst.PO_SettleBill);
+		head.setCoperator(cOperator);
+		head.setVsettlebillcode(null);
+		head.setTmaketime((new UFDateTime(new Date())).toString());
+
+		SettlebillVO settlebillVO = new SettlebillVO(settlebillItemVOs.length);
+		settlebillVO.setParentVO(head);
+		settlebillVO.setChildrenVO(settlebillItemVOs);
+
+		// 组合正副入库单
+		Vector vv = new Vector();
+		if (stockVOs != null && stockVOs.length > 0) {
+			for (int i = 0; i < stockVOs.length; i++)
+				vv.addElement(stockVOs[i]);
+		}
+		if (negStockVOs != null && negStockVOs.length > 0) {
+			for (int i = 0; i < negStockVOs.length; i++)
+				vv.addElement(negStockVOs[i]);
+		}
+		StockVO tempStockVOs[] = new StockVO[vv.size()];
+		vv.copyInto(tempStockVOs);
+
+		// 插入结算单，更新入库单
+		long tTime = System.currentTimeMillis();
+		Vector vKey = new Vector();
+		try {
+			// 获取结算单号
+			String vSettlebillcode = generateSettleCode(stockVOs[0]
+					.getPk_corp());
+			settlebillVO.getHeadVO().setVsettlebillcode(vSettlebillcode);
+
+			nc.bs.ps.settle.SettleDMO dmo = new nc.bs.ps.settle.SettleDMO();
+			vKey = dmo.doOrderToInvoiceSettle(settlebillVO, tempStockVOs, null,
+					cOperator, null);
+			tTime = System.currentTimeMillis() - tTime;
+			SCMEnv.out("本次结算时间：" + tTime + " ms!");
+		} catch (Exception e) {
+			SCMEnv.out("结算时出现异常，不影响暂估");
+			/* 支持结算时出现异常不回滚，此处异常不抛出 */
+			return null;
+		}
+
+		// 结算完毕，设置主键
+		if (vKey != null && vKey.size() > 1) {
+			String headKey = (String) vKey.elementAt(0);
+			for (int i = 1; i < vKey.size(); i++) {
+				String bodyKey = (String) vKey.elementAt(i);
+				settlebillItemVOs[i - 1].setCsettlebill_bid(bodyKey);
+				settlebillItemVOs[i - 1].setCsettlebillid(headKey);
+			}
+		}
+
+		Vector v = new Vector();
+		v.addElement(settlebillVO);
+		v.addElement(stockVOs);
+		v.addElement(negStockVOs);
+
+		return v;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述: 输入参数: 返回值: 异常处理: 日期:
+	 */
+	private Vector doModificationForSC(StockVO stockVOs[],
+			SettlebillItemVO settlebillItemVOs[], String cOperator,
+			UFDate dCurrDate) throws BusinessException {
+		// 修改入库单
+		for (int i = 0; i < stockVOs.length; i++) {
+			int nCount = -1;// 确定位置
+			String s1 = stockVOs[i].getCgeneralbid();
+			for (int j = 0; j < settlebillItemVOs.length; j++) {
+				String s2 = settlebillItemVOs[j].getCstockrow();
+				if (s2 != null && s1.equals(s2)) {
+					nCount = j;
+					break;
+				}
+			}
+			if (nCount < 0)
+				continue;
+
+			// 修改累计结算数量
+			UFDouble d1 = settlebillItemVOs[nCount].getNsettlenum();
+			if (d1 != null) {
+				double d = stockVOs[i].getNaccumsettlenum().doubleValue()
+						+ d1.doubleValue();
+				stockVOs[i].setNaccumsettlenum(new UFDouble(d));
+			}
+			// 修改累计结算金额
+			UFDouble d2 = stockVOs[i].getNprice();
+			if (d1 != null && d2 != null) {
+				double d = stockVOs[i].getNaccumsettlemny().doubleValue()
+						+ d1.doubleValue() * d2.doubleValue();
+				stockVOs[i].setNaccumsettlemny(new UFDouble(d).add(
+						new UFDouble(0.0), BsPuTool.getCCurrDecimal(null)));
+			}
+		}
+
+		// 设置表头
+		SettlebillHeaderVO head = new SettlebillHeaderVO();
+		head.setPk_corp(stockVOs[0].getPk_corp());
+		head.setCaccountyear(null);
+		head.setDsettledate(dCurrDate);
+		head.setIbillstatus(new Integer(0));
+		head.setCbilltype(ScmConst.PO_SettleBill);
+		head.setCoperator(cOperator);
+		head.setVsettlebillcode(null);
+		head.setTmaketime((new UFDateTime(new Date())).toString());
+
+		SettlebillVO settlebillVO = new SettlebillVO(settlebillItemVOs.length);
+		settlebillVO.setParentVO(head);
+		settlebillVO.setChildrenVO(settlebillItemVOs);
+
+		// 插入结算单，更新入库单
+		long tTime = System.currentTimeMillis();
+		Vector vKey = new Vector();
+		try {
+			// 获取结算单号
+			String vSettlebillcode = generateSettleCode(stockVOs[0]
+					.getPk_corp());
+			settlebillVO.getHeadVO().setVsettlebillcode(vSettlebillcode);
+
+			nc.bs.ps.settle.SettleDMO dmo = new nc.bs.ps.settle.SettleDMO();
+			vKey = dmo.doOrderToInvoiceSettle(settlebillVO, stockVOs, null,
+					cOperator, null);
+			tTime = System.currentTimeMillis() - tTime;
+			SCMEnv.out("本次结算时间：" + tTime + " ms!");
+		} catch (Exception e) {
+			SCMEnv.out("结算时出现异常，不影响暂估(SC)");
+			/* 支持结算时出现异常不回滚，此处异常不抛出 */
+			return null;
+		}
+
+		// 结算完毕，设置主键
+		if (vKey != null && vKey.size() > 1) {
+			String headKey = (String) vKey.elementAt(0);
+			for (int i = 1; i < vKey.size(); i++) {
+				String bodyKey = (String) vKey.elementAt(i);
+				settlebillItemVOs[i - 1].setCsettlebill_bid(bodyKey);
+				settlebillItemVOs[i - 1].setCsettlebillid(headKey);
+			}
+		}
+
+		Vector v = new Vector();
+		v.addElement(settlebillVO);
+		v.addElement(stockVOs);
+
+		return v;
+	}
+
+	/**
+	 * 功能描述:保存入库单,并修改订单的累计入库数量 输入参数:
+	 * 返回值:[[入库单头主键+新增入库单行主键+入库单号（新增入库单时）],[入库单头时间戳+更新的入库单行时间戳+更新的入库单子子表3行时间戳]]
+	 * 异常处理:
+	 */
+	public ArrayList doSave(GeneralHVO VO, boolean bAdd, ArrayList lModify,
+			String cOperator, OorderVO orderVOs[]) throws BusinessException {
+		// 检查单据号是否重复(由前台转移过来) by zhaoyha at 2009.9
+		checkBeforeSave(VO);
+
+		// 检查自定义项
+		IScm srv = (IScm) NCLocator.getInstance().lookup(IScm.class.getName());
+		srv.checkDefDataType(VO);
+
+		//    
+		String sTime = (new UFDateTime(new Date())).toString();
+
+		GeneralHHeaderVO headVO = VO.getHeadVO();
+		GeneralHItemVO bodyVO[] = VO.getBodyVO();
+		GeneralBb3VO bb3VO[] = VO.getGrandVO();
+
+		headVO.setFreplenishflag(new Integer(0));
+		if (bodyVO != null && bodyVO.length > 0) {
+			for (int i = 0; i < bodyVO.length; i++) {
+				if (bodyVO[i].getNinnum() != null
+						&& bodyVO[i].getNinnum().doubleValue() < 0) {
+					headVO.setFreplenishflag(new Integer(1));
+					break;
+				}
+			}
+		}
+
+		ArrayList list1 = new ArrayList();
+		ArrayList list2 = new ArrayList();
+		Vector vData0 = new Vector();
+		Vector vDataBB3 = new Vector();
+		EstimateDMO dmo = null;
+
+		try {
+			dmo = new EstimateDMO();
+		} catch (Exception e) {
+			SCMEnv.out(e);
+			throw new BusinessException(e.getMessage());
+		}
+
+		// 存货库存组织匹配检查
+		Vector vTemp0 = new Vector();
+		for (int i = 0; i < bodyVO.length; i++) {
+			if (bodyVO[i].getBodyEditStatus() != 3)
+				vTemp0.addElement(bodyVO[i].getCbaseid());
+		}
+		String sBaseID[] = new String[vTemp0.size()];
+		vTemp0.copyInto(sBaseID);
+		UFBoolean bTemp[] = null;
+		try {
+			bTemp = dmo.isInvBelongWarehouse(sBaseID, headVO.getCwarehouseid());
+		} catch (Exception e) {
+			throw new BusinessException(e.getMessage());
+		}
+		String sError = "";
+		for (int i = 0; i < bTemp.length; i++) {
+			if (!bTemp[i].booleanValue()) {
+				String[] value = new String[] { String.valueOf(i + 1) };
+				sError += nc.bs.ml.NCLangResOnserver.getInstance().getStrByID(
+						"40040503", "UPP40040503-000005", null, value)/*
+																	 * @res "行"
+																	 * +
+																	 * CommonConstant
+																	 * .
+																	 * BEGIN_MARK
+																	 * + (i + 1)
+																	 * +
+																	 * CommonConstant
+																	 * .END_MARK
+																	 * +
+																	 * "存货不属于库存组织，不能保存！\n"
+																	 */;
+
+			}
+		}
+		if (sError.trim().length() > 0) {
+			throw new BusinessException(sError);
+		}
+
+		// 通过仓库ID获得库存组织ID
+		if (headVO != null) {
+			String cwarehouseid = headVO.getCwarehouseid();
+			if (cwarehouseid != null && cwarehouseid.trim().length() > 0) {
+				try {
+					String pk_calbody = dmo
+							.getStorIDByWarehouseID(cwarehouseid);
+					if (pk_calbody != null && pk_calbody.trim().length() > 0) {
+						headVO.setCstoreorganization(pk_calbody);
+					}
+				} catch (Exception e) {
+					SCMEnv.out(e);
+					throw new BusinessException(e.getMessage());
+				}
+			}
+		}
+		// since v55
+		IICToPU_ICATP atp = (IICToPU_ICATP) NCLocator.getInstance().lookup(
+				IICToPU_ICATP.class.getName());
+		GeneralBillVO vo = getChangedVO(VO, bAdd);
+		// since v55, Atp算法重构后的调整，并发检查之后(VO设置属性值之后)，数据库更新之前调用
+		ArrayList<ATPVO> listRetFromBefore = atp.modifyATPBeforeForPU(vo);
+		// 增加入库单
+		if (bAdd) {
+			boolean bLock = false;
+			String sKey[] = null;
+			try {
+				// 获得需要加锁的主键（订单）
+				sKey = getOrderLockKeys(orderVOs);
+
+				// 对单据加锁
+				bLock = LockTool.setLockForPks(sKey, cOperator);
+				if (!bLock) {
+					throw new BusinessException(nc.bs.ml.NCLangResOnserver
+							.getInstance().getStrByID("40040503",
+									"UPP40040503-000000")/*
+														 * @res
+														 * "正在进行相关操作，请稍后再试！"
+														 */);
+				}
+				// 判断时间戳是否改变
+				String sMessage = isTimeStampChangedForOrder(orderVOs);
+				if (sMessage != null && sMessage.length() > 0) {
+					sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+							.getStrByID("40040503", "UPP40040503-000001")/*
+																		 * @res
+																		 * "请刷新！\n"
+																		 */;
+					throw new BusinessException(sMessage);
+				}
+
+				// 获得入库单号
+				String vBillCode = getBillCode(headVO);
+				headVO.setVbillcode(vBillCode);
+
+				headVO.setTmaketime(sTime);
+				headVO.setTlastmoditime(sTime);
+				headVO.setTaccounttime(sTime);
+				//
+				String key = dmo.insertHead(headVO);
+				list1.add(key);
+				vData0.addElement(key);
+
+				// since v53, 暂估应付标志
+				ICreateCorpQueryService myService0 = (ICreateCorpQueryService) NCLocator
+						.getInstance().lookup(
+								ICreateCorpQueryService.class.getName());
+				boolean bArApStartUp = myService0.isEnabled(
+						headVO.getPk_corp(), "AP");
+				ISysInitQry srvInitQry = (ISysInitQry) NCLocator.getInstance()
+						.lookup(ISysInitQry.class.getName());
+				boolean bZgyfFlag = srvInitQry.getParaBoolean(
+						headVO.getPk_corp(), "PO52").booleanValue();
+				//
+				for (int i = 0; i < bodyVO.length; i++) {
+					if (bZgyfFlag) {
+						bodyVO[i].setBzgyfflag(UFBoolean.TRUE);
+					} else {
+						bodyVO[i].setBzgyfflag(UFBoolean.FALSE);
+					}
+				}
+				//
+				String key0[] = dmo
+						.insertBody(bodyVO, key, headVO.getPk_corp());
+				//
+				HashMap<String, OorderVO> mapOorderVo = new HashMap<String, OorderVO>();
+				for (OorderVO curVo : orderVOs) {
+					mapOorderVo.put(curVo.getCorder_bid(), curVo);
+				}
+				//
+				for (int i = 0; i < bodyVO.length; i++) {
+					bb3VO[i].setNpprice(bodyVO[i].getNprice());
+					bb3VO[i].setNpmoney(bodyVO[i].getNmny());
+					bb3VO[i].setNaccountnum1(new UFDouble(0.0));
+					bb3VO[i].setNaccountmny(new UFDouble(0.0));
+					// since v53, 支持暂估应付 test
+					if (bZgyfFlag) {
+						bb3VO[i].setNzygfprice(mapOorderVo.get(
+								bodyVO[i].getCsourcebillbid()).getNtaxprice());
+						bb3VO[i]
+								.setNzgyfmoney(mapOorderVo.get(
+										bodyVO[i].getCsourcebillbid())
+										.getNtotalmoney());
+
+						// 暂估应付支持外币-----------------------------------------------------------
+						bb3VO[i].setCurrencytypeid(mapOorderVo.get(
+								bodyVO[i].getCsourcebillbid())
+								.getCurrencytypeid());
+						bb3VO[i].setNexchangeotobrate(mapOorderVo.get(
+								bodyVO[i].getCsourcebillbid())
+								.getNexchangeotobrate());
+						bb3VO[i].setNoriginalnetprice(mapOorderVo.get(
+								bodyVO[i].getCsourcebillbid())
+								.getNoriginalnetprice());
+						bb3VO[i].setNorgnettaxprice(mapOorderVo.get(
+								bodyVO[i].getCsourcebillbid())
+								.getNorgnettaxprice());
+						bb3VO[i].setNoriginalcurmny(mapOorderVo.get(
+								bodyVO[i].getCsourcebillbid())
+								.getNoriginalcurmny());
+						bb3VO[i].setNoriginaltaxpricemny(mapOorderVo.get(
+								bodyVO[i].getCsourcebillbid())
+								.getNoriginaltaxpricemny());
+						bb3VO[i].setNorgtaxMoney(mapOorderVo.get(
+								bodyVO[i].getCsourcebillbid())
+								.getNorgtaxmoney());
+						// ------------------------------------------------------------------------------------------
+
+					}
+					//
+					list1.add(key0[i]);
+					vData0.addElement(key0[i]);
+				}
+				String keybb3[] = dmo.insertBb3(bb3VO, key0, key, headVO
+						.getPk_corp());
+				if (keybb3 != null) {
+					int iLen = keybb3.length;
+					for (int i = 0; i < iLen; i++) {
+						vDataBB3.addElement(keybb3[i]);
+						// 同时返回前台 by zhaoyha at 2009.3.13 for BGY
+						list1.add(keybb3[i]);
+					}
+				}
+				//
+				list1.add(vBillCode);
+				//        
+				for (int i = 0; i < key0.length; i++) {
+					bodyVO[i].setCgeneralhid(key);
+					bodyVO[i].setCgeneralbid(key0[i]);
+				}
+
+				// 修改订单数据
+				dmo.updateOrderStockNum(VO.isUserConfirmed(), lModify);
+
+				// since v53, 支持暂估应付
+				if (bZgyfFlag && bArApStartUp) {
+					ArrayList list = new ArrayList();
+					list.add(orderVOs[0].getCcurrencytypeid());
+					list.add(cOperator);
+					list.add(BsPuTool.getLoginDate());
+					list.add(headVO.getPk_corp());
+					list.add(null);// since v53
+					list.add(UFBoolean.TRUE);// since v53, 标识是期初暂估调用
+					String strSqlWherePart = "and B.cgeneralbid in ";
+					strSqlWherePart += new TempTableUtil().getSubSql(key0);
+					// 将采购入库单VO转换为暂估VO(采用查询思路，利用手工暂估查询将库存单据转换为暂估单据)
+					EstimateVO[] voaEst = new EstimateDMO().queryEstimate(
+							strSqlWherePart, "Y");
+					// ------ by zhaoyha at 2008.10.21
+					// ------------------------------
+					// 设置暂估应付的本币无税数据
+					for (EstimateVO estVo : voaEst) {
+						OorderVO orderVo = mapOorderVo.get(estVo
+								.getCsourcebillbid());
+						estVo.setNzgyfnotaxmoney(orderVo.getNzgyfnotaxmoney());
+						estVo.setNzgyfnotaxprice(orderVo.getNzgyfnotaxprice());
+					}
+					// ------ by zhaoyha at 2008.10.21
+					// ------------------------------
+
+					// 调用公式计算前的设置：税率、扣税类别
+					setTaxRateDiscountType(voaEst);
+					//
+					saveBillForARAP(voaEst, list);
+				}
+			} catch (Exception e) {
+				/* 调用采购公用方法按规范抛出异常 */
+				nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+			} finally {
+				try {
+					// if (myService != null) {
+					// 对单据解锁
+					if (bLock)
+						LockTool.releaseLockForPks(sKey, cOperator);
+					// }
+				} catch (Exception e) {
+					SCMEnv.out(e);
+					throw new BusinessException(e.getMessage());
+				}
+			}
+		}
+		// 增加入库单
+		else {
+			boolean bLock = false;
+
+			// 组合需要加锁的主键
+			Vector vTemp = new Vector();
+			vTemp.addElement(VO.getHeadVO().getCgeneralhid());
+			for (int i = 0; i < bodyVO.length; i++) {
+				if (bodyVO[i].getBodyEditStatus() == 3
+						|| bodyVO[i].getBodyEditStatus() == 2) {
+					vTemp.addElement(bodyVO[i].getCgeneralbid());
+					vTemp.addElement(bb3VO[i].getCgeneralbb3());
+				}
+			}
+			String sKey[] = new String[vTemp.size()];
+			vTemp.copyInto(sKey);
+
+			try {
+				// 对单据加锁
+				bLock = LockTool.setLockForPks(sKey, cOperator);
+				if (!bLock)
+					throw new BusinessException(nc.bs.ml.NCLangResOnserver
+							.getInstance().getStrByID("40040503",
+									"UPP40040503-000000")/*
+														 * @res
+														 * "正在进行相关操作，请稍后再试！"
+														 */);
+
+				String key = (String) headVO.getAttributeValue("cgeneralhid");
+
+				headVO.setTlastmoditime(sTime);
+				headVO.setTaccounttime(sTime);
+
+				// 刷新期初暂估入库单状态
+				GeneralHVO tempVO[] = new GeneralHVO[1];
+				tempVO[0] = VO;
+
+				ArrayList listErrBillCodes = dmo.queryInitialBillStatus(tempVO);
+
+				UFBoolean bSettled = UFBoolean.FALSE;
+				UFBoolean bDeleted = UFBoolean.FALSE;
+				UFBoolean bInvoice = UFBoolean.FALSE;
+
+				ArrayList listSettled = (ArrayList) listErrBillCodes.get(0);
+				ArrayList listDeleted = (ArrayList) listErrBillCodes.get(1);
+				ArrayList listInvoice = (ArrayList) listErrBillCodes.get(2);
+
+				bSettled = new UFBoolean(listSettled != null
+						&& listSettled.size() > 0);
+				bDeleted = new UFBoolean(listDeleted != null
+						&& listDeleted.size() > 0);
+				bInvoice = new UFBoolean(listInvoice != null
+						&& listInvoice.size() > 0);
+
+				String strErrorCodes = "";
+				//
+				if (bSettled.booleanValue()) {
+					strErrorCodes = "[";
+					for (int i = 0; i < listSettled.size(); i++) {
+						strErrorCodes += listSettled.get(i);
+						strErrorCodes += ",";
+					}
+					strErrorCodes = strErrorCodes.substring(0, strErrorCodes
+							.length() - 1);
+					strErrorCodes += "]";
+					throw new BusinessException(nc.bs.ml.NCLangResOnserver
+							.getInstance().getStrByID("40040503",
+									"UPP40040503-000007")/* @res"入库单已结算，不能保存！" */
+							+ "\n" + strErrorCodes);
+				}
+				//
+				if (bDeleted.booleanValue()) {
+					strErrorCodes = "[";
+					for (int i = 0; i < listDeleted.size(); i++) {
+						strErrorCodes += listDeleted.get(i);
+						strErrorCodes += ",";
+					}
+					strErrorCodes = strErrorCodes.substring(0, strErrorCodes
+							.length() - 1);
+					strErrorCodes += "]";
+					throw new BusinessException(nc.bs.ml.NCLangResOnserver
+							.getInstance().getStrByID("40040503",
+									"UPP40040503-000006")/* @res"入库单已作废，不能保存！" */
+							+ "\n" + strErrorCodes);
+				}
+				//
+				if (bInvoice.booleanValue()) {
+					strErrorCodes = "[";
+					for (int i = 0; i < listInvoice.size(); i++) {
+						strErrorCodes += listInvoice.get(i);
+						strErrorCodes += ",";
+					}
+					strErrorCodes = strErrorCodes.substring(0, strErrorCodes
+							.length() - 1);
+					strErrorCodes += "]";
+					throw new BusinessException(nc.bs.ml.NCLangResOnserver
+							.getInstance().getStrByID("40040503",
+									"UPP40040503-000087")/* @res"入库单已开票，不能保存！" */
+							+ "\n" + strErrorCodes);
+				}
+
+				// 判断时间戳是否改变
+				String sMessage = isTimeStampChangedForGeneral(new GeneralHVO[] { VO });
+				if (sMessage != null && sMessage.length() > 0) {
+					sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+							.getStrByID("40040503", "UPP40040503-000001")/*
+																		 * @res
+																		 * "请刷新！\n"
+																		 */;
+					throw new BusinessException(sMessage);
+				}
+				if (headVO.getHeadEditStatus() == 2) {
+					// 更改入库单表头
+					dmo.updateHead(headVO);
+					list1.add(key);
+					vData0.addElement(key);
+				}
+
+				Vector vInsert1 = new Vector();
+				Vector vDelete1 = new Vector();
+				Vector vUpdate1 = new Vector();
+				Vector vInsert2 = new Vector();
+				Vector vDelete2 = new Vector();
+				Vector vUpdate2 = new Vector();
+
+				for (int i = 0; i < bodyVO.length; i++) {
+					if (bodyVO[i].getBodyEditStatus() == 1) {
+						vInsert1.addElement(bodyVO[i]);
+						vInsert2.addElement(bb3VO[i]);
+					}
+					if (bodyVO[i].getBodyEditStatus() == 3) {
+						vDelete1.addElement(bodyVO[i]);
+						vDelete2.addElement(bb3VO[i]);
+					}
+					if (bodyVO[i].getBodyEditStatus() == 2) {
+						vUpdate1.addElement(bodyVO[i]);
+						vUpdate2.addElement(bb3VO[i]);
+					}
+				}
+
+				String key0[] = null;
+				String keybb3[] = null;
+				// 增加入库单行
+				if (vInsert1.size() > 0 && vInsert2.size() > 0) {
+					GeneralHItemVO itemVO[] = new GeneralHItemVO[vInsert1
+							.size()];
+					vInsert1.copyInto(itemVO);
+
+					GeneralBb3VO grandVO[] = new GeneralBb3VO[vInsert2.size()];
+					vInsert2.copyInto(grandVO);
+
+					key0 = dmo.insertBody(itemVO, key, headVO.getPk_corp());
+					keybb3 = dmo.insertBb3(grandVO, key0, key, headVO
+							.getPk_corp());
+				}
+
+				// 删除入库单行
+				if (vDelete1.size() > 0 && vDelete2.size() > 0) {
+					GeneralHItemVO itemVO[] = new GeneralHItemVO[vDelete1
+							.size()];
+					vDelete1.copyInto(itemVO);
+
+					GeneralBb3VO grandVO[] = new GeneralBb3VO[vDelete2.size()];
+					vDelete2.copyInto(grandVO);
+
+					dmo.deleteBody(itemVO);
+					dmo.deleteBb3(grandVO);
+				}
+
+				// 更改入库单行
+				if (vUpdate1.size() > 0 && vUpdate2.size() > 0) {
+					GeneralHItemVO itemVO[] = new GeneralHItemVO[vUpdate1
+							.size()];
+					vUpdate1.copyInto(itemVO);
+
+					GeneralBb3VO grandVO[] = new GeneralBb3VO[vUpdate2.size()];
+					vUpdate2.copyInto(grandVO);
+
+					dmo.updateBody(itemVO);
+					dmo.updateBb3(grandVO);
+				}
+
+				int j = 0;
+				for (int i = 0; i < bodyVO.length; i++) {
+					if (bodyVO[i].getBodyEditStatus() == 1) {
+						// 增加入库单行
+						list1.add(key0[j]);
+						vData0.addElement(key0[j]);
+						vDataBB3.addElement(keybb3[j]);
+						j++;
+					} else if (bodyVO[i].getBodyEditStatus() == 3) {
+						// 删除入库单行
+					} else if (bodyVO[i].getBodyEditStatus() == 2) {
+						// 更改入库单行
+						vData0.addElement(bodyVO[i].getCgeneralbid());
+						vDataBB3.addElement(bb3VO[i].getCgeneralbb3());
+					} else {
+						// 入库单行未作任何修改
+					}
+				}
+				// 修改订单数据
+				dmo.updateOrderStockNum(VO.isUserConfirmed(), lModify);
+
+			} catch (Exception e) {
+				/* 调用采购公用方法按规范抛出异常 */
+				PubDMO.throwBusinessException(e);
+			} finally {
+				try {
+					// if (myService != null) {
+					// 对单据解锁
+					if (bLock)
+						LockTool.releaseLockForPks(sKey, cOperator);
+					// }
+				} catch (Exception e) {
+					/* 调用采购公用方法按规范抛出异常 */
+					PubDMO.throwBusinessException(e);
+				}
+			}
+		}
+		// since v55, Atp算法重构后的调整，数据库更新之后调用
+		atp.modifyATPAfterForPU(vo, listRetFromBefore);
+		//
+		if (vData0 != null && vData0.size() > 0) {
+			// 入库单头时间戳+更新的入库单行时间戳+更新的入库单子表行时间戳 返回
+			nc.bs.pu.pub.PubDMO pubDMO = null;
+
+			String sHeadKey[] = new String[1];
+			sHeadKey[0] = (String) vData0.elementAt(0);
+
+			String sBodyKey[] = new String[vData0.size() - 1];
+			String sBb3Key[] = new String[vDataBB3.size()];
+			vDataBB3.copyInto(sBb3Key);
+			for (int i = 0; i < sBodyKey.length; i++)
+				sBodyKey[i] = (String) vData0.elementAt(i + 1);
+
+			try {
+				pubDMO = new nc.bs.pu.pub.PubDMO();
+				Object t[] = pubDMO.queryHBTsArrayByHBIDArray("45", sHeadKey,
+						sBodyKey, sBb3Key);
+				if (t != null && t.length > 0) {
+					String t1[] = (String[]) t[0];
+					String t2[] = (String[]) t[1];
+					String t3[] = (String[]) t[2];
+					if (t1 != null && t1.length > 0)
+						list2.add(t1[0]);
+					if (t2 != null && t2.length > 0 && t3 != null
+							&& t3.length > 0 && t2.length == t3.length) {
+						for (int i = 0; i < t2.length; i++) {
+							list2.add(t2[i]);
+							list2.add(t3[i]);
+						}
+					}
+				}
+			} catch (Exception e) {
+				/* 调用采购公用方法按规范抛出异常 */
+				nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+			}
+
+			ArrayList list = new ArrayList();
+			list.add(list1);
+			list.add(list2);
+
+			return list;
+		}
+		return null;
+	}
+
+	/**
+	 * 功能描述:暂估 输入参数:VO[],当前操作员ID,当前日期 创建：熊海情 修改：晁志平 FOR V30、V502
+	 */
+	public void estimate(EstimateVO VOs[], ArrayList paraList)
+			throws BusinessException {
+		nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
+		timer.start();
+
+		EstimateDMO dmo = null;
+		ICreateCorpQueryService myService0 = null;
+		ISysInitQry myService1 = null;
+		nc.bs.pu.pub.PubImpl myService2 = null;
+		boolean bLock = false;
+
+		// String cOperator = (String)paraList.get(0);
+		// UFDate dCurrDate = (UFDate)paraList.get(1);
+		ClientLink cl = (ClientLink) paraList.get(0);
+		String strOperator = cl.getUser();
+		UFDate dateUserLogon = cl.getLogonDate();
+		String strLoginCorp = cl.getCorp();
+		String strEstMode = (String) paraList.get(1);
+		String strDifferDealMode = (String) paraList.get(2);
+		UFBoolean bZGYF = (UFBoolean) paraList.get(3);
+		String strCurrTypeID = (String) paraList.get(4);
+		UFBoolean ufbLockedFlag = UFBoolean.FALSE;
+		if (paraList.size() >= 6) {
+			ufbLockedFlag = (UFBoolean) paraList.get(5);
+		}
+		// 此处做区分，比如签字自动暂估不必加锁
+		boolean bNeedLock = ufbLockedFlag == null
+				|| !ufbLockedFlag.booleanValue();
+
+		// 组合所有需要加锁的主键
+		String[] saLockKey = null;
+
+		timer.addExecutePhase("组合所有需要加锁的主键");
+		String[] saSubLockedId = null;
+		try {
+			// 对单据加锁
+			if (bNeedLock) {
+				saLockKey = getEstimateLockKeys(VOs);
+				bLock = LockTool.setLockForPks(saLockKey, strOperator);
+			}
+
+			timer.addExecutePhase("加锁");
+
+			if (bNeedLock && !bLock) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000000")/*
+													 * @res "正在进行相关操作，请稍后再试！"
+													 */);
+			}
+
+			// 判断时间戳是否改变
+			String sMessage = isTimeStampChanged(VOs);
+			if (sMessage != null && sMessage.length() > 0) {
+				sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+						.getStrByID("40040503", "UPP40040503-000001")/*
+																	 * @res
+																	 * "请刷新！\n"
+																	 */;
+				throw new BusinessException(sMessage);
+			}
+			timer.addExecutePhase("判断时间戳是否改变");
+
+			Vector v1 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				v1.addElement(VOs[i].getCgeneralbid());
+			}
+			//
+			dmo = new EstimateDMO();
+			// 状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)
+			if (v1.size() > 0) {
+				dmo.checkExistEsti(v1);
+			}
+			timer.addExecutePhase("状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)");
+
+			// 暂估时单价和金额的精度控制
+			myService2 = new nc.bs.pu.pub.PubImpl();
+			// sinve v502, 按登录公司取精度
+			// int digit[] = myService2.getDigitBatch(VOs[0].getPk_corp(), new
+			// String[] { "BD301", "BD505" });
+			int digit[] = myService2.getDigitBatch(strLoginCorp, new String[] {
+					"BD301", "BD505" });
+			if (digit == null || digit.length == 0)
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000008")/*
+													 * @res "获取本位币精度或单价精度异常!"
+													 */);
+
+			timer.addExecutePhase("暂估时单价和金额的精度控制");
+
+			// 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
+			Vector vAllBodyVoB = new Vector();
+			Vector vAllBodyVoBB3 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				GeneralHItemVO bodyVO = new GeneralHItemVO();
+				bodyVO.setCgeneralbid(VOs[i].getCgeneralbid());
+				bodyVO.setBzgflag(new UFBoolean(true));
+				bodyVO.setDzgdate(dateUserLogon);
+				bodyVO.setBzgyfflag(bZGYF);
+				vAllBodyVoB.addElement(bodyVO);
+
+				GeneralBb3VO bb3VO = new GeneralBb3VO();
+				if (VOs[i].getNprice() != null) {
+					bb3VO.setCgeneralbid(VOs[i].getCgeneralbid());
+					double d = PubDMO.getRoundDouble(digit[1], VOs[i]
+							.getNprice().doubleValue());
+					bb3VO.setNpprice(new UFDouble(d));
+					VOs[i].setNprice(bb3VO.getNpprice());
+					d = PubDMO.getRoundDouble(digit[1], VOs[i].getNtaxprice()
+							.doubleValue());
+					bb3VO.setNzygfprice(new UFDouble(d));
+					VOs[i].setNtaxprice(bb3VO.getNzgyfprice());
+				}
+				if (VOs[i].getNmoney() != null) {
+					double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+							.getNmoney().doubleValue());
+					bb3VO.setNpmoney(new UFDouble(d));
+					VOs[i].setNmoney(bb3VO.getNpmoney());
+					d = PubDMO.getRoundDouble(digit[0], VOs[i].getNtotalmoney()
+							.doubleValue());
+					bb3VO.setNzgyfmoney(new UFDouble(d));
+					VOs[i].setNtotalmoney(bb3VO.getNzgyfmoney());
+				}
+				if (VOs[i].getNmaterialmoney() != null) {
+					double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+							.getNmaterialmoney().doubleValue());
+					bb3VO.setNmaterialmoney(new UFDouble(d));
+					VOs[i].setNmaterialmoney(bb3VO.getNmaterialmoney());
+				}
+				// -----zhf add for 5.5
+				if (VOs[i].getCurrencytypeid() != null) {
+					bb3VO.setCurrencytypeid(VOs[i].getCurrencytypeid());
+				}
+				if (VOs[i].getNexchangeotobrate() != null) {
+					bb3VO.setNexchangeotobrate(VOs[i].getNexchangeotobrate());
+				}
+				if (VOs[i].getNoriginalcurmny() != null) {
+					// double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+					// .getNoriginalcurmny().doubleValue());
+					bb3VO.setNoriginalcurmny(VOs[i].getNoriginalcurmny());
+				}
+				if (VOs[i].getNorgtaxmoney() != null) {
+					// double d = PubDMO.getRoundDouble(digit[0],
+					// VOs[i].getNorgtaxmoney()
+					// .doubleValue());
+					bb3VO.setNorgtaxMoney(VOs[i].getNorgtaxmoney());
+				}
+				if (VOs[i].getNoriginalnetprice() != null) {
+					double d = PubDMO.getRoundDouble(digit[1], VOs[i]
+							.getNoriginalnetprice().doubleValue());
+					bb3VO.setNoriginalnetprice(new UFDouble(d));
+					d = PubDMO.getRoundDouble(digit[1], VOs[i]
+							.getNorgnettaxprice().doubleValue());
+					bb3VO.setNorgnettaxprice(new UFDouble(d));
+				}
+				if (VOs[i].getNoriginaltaxpricemny() != null) {
+					// double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+					// .getNoriginaltaxpricemny().doubleValue());
+					bb3VO.setNoriginaltaxpricemny(VOs[i]
+							.getNoriginaltaxpricemny());
+				}
+
+				// 回写暂估费用信息
+
+				if (VOs[i].getNfeemny() != null
+						&& Math.abs(VOs[i].getNfeemny().doubleValue()) > 0) {
+					double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+							.getNfeemny().doubleValue());
+					bb3VO.setNfeemny(new UFDouble(d));
+
+					bb3VO.setCfeeid(VOs[i].getCfeeid());
+				}
+
+				// ---------------------end----------------------
+				vAllBodyVoBB3.addElement(bb3VO);
+			}
+
+			timer.addExecutePhase("打标志、计算单价金额材料费--循环赋值");
+
+			if (vAllBodyVoB.size() > 0) {
+				GeneralHItemVO[] bodyVOs = new GeneralHItemVO[vAllBodyVoB
+						.size()];
+				vAllBodyVoB.copyInto(bodyVOs);
+				dmo.updateBillBody(bodyVOs);
+			}
+
+			timer.addExecutePhase("打标志、计算单价金额材料费--更新子表");
+
+			if (vAllBodyVoBB3.size() > 0) {
+				GeneralBb3VO bb3VOs[] = new GeneralBb3VO[vAllBodyVoBB3.size()];
+				vAllBodyVoBB3.copyInto(bb3VOs);
+				dmo.updateBillBb3(bb3VOs);
+			}
+
+			timer.addExecutePhase("打标志、计算单价金额材料费--更新子表3");
+
+			// 判断存货核算是否启用
+			if (VOs != null && VOs.length > 0) {
+				String strInvoiceCorpId = VOs[0].getPk_invoicecorp();
+				myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(
+								ICreateCorpQueryService.class.getName());
+				// 暂估应付
+				if (bZGYF.booleanValue()
+						&& myService0.isEnabled(strInvoiceCorpId, "AP")) {
+					ArrayList list = new ArrayList();
+					list.add(strCurrTypeID);
+					list.add(strOperator);
+					list.add(dateUserLogon);
+					list.add(strLoginCorp);
+					list.add(null);// since v53
+					list.add(null);// since v53
+					saveBillForARAP(VOs, list);
+				}
+				timer.showAllExecutePhase("暂估应付");
+
+				boolean bIAStartUp = myService0.isEnabled(strInvoiceCorpId,
+						"IA");
+
+				myService1 = (ISysInitQry) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(ISysInitQry.class.getName());
+				boolean bStockRB = true; // 入库单是否红蓝对冲
+				nc.vo.pub.para.SysInitVO initVO[] = myService1.querySysInit(
+						strInvoiceCorpId, "PO36");
+				if (initVO != null && initVO.length > 0) {
+					if (initVO[0].getValue().equals("否"))
+						bStockRB = false;
+				}
+				timer.addExecutePhase("入库单是否红蓝对冲");
+
+				if (bIAStartUp) {
+					// 调用接口,向存货核算系统传送数据
+
+					// 传存货前暂估费用摊入成本---------------zhf 2008/06/24 since for v55
+
+					for (int i = 0; i < VOs.length; i++) {
+						if (VOs[i].getNfeemny() != null
+								&& Math.abs(VOs[i].getNfeemny().doubleValue()) > 0) {
+							// 存货金额=暂估金额+费用金额 存货单价=（暂估金额+费用金额）/暂估数量
+							UFDouble nmny = VOs[i].getNmoney().add(
+									VOs[i].getNfeemny());
+							UFDouble nprice = nmny.div(VOs[i].getNinnum());
+
+							VOs[i].setNmoney(new UFDouble(PubDMO
+									.getRoundDouble(digit[0], nmny
+											.doubleValue())));
+							VOs[i].setNprice(nprice.add(nprice, digit[1]));
+						}
+					}
+					//          
+					saveBillFromOutter(VOs, strOperator, dateUserLogon,
+							strLoginCorp, ProductCode.PROD_PO);
+
+					timer.addExecutePhase("调用保存存货核算单据方法saveBillFromOutter()");
+					// 结算
+					if (bStockRB) {
+						saSubLockedId = settleForEstimate(VOs, strOperator,
+								dateUserLogon, strEstMode, strDifferDealMode);
+					}
+					timer.addExecutePhase("入库单红蓝对冲自动结算");
+				}
+
+				//
+				timer.showAllExecutePhase("暂估处理时间分布：\n");
+
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		} finally {
+			// 对单据解锁
+			try {
+				if (bNeedLock && bLock || saSubLockedId != null
+						&& saSubLockedId.length > 0) {
+					String[] saAllKey = saLockKey;
+					if (saSubLockedId != null && saSubLockedId.length > 0) {
+						ArrayList listAll = new ArrayList();
+						int iLen = saAllKey == null ? 0 : saAllKey.length;
+						for (int i = 0; i < iLen; i++) {
+							listAll.add(saAllKey[i]);
+						}
+						iLen = saSubLockedId.length;
+						for (int i = 0; i < iLen; i++) {
+							listAll.add(saSubLockedId[i]);
+						}
+						saAllKey = new String[listAll.size()];
+						saAllKey = (String[]) listAll.toArray(saAllKey);
+					}
+					LockTool.releaseLockForPks(saAllKey, strOperator);
+				}
+			} catch (Exception e) {
+				/* 调用采购公用方法按规范抛出异常 */
+				nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+			}
+		}
+	}
+
+	/*
+	 * 暂估应付保存
+	 */
+	public void saveBillForARAP(EstimateVO VOs[], ArrayList paraList)
+			throws BusinessException {
+		/**
+		 * 以下为2008.12.27需求变更:
+		 * 1.采购入库单中如果存货为资产类存货,则不允许作暂估应付,也就是针对该行作暂估时即使暂估应付参数为是也不生成暂估应付单.
+		 * 2.采购发票中存货为资产类存货的行,则不受暂估应付参数的控制,只要审核就可以传应付.
+		 */
+		VOs = filteAssetInv(VOs);
+		if (VOs == null || VOs.length == 0)
+			return;
+
+		// 检查暂估数据是否有零的情况
+		checkEstimateForARAP(VOs);
+
+		String sCurrTypeID = (String) paraList.get(0);
+		String cOperator = (String) paraList.get(1);
+		UFDate dCurrDate = (UFDate) paraList.get(2);
+		String strLoginCorp = (String) paraList.get(3);
+		// since v53
+		UFBoolean ufbChgDocFlag = PuPubVO.getUFBoolean_NullAs(paraList.get(4),
+				UFBoolean.TRUE);
+		// since v53 , 区分期初暂估调用
+		UFBoolean ufbInitFlag = PuPubVO.getUFBoolean_NullAs(paraList.get(5),
+				UFBoolean.FALSE);
+		//
+		nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
+		timer.start();
+
+		try {
+			nc.bs.ps.estimate.EstimateDMO dmo = new nc.bs.ps.estimate.EstimateDMO();
+
+			// 2006-09-12 xhq 支持应付单单据类型配置
+			IPFMetaModel myService = (IPFMetaModel) nc.bs.framework.common.NCLocator
+					.getInstance().lookup(IPFMetaModel.class.getName());
+			Hashtable tBillType = new Hashtable();// 应付单据类型
+			for (int i = 0; i < VOs.length; i++) {
+				String key = "25" + VOs[i].getCbiztype() + "APPROVE";
+				if (tBillType.get(key) == null) {
+					MessagedriveVO driveVO[] = myService.queryAllMsgdrvVOs(
+							null, "25", VOs[i].getCbiztype(), "APPROVE");
+					if (driveVO != null && driveVO.length > 0
+							&& driveVO[0].getPk_billtype() != null) {
+						tBillType.put(key, driveVO[0].getPk_billtype());
+					}
+				}
+			}
+
+			Hashtable tBillTemplet = new Hashtable();// 应付单据模板
+			for (int i = 0; i < VOs.length; i++) {
+				String key = "25" + VOs[i].getCbiztype() + "APPROVE";
+				if (tBillType.get(key) == null) {
+					tBillType.put(key, "D1");
+				}
+				// since v502
+				// String key1 = VOs[i].getPk_corp() + tBillType.get(key);
+				String key1 = VOs[i].getPk_invoicecorp() + tBillType.get(key);
+				if (tBillTemplet.get(key1) == null) {
+					String ss[] = dmo
+							.getDJDataForARAP(VOs[i].getPk_invoicecorp(),
+									tBillType.get(key).toString());
+					if (ss != null)
+						tBillTemplet.put(key1, ss);
+				}
+			}
+
+			// 暂估应付时,供应商取订单发票方,发票方不存在,取供应商 2006-08-25
+			Vector vTemp = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				String s = VOs[i].getCfirstbillhid();
+				if (s != null && !vTemp.contains(s))
+					vTemp.addElement(s);
+			}
+			Hashtable t = null;
+			if (vTemp.size() > 0) {
+				String corderid[] = new String[vTemp.size()];
+				vTemp.copyInto(corderid);
+				t = dmo.getOrderInvoiceReceiver(corderid);
+				if (t != null && t.size() > 0) {
+					for (int i = 0; i < VOs.length; i++) {
+						String s = VOs[i].getCfirstbillhid();
+						if (s != null && t.get(s) != null) {
+							String ss[] = (String[]) t.get(s);
+							if (ss != null && ss.length > 0 && ss[0] != null) {
+								// 设置为发票方后，即已经是收票公司(采购公司)档案ID，不必再做档案转换ID
+								VOs[i].setNeedChgVendorDoc(false);
+								VOs[i].setCprovidermangid(ss[0]);
+							}
+						}
+					}
+				}
+			}
+
+			// 查询供应商基本ID
+			String pk_cumandoc[] = new String[VOs.length];
+			for (int i = 0; i < VOs.length; i++)
+				pk_cumandoc[i] = VOs[i].getCprovidermangid();
+			SettleDMO settleDMO = new SettleDMO();
+			String pk_cubasdoc[] = settleDMO
+					.queryVendorBaseIDForARAP(pk_cumandoc);
+			if (pk_cubasdoc != null && pk_cubasdoc.length > 0) {
+				for (int i = 0; i < VOs.length; i++) {
+					VOs[i].setCproviderbaseid(pk_cubasdoc[i]);
+				}
+			}
+			// 查询存货基本ID
+			Vector v1 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				if (VOs[i].getCbaseid() == null)
+					v1.addElement(VOs[i].getCmangid());
+			}
+			if (v1.size() > 0) {
+				pk_cumandoc = new String[v1.size()];
+				v1.copyInto(pk_cumandoc);
+				pk_cubasdoc = settleDMO.getInvBaseID(pk_cumandoc);
+				if (pk_cubasdoc != null && pk_cubasdoc.length > 0) {
+					int j = 0;
+					for (int i = 0; i < VOs.length; i++) {
+						if (VOs[i].getCbaseid() == null) {
+							VOs[i].setCbaseid(pk_cubasdoc[j]);
+							j++;
+						}
+					}
+				}
+			}
+
+			// VO转换
+			GeneralBillVO icVOs[] = new GeneralBillVO[VOs.length];
+			for (int i = 0; i < VOs.length; i++) {
+				icVOs[i] = switchVOFromEstimate2IC(VOs[i], strLoginCorp);
+			}
+			// since v502, 跨公司转换档案ID
+			if (ufbChgDocFlag.booleanValue()) {
+				changeDocIdsFromArrToPur(icVOs, strLoginCorp);
+			}
+
+			// icVOs = rearrangeGeneralBillVO(icVOs);
+
+			PfParameterVO voPfPara = new PfParameterVO();
+			voPfPara.m_currentDate = dCurrDate.toString();
+			voPfPara.m_coId = strLoginCorp;
+			String strSrcBillType = "45";
+			if (ufbInitFlag.booleanValue()) {
+				strSrcBillType = "4T";
+			}
+
+			// 调用应付提供接口，查询目标业务类型
+			IArapBillMapQureyPublic iArapPub = (IArapBillMapQureyPublic) NCLocator
+					.getInstance().lookup(
+							IArapBillMapQureyPublic.class.getName());
+
+			BillTypeMapVO billTypeMapVo = iArapPub.queryBillMap(strSrcBillType,
+					"yf", BsPuTool.getLoginCorp(null));
+			String strTargetBillType = "D1";
+			if (billTypeMapVo != null
+					&& billTypeMapVo.getTargetbilltype() != null
+					&& billTypeMapVo.getTargetbilltype().trim().length() > 0)
+				strTargetBillType = billTypeMapVo.getTargetbilltype();
+
+			// 进行VO对照转换
+			DJZBVO arapVO[] = (DJZBVO[]) PfUtilTools.runChangeDataAry(
+					strSrcBillType, strTargetBillType, icVOs, voPfPara);
+			if (arapVO == null || arapVO.length == 0)
+				return;
+
+			// arapVO = rearrangeDJZBVO(arapVO);
+
+			// 根据采购入库单生成应付单
+			v1 = new Vector();
+			Vector v2 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				// 后续处理:应付单头
+				DJZBHeaderVO headVO = (DJZBHeaderVO) arapVO[i].getParentVO();
+				headVO.setVouchid(VOs[i].getCgeneralhid());
+
+				// V55 by zhaoyha at 2008.9.26
+				// String key = "25" + VOs[i].getCbiztype() + "APPROVE";
+				// headVO.setDjlxbm(billTypeMapVo.getTargetparenttype());
+				// headVO.setXslxbm(billTypeMapVo.getBusitype());
+				// V55 by zhaoyha end
+
+				// String cBillType = tBillType.get(key).toString();
+				String ss[] = null;
+				// since v502
+				// key = VOs[i].getPk_corp() + tBillType.get(key);
+
+				// V55 by zhaoyha at 2008.9.26
+				// key = VOs[i].getPk_invoicecorp() + tBillType.get(key);
+				// if (tBillTemplet.get(key) != null)
+				// ss = (String[]) tBillTemplet.get(key);
+				// if (ss != null && ss.length > 0 &&
+				// PuPubVO.getString_TrimZeroLenAsNull(ss[0])!=null ) {
+				// headVO.setYwbm(ss[0]);
+				// }
+
+				// since v502,单一公司时用入库公司,跨公司时用收票公司
+				headVO.setDwbm(VOs[i].getPk_corp());
+				if (PuPubVO.getString_TrimZeroLenAsNull(VOs[i]
+						.getPk_invoicecorp()) != null) {
+					headVO.setDwbm(VOs[i].getPk_invoicecorp());
+				}
+				//
+				headVO.setLrr(cOperator);
+				headVO.setAttributeValue("zgyf", new Integer(1));// 暂估应付
+				// headVO.setDjlxbm(cBillType);
+				v1.addElement(headVO);
+
+				// 后续处理:应付单体
+				DJZBItemVO bodyVO[] = (DJZBItemVO[]) arapVO[i].getChildrenVO();
+				// since v502
+				// bodyVO[0].setDwbm(VOs[i].getPk_corp());
+				bodyVO[0].setDwbm(VOs[i].getPk_invoicecorp());
+				bodyVO[0].setFb_oid(VOs[i].getCgeneralbid());
+
+				bodyVO[0].setHbbm(VOs[i].getCproviderbaseid()); // 供应商基本ID
+				bodyVO[0].setCinventoryid(VOs[i].getCbaseid()); // 存货基本ID
+
+				// bodyVO[0].setFbye(new UFDouble(0)); // 辅币余额
+				// bodyVO[0].setDffbje(new UFDouble(0)); // 贷方辅币余额
+				bodyVO[0].setWldx(new Integer(1));
+
+				bodyVO[0].setDdhid(VOs[i].getCfirstbillhid());// 订单行ID
+				bodyVO[0].setDdh(VOs[i].getVfirstbillcode());// 订单号
+				bodyVO[0].setCkdid(VOs[i].getCgeneralbid());// 出入库单行ID
+				bodyVO[0].setFphid(null);// 发票行ID
+				bodyVO[0].setFph(null);// 发票号
+				bodyVO[0].setAttributeValue("ckdh", VOs[i].getVbillcode());// 出库单号
+				if (VOs[i].getCfirstbillhid() != null && t != null) {
+					if (t.get(VOs[i].getCfirstbillhid()) != null) {
+						ss = (String[]) t.get(VOs[i].getCfirstbillhid());
+						bodyVO[0].setSfkxyh(ss[1]);// 付款协议
+					}
+				}
+				// 币种
+				bodyVO[0].setBzbm(VOs[i].getCurrencytypeid());
+				bodyVO[0].setBbhl(VOs[i].getNexchangeotobrate());
+				bodyVO[0].setFbhl(null);
+				// 扣税类别
+				bodyVO[0].setKslb(VOs[i].getIdiscounttaxtype());
+				// 税率
+				bodyVO[0].setSl(VOs[i].getNtaxrate());
+				// bodyVO[0].setYwybm(VOs[i].getCoperatorid());// 业务员
+				v2.addElement(bodyVO[0]);
+			}
+
+			timer.addExecutePhase("VO 对照");
+
+			// 对应付单进行处理: 相同表头的单据组合成一张单据
+			DJZBHeaderVO headVOs[] = new DJZBHeaderVO[v1.size()];
+			v1.copyInto(headVOs);
+			DJZBItemVO bodyVOs[] = new DJZBItemVO[v2.size()];
+			v2.copyInto(bodyVOs);
+
+			// 组合VO[]
+			v1 = new Vector();
+			for (int i = 0; i < headVOs.length; i++) {
+				DJZBVO VO = new DJZBVO();
+				VO.setParentVO(headVOs[i]);
+				VO.setChildrenVO(new DJZBItemVO[] { bodyVOs[i] });
+				v1.addElement(VO);
+			}
+			DJZBVO apVOs[] = new DJZBVO[v1.size()];
+			v1.copyInto(apVOs);
+			timer.addExecutePhase("组合VO[]");
+
+			// 2008.11.17根据NCdp200591951问题,需求变更如下:
+			// 针对采购入库单暂估应付的问题,本版已将暂估应付从原来的脚本提为组件配置,
+			// 可以在以后版本考虑采购入库暂估时支持配置暂估应付对应的流程,V55版本先不作调整,
+			// 仍按照上次统一沟通的结果来处理:即走接口获取暂估应付的业务类型,
+			// 同时支持原来分单参数按照来源业务类型进行分单.
+			apVOs = getSplittedBillVos(apVOs, strLoginCorp);
+			timer.addExecutePhase("支持多行:按供应商分单");
+			// 设置收付接口对照表中的业务类型
+			for (DJZBVO apVo : apVOs) {
+				DJZBHeaderVO headVo = (DJZBHeaderVO) apVo.getParentVO();
+				headVo.setXslxbm(billTypeMapVo.getBusitype());
+			}
+
+			// 调用应付提供接口
+			IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator
+					.getInstance().lookup(IArapForGYLPublic.class.getName());
+			VoTools tools = new VoTools();
+			for (int i = 0; i < apVOs.length; i++) {
+				// 重新计算合计项(调用应付提供接口)
+				tools.getSum(apVOs[i]);
+				// 保存暂估应付单
+				iArap.saveEffForCG(apVOs[i]);
+			}
+			//
+			timer.addExecutePhase("调用应付提供接口传送单据");
+
+			timer.showAllExecutePhase("无发票结算向应付传送数据时间分布--明细");
+
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			SCMEnv.out(e);
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return;
+	}
+
+	/**
+	 * 
+	 * 方法功能描述：
+	 * <p>
+	 * 检查暂估应付的价格或金额是否为零
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param Vos
+	 * @throws BusinessException
+	 *             <p>
+	 * @author zhaoyha
+	 * @time 2008-10-21 上午09:37:38
+	 */
+	protected void checkEstimateForARAP(EstimateVO[] Vos)
+			throws BusinessException {
+		if (Vos == null)
+			return;
+		StringBuilder errMsg = new StringBuilder();
+		for (EstimateVO vo : Vos) {
+			if (PuPubVO.getUFDouble_NullAsZero(vo.getNorgnettaxprice())
+					.doubleValue() == 0.0
+					|| PuPubVO
+							.getUFDouble_NullAsZero(vo.getNoriginalnetprice())
+							.doubleValue() == 0.0
+					|| PuPubVO.getUFDouble_NullAsZero(vo.getNoriginalcurmny())
+							.doubleValue() == 0.0
+					|| PuPubVO.getUFDouble_NullAsZero(
+							vo.getNoriginaltaxpricemny()).doubleValue() == 0.0
+					|| PuPubVO.getUFDouble_NullAsZero(vo.getNzgyfnotaxmoney())
+							.doubleValue() == 0.0
+					|| PuPubVO.getUFDouble_NullAsZero(vo.getNzgyfnotaxprice())
+							.doubleValue() == 0.0
+					|| PuPubVO.getUFDouble_NullAsZero(vo.getNtotalmoney())
+							.doubleValue() == 0.0
+					|| PuPubVO.getUFDouble_NullAsZero(vo.getNtaxprice())
+							.doubleValue() == 0.0) {
+				errMsg.append("\r\n").append(vo.getVbillcode());
+			}
+		}
+		if (errMsg.length() > 0) {
+			String headMsg = NCLangResOnserver.getInstance().getStrByID(
+					"4004050301", "UPP4004050301-000012")/*
+														 * res
+														 * 以下入库单的暂估应付价格或金额为零，
+														 * 请检查：
+														 */;
+			throw new BusinessException(headMsg + errMsg.toString());
+		}
+	}
+
+	/**
+	 * 分单处理。
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param voaSrc
+	 * @return <p>
+	 * @author czp
+	 * @time 2007-9-17 下午12:29:52
+	 */
+	private DJZBVO[] getSplittedBillVos(DJZBVO[] apVOs, String strLoginCorp)
+			throws Exception {
+
+		// 分单参数
+		ISysInitQry qrySrv = (ISysInitQry) NCLocator.getInstance().lookup(
+				ISysInitQry.class.getName());
+		String strSplitPara = qrySrv.getParaString(strLoginCorp, "AP31");
+
+		// 不分单，表头任意取(目前取第1张单据)，表体全部组合到一起
+		if (strSplitPara == null || "不分单".equals(strSplitPara)) {/*
+																 * -=notranslate=
+																 * -
+																 */
+			ArrayList<DJZBItemVO> listBodyAll = new ArrayList<DJZBItemVO>();
+			int iLenApVos = apVOs.length;
+			DJZBItemVO[] items = null;
+			for (int i = 0; i < iLenApVos; i++) {
+				items = (DJZBItemVO[]) apVOs[i].getChildrenVO();
+				for (DJZBItemVO item : items) {
+					listBodyAll.add(item);
+				}
+			}
+			//
+			DJZBVO voAllBodies = new DJZBVO();
+			voAllBodies.setParentVO(apVOs[0].getParentVO());
+			voAllBodies.setChildrenVO(listBodyAll
+					.toArray(new DJZBItemVO[listBodyAll.size()]));
+			//
+			return new DJZBVO[] { voAllBodies };
+		}
+
+		// 分单参数处理
+		String[] saHSplit = null;
+		String[] saBSplit = null;
+		if ("供应商".equals(strSplitPara)) {/* -=notranslate=- */
+			saBSplit = new String[] { "hbbm" };
+		} else if ("单据号".equals(strSplitPara)) {/* -=notranslate=- */
+			saBSplit = new String[] { "ckdh" };
+		} else if ("业务流程+供应商".equals(strSplitPara)) {/* -=notranslate=- */
+			saHSplit = new String[] { "xslxbm" };
+			saBSplit = new String[] { "hbbm" };
+		} else if ("业务流程".equals(strSplitPara)) {/* -=notranslate=- */
+			saHSplit = new String[] { "xslxbm" };
+		}
+		// 分单
+		DJZBVO[] voaRet = (DJZBVO[]) SplitBillVOs.getSplitVOs(DJZBVO.class
+				.getName(), DJZBHeaderVO.class.getName(), DJZBItemVO.class
+				.getName(), apVOs, saHSplit, saBSplit);
+		//
+		return voaRet;
+	}
+
+	/**
+	 * 库存采购入库单库房签字时，即时暂估
+	 * 
+	 * @throws NamingException
+	 * @throws
+	 * @see nc.itf.pu.inter.IPuToIc_EstimateImpl#estimateBatch(nc.vo.pub.AggregatedValueObject[])
+	 *      <p>
+	 *      输入参数:GeneralBillVO[]
+	 *      <p>
+	 *      返回值:void
+	 *      <p>
+	 *      异常处理:BusinessException
+	 *      <p>
+	 *      日期:2002/05/30
+	 *      <p>
+	 *      作者：熊海情
+	 *      <p>
+	 *      修改：晁志平 FOR V30
+	 *      <p>
+	 *      since V502, 重构到同一套暂估算法(重构后逻辑完全同手工结算)
+	 */
+	public void estimateBatch(AggregatedValueObject[] saVo)
+			throws BusinessException {
+
+		// 无数据时日志并返回
+
+		if (saVo == null) {
+			SCMEnv.out("程序BUG：传入参数为空!直接返回！");/* -=notranslate=- */
+			return;
+		}
+		if (!(saVo instanceof GeneralBillVO[])) {
+			SCMEnv.out("程序BUG：传入参数不是期望的类型：GeneralBillVO[]!直接返回！");/*
+																 * -=notranslate=
+																 * -
+																 */
+			return;
+		}
+		// 按表体收票公司分单,保证每单来自同一个收票公司
+		GeneralBillVO[] generalbillvos = (GeneralBillVO[]) SplitBillVOs
+				.getSplitVOs(GeneralBillVO.class.getName(),
+						GeneralBillHeaderVO.class.getName(),
+						GeneralBillItemVO.class.getName(), saVo, null,
+						new String[] { "pk_invoicecorp" });
+		// 过滤资产仓属性的入库单
+		ArrayList<String> wareList = new ArrayList<String>();
+		for (GeneralBillVO vo : generalbillvos) {
+			if (PuPubVO.getString_TrimZeroLenAsNull(vo.getHeaderVO()
+					.getCwarehouseid()) != null
+					&& !wareList.contains(vo.getHeaderVO().getCwarehouseid())) {
+				wareList.add(vo.getHeaderVO().getCwarehouseid().trim());
+			}
+		}
+		HashMap wareInforMap = null;
+		if (wareList != null && wareList.size() > 0) {
+			String inWhere = new TempTableUtil().getSubSql(wareList);
+			try {
+				wareInforMap = new PubDMO().queryArrayValues("bd_stordoc",
+						"pk_stordoc", new String[] { "iscapitalstor" },
+						new String[] { inWhere.substring(2, inWhere.trim()
+								.length() - 2) }, " dr=0 ");
+			} catch (Exception e) {
+				PubDMO.throwBusinessException(e);
+			}
+		}
+		if (wareInforMap == null)
+			return;
+		// 循环调用真正的自动暂估方法(存在效率优化空间,可以用收票公司再做以区分,实现真正的批量操作)：
+		for (int i = 0; i < generalbillvos.length; i++) {
+			if (!PuPubVO.getUFBoolean_NullAs(
+					wareInforMap.get(generalbillvos[i].getHeaderVO()
+							.getCwarehouseid().trim()), new UFBoolean(false))
+					.booleanValue())// 过滤资产仓
+				estimateBatchReal(new GeneralBillVO[] { generalbillvos[i] });
+		}
+	}
+
+	/*
+	 * 暂估具体操作
+	 */
+	private void estimateBatchReal(GeneralBillVO[] generalbillvos)
+			throws BusinessException {
+
+		// 注意：结算公司取收票公司
+		String strInvoiceCorp = PuPubVO
+				.getString_TrimZeroLenAsNull(generalbillvos[0].getItemVOs()[0]
+						.getAttributeValue("pk_invoicecorp"));
+
+		// 平台参数获取{单价精度、本位币金额精度}
+
+		nc.bs.pu.pub.PubImpl myService1 = new PubImpl();
+		int digit[] = myService1.getDigitBatch(strInvoiceCorp, new String[] {
+				"BD301", "BD505" });
+		if (digit == null || digit.length == 0) {
+			throw new BusinessException(NCLangResOnserver.getInstance()
+					.getStrByID("40040503", "UPP40040503-000008")
+			/* @res "获取本位币精度或单价精度异常!" */);
+		}
+
+		// 参数采购获取{是否暂估应付、本位币ID、价格优先规则}
+
+		String sCurrTypeId = null;
+		String sPricePolicy = null;
+		UFBoolean bZGYF = new UFBoolean(false);
+		String strEstPriceSource = null;
+		String strEstMode = null;
+		String strDifferDealMode = null;
+		ISysInitQry initQrySrv = (ISysInitQry) NCLocator.getInstance().lookup(
+				ISysInitQry.class.getName());
+		Hashtable hInit = initQrySrv
+				.queryBatchParaValues(strInvoiceCorp, new String[] { "PO52",
+						"BD301", "PO28", "PO27", "PO12", "PO13" });
+		if (hInit != null && hInit.size() > 0) {
+			if (hInit.get("PO52") != null) {
+				Object o = hInit.get("PO52");
+				bZGYF = new UFBoolean(o.toString());
+			}
+			if (hInit.get("BD301") != null) {
+				sCurrTypeId = hInit.get("BD301").toString();
+			}
+			if (hInit.get("PO28") != null) {
+				sPricePolicy = hInit.get("PO28").toString();
+			}
+			if (hInit.get("PO27") != null) {
+				strEstPriceSource = hInit.get("PO27").toString();
+			}
+			if (hInit.get("PO12") != null) {
+				strEstMode = hInit.get("PO12").toString();
+			}
+			if (hInit.get("PO13") != null) {
+				strDifferDealMode = hInit.get("PO13").toString();
+			}
+		}
+
+		// 将采购入库单VO转换为暂估VO(采用查询思路，利用手工暂估查询处理单价等处理)
+		EstimateVO[] estimates = getEstVosByGeneralVos(generalbillvos,
+				strInvoiceCorp, strEstPriceSource);
+
+		// since v53,检查暂估金额为零的数据提示给用户
+		ArrayList<String> listBillNo = new ArrayList<String>();
+		ArrayList<String> listCrowNo = new ArrayList<String>();
+		ArrayList<String> listBaseId = new ArrayList<String>();
+		ArrayList<String> listBaseIdQuery = new ArrayList<String>();
+		for (EstimateVO currVo : estimates) {
+			if (PuPubVO.getUFDouble_ZeroAsNull(currVo.getNmoney()) == null) {
+				listBillNo.add(currVo.getVbillcode());
+				listCrowNo.add(PuPubVO.getString_TrimZeroLenAsNull(currVo
+						.getAttributeValue("crowno")));
+				listBaseId.add(PuPubVO.getString_TrimZeroLenAsNull(currVo
+						.getCbaseid()));
+				if (!listBaseIdQuery.contains(currVo.getCbaseid())) {
+					listBaseIdQuery.add(currVo.getCbaseid());
+				}
+			}
+		}
+		if (listBaseIdQuery.size() > 0) {
+			Object[][] oa2Ret = new PubImpl().queryArrayValue("bd_invbasdoc",
+					"pk_invbasdoc", new String[] { "pk_invbasdoc", "invcode",
+							"invname" }, listBaseIdQuery
+							.toArray(new String[listBaseIdQuery.size()]));
+			HashMap<String, ArrayList<String>> mapBaseIdInfos = new HashMap<String, ArrayList<String>>();
+			// {"invcode","invname"}
+			ArrayList<String> listInvInfos = new ArrayList<String>();
+			for (Object[] oaRslt : oa2Ret) {
+				if (oaRslt != null
+						&& PuPubVO.getString_TrimZeroLenAsNull(oaRslt[0]) != null) {
+					listInvInfos = new ArrayList<String>();
+					listInvInfos.add(PuPubVO
+							.getString_TrimZeroLenAsNull(oaRslt[1]));
+					listInvInfos.add(PuPubVO
+							.getString_TrimZeroLenAsNull(oaRslt[2]));
+					mapBaseIdInfos.put(oaRslt[0].toString(), listInvInfos);
+				}
+			}
+			// 组织提示信息:部分存货未取得暂估价，签字自动暂估失败。未取得暂估价的存货详细信息{存货名称[存货编码],单据号,行号;}如下:{0}
+			StringBuffer sbErrInfo = new StringBuffer("");
+			// 变量取值：计算机[0101],CR0805120001,10;\n
+			for (int i = 0; i < listBaseId.size(); i++) {
+				listInvInfos = mapBaseIdInfos.get(listBaseId.get(i));
+				sbErrInfo.append(listInvInfos.get(1));
+				sbErrInfo.append("[");
+				sbErrInfo.append(listInvInfos.get(0));
+				sbErrInfo.append("],");
+				sbErrInfo.append(listBillNo.get(i));
+				sbErrInfo.append(",");
+				sbErrInfo.append(listCrowNo.get(i));
+				sbErrInfo.append(";");
+				sbErrInfo.append("\n");
+			}
+			throw new BusinessException(NCLangResOnserver.getInstance()
+					.getStrByID("4004050301", "UPP4004050301-000008", null,
+							new String[] { sbErrInfo.toString() }));
+		}
+		// 调用暂估算法(同手工暂估)
+		ArrayList paraList = new ArrayList();
+		GeneralBillHeaderVO headVo = (GeneralBillHeaderVO) generalbillvos[0]
+				.getParentVO();
+		String strOperator = PuPubVO.getString_TrimZeroLenAsNull(headVo
+				.getAttributeValue("cregister"));
+		UFDate dateUserLogon = PuPubVO.getUFDate(headVo
+				.getAttributeValue("daccountdate"));
+		// //登录公司取收货公司,目前库存不支持跨公司签字
+		// String strLoginCorp = PuPubVO.getString_TrimZeroLenAsNull(
+		// generalbillvos[0].getParentVO().getAttributeValue("pk_corp"));
+		ClientLink cl = new ClientLink(strInvoiceCorp, strOperator,
+				dateUserLogon, null, null, null, null, null, null, false, null,
+				null, null);
+		paraList.add(cl);
+		paraList.add(strEstMode);
+		paraList.add(strDifferDealMode);
+		paraList.add(bZGYF);
+		paraList.add(sCurrTypeId);
+		paraList.add(UFBoolean.TRUE);// 是否已经加过锁
+		//
+		estimate(estimates, paraList);
+		//
+		return;
+	}
+
+	/**
+	 * 根据入库单VO获取暂估VO数据
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param generalbillvos
+	 *            库存单据VO
+	 * @param strInvoiceCorpId
+	 *            收票公司
+	 * @param strEstPriceSource
+	 *            暂估单价来源
+	 * @return 处理好的(可暂估的VO)暂估VO
+	 *         <p>
+	 * @author czp
+	 * @time 2007-8-24 上午11:04:41
+	 */
+	private EstimateVO[] getEstVosByGeneralVos(GeneralBillVO[] generalbillvos,
+			String strInvoiceCorpId, String strEstPriceSource)
+			throws BusinessException {
+		if (generalbillvos == null || generalbillvos.length == 0) {
+			SCMEnv.out("无数据直接返回");/* -=notranslate=- */
+		}
+		// 拼接SQL条件片段
+		String strSqlWherePart = "and B.cgeneralbid in ";
+		ArrayList<String> listIDVal = new ArrayList<String>();
+		for (GeneralBillVO curVo : generalbillvos) {
+			for (GeneralBillItemVO item : (GeneralBillItemVO[]) curVo
+					.getChildrenVO()) {
+				listIDVal.add(item.getPrimaryKey());
+			}
+		}
+		strSqlWherePart += new TempTableUtil().getSubSql(listIDVal);
+
+		//
+		EstimateVO[] estimates = null;
+		try {
+			// 查询暂估VO(按入库单头ID临时表条件)
+			estimates = new EstimateDMO().queryEstimate(strSqlWherePart, "N");
+			// 异常情况
+			if (estimates == null || estimates.length == 0) {
+				SCMEnv.out("根据采购入库单ID查询不到暂估数据");/* -=notranslate=- */
+				return null;
+			}
+			// 设置本币币种:联动计算金额精度需要
+
+			String strLocalCurrId = CurrParamQuery.getInstance()
+					.getLocalCurrPK(strInvoiceCorpId);
+			for (int i = 0; i < estimates.length; i++) {
+				estimates[i].setCcurrencytypeid(strLocalCurrId);
+			}
+
+			setEstimateVosInfos(estimates, strLocalCurrId, strInvoiceCorpId,
+					"N");
+
+			// 设置库存组织、直运仓库
+			for (int i = 0; i < estimates.length; i++) {
+				if (!EstimateVO.NORMAL.equals(estimates[i]
+						.getEstType(strInvoiceCorpId))) {
+					if (PuPubVO.getString_TrimZeroLenAsNull(estimates[i]
+							.getPkBody()) != null) {
+						// 不需要转换供应商档案ID，依赖于库存记录的是采购公司ID
+						estimates[i].setNeedChgVendorDoc(false);
+						//
+						estimates[i].setCcalbodyid(estimates[i].getPkBody());
+						estimates[i].setCwarehouseid(estimates[i]
+								.getCwarehouseidZY());
+					}
+				}
+			}
+		} catch (SQLException e) {
+			PubDMO.throwBusinessException(e);
+		} catch (SystemException e) {
+			PubDMO.throwBusinessException(e);
+		} catch (NamingException e) {
+			PubDMO.throwBusinessException(e);
+		} catch (Exception e) {
+			PubDMO.throwBusinessException(e);
+		}
+		// 返回
+		return estimates;
+	}
+
+	/**
+	 * 对采购入库单VO设置暂估价、收货公司、库存组织等信息
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param generalbills
+	 * @param strLoginCorpId
+	 * @throws Exception
+	 *             <p>
+	 * @author czp
+	 * @time 2007-8-8 下午05:07:18
+	 */
+	private void setEstimateVosInfosForGeneralBills(
+			IGeneralBillVO[] generalbills, String strLoginCorpId)
+			throws Exception {
+
+		EstimateVO estVo = null;
+		ArrayList<EstimateVO> listEstVos = new ArrayList<EstimateVO>();
+		IGeneralBillItemVO[] bodyVOs = null;
+		GeneralBillHeaderVO headVo = null;
+		for (IGeneralBillVO voCur : generalbills) {
+			headVo = (GeneralBillHeaderVO) generalbills[0].getParentVO();
+			bodyVOs = (IGeneralBillItemVO[]) voCur.getChildrenVO();
+			for (IGeneralBillItemVO itemVo : bodyVOs) {
+				estVo = new EstimateVO();
+				estVo.setCfirsttype(itemVo.getCfirsttype());
+				estVo.setCfirstbillbid(itemVo.getCfirstbillbid());
+				estVo.setCfirstbillhid(itemVo.getCfirstbillhid());
+				estVo.setCcalbodyid(headVo.getPk_calbody());
+				estVo.setPk_corp(headVo.getPk_corp());
+				estVo.setPk_purcorp(PuPubVO.getString_TrimZeroLenAsNull(headVo
+						.getAttributeValue("pk_purcorp")));
+				estVo.setPk_invoicecorp(PuPubVO
+						.getString_TrimZeroLenAsNull(headVo
+								.getAttributeValue("pk_invoicecorp")));
+				estVo.setCbaseid(itemVo.getCinvbasid());
+				estVo.setNinnum(itemVo.getNinnum());
+				//
+				listEstVos.add(estVo);
+			}
+		}
+		//
+		EstimateVO[] estVos = null;
+		estVos = listEstVos.toArray(new EstimateVO[listEstVos.size()]);
+
+		// 调用统一算法：设置暂估单价
+
+		String strLocalCurrId = CurrParamQuery.getInstance().getLocalCurrPK(
+				strLoginCorpId);
+		setEstimateVosInfos(estVos, strLocalCurrId, strLoginCorpId, "N");
+
+		//
+		int iPos = 0;
+		for (IGeneralBillVO voCur : generalbills) {
+			headVo = (GeneralBillHeaderVO) generalbills[0].getParentVO();
+			// 如果是分收集结
+			if (EstimateVO.isFSJJAll(PuPubVO
+					.getString_TrimZeroLenAsNull(estVos[iPos]
+							.getAttributeValue("pk_purcorp")), estVos[iPos]
+					.getPk_corp(), PuPubVO
+					.getString_TrimZeroLenAsNull(estVos[iPos]
+							.getAttributeValue("pk_invoicecorp")),
+					strLoginCorpId)) {
+				headVo.setPk_calbody(estVos[iPos].getCcalbodyid());
+				headVo.setCwarehouseid(estVos[iPos].getCwarehouseidZY());
+			}
+			bodyVOs = (IGeneralBillItemVO[]) voCur.getChildrenVO();
+			for (IGeneralBillItemVO itemVo : bodyVOs) {
+				itemVo.setNprice(estVos[iPos].getNprice());
+				itemVo.setNmny(estVos[iPos].getNmoney());
+				itemVo.setNtaxprice(estVos[iPos].getNtaxprice());
+				itemVo.setNtaxmny(estVos[iPos].getNtotalmoney());
+				iPos++;
+			}
+		}
+	}
+
+	/**
+	 * 对采购订单VO(暂估定义的结构)设置暂估价
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param VOs
+	 * @param strLoginCorpId
+	 * @throws Exception
+	 *             <p>
+	 * @author czp
+	 * @time 2007-8-8 下午05:07:18
+	 * @修改者 zhf
+	 * @修改说明 暂估应付支持外币
+	 * @修改时间 2008-06-25
+	 */
+	private void setEstVosPricesForOorderBills(OorderVO[] orders,
+			String strLoginCorpId) throws Exception {
+		if (orders == null || orders.length == 0) {
+			return;
+		}
+		// 取得登录公司对应的本位币币种ID
+		BusinessCurrencyRateUtil rateUtil = new BusinessCurrencyRateUtil(
+				strLoginCorpId);
+		String strCurLocalId = CurrParamQuery.getInstance().getLocalCurrPK(
+				strLoginCorpId);
+		//
+		EstimateVO[] estVos = new EstimateVO[orders.length];
+		//
+		int i = 0;
+		for (OorderVO voCur : orders) {
+			estVos[i] = new EstimateVO();
+			estVos[i].setCfirsttype(ScmConst.PO_Order);
+			estVos[i].setCfirstbillbid(voCur.getCorder_bid());
+			estVos[i].setCfirstbillhid(voCur.getCorderid());
+			estVos[i].setCcalbodyid(voCur.getPk_arrvstoorg());
+			estVos[i].setPk_corp(voCur.getPk_arrvcorp());
+			estVos[i].setPk_purcorp(voCur.getPk_corp());
+			estVos[i].setPk_invoicecorp(voCur.getPk_invoicecorp());
+			estVos[i].setCbaseid(voCur.getCbaseid());
+			// since v53, 取供应商有效价格
+			estVos[i].setCmangid(voCur.getCmangid());
+			estVos[i].setCvendorid(voCur.getCvendormangid());
+			// 算法：1、订单数量>0，暂估数量=订单数量-累计入库数量 2、订单数量<0，暂估数量=订单数量+累计入库数量
+			estVos[i].setNinnum(voCur.getNgaugenum());
+			//
+			i++;
+		}
+
+		// 调用统一算法：设置暂估单价
+		String strLocalCurrId = CurrParamQuery.getInstance().getLocalCurrPK(
+				strLoginCorpId);
+		setEstimateVosInfos(estVos, strLocalCurrId, strLoginCorpId, "N");
+
+		//
+		i = 0;
+		for (EstimateVO voEstCur : estVos) {
+			orders[i].setNprice(voEstCur.getNprice());
+			orders[i].setNmoney(voEstCur.getNmoney());
+			// V55 by zhaoyha at 2008.9.27
+			orders[i].setNcbtaxprice(voEstCur.getNcbtaxprice());
+			orders[i].setNcbtotalmoney(voEstCur.getNcbtotalmoney());
+
+			// since v53, 支持暂估应付
+			orders[i].setNtaxprice(voEstCur.getNtaxprice());
+			orders[i].setNtaxmoney(voEstCur.getNtaxmoney());
+			orders[i].setNtaxrate(voEstCur.getNtaxrate());
+			orders[i].setNnetprice(voEstCur.getNnetprice());
+			orders[i].setNnettaxprice(voEstCur.getNnettaxprice());
+			orders[i].setNtotalmoney(voEstCur.getNtotalmoney());
+			orders[i].setCcurrencytypeid(strCurLocalId);
+			// V55 by zhaoyha at 2008.9.27
+			orders[i].setNzgyfnotaxmoney(voEstCur.getNzgyfnotaxmoney());
+			orders[i].setNzgyfnotaxprice(voEstCur.getNzgyfnotaxprice());
+			//
+
+			// sinace v55 支持外币
+			orders[i].setCurrencytypeid(voEstCur.getCurrencytypeid());
+			orders[i].setNexchangeotobrate(voEstCur.getNexchangeotobrate());
+			orders[i].setNoriginalnetprice(voEstCur.getNoriginalnetprice());
+			orders[i].setNorgnettaxprice(voEstCur.getNorgnettaxprice());
+			orders[i].setNoriginalcurmny(voEstCur.getNoriginalcurmny());
+			orders[i].setNoriginaltaxpricemny(voEstCur
+					.getNoriginaltaxpricemny());
+			orders[i].setNorgtaxmoney(voEstCur.getNorgtaxmoney());
+			//
+
+			if (EstimateVO.PURCHASE.equals(EstimateVO.getEstType(voEstCur
+					.getPk_purcorp(), voEstCur.getPk_corp(), voEstCur
+					.getPk_invoicecorp(), strLoginCorpId))) {
+				orders[i].setCwarehouseid(voEstCur.getCwarehouseidZY());
+				orders[i].setCstoreorganization(voEstCur.getPkBody());
+				orders[i].setPk_arrvcorp(strLoginCorpId);// 分收集结时，也认为是采购公司的期初暂估单据，不完善的地方是：前台无法区分此单据的集中采购类型了
+			}
+			i++;
+		}
+	}
+
+	/*
+	 * 库存采购入库单GeneralBillVO[]转换为GeneralHItemVO[],GeneralBb3VO[]和EstimateVO[]组成的Vector
+	 */
+	private Vector switchVOs(IGeneralBillVO VOs[], UFBoolean bZGYF, int digit[])
+			throws Exception {
+		Vector v1 = new Vector();
+		Vector v2 = new Vector();
+		Vector v3 = new Vector(), v33 = new Vector();
+		//
+		HashMap<String, BusinessCurrencyRateUtil> mapRateUtils = new HashMap<String, BusinessCurrencyRateUtil>();
+		BusinessCurrencyRateUtil rateUtil = null;
+		for (int i = 0; i < VOs.length; i++) {
+			GeneralBillHeaderVO headVO = (GeneralBillHeaderVO) VOs[i]
+					.getParentVO();
+			IGeneralBillItemVO bodyVO[] = (IGeneralBillItemVO[]) VOs[i]
+					.getChildrenVO();
+
+			if (bodyVO != null && bodyVO.length > 0) {
+				for (int j = 0; j < bodyVO.length; j++) {
+					// GeneralHItemVO
+					GeneralHItemVO itemVO = new GeneralHItemVO();
+					itemVO.setCgeneralhid(bodyVO[j].getCgeneralhid());
+					itemVO.setCgeneralbid(bodyVO[j].getCgeneralbid());
+					itemVO.setBzgflag(new UFBoolean(true));
+					itemVO.setDzgdate(headVO.getDaccountdate());
+					itemVO.setBzgyfflag(bZGYF);
+					v1.addElement(itemVO);
+
+					// GeneralBb3VO
+					GeneralBb3VO bb3VO = new GeneralBb3VO();
+					bb3VO.setCgeneralhid(bodyVO[j].getCgeneralhid());
+					bb3VO.setCgeneralbid(bodyVO[j].getCgeneralbid());
+					if (bodyVO[j].getNprice() != null) {
+						double d = PubDMO.getRoundDouble(digit[1], bodyVO[j]
+								.getNprice().doubleValue());
+						bb3VO.setNpprice(new UFDouble(d));
+						bodyVO[j].setNprice(bb3VO.getNpprice());
+					}
+					if (bodyVO[j].getNmny() != null) {
+						double d = PubDMO.getRoundDouble(digit[0], bodyVO[j]
+								.getNmny().doubleValue());
+						bb3VO.setNpmoney(new UFDouble(d));
+						bodyVO[j].setNmny(bb3VO.getNpmoney());
+					}
+					v2.addElement(bb3VO);
+
+					// estimateVO
+					EstimateVO estVO = new EstimateVO();
+					estVO.setBzgyf(bZGYF);
+					estVO.setCbaseid(bodyVO[j].getCinvbasid());
+					estVO.setCbilltypecode(headVO.getCbilltypecode());
+					estVO.setCbiztype(headVO.getCbiztypeid());
+					estVO.setCdptid(headVO.getCdptid());
+					estVO.setCfirstbillbid(bodyVO[j].getCfirstbillbid());
+					estVO.setCfirstbillhid(bodyVO[j].getCfirstbillhid());
+					estVO.setCfirsttype(bodyVO[j].getCfirsttype());
+					estVO.setCgeneralbid(bodyVO[j].getCgeneralbid());
+					estVO.setCgeneralhid(bodyVO[j].getCgeneralhid());
+					estVO.setCmangid(bodyVO[j].getCinventoryid());
+					estVO.setCoperatorid(headVO.getCoperatorid());
+					estVO.setCprojectid(bodyVO[j].getCprojectid());
+					estVO.setCprojectphaseid(bodyVO[j].getCprojectphaseid());
+					estVO.setCprovidermangid(headVO.getCproviderid());
+					// estVO.setCproviderbaseid()???
+					estVO.setDbilldate(headVO.getDbilldate());
+					estVO.setNinnum(bodyVO[j].getNinnum());
+
+					estVO.setNprice(bodyVO[j].getNprice());
+					estVO.setNmoney(bodyVO[j].getNmny());
+					estVO.setNtaxprice(bodyVO[j].getNtaxprice());
+					estVO.setNtotalmoney(bodyVO[j].getNtaxmny());
+
+					estVO.setPk_corp(headVO.getPk_corp());
+					// since v502,支持集团业务，补充全部公司
+					estVO.setPk_purcorp(PuPubVO
+							.getString_TrimZeroLenAsNull(headVO
+									.getAttributeValue("pk_purcorp")));
+					estVO.setPk_invoicecorp(PuPubVO
+							.getString_TrimZeroLenAsNull(bodyVO[j]
+									.getAttributeValue("pk_invoicecorp")));
+
+					/*
+					 * sinv V502,设置发票公司本位币种ID,支持运算后的精度处理，保持与前台模板编辑时的精度处理一致
+					 * 特别说明：本代码放在发票公司正确设置之后
+					 */
+					rateUtil = (BusinessCurrencyRateUtil) mapRateUtils
+							.get(estVO.getPk_invoicecorp());
+					if (rateUtil == null) {
+						rateUtil = new BusinessCurrencyRateUtil(estVO
+								.getPk_invoicecorp());
+						mapRateUtils.put(estVO.getPk_invoicecorp(), rateUtil);
+					}
+					estVO.setCcurrencytypeid(CurrParamQuery.getInstance()
+							.getLocalCurrPK(estVO.getPk_invoicecorp()));
+					//
+					estVO.setVuserdefh1(headVO.getVuserdef1());
+					estVO.setVuserdefh2(headVO.getVuserdef2());
+					estVO.setVuserdefh3(headVO.getVuserdef3());
+					estVO.setVuserdefh4(headVO.getVuserdef4());
+					estVO.setVuserdefh5(headVO.getVuserdef5());
+					estVO.setVuserdefh6(headVO.getVuserdef6());
+
+					estVO.setBMoney(bodyVO[j].getBMoney());
+					estVO.setNPricePolicy(bodyVO[j].getNPricePolicy());
+
+					v3.addElement(estVO);
+					v33.addElement(estVO.getCprovidermangid());
+				}
+			}
+		}
+
+		EstimateVO estimates[] = new EstimateVO[v3.size()];
+		v3.copyInto(estimates);
+
+		// 获取供应商基本ID
+		String pk_cumandoc[] = new String[v33.size()];
+		v33.copyInto(pk_cumandoc);
+		String pk_cubasdoc[] = new SettleDMO()
+				.queryVendorBaseIDForARAP(pk_cumandoc);
+		for (int i = 0; i < pk_cubasdoc.length; i++) {
+			estimates[i].setCproviderbaseid(pk_cubasdoc[i]);
+		}
+
+		GeneralHItemVO itemVO[] = new GeneralHItemVO[v1.size()];
+		v1.copyInto(itemVO);
+		GeneralBb3VO bb3VO[] = new GeneralBb3VO[v2.size()];
+		v2.copyInto(bb3VO);
+
+		v1 = new Vector();
+		v1.addElement(itemVO);
+		v1.addElement(bb3VO);
+		v1.addElement(estimates);
+		return v1;
+	}
+
+	/**
+	 * 功能描述:暂估(委外调用) 输入参数:VO[],当前操作员ID,当前日期 返回值:void
+	 * 异常处理:NamingException,RemoteException,SQLException 作者：熊海情 修改：晁志平 FOR V30
+	 */
+	public void estimateForSc(CircularlyAccessibleValueObject[] saVo,
+			String cOperator, UFDate dCurrDate) throws BusinessException {
+		if (saVo == null || saVo.length == 0) {
+			SCMEnv.out("传入参数为空，直接返回！方法调用层次如下：");
+			SCMEnv.out(new Exception());
+			return;
+		}
+		EstimateVO[] VOs = (EstimateVO[]) saVo;
+		nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
+		timerDebug.start();
+
+		EstimateDMO dmo = null;
+		ICreateCorpQueryService myService0 = null;
+		ISysInitQry myService1 = null;
+		nc.bs.pu.pub.PubImpl myService2 = null;
+		try {
+			dmo = new EstimateDMO();
+			Vector vBid = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				vBid.addElement(VOs[i].getCgeneralbid());
+			}
+			// 状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)
+			if (vBid.size() > 0) {
+				dmo.checkExistEsti(vBid);
+			}
+			timerDebug.addExecutePhase("状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)");
+
+			// 获取委外参数：计划价产品入库是否忽略差异
+			myService1 = (ISysInitQry) nc.bs.framework.common.NCLocator
+					.getInstance().lookup(ISysInitQry.class.getName());
+			nc.vo.pub.para.SysInitVO initVO[] = myService1.querySysInit(VOs[0]
+					.getPk_corp(), "SC05");
+			if (initVO == null || initVO.length == 0)
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000010")/*
+													 * @res "无法获取委外参数SC05！"
+													 */);
+			String sCross = initVO[0].getValue(); // 是否忽略差异
+			timerDebug.addExecutePhase(nc.bs.ml.NCLangResOnserver.getInstance()
+					.getStrByID("40040503", "UPP40040503-000011")/*
+																 * @res
+																 * "获取委外参数：计划价产品入库是否忽略差异"
+																 */);
+
+			// 暂估时单价和金额的精度控制
+			myService2 = new nc.bs.pu.pub.PubImpl();
+			int digit[] = myService2.getDigitBatch(VOs[0].getPk_corp(),
+					new String[] { "BD301", "BD505" });
+			if (digit == null || digit.length == 0)
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000008")/*
+													 * @res "获取本位币精度或单价精度异常!"
+													 */);
+			timerDebug.addExecutePhase("获取本位币精度或单价精度");
+
+			// 如果忽略差异，则根据存货基础ID和仓库ID获取存货的计价方式/计划价
+			int nPriceMethod[] = new int[VOs.length];
+			UFDouble dPlanPrice[] = new UFDouble[VOs.length];
+			for (int i = 0; i < VOs.length; i++)
+				nPriceMethod[i] = -1;
+			if (sCross != null && sCross.trim().length() > 0
+					&& sCross.equals("是")) {
+				Vector vMangid = new Vector();
+				Vector vWareid = new Vector();
+				for (int i = 0; i < VOs.length; i++) {
+					vMangid.addElement(VOs[i].getCmangid());
+					vWareid.addElement(VOs[i].getCwarehouseid());
+				}
+				String sMangID[] = new String[vMangid.size()];
+				String sWarehouseID[] = new String[vWareid.size()];
+				vMangid.copyInto(sMangID);
+				vWareid.copyInto(sWarehouseID);
+				ArrayList list = dmo.queryPriceMethod(sMangID, sWarehouseID);
+				if (list != null && list.size() > 0) {
+					for (int i = 0; i < list.size(); i++) {
+						ArrayList list0 = (ArrayList) list.get(i);
+						nPriceMethod[i] = ((Integer) list0.get(0)).intValue();
+						dPlanPrice[i] = (UFDouble) list0.get(1);
+					}
+				}
+			}
+			timerDebug.addExecutePhase("如果忽略差异，则根据存货基础ID和仓库ID获取存货的计价方式/计划价");
+
+			//
+			String sTemp[] = new String[vBid.size()];
+			vBid.copyInto(sTemp);
+
+			ArrayList list1 = dmo.queryStockBody(sTemp);
+			timerDebug.addExecutePhase("查询入库单表体数据");
+
+			ArrayList list2 = dmo.queryBb3(VOs);
+			timerDebug.addExecutePhase("查询入库单子表3数据");
+
+			Vector v1 = new Vector();
+			Vector v2 = new Vector();
+
+			// 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
+			Vector vAllBodyVoB = new Vector();
+			Vector vAllBodyVoBB3 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				GeneralHItemVO bodyVO[] = (GeneralHItemVO[]) list1.get(i);
+				GeneralBb3VO bb3VO[] = (GeneralBb3VO[]) list2.get(i);
+
+				if (bodyVO != null && bodyVO.length > 0) {
+					for (int j = 0; j < bodyVO.length; j++) {
+						if (nPriceMethod[j] == 5) {
+							// 计划价产品入库时,入库单行为非暂估、结算完毕状态，单价为计划价
+							bodyVO[j].setIsok(new UFBoolean(true));
+							bodyVO[j].setBzgflag(new UFBoolean(true));
+							bodyVO[j].setDzgdate(dCurrDate);
+							VOs[i].setNprice(dPlanPrice[i] == null ? null
+									: dPlanPrice[i].add(new UFDouble(0.0),
+											BsPuTool.getPriceDigit(null)));
+							//
+							// double d = VOs[i].getNinnum().doubleValue()*
+							// VOs[i].getNprice().doubleValue();
+							// VOs[i].setNmoney(new UFDouble(d));
+							VOs[i].setNmoney(VOs[i].getNinnum().multiply(
+									VOs[i].getNprice(),
+									BsPuTool.getCCurrDecimal(null)));
+							VOs[i].setNmaterialmoney(new UFDouble(0.0));
+
+							v2.addElement(VOs[i]);
+						} else {
+							bodyVO[j].setBzgflag(new UFBoolean(true));
+							bodyVO[j].setDzgdate(dCurrDate);
+
+							v1.addElement(VOs[i]);
+						}
+						vAllBodyVoB.addElement(bodyVO[j]);
+					}
+				}
+				if (bb3VO != null && bb3VO.length > 0) {
+					for (int j = 0; j < bb3VO.length; j++) {
+						if (VOs[i].getNprice() != null) {
+							double d = PubDMO.getRoundDouble(digit[1], VOs[i]
+									.getNprice().doubleValue());
+							bb3VO[j].setNpprice(new UFDouble(d));
+						}
+						if (VOs[i].getNmoney() != null) {
+							double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+									.getNmoney().doubleValue());
+							bb3VO[j].setNpmoney(new UFDouble(d));
+						}
+						if (VOs[i].getNmaterialmoney() != null) {
+							double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+									.getNmaterialmoney().doubleValue());
+							bb3VO[j].setNmaterialmoney(new UFDouble(d));
+						}
+						vAllBodyVoBB3.addElement(bb3VO[j]);
+					}
+				}
+			}
+			if (vAllBodyVoB.size() > 0) {
+				GeneralHItemVO[] bodyVOs = new GeneralHItemVO[vAllBodyVoB
+						.size()];
+				vAllBodyVoB.copyInto(bodyVOs);
+				dmo.updateBody(bodyVOs);
+			}
+			if (vAllBodyVoBB3.size() > 0) {
+				GeneralBb3VO bb3VOs[] = new GeneralBb3VO[vAllBodyVoBB3.size()];
+				vAllBodyVoBB3.copyInto(bb3VOs);
+				dmo.updateBb3(bb3VOs);
+			}
+			timerDebug.addExecutePhase("入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费");
+
+			// 调用接口,向存货核算系统传送数据
+			if (VOs != null && VOs.length > 0) {
+				String unitCode = VOs[0].getPk_corp();
+				myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(
+								ICreateCorpQueryService.class.getName());
+				boolean bIAStartUp = myService0.isEnabled(unitCode, "IA");
+
+				if (bIAStartUp) {
+					if (v1.size() > 0) {
+						EstimateVO VOs1[] = new EstimateVO[v1.size()];
+						v1.copyInto(VOs1);
+
+						// 获取库存单据信息
+						VOs1 = queryBillInfoForIA(VOs1);
+						//
+						saveBillFromOutter(VOs1, cOperator, dCurrDate, VOs1[0]
+								.getPk_corp(), ProductCode.PROD_SC);
+					}
+					if (v2.size() > 0) {
+						EstimateVO VOs2[] = new EstimateVO[v2.size()];
+						v2.copyInto(VOs2);
+
+						VOs2 = queryBillInfoForIA(VOs2);
+
+						saveBillFromOutterForSC(VOs2, VOs2[0].getPk_corp(),
+								cOperator, dCurrDate);
+					}
+				}
+			}
+			timerDebug.addExecutePhase("调用接口,向存货核算系统传送数据");
+
+			timerDebug.showAllExecutePhase("采购提供接口，暂估(委外调用)时间分布");
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+	}
+
+	private EstimateVO[] queryBillInfoForIA(EstimateVO VOs[])
+			throws BusinessException {
+		try {
+			// 查询存货表体VO所需的数据
+			Vector v = queryStockBodyForIA(VOs);
+			if (v == null || v.size() == 0) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000018")/*
+													 * @res
+													 * "查询存货表体VO所需的数据,没有符合条件的数据！"
+													 */);
+			}
+
+			// 设置存货表体VO所需的数据
+			for (int i = 0; i < VOs.length; i++) {
+				Vector vTemp = (Vector) v.elementAt(i);
+				GeneralHItemVO itemVO = (GeneralHItemVO) vTemp.elementAt(0);
+
+				VOs[i].setPk_invoicecorp(itemVO.getPk_corp());
+				VOs[i].setVfree1(itemVO.getVfree1());
+				VOs[i].setVfree2(itemVO.getVfree2());
+				VOs[i].setVfree3(itemVO.getVfree3());
+				VOs[i].setVfree4(itemVO.getVfree4());
+				VOs[i].setVfree5(itemVO.getVfree5());
+
+				VOs[i].setVuserdef1(itemVO.getVuserdef1());
+				VOs[i].setVuserdef2(itemVO.getVuserdef2());
+				VOs[i].setVuserdef3(itemVO.getVuserdef3());
+				VOs[i].setVuserdef4(itemVO.getVuserdef4());
+				VOs[i].setVuserdef5(itemVO.getVuserdef5());
+				VOs[i].setVuserdef6(itemVO.getVuserdef6());
+				VOs[i].setVuserdef7(itemVO.getVuserdef7());
+				VOs[i].setVuserdef8(itemVO.getVuserdef8());
+				VOs[i].setVuserdef9(itemVO.getVuserdef9());
+				VOs[i].setVuserdef10(itemVO.getVuserdef10());
+
+				VOs[i].setVuserdef11(itemVO.getVuserdef11());
+				VOs[i].setVuserdef12(itemVO.getVuserdef12());
+				VOs[i].setVuserdef13(itemVO.getVuserdef13());
+				VOs[i].setVuserdef14(itemVO.getVuserdef14());
+				VOs[i].setVuserdef15(itemVO.getVuserdef15());
+				VOs[i].setVuserdef16(itemVO.getVuserdef16());
+				VOs[i].setVuserdef17(itemVO.getVuserdef17());
+				VOs[i].setVuserdef18(itemVO.getVuserdef18());
+				VOs[i].setVuserdef19(itemVO.getVuserdef19());
+				VOs[i].setVuserdef20(itemVO.getVuserdef20());
+
+				VOs[i].setPk_defdocb1(itemVO.getPk_defdoc1());
+				VOs[i].setPk_defdocb2(itemVO.getPk_defdoc2());
+				VOs[i].setPk_defdocb3(itemVO.getPk_defdoc3());
+				VOs[i].setPk_defdocb4(itemVO.getPk_defdoc4());
+				VOs[i].setPk_defdocb5(itemVO.getPk_defdoc5());
+				VOs[i].setPk_defdocb6(itemVO.getPk_defdoc6());
+				VOs[i].setPk_defdocb7(itemVO.getPk_defdoc7());
+				VOs[i].setPk_defdocb8(itemVO.getPk_defdoc8());
+				VOs[i].setPk_defdocb9(itemVO.getPk_defdoc9());
+				VOs[i].setPk_defdocb10(itemVO.getPk_defdoc10());
+
+				VOs[i].setPk_defdocb11(itemVO.getPk_defdoc11());
+				VOs[i].setPk_defdocb12(itemVO.getPk_defdoc12());
+				VOs[i].setPk_defdocb13(itemVO.getPk_defdoc13());
+				VOs[i].setPk_defdocb14(itemVO.getPk_defdoc14());
+				VOs[i].setPk_defdocb15(itemVO.getPk_defdoc15());
+				VOs[i].setPk_defdocb16(itemVO.getPk_defdoc16());
+				VOs[i].setPk_defdocb17(itemVO.getPk_defdoc17());
+				VOs[i].setPk_defdocb18(itemVO.getPk_defdoc18());
+				VOs[i].setPk_defdocb19(itemVO.getPk_defdoc19());
+				VOs[i].setPk_defdocb20(itemVO.getPk_defdoc20());
+
+				VOs[i].setCprojectid(itemVO.getCprojectid());
+				VOs[i].setCprojectphaseid(itemVO.getCprojectphaseid());
+
+				VOs[i].setCvendorid(itemVO.getCvendorid());
+			}
+
+			// 查询存货表头VO所需的数据
+			String sGeneralhid[] = new String[VOs.length];
+			String sWarehouseid[] = new String[VOs.length];
+			for (int i = 0; i < VOs.length; i++) {
+				sGeneralhid[i] = VOs[i].getCgeneralhid();
+				sWarehouseid[i] = VOs[i].getCwarehouseid();
+			}
+
+			Vector vv = queryStockHeadForIA(sGeneralhid, sWarehouseid);
+			if (vv == null || vv.size() == 0) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000019")/*
+													 * @res
+													 * "查询存货表头VO所需的数据,没有符合条件的数据！"
+													 */);
+			}
+
+			// 设置存货表头VO所需的数据
+			for (int i = 0; i < VOs.length; i++) {
+				Vector vTemp = (Vector) vv.elementAt(i);
+				GeneralHHeaderVO hVO = (GeneralHHeaderVO) vTemp.elementAt(0);
+
+				VOs[i].setVuserdefh1(hVO.getVuserdef1());
+				VOs[i].setVuserdefh2(hVO.getVuserdef2());
+				VOs[i].setVuserdefh3(hVO.getVuserdef3());
+				VOs[i].setVuserdefh4(hVO.getVuserdef4());
+				VOs[i].setVuserdefh5(hVO.getVuserdef5());
+				VOs[i].setVuserdefh6(hVO.getVuserdef6());
+				VOs[i].setVuserdefh7(hVO.getVuserdef7());
+				VOs[i].setVuserdefh8(hVO.getVuserdef8());
+				VOs[i].setVuserdefh9(hVO.getVuserdef9());
+				VOs[i].setVuserdefh10(hVO.getVuserdef10());
+
+				VOs[i].setVuserdefh11(hVO.getVuserdef11());
+				VOs[i].setVuserdefh12(hVO.getVuserdef12());
+				VOs[i].setVuserdefh13(hVO.getVuserdef13());
+				VOs[i].setVuserdefh14(hVO.getVuserdef14());
+				VOs[i].setVuserdefh15(hVO.getVuserdef15());
+				VOs[i].setVuserdefh16(hVO.getVuserdef16());
+				VOs[i].setVuserdefh17(hVO.getVuserdef17());
+				VOs[i].setVuserdefh18(hVO.getVuserdef18());
+				VOs[i].setVuserdefh19(hVO.getVuserdef19());
+				VOs[i].setVuserdefh20(hVO.getVuserdef20());
+
+				VOs[i].setPk_defdoch1(hVO.getPk_defdoc1());
+				VOs[i].setPk_defdoch2(hVO.getPk_defdoc2());
+				VOs[i].setPk_defdoch3(hVO.getPk_defdoc3());
+				VOs[i].setPk_defdoch4(hVO.getPk_defdoc4());
+				VOs[i].setPk_defdoch5(hVO.getPk_defdoc5());
+				VOs[i].setPk_defdoch6(hVO.getPk_defdoc6());
+				VOs[i].setPk_defdoch7(hVO.getPk_defdoc7());
+				VOs[i].setPk_defdoch8(hVO.getPk_defdoc8());
+				VOs[i].setPk_defdoch9(hVO.getPk_defdoc9());
+				VOs[i].setPk_defdoch10(hVO.getPk_defdoc10());
+
+				VOs[i].setPk_defdoch11(hVO.getPk_defdoc11());
+				VOs[i].setPk_defdoch12(hVO.getPk_defdoc12());
+				VOs[i].setPk_defdoch13(hVO.getPk_defdoc13());
+				VOs[i].setPk_defdoch14(hVO.getPk_defdoc14());
+				VOs[i].setPk_defdoch15(hVO.getPk_defdoc15());
+				VOs[i].setPk_defdoch16(hVO.getPk_defdoc16());
+				VOs[i].setPk_defdoch17(hVO.getPk_defdoc17());
+				VOs[i].setPk_defdoch18(hVO.getPk_defdoc18());
+				VOs[i].setPk_defdoch19(hVO.getPk_defdoc19());
+				VOs[i].setPk_defdoch20(hVO.getPk_defdoc20());
+
+				VOs[i].setCdispatcherid(hVO.getCdispatcherid());
+				VOs[i].setBcalculatecost(hVO.getBcalculatecost());
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return VOs;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:生成结算单体 输入参数: 返回值: 异常处理: 日期:2003/05/30
+	 */
+	private SettlebillItemVO[] generateSettlebillItem(StockVO stockVOs[],
+			StockVO negStockVOs[]) {
+		if (negStockVOs == null || negStockVOs.length == 0)
+			return null;
+
+		int iLocalMnyDigit = 2;
+		try {
+			iLocalMnyDigit = BsPuTool.getCCurrDecimal(negStockVOs[0]
+					.getPk_corp());
+		} catch (Exception e) {
+			SCMEnv.out(e);
+		}
+		// 生成结算单
+		Vector v = new Vector();
+		for (int i = 0; i < negStockVOs.length; i++) {
+			if (negStockVOs[i] == null)
+				continue;
+
+			SettlebillItemVO bodyVO = new SettlebillItemVO();
+			bodyVO.setPk_corp(negStockVOs[i].getPk_corp());
+			bodyVO.setCinvoice_bid(null);
+			bodyVO.setCinvoiceid(null);
+			bodyVO.setCstockrow(negStockVOs[i].getCgeneralbid());
+			bodyVO.setCstockid(negStockVOs[i].getCgeneralhid());
+			bodyVO.setCmangid(negStockVOs[i].getCmangid());
+			bodyVO.setCbaseid(negStockVOs[i].getCbaseid());
+			// 结算单表体要加入库存入库单类型 since 55
+			bodyVO.setVstockbilltype(negStockVOs[i].getBillTypeNullAs45());
+			// 结算数量：入库单行未结算数量
+			bodyVO.setNsettlenum(negStockVOs[i].getNnosettlenum());
+			// 结算单价：暂估单价
+			bodyVO.setNprice(negStockVOs[i].getNprice());
+			// 结算金额：结算单价*结算数量
+			UFDouble d1 = bodyVO.getNprice();
+			if (d1 == null)
+				d1 = new UFDouble(0);
+			// double d = bodyVO.getNsettlenum().doubleValue() *
+			// d1.doubleValue();
+			// bodyVO.setNmoney(new UFDouble(d));
+			bodyVO.setNmoney(bodyVO.getNsettlenum()
+					.multiply(d1, iLocalMnyDigit));
+
+			// 暂估金额：入库单行暂估单价*结算数量
+			d1 = negStockVOs[i].getNprice();
+			if (d1 == null) {
+				d1 = new UFDouble(0);
+			}
+			// d = bodyVO.getNsettlenum().doubleValue() * d1.doubleValue();
+			// bodyVO.setNgaugemny(new UFDouble(d));
+			bodyVO.setNgaugemny(bodyVO.getNsettlenum().multiply(d1,
+					iLocalMnyDigit));
+
+			// 获得入库单号
+			bodyVO.setVbillcode(negStockVOs[i].getVbillcode());
+			// 获得发票号
+			bodyVO.setVinvoicecode(null);
+			v.addElement(bodyVO);
+
+			SettlebillItemVO bodyVO1 = new SettlebillItemVO();
+			bodyVO1.setPk_corp(stockVOs[i].getPk_corp());
+			bodyVO1.setCinvoice_bid(null);
+			bodyVO1.setCinvoiceid(null);
+			bodyVO1.setCstockrow(stockVOs[i].getCgeneralbid());
+			bodyVO1.setCstockid(stockVOs[i].getCgeneralhid());
+			bodyVO1.setCmangid(stockVOs[i].getCmangid());
+			bodyVO1.setCbaseid(stockVOs[i].getCbaseid());
+
+			// 结算数量：入库单行未结算数量
+			bodyVO1.setNsettlenum(stockVOs[i].getNnosettlenum());
+			// 结算单价：暂估单价
+			bodyVO1.setNprice(stockVOs[i].getNprice());
+			// 结算金额：结算单价*结算数量
+			d1 = bodyVO1.getNprice();
+			if (d1 == null) {
+				d1 = new UFDouble(0);
+			}
+			// d = bodyVO1.getNsettlenum().doubleValue() * d1.doubleValue();
+			// bodyVO1.setNmoney(new UFDouble(d));
+			bodyVO1.setNmoney(bodyVO1.getNsettlenum().multiply(d1,
+					iLocalMnyDigit));
+
+			// 暂估金额：入库单行暂估单价*结算数量
+			d1 = stockVOs[i].getNprice();
+			if (d1 == null)
+				d1 = new UFDouble(0);
+			// d = bodyVO1.getNsettlenum().doubleValue() * d1.doubleValue();
+			// bodyVO1.setNgaugemny(new UFDouble(d));
+			bodyVO1.setNgaugemny(bodyVO1.getNsettlenum().multiply(d1,
+					iLocalMnyDigit));
+
+			// 获得入库单号
+			bodyVO1.setVbillcode(stockVOs[i].getVbillcode());
+			// 结算单表体要加入库存入库单类型 since 55
+			bodyVO1.setVstockbilltype(stockVOs[i].getBillTypeNullAs45());
+			// 获得发票号
+			bodyVO1.setVinvoicecode(null);
+			v.addElement(bodyVO1);
+		}
+
+		if (v.size() == 0)
+			return null;
+
+		SettlebillItemVO settlebillItemVOs[] = new SettlebillItemVO[v.size()];
+		v.copyInto(settlebillItemVOs);
+
+		return settlebillItemVOs;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:生成结算单体 输入参数: 返回值: 异常处理: 日期:2003/05/30
+	 */
+	private SettlebillItemVO[] generateSettlebillItemForSC(StockVO VOs[]) {
+		// 生成结算单
+		Vector v = new Vector();
+		int iLocalMnyDigit = 2;
+		try {
+			iLocalMnyDigit = BsPuTool.getCCurrDecimal(VOs[0].getPk_corp());
+		} catch (Exception e) {
+			SCMEnv.out(e);
+		}
+		for (int i = 0; i < VOs.length; i++) {
+			SettlebillItemVO bodyVO = new SettlebillItemVO();
+			bodyVO.setPk_corp(VOs[i].getPk_corp());
+			bodyVO.setCinvoice_bid(null);
+			bodyVO.setCinvoiceid(null);
+			bodyVO.setCstockrow(VOs[i].getCgeneralbid());
+			bodyVO.setCstockid(VOs[i].getCgeneralhid());
+			bodyVO.setCmangid(VOs[i].getCmangid());
+			bodyVO.setCbaseid(VOs[i].getCbaseid());
+
+			// 结算数量：入库单行未结算数量
+			bodyVO.setNsettlenum(VOs[i].getNinnum());
+			// 结算单价：暂估单价
+			bodyVO.setNprice(VOs[i].getNprice());
+			// 结算金额：结算单价*结算数量
+			UFDouble d1 = bodyVO.getNprice();
+			if (d1 == null)
+				d1 = new UFDouble(0);
+			// double d = bodyVO.getNsettlenum().doubleValue() *
+			// d1.doubleValue();
+			// bodyVO.setNmoney(new UFDouble(d));
+			bodyVO.setNmoney(bodyVO.getNsettlenum()
+					.multiply(d1, iLocalMnyDigit));
+
+			// 暂估金额：入库单行暂估单价*结算数量
+			// bodyVO.setNgaugemny(new UFDouble(d));
+			bodyVO.setNmoney(bodyVO.getNsettlenum()
+					.multiply(d1, iLocalMnyDigit));
+
+			// 获得入库单号
+			bodyVO.setVbillcode(VOs[i].getVbillcode());
+			// 获得发票号
+			bodyVO.setVinvoicecode(null);
+			v.addElement(bodyVO);
+
+		}
+
+		if (v.size() == 0)
+			return null;
+
+		SettlebillItemVO settlebillItemVOs[] = new SettlebillItemVO[v.size()];
+		v.copyInto(settlebillItemVOs);
+
+		return settlebillItemVOs;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:获得结算单号 输入参数: 返回值: 异常处理: 日期:2003/05/30
+	 */
+	private String generateSettleCode(String pk_corp) throws BusinessException {
+		// 获取结算单号
+		String vSettlebillcode = "";
+		BillcodeGenerater myService = null;
+		try {
+			nc.bs.ps.settle.SettleDMO dmo = new nc.bs.ps.settle.SettleDMO();
+			myService = new BillcodeGenerater();
+			nc.vo.pub.billcodemanage.BillCodeObjValueVO vo = new nc.vo.pub.billcodemanage.BillCodeObjValueVO();
+			vo.setAttributeValue("公司", pk_corp);
+			do {
+				vSettlebillcode = myService.getBillCode(ScmConst.PO_SettleBill,
+						pk_corp, null, vo);
+			} while (dmo.isSettlebillCodeDuplicate(pk_corp, vSettlebillcode));
+		} catch (Exception e) {
+			SCMEnv.out(e);
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return vSettlebillcode;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:获得入库单号 输入参数: 返回值: 异常处理: 日期:2002/04/05
+	 */
+
+	private String getBillCode(GeneralHHeaderVO head) throws BusinessException {
+		String vBillcode = null;
+		BillcodeGenerater myService = null;
+
+		// 获取入库单号
+		try {
+			nc.vo.pub.billcodemanage.BillCodeObjValueVO vo = new nc.vo.pub.billcodemanage.BillCodeObjValueVO();
+
+			String sNames[] = { "仓库", "当前操作员", "收发类别" };
+			String sKeys[] = { "cwarehouseid", "coperatorid", "cdispatcherid" };
+			for (int i = 0; i < sNames.length; i++) {
+				Object o = head.getAttributeValue(sKeys[i]);
+				vo.setAttributeValue(sNames[i], o);
+			}
+			vo.setAttributeValue("库存组织", getStoreOrg(head.getCwarehouseid()));
+
+			vBillcode = head.getVbillcode();
+			if (vBillcode == null || vBillcode.length() == 0)
+				vBillcode = null;
+
+			myService = new BillcodeGenerater();
+
+			vBillcode = myService.getBillCode("45", head.getPk_corp(),
+					vBillcode, vo);
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return vBillcode;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:期初暂估采购入库单保存时，调用可用量接口，将采购入库单VO转换为标准的入库单VO 输入参数: 返回值: 异常处理:
+	 * 日期:2003/10/08
+	 */
+	private GeneralBillVO getChangedVO(GeneralHVO sourceVO, boolean bAdd) {
+		GeneralHHeaderVO headVO = sourceVO.getHeadVO();
+		GeneralHItemVO bodyVO[] = sourceVO.getBodyVO();
+		if (headVO == null || bodyVO == null || bodyVO.length == 0)
+			return null;
+
+		GeneralBillHeaderVO head = new GeneralBillHeaderVO();
+		head.setCgeneralhid(headVO.getCgeneralhid());
+		head.setPk_corp(headVO.getPk_corp());
+		head.setCbiztypeid(headVO.getCbiztype());
+		head.setCbilltypecode(headVO.getCbilltypecode());
+		head.setVbillcode(headVO.getVbillcode());
+		head.setDbilldate(headVO.getDbilldate());
+		head.setCwarehouseid(headVO.getCwarehouseid());
+		head.setCdispatcherid(headVO.getCdispatcherid());
+		head.setCdptid(headVO.getCdptid());
+		head.setCoperatorid(headVO.getCoperatorid());
+		head.setCregister(headVO.getCregister());
+		head.setCauditorid(headVO.getCauditorid());
+		head.setCinventoryid(headVO.getCinventoryid());
+		head.setCcustomerid(headVO.getCcustomerid());
+		// since v55删除
+		// head.setVdiliveraddress(headVO.getVdiliveraddress());
+		head.setCdilivertypeid(headVO.getCdilivertypeid());
+		head.setCwastewarehouseid(headVO.getCwastewarehouseid());
+		head.setCbizid(headVO.getCbizid());
+		head.setCproviderid(headVO.getCproviderid());
+		head.setVnote(headVO.getVnote());
+		head.setFbillflag(headVO.getFbillflag());
+		head.setVuserdef1(headVO.getVuserdef1());
+		head.setVuserdef2(headVO.getVuserdef2());
+		head.setVuserdef3(headVO.getVuserdef3());
+		head.setVuserdef4(headVO.getVuserdef4());
+		head.setVuserdef5(headVO.getVuserdef5());
+		head.setVuserdef6(headVO.getVuserdef6());
+		head.setPk_calbody(headVO.getCstoreorganization());
+		head.setTs(headVO.getTs());
+
+		if (bAdd) {
+			head.setStatus(nc.vo.pub.VOStatus.NEW);
+		} else {
+			int n = headVO.getHeadEditStatus();
+			if (n == 0)
+				head.setStatus(nc.vo.pub.VOStatus.UNCHANGED);
+			if (n == 1)
+				head.setStatus(nc.vo.pub.VOStatus.NEW);
+			if (n == 2)
+				head.setStatus(nc.vo.pub.VOStatus.UPDATED);
+			if (n == 3)
+				head.setStatus(nc.vo.pub.VOStatus.DELETED);
+		}
+
+		Vector vTemp = new Vector();
+		for (int i = 0; i < bodyVO.length; i++) {
+			GeneralBillItemVO body = new GeneralBillItemVO();
+			body.setCgeneralhid(bodyVO[i].getCgeneralhid());
+			body.setCgeneralbid(bodyVO[i].getCgeneralbid());
+			body.setCinventoryid(bodyVO[i].getCinventoryid());
+			body.setNshouldoutnum(bodyVO[i].getNshouldoutnum());
+			body.setNshouldoutassistnum(bodyVO[i].getNshouldoutassistnum());
+			body.setNoutnum(bodyVO[i].getNoutnum());
+			body.setNoutassistnum(bodyVO[i].getNoutassistnum());
+			body.setNshouldinnum(bodyVO[i].getNshouldinnum());
+			body.setNneedinassistnum(bodyVO[i].getNneedinassistnum());
+			body.setNinnum(bodyVO[i].getNinnum());
+			body.setNinassistnum(bodyVO[i].getNinassistnum());
+			body.setNtranoutnum(bodyVO[i].getNtranoutnum());
+			body.setNprice(bodyVO[i].getNprice());
+			body.setNmny(bodyVO[i].getNmny());
+			body.setNplannedprice(bodyVO[i].getNplannedprice());
+			body.setNplannedmny(bodyVO[i].getNplannedmny());
+			body.setCsourcebillhid(bodyVO[i].getCsourcebillhid());
+			body.setCsourcebillbid(bodyVO[i].getCsourcebillbid());
+			body.setCsourcetype(bodyVO[i].getCsourcetype());
+			body.setVsourcebillcode(bodyVO[i].getVsourcebillcode());
+			body.setFlargess(bodyVO[i].getFlargess());
+			body.setBzgflag(bodyVO[i].getBzgflag());
+			body.setIsok(bodyVO[i].getIsok());
+			body.setCfirsttype(bodyVO[i].getCfirsttype());
+			body.setCfirstbillhid(bodyVO[i].getCfirstbillhid());
+			body.setCfirstbillbid(bodyVO[i].getCfirstbillbid());
+			body.setCrowno(bodyVO[i].getCrowno());
+			body.setTs(bodyVO[i].getTs());
+			if (bAdd) {
+				body.setStatus(nc.vo.pub.VOStatus.NEW);
+			} else {
+				int n = bodyVO[i].getBodyEditStatus();
+				if (n == 0)
+					body.setStatus(nc.vo.pub.VOStatus.UNCHANGED);
+				if (n == 1)
+					body.setStatus(nc.vo.pub.VOStatus.NEW);
+				if (n == 2)
+					body.setStatus(nc.vo.pub.VOStatus.UPDATED);
+				if (n == 3)
+					body.setStatus(nc.vo.pub.VOStatus.DELETED);
+			}
+
+			vTemp.addElement(body);
+		}
+		GeneralBillItemVO body[] = new GeneralBillItemVO[vTemp.size()];
+		vTemp.copyInto(body);
+
+		GeneralBillVO destVO = new GeneralBillVO();
+		destVO.setParentVO(head);
+		destVO.setChildrenVO(body);
+
+		return destVO;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:获得需要加锁的主键集合 输入参数:暂估入库单VO集合 返回值: 异常处理:
+	 * 
+	 * @return java.lang.String[]
+	 * @param VOs
+	 *            nc.vo.ps.estimate.EstimateVO[]
+	 */
+	private String[] getEstimateLockKeys(EstimateVO[] VOs) {
+		if (VOs == null || VOs.length == 0)
+			return null;
+
+		Vector v = new Vector();
+
+		// 入库单表头主键唯一性集合
+		v.addElement(VOs[0].getCgeneralhid().trim());
+		for (int i = 1; i < VOs.length; i++) {
+			String s1 = VOs[i].getCgeneralhid().trim();
+			if (!v.contains(s1))
+				v.addElement(s1);
+		}
+
+		// 入库单表体主键唯一性集合
+		v.addElement(VOs[0].getCgeneralbid().trim());
+		for (int i = 1; i < VOs.length; i++) {
+			String s1 = VOs[i].getCgeneralbid().trim();
+			if (!v.contains(s1))
+				v.addElement(s1);
+		}
+
+		// 入库单结算子表主键唯一性集合
+		v.addElement(VOs[0].getCgeneralbb3().trim());
+		for (int i = 1; i < VOs.length; i++) {
+			String s1 = VOs[i].getCgeneralbb3().trim();
+			if (!v.contains(s1))
+				v.addElement(s1);
+		}
+
+		// 返回
+		if (v.size() > 0) {
+			String keys[] = new String[v.size()];
+			v.copyInto(keys);
+			return keys;
+		}
+
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:获得自由项0,供显示 输入参数: 返回值: 异常处理:
+	 */
+	public String[][] getFreeItem0(GeneralHVO VOs[]) throws BusinessException {
+		if (VOs == null || VOs.length == 0)
+			return null;
+		String ss[][] = new String[VOs.length][];
+
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			// 获得所有自由项0
+			ArrayList list = dmo.getFreeItem0(VOs);
+			// 分配自由项0
+			for (int k = 0; k < VOs.length; k++) {
+				ArrayList list1 = (ArrayList) list.get(k);
+
+				GeneralHItemVO bodyVO[] = VOs[k].getBodyVO();
+				if (list1 == null || list1.size() == 0) {
+					ss[k] = null;
+					continue;
+				}
+				String s[] = new String[bodyVO.length];
+
+				for (int i = 0; i < bodyVO.length; i++) {
+					FreeVO freeVO = null;
+					Object obj = list1.get(i);
+
+					if (obj == null) {
+						s[i] = null;
+						continue;
+					}
+					freeVO = (FreeVO) obj;
+
+					Vector vName = new Vector();
+					for (int j = 1; j <= 10; j++) {
+						Object temp = freeVO.getAttributeValue("vfreename" + j);
+						if (temp != null && temp.toString().trim().length() > 0)
+							vName.addElement(temp);
+					}
+					if (vName.size() == 0) {
+						s[i] = null;
+						continue;
+					}
+
+					Vector vValue = new Vector();
+					for (int j = 1; j <= 5; j++) {
+						Object temp = bodyVO[i].getAttributeValue("vfree" + j);
+						if (temp != null && temp.toString().trim().length() > 0)
+							vValue.addElement(temp);
+					}
+					if (vValue.size() == 0) {
+						s[i] = null;
+						continue;
+					}
+
+					s[i] = "";
+					for (int j = 0; j < vValue.size(); j++)
+						s[i] += "[" + vName.elementAt(j) + ":"
+								+ vValue.elementAt(j) + "]";
+				}
+
+				ss[k] = s;
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return ss;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:获得需要加锁的主键集合 输入参数:入库单VO集合 返回值: 异常处理:
+	 * 
+	 * @return java.lang.String[]
+	 * @param VOs
+	 *            nc.vo.ps.estimate.EstimateVO[]
+	 */
+	private String[] getGeneralLockKeys(GeneralHVO[] VOs) {
+		if (VOs == null || VOs.length == 0)
+			return null;
+
+		Vector v = new Vector();
+
+		for (int i = 0; i < VOs.length; i++) {
+			v.addElement(VOs[i].getHeadVO().getCgeneralhid());
+
+			GeneralHItemVO items[] = VOs[i].getBodyVO();
+			for (int j = 0; j < items.length; j++)
+				v.addElement(items[j].getCgeneralbid());
+
+			GeneralBb3VO bb3VOs[] = VOs[i].getGrandVO();
+			for (int j = 0; j < bb3VOs.length; j++)
+				v.addElement(bb3VOs[j].getCgeneralbb3());
+		}
+
+		// 返回
+		if (v.size() > 0) {
+			String keys[] = new String[v.size()];
+			v.copyInto(keys);
+			return keys;
+		}
+
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:获得需要加锁的主键集合(订单) 输入参数:订单VO 返回值: 异常处理: 日期:2002/04/10
+	 */
+	private String[] getOrderLockKeys(OorderVO VOs[]) {
+		// 组合所有需要加锁的主键
+		Vector v = new Vector();
+
+		// 订单主键唯一性集合
+		if (VOs != null && VOs.length > 0) {
+			// 订单表头主键唯一性集合
+			v.addElement(VOs[0].getCorderid().trim());
+			for (int i = 1; i < VOs.length; i++) {
+				String s1 = VOs[i].getCorderid().trim();
+				if (!v.contains(s1))
+					v.addElement(s1);
+			}
+
+			// 订单表体主键唯一性集合
+			v.addElement(VOs[0].getCorder_bid().trim());
+			for (int i = 1; i < VOs.length; i++) {
+				String s1 = VOs[i].getCorder_bid().trim();
+				if (!v.contains(s1))
+					v.addElement(s1);
+			}
+		}
+
+		String sLockedKeys[] = new String[v.size()];
+		v.copyInto(sLockedKeys);
+
+		return sLockedKeys;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:业务员的主键获得所属部门的ID 输入参数:业务员ID 返回值:部门ID 异常处理:
+	 */
+	public String getRefDeptKey(String cPsnID) throws BusinessException {
+		FormulaParse f = new FormulaParse();
+
+		// 获得部门
+		String sExpress = "getColValue(bd_psndoc,pk_deptdoc,pk_psndoc,cPsnID)";
+		f.setExpress(sExpress);
+		f.addVariable("cPsnID", cPsnID);
+		// VarryVO varry = f.getVarry();
+		// Hashtable table = new Hashtable();
+		// String sParam[] = new String[1];
+		// sParam[0] = cPsnID;
+		// table.put(varry.getVarry()[0], sParam);
+		// f.setDataS(table);
+		String sDeptID[] = f.getValueS();
+
+		if (sDeptID != null && sDeptID.length > 0)
+			return sDeptID[0];
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:业务员的主键获得所属部门的名称 输入参数:业务员ID 返回值:部门名称 异常处理:
+	 */
+	public String getRefDeptName(String cPsnID) throws BusinessException {
+		FormulaParse f = new FormulaParse();
+
+		// 获得部门
+		String sExpress = "getColValue(bd_psndoc,pk_deptdoc,pk_psndoc,cPsnID)";
+		f.setExpress(sExpress);
+		VarryVO varry = f.getVarry();
+		Hashtable table = new Hashtable();
+		String sParam[] = new String[1];
+		sParam[0] = cPsnID;
+		table.put(varry.getVarry()[0], sParam);
+		f.setDataS(table);
+		String sDeptID[] = f.getValueS();
+
+		sExpress = "getColValue(bd_deptdoc,deptname,pk_deptdoc,cDeptID)";
+		f.setExpress(sExpress);
+		varry = f.getVarry();
+		table.put(varry.getVarry()[0], sDeptID);
+		f.setDataS(table);
+		String sDeptName[] = f.getValueS();
+
+		if (sDeptName != null && sDeptName.length > 0)
+			return sDeptName[0];
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:业务员的主键转换为其在人员档案中的主键 输入参数:当前操作员ID 返回值:当前操作员在人员档案中的ID 异常处理:
+	 */
+	public String getRefOperatorKey(String cOperatorID)
+			throws BusinessException {
+		FormulaParse f = new FormulaParse();
+
+		// 获得业务员
+		String sExpress = "getColValue(sm_userandclerk,pk_psndoc,userid,cOperatorID)";
+		f.setExpress(sExpress);
+		VarryVO varry = f.getVarry();
+		Hashtable table = new Hashtable();
+		String sParam[] = new String[1];
+		sParam[0] = cOperatorID;
+		table.put(varry.getVarry()[0], sParam);
+		f.setDataS(table);
+		String sPsnKey[] = f.getValueS();
+
+		if (sPsnKey != null && sPsnKey.length > 0)
+			return sPsnKey[0];
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述: 输入参数: 返回值: 异常处理: 日期:
+	 * 
+	 * @return java.lang.String
+	 * @param sSource
+	 *            java.lang.String
+	 * @param sReplace
+	 *            java.lang.String
+	 */
+	private String getReplacedSQL(String sSource, String sOld, String sReplace) {
+		if (sReplace == null || sReplace.trim().length() == 0)
+			return sSource;
+
+		int nStart = sSource.indexOf(sOld);
+		if (nStart < 0)
+			return sSource;
+		int nMiddle = sSource.indexOf("'", nStart + 1);
+		if (nMiddle < 0)
+			return sSource;
+		int nEnd = sSource.indexOf("'", nMiddle + 1);
+
+		String s1 = sSource.substring(0, nStart);
+		String s2 = sSource.substring(nEnd + 1);
+
+		String s = s1 + sReplace + s2;
+
+		return s;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:业务类型ID获得收发类别(提供批次处理) 输入参数:业务类型ID 返回值:收发类别ID 异常处理:
+	 * 修改日期：2003/02/11 xhq
+	 */
+	public String[] getRSModeBatch(String cBusitypeID[])
+			throws BusinessException {
+		FormulaParse f = new FormulaParse();
+
+		// 获得收发类别
+		String sExpress = "getColValue(bd_busitype,receipttype,pk_busitype,cBusitypeID)";
+		f.setExpress(sExpress);
+		f.addVariable("cBusitypeID", cBusitypeID);
+		// VarryVO varry = f.getVarry();
+		// Hashtable table = new Hashtable();
+		// table.put(varry.getVarry()[0], cBusitypeID);
+		// f.setDataS(table);
+		String sRSMode[] = f.getValueS();
+
+		if (sRSMode != null && sRSMode.length > 0)
+			return sRSMode;
+		return null;
+	}
+
+	/**
+	 * 功能:获得需要加锁的主键集合 输入:入库单VO集合 返回:String[] 创建:2004-06-24 作者:晁志平
+	 */
+	private String[] getStockLockKeys(StockVO[] VOs) {
+		if (VOs == null || VOs.length == 0)
+			return null;
+
+		Vector v = new Vector();
+
+		// 入库单表头主键唯一性集合
+		for (int i = 0; i < VOs.length; i++) {
+			if (VOs[i] == null)
+				continue;
+			String s1 = VOs[i].getCgeneralhid();
+			if (s1 != null && !v.contains(s1))
+				v.addElement(s1);
+		}
+
+		// 入库单表体主键唯一性集合
+		for (int i = 0; i < VOs.length; i++) {
+			if (VOs[i] == null)
+				continue;
+			String s1 = VOs[i].getCgeneralbid();
+			if (s1 != null && !v.contains(s1))
+				v.addElement(s1);
+		}
+
+		// 入库单结算子表主键唯一性集合
+		for (int i = 0; i < VOs.length; i++) {
+			if (VOs[i] == null)
+				continue;
+			String s1 = VOs[i].getCgeneralbb3();
+			if (s1 != null && !v.contains(s1))
+				v.addElement(s1);
+		}
+
+		// 返回
+		if (v.size() > 0) {
+			String keys[] = new String[v.size()];
+			v.copyInto(keys);
+			return keys;
+		}
+
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:仓库ID获得库存组织ID 输入参数:仓库ID 返回值:库存组织ID 异常处理:
+	 */
+	public String getStoreOrg(String cWarehouseID) throws BusinessException {
+		FormulaParse f = new FormulaParse();
+
+		// 获得库存组织ID
+		String sExpress = "getColValue(bd_stordoc,pk_calbody,pk_stordoc,cWarehouseID)";
+		f.setExpress(sExpress);
+		VarryVO varry = f.getVarry();
+		Hashtable table = new Hashtable();
+		String sParam[] = new String[1];
+		sParam[0] = cWarehouseID;
+		f.addVariable(varry.getVarry()[0], sParam);
+		// table.put(varry.getVarry()[0], sParam);
+		// f.setDataS(table);
+		String sStoreOrg[] = f.getValueS();
+
+		if (sStoreOrg != null && sStoreOrg.length > 0)
+			return sStoreOrg[0];
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:判断入库单的单据号是否重复 输入参数:单位编码，单据号，表头主键（修改时） 返回值:无 异常处理:无
+	 */
+	public boolean isCodeDuplicate(String unitCode, String billCode, String key)
+			throws BusinessException {
+
+		boolean b = false;
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			b = dmo.isCodeDuplicate(unitCode, billCode, key);
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return b;
+	}
+
+	/**
+	 * 功能:并发处理时间戳(暂估) 输入:暂估VO[] 返回:String,错误提示字符串 异常:RemoteException
+	 * 日期:2002/04/10 作者:熊海情 修改:晁志平 FOR V30 修正BUG：未查询到新时间戳时未报错
+	 */
+	private String isTimeStampChanged(EstimateVO VOs[])
+			throws BusinessException {
+
+		if (VOs == null || VOs.length == 0) {
+			SCMEnv.out("输入参数为空，直接返回!调用堆栈如下：");
+			SCMEnv.out(new Exception());
+			return null;
+		}
+
+		int iLen = VOs.length;
+
+		String saHid[] = new String[iLen];
+		String saHts[] = new String[iLen];
+		String saBid[] = new String[iLen];
+		String saBts[] = new String[iLen];
+		String saBbid[] = new String[iLen];
+		String saBbts[] = new String[iLen];
+
+		for (int i = 0; i < iLen; i++) {
+			saHid[i] = VOs[i].getCgeneralhid();
+			saHts[i] = VOs[i].getTs1();
+			saBid[i] = VOs[i].getCgeneralbid();
+			saBts[i] = VOs[i].getTs2();
+			saBbid[i] = VOs[i].getCgeneralbb3();
+			saBbts[i] = VOs[i].getTs3();
+		}
+
+		return isTimeStampChanged45(saHid, saHts, saBid, saBts, saBbid, saBbts);
+	}
+
+	/**
+	 * 功能:并发处理时间戳(采购入库单) 参数： String[] saHid, 采购入库单表头ID String[] saHts,
+	 * 采购入库单表头ID对应的时间戳 String[] saBid, 采购入库单表体ID String[] saBts, 采购入库单表体ID对应的时间戳
+	 * String[] saBbid,采购入库单子表3ID String[] saBbts,采购入库单子表3ID对应的时间戳 返回:错误串
+	 * 日期:2004-06-23 作者：晁志平
+	 */
+	private String isTimeStampChanged45(String[] saHid, String[] saHts,
+			String[] saBid, String[] saBts, String[] saBbid, String[] saBbts)
+			throws BusinessException {
+		String sMessage = "";
+		int iLen = 0;
+		try {
+			nc.bs.pu.pub.PubDMO pubDMO = new nc.bs.pu.pub.PubDMO();
+			Object oaTs[] = pubDMO.queryHBTsArrayByHBIDArray("45", saHid,
+					saBid, saBbid);
+			String saHts1[] = null;
+			String saBts1[] = null;
+			String saBbts1[] = null;
+			if (oaTs != null && oaTs.length > 0) {
+				saHts1 = (String[]) oaTs[0];
+				saBts1 = (String[]) oaTs[1];
+				saBbts1 = (String[]) oaTs[2];
+			} else {
+				SCMEnv
+						.out("程序BUG：nc.bs.pu.pub.PubDMO.queryHBTsArrayByHBIDArray(String,String[],String[],String[])返回NULL");
+				return null;
+			}
+			String strTmp0 = null, strTmp1 = null;
+			// 判断表头时间戳是否改变
+			if (saHid != null && saHid.length > 0) {
+				iLen = saHts == null ? 0 : saHts.length;
+				if (saHts1 != null && saHts1.length > 0
+						&& saHts1.length == iLen) {
+					for (int i = 0; i < iLen; i++) {
+						strTmp0 = saHts[i] == null ? "" : saHts[i].trim();
+						strTmp1 = saHts1[i] == null ? "" : saHts1[i].trim();
+						if (!strTmp0.equals(strTmp1)) {
+							sMessage += nc.bs.ml.NCLangResOnserver
+									.getInstance().getStrByID("40040503",
+											"UPP40040503-000012")/*
+																 * @res
+																 * "入库单表头发生并发操作！\n"
+																 */;
+							break;
+						}
+					}
+				} else {
+					sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+							.getStrByID("40040503", "UPP40040503-000012")/*
+																		 * @res
+																		 * "入库单表头发生并发操作！\n"
+																		 */;
+				}
+			}
+			// 判断表体时间戳是否改变
+			if (saBid != null && saBid.length > 0) {
+				iLen = saBts == null ? 0 : saBts.length;
+				if (saBts1 != null && saBts1.length > 0
+						&& saBts1.length == iLen) {
+					for (int i = 0; i < iLen; i++) {
+						strTmp0 = saBts[i] == null ? "" : saBts[i].trim();
+						strTmp1 = saBts1[i] == null ? "" : saBts1[i].trim();
+						if (!strTmp0.equals(strTmp1)) {
+							sMessage += nc.bs.ml.NCLangResOnserver
+									.getInstance().getStrByID("40040503",
+											"UPP40040503-000013")/*
+																 * @res
+																 * "入库单表体发生并发操作！\n"
+																 */;
+							break;
+						}
+					}
+				} else {
+					sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+							.getStrByID("40040503", "UPP40040503-000013")/*
+																		 * @res
+																		 * "入库单表体发生并发操作！\n"
+																		 */;
+				}
+			}
+			// 判断子子表时间戳是否改变
+			if (saBbid != null && saBbid.length > 0) {
+				iLen = saBbts == null ? 0 : saBbts.length;
+				if (saBbts1 != null && saBbts1.length > 0
+						&& saBbts1.length == iLen) {
+					for (int i = 0; i < iLen; i++) {
+						strTmp0 = saBbts[i] == null ? "" : saBbts[i].trim();
+						strTmp1 = saBbts1[i] == null ? "" : saBbts1[i].trim();
+						if (!strTmp0.equals(strTmp1)) {
+							sMessage += nc.bs.ml.NCLangResOnserver
+									.getInstance().getStrByID("40040503",
+											"UPP40040503-000014")/*
+																 * @res
+																 * "入库单子子表发生并发操作！\n"
+																 */;
+							break;
+						}
+					}
+				} else {
+					sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+							.getStrByID("40040503", "UPP40040503-000014")/*
+																		 * @res
+																		 * "入库单子子表发生并发操作！\n"
+																		 */;
+				}
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return sMessage;
+	}
+
+	/**
+	 * 功能:并发处理时间戳(期初暂估时对期初暂估入库单) 输入:GeneralHVO[] 返回:错误串 异常:RemoteException
+	 * 日期:2002/04/10 作者:熊海情 修改:晁志平 FOR V30 修正BUG：未查询到时间戳时未抛异常
+	 */
+	private String isTimeStampChangedForGeneral(GeneralHVO VOs[])
+			throws BusinessException {
+
+		if (VOs == null || VOs.length == 0) {
+			SCMEnv.out("输入参数为空，直接返回!调用堆栈如下：");
+			SCMEnv.out(new Exception());
+			return null;
+		}
+		int iLen = VOs.length;
+		Vector vId = new Vector();
+		Vector vTs = new Vector();
+		// 表头ID及TS
+		for (int i = 0; i < iLen; i++) {
+			if (VOs[i] == null || VOs[i].getHeadVO() == null) {
+				continue;
+			}
+			vId.addElement(VOs[i].getHeadVO().getCgeneralhid());
+			vTs.addElement(VOs[i].getHeadVO().getTs());
+		}
+		String[] saHid = null, saHts = null;
+		if (vId.size() > 0) {
+			saHid = new String[vId.size()];
+			vId.copyInto(saHid);
+			saHts = new String[vId.size()];
+			vTs.copyInto(saHts);
+		}
+		// 表体ID及TS
+		GeneralHItemVO[] bodyVOs = null;
+		vId = new Vector();
+		vTs = new Vector();
+		int jLen = 0;
+		for (int i = 0; i < iLen; i++) {
+			bodyVOs = VOs[i].getBodyVO();
+			jLen = bodyVOs == null ? 0 : bodyVOs.length;
+			for (int j = 0; j < jLen; j++) {
+				if (bodyVOs[j] == null) {
+					continue;
+				}
+				vId.addElement(bodyVOs[j].getCgeneralbid());
+				vTs.addElement(bodyVOs[j].getTs());
+			}
+		}
+		String[] saBid = null, saBts = null;
+		if (vId.size() > 0) {
+			saBid = new String[vId.size()];
+			vId.copyInto(saBid);
+			saBts = new String[vId.size()];
+			vTs.copyInto(saBts);
+		}
+		// 表体子表3ID及TS
+		GeneralBb3VO[] bodyB3VOs = null;
+		vId = new Vector();
+		vTs = new Vector();
+		for (int i = 0; i < iLen; i++) {
+			bodyB3VOs = VOs[i].getGrandVO();
+			jLen = bodyB3VOs == null ? 0 : bodyB3VOs.length;
+			for (int j = 0; j < jLen; j++) {
+				if (bodyB3VOs[j] == null) {
+					continue;
+				}
+				vId.addElement(bodyB3VOs[j].getCgeneralbb3());
+				vTs.addElement(bodyB3VOs[j].getTs());
+			}
+		}
+		String[] saBbid = null, saBbts = null;
+		if (vId.size() > 0) {
+			saBbid = new String[vId.size()];
+			vId.copyInto(saBbid);
+			saBbts = new String[vId.size()];
+			vTs.copyInto(saBbts);
+		}
+		//
+		return isTimeStampChanged45(saHid, saHts, saBid, saBts, saBbid, saBbts);
+	}
+
+	/**
+	 * 功能:并发处理时间戳(期初暂估时对订单) 输入:OorderVO[] 返回:错误串 异常:RemoteException
+	 * 日期:2002/04/10 作者:熊海情 修改:晁志平 FOR V30 修正BUG：未查询到时间戳时未抛异常
+	 */
+	private String isTimeStampChangedForOrder(OorderVO VOs[])
+			throws BusinessException {
+
+		if (VOs == null || VOs.length == 0) {
+			SCMEnv.out("输入参数为空，直接返回!调用堆栈如下：");
+			SCMEnv.out(new Exception());
+			return null;
+		}
+
+		int iLen = VOs.length;
+
+		String sMessage = "";
+
+		try {
+			nc.bs.pu.pub.PubDMO pubDMO = new nc.bs.pu.pub.PubDMO();
+
+			String[] saHid = new String[VOs.length];
+			String[] saBid = new String[VOs.length];
+			for (int i = 0; i < VOs.length; i++) {
+				saHid[i] = VOs[i].getCorderid();
+				saBid[i] = VOs[i].getCorder_bid();
+			}
+			// 并发处理
+			Object[] oaTs = pubDMO.queryHBTsArrayByHBIDArray(ScmConst.PO_Order,
+					saHid, saBid, null);
+			String[] saHts = null;
+			String[] saBts = null;
+			if (oaTs != null && oaTs.length > 0) {
+				saHts = (String[]) oaTs[0];
+				saBts = (String[]) oaTs[1];
+			} else {
+				SCMEnv
+						.out("程序BUG：nc.bs.pu.pub.PubDMO.queryHBTsArrayByHBIDArray(String,String[],String[],String[])返回NULL");
+				return null;
+			}
+			String strTsOld = null, strTsNew = null;
+			// 判断表头时间戳是否改变
+			if (saHts != null && saHts.length > 0 && saHts.length == iLen) {
+				for (int i = 0; i < VOs.length; i++) {
+					strTsOld = saHts[i] == null ? "" : saHts[i].trim();
+					strTsNew = VOs[i].getTs1() == null ? "" : VOs[i].getTs1()
+							.trim();
+					if (!strTsOld.equals(strTsNew)) {
+						sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+								.getStrByID("40040503", "UPP40040503-000015")/*
+																			 * @res
+																			 * "表头已改变！\n"
+																			 */;
+						break;
+					}
+				}
+			} else {
+				sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+						.getStrByID("40040503", "UPP40040503-000015")/*
+																	 * @res
+																	 * "表头已改变！\n"
+																	 */;
+			}
+			// 判断表体时间戳是否改变
+			if (saBts != null && saBts.length > 0 && saBts.length == iLen) {
+				for (int i = 0; i < VOs.length; i++) {
+					strTsOld = saBts[i] == null ? "" : saBts[i].trim();
+					strTsNew = VOs[i].getTs2() == null ? "" : VOs[i].getTs2()
+							.trim();
+					if (!strTsOld.equals(strTsNew)) {
+						sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+								.getStrByID("40040503", "UPP40040503-000016")/*
+																			 * @res
+																			 * "表体已改变！\n"
+																			 */;
+						break;
+					}
+				}
+			} else {
+				sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+						.getStrByID("40040503", "UPP40040503-000016")/*
+																	 * @res
+																	 * "表体已改变！\n"
+																	 */;
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return sMessage;
+	}
+
+	/**
+	 * 支持数据权限处理，拆分查询条件是用户录入自定义查询条件，还是UI端系统拼接的数据权限查询条件
+	 * 
+	 * @param voaCond
+	 * @return{0、非权限条件VO[]；1、权限条件查询串
+	 */
+	private ArrayList dealCondVosForPowerForOrder(ConditionVO[] voaCond) {
+
+		// 拆分用户录入VO、数据权限VO
+		ArrayList listUserInputVos = new ArrayList();
+		ArrayList listPowerVos = new ArrayList();
+
+		int iLen = voaCond.length;
+
+		for (int i = 0; i < iLen; i++) {
+			if (voaCond[i].getOperaCode().trim().equalsIgnoreCase("IS")
+					&& voaCond[i].getValue().trim().equalsIgnoreCase("NULL")) {
+				listPowerVos.add(voaCond[i]);
+				i++;
+				listPowerVos.add(voaCond[i]);
+			} else {
+				listUserInputVos.add(voaCond[i]);
+			}
+		}
+
+		// 组织返回VO
+		ArrayList listRet = new ArrayList();
+
+		// 用户录入
+		ConditionVO[] voaCondUserInput = null;
+		if (listUserInputVos.size() > 0) {
+			voaCondUserInput = new ConditionVO[listUserInputVos.size()];
+			listUserInputVos.toArray(voaCondUserInput);
+		}
+		listRet.add(voaCondUserInput);
+
+		// 数据权限VO==>查询条件串
+		ConditionVO[] voaCondPower = null;
+		if (listPowerVos.size() > 0) {
+			voaCondPower = new ConditionVO[listPowerVos.size()];
+			listPowerVos.toArray(voaCondPower);
+			String strPowerWherePart = voaCondPower[0]
+					.getWhereSQL(voaCondPower);
+			// 将非标准的字段替换掉
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "custcode", "b.pk_cubasdoc");
+			//    
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "invcode", "b.pk_invbasdoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cbaseid", "po_order_b.cbaseid");
+			//    
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cinvclassid", "po_order_b.cbaseid");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "invclasscode", "pk_invbasdoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil
+					.replaceAllString(
+							strPowerWherePart,
+							"bd_invcl where 0=0  and pk_invcl",
+							"bd_invcl, bd_invbasdoc where bd_invcl.pk_invcl = bd_invbasdoc.pk_invcl and bd_invcl.pk_invcl");
+			//
+			listRet.add(strPowerWherePart);
+		} else {
+			listRet.add(null);
+		}
+
+		return listRet;
+	}
+
+	/**
+	 * 支持数据权限处理，拆分查询条件是用户录入自定义查询条件，还是UI端系统拼接的数据权限查询条件
+	 * 
+	 * @param voaCond
+	 * @return{0、非权限条件VO[]；1、权限条件查询串
+	 */
+	private ArrayList dealCondVosForPower(ConditionVO[] voaCond) {
+
+		// 拆分用户录入VO、数据权限VO
+		ArrayList listUserInputVos = new ArrayList();
+		ArrayList listPowerVos = new ArrayList();
+
+		int iLen = voaCond.length;
+
+		for (int i = 0; i < iLen; i++) {
+			if (voaCond[i].getOperaCode().trim().equalsIgnoreCase("IS")
+					&& voaCond[i].getValue().trim().equalsIgnoreCase("NULL")) {
+				listPowerVos.add(voaCond[i]);
+				i++;
+				listPowerVos.add(voaCond[i]);
+			} else {
+				listUserInputVos.add(voaCond[i]);
+			}
+		}
+
+		// 组织返回VO
+		ArrayList listRet = new ArrayList();
+
+		// 用户录入
+		ConditionVO[] voaCondUserInput = null;
+		if (listUserInputVos.size() > 0) {
+			voaCondUserInput = new ConditionVO[listUserInputVos.size()];
+			listUserInputVos.toArray(voaCondUserInput);
+		}
+		listRet.add(voaCondUserInput);
+
+		// 数据权限VO==>查询条件串
+		ConditionVO[] voaCondPower = null;
+		if (listPowerVos.size() > 0) {
+			voaCondPower = new ConditionVO[listPowerVos.size()];
+			listPowerVos.toArray(voaCondPower);
+			String strPowerWherePart = voaCondPower[0]
+					.getWhereSQL(voaCondPower);
+			// 将非标准的字段替换掉
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "custcode", "pk_cumandoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cvendorbaseid", "cproviderid");
+
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "psncode", "pk_psndoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "coperator", "cbizid");
+
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "invcode is  NULL ) or (invcode",
+					"cinvbasid is  NULL ) or (cinvbasid");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "invcode", "b.pk_invbasdoc");
+
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cinvclassid", "cinvbasid");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "invclasscode", "pk_invbasdoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil
+					.replaceAllString(
+							strPowerWherePart,
+							"bd_invcl where 0=0  and pk_invcl",
+							"bd_invcl, bd_invbasdoc where bd_invcl.pk_invcl = bd_invbasdoc.pk_invcl and bd_invcl.pk_invcl");
+			//   
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "deptcode", "pk_deptdoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cdeptid", "cdptid");
+
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "storcode", "pk_stordoc");
+			//
+			listRet.add(strPowerWherePart);
+		} else {
+			listRet.add(null);
+		}
+
+		return listRet;
+	}
+
+	/**
+	 * 处理暂估查询条件。
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param strLoginCorpId
+	 *            登录公司ID
+	 * @param conditionVOs
+	 *            查询条件VO数组
+	 * @param strZG
+	 *            暂估标志{区分查询 已暂估过的 还是 未暂估过的 数据}
+	 * @return SQL条件串
+	 *         <p>
+	 * @author czp
+	 * @time 2007-7-10 下午02:07:14
+	 */
+	private String getWherePartSQLForEstimate(String strLoginCorpId,
+			ConditionVO[] conditionVOs, String strZG) {
+
+		String strSqlWherePart = "";
+
+		ArrayList listRet = dealCondVosForPower(conditionVOs);
+		conditionVOs = (ConditionVO[]) listRet.get(0);
+		String strDataPowerSql = (String) listRet.get(1);
+		int iLen = conditionVOs == null ? 0 : conditionVOs.length;
+		for (int i = 0; i < iLen; i++) {
+			String sName = conditionVOs[i].getFieldCode().trim();
+			String sOpera = conditionVOs[i].getOperaCode().trim();
+			String sValue = conditionVOs[i].getValue();
+			String sSQL = conditionVOs[i].getSQLStr();
+			String sReplace = null;
+
+			if (sName.equals("dbilldate") && sValue != null
+					&& sValue.length() > 0) {
+				sReplace = "dbilldate " + sOpera + " '" + sValue + "'";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("dzgdate") && sValue != null
+					&& sValue.length() > 0) {
+				sReplace = "dzgdate " + sOpera + " '" + sValue + "'";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("vbillcode") && sValue != null
+					&& sValue.length() > 0) {
+				sReplace = "vbillcode " + sOpera + " '" + sValue + "'";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("cvendorbaseid") && sValue != null
+					&& sValue.length() > 0) {
+				if (strLoginCorpId != null)
+					sReplace = "cproviderid in (select pk_cumandoc from bd_cumandoc A, bd_cubasdoc B where A.pk_corp = '"
+							+ strLoginCorpId
+							+ "' and custcode "
+							+ sOpera
+							+ " '"
+							+ sValue
+							+ "' and A.pk_cubasdoc = B.pk_cubasdoc and (custflag = '1' or custflag = '3'))";
+				else
+					sReplace = "cproviderid in (select pk_cumandoc from bd_cumandoc A, bd_cubasdoc B where custcode "
+							+ sOpera
+							+ " '"
+							+ sValue
+							+ "'and A.pk_cubasdoc = B.pk_cubasdoc and (custflag = '1' or custflag = '3'))";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("cdeptid") && sValue != null
+					&& sValue.length() > 0) {
+				if (strLoginCorpId != null)
+					sReplace = "cdptid in (select pk_deptdoc from bd_deptdoc where pk_corp = '"
+							+ strLoginCorpId
+							+ "' and deptcode "
+							+ sOpera
+							+ " '" + sValue + "')";
+				else
+					sReplace = "cdptid in (select pk_deptdoc from bd_deptdoc where deptcode "
+							+ sOpera + " '" + sValue + "')";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("cbiztype") && sValue != null
+					&& sValue.length() > 0) {
+				sReplace = "cbiztype in (select pk_busitype from bd_busitype where busicode "
+						+ sOpera + " '" + sValue + "')";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("coperator") && sValue != null
+					&& sValue.length() > 0) {
+				if (strLoginCorpId != null)
+					sReplace = "cbizid in (select pk_psndoc from bd_psndoc where pk_corp = '"
+							+ strLoginCorpId
+							+ "' and psncode "
+							+ sOpera
+							+ " '"
+							+ sValue + "')";
+				else
+					sReplace = "cbizid in (select pk_psndoc from bd_psndoc where psncode "
+							+ sOpera + " '" + sValue + "')";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("cbillmaker") && sValue != null
+					&& sValue.length() > 0) {
+				sReplace = "A.coperatorid in (select cuserid from sm_user where user_code "
+						+ sOpera + " '" + sValue + "')";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("invcode")) {
+				if (strLoginCorpId != null) {
+					sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc ";
+					sReplace += "where bd_invbasdoc.invcode ";
+					sReplace += sOpera;
+					sReplace += "'";
+					sReplace += sValue;
+					sReplace += "') ";
+				} else {
+					sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc ";
+					sReplace += "where bd_invbasdoc.invcode ";
+					sReplace += sOpera;
+					sReplace += "'";
+					sReplace += sValue;
+					sReplace += "') ";
+				}
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			}
+			// 入库单头自定义项
+			else if (sName.indexOf("vuserdef") >= 0 && sValue != null
+					&& sValue.length() > 0) {
+				sReplace = "A." + sName + " " + sOpera + " '" + sValue + "'";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else if (sName.equals("cinvclassid") && sValue != null
+					&& sValue.length() > 0) {
+				try {
+					nc.bs.ps.estimate.EstimateDMO ddmo = new nc.bs.ps.estimate.EstimateDMO();
+					String sClassCode[] = ddmo.getSubInvClassCode(sValue);
+
+					if (sClassCode != null && sClassCode.length > 0) {
+						sValue = "(";
+						for (int j = 0; j < sClassCode.length; j++) {
+							if (j < sClassCode.length - 1)
+								sValue += "invclasscode " + sOpera + " '"
+										+ sClassCode[j] + "' or ";
+							else
+								sValue += "invclasscode " + sOpera + " '"
+										+ sClassCode[j] + "')";
+						}
+						sReplace = "B.cinvbasid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invcl C where "
+								+ "A.pk_invcl = C.pk_invcl and " + sValue + ")";
+					} else {
+						sReplace = "B.cinvbasid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invcl C where "
+								+ "A.pk_invcl = C.pk_invcl and invclasscode "
+								+ sOpera + " '" + sValue + "')";
+					}
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					strSqlWherePart += s;
+				} catch (Exception e) {
+					/* 不影响业务操作，此异常不必抛出 */
+					SCMEnv.out(e);
+					return null;
+				}
+			} else if (sName.equals("cwarehouseid") && sValue != null
+					&& sValue.length() > 0) {
+				if (strLoginCorpId != null)
+					sReplace = "cwarehouseid in (select pk_stordoc from bd_stordoc where pk_corp = '"
+							+ strLoginCorpId
+							+ "' and storcode "
+							+ sOpera
+							+ " '" + sValue + "')";
+				else
+					sReplace = "cwarehouseid in (select pk_stordoc from bd_stordoc where storcode "
+							+ sOpera + " '" + sValue + "')";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+
+			} else if (sName.equals("cprojectid") && sValue != null
+					&& sValue.length() > 0) {
+				sReplace = "B.cprojectid in (select B.pk_jobmngfil from bd_jobbasfil A, bd_jobmngfil B where A.jobcode "
+						+ sOpera
+						+ " '"
+						+ sValue
+						+ "' and A.pk_jobbasfil = B.pk_jobbasfil)";
+				String s = getReplacedSQL(sSQL, sName, sReplace);
+				strSqlWherePart += s;
+			} else {
+				strSqlWherePart += conditionVOs[i].getSQLStr();
+			}
+
+		}
+		strSqlWherePart = PubDMO.processFirst(strSqlWherePart);
+
+		// 过滤赠品行
+		strSqlWherePart += " and coalesce(B.flargess,'N') = 'N' ";
+		// VMI业务类型入库单不暂估
+		strSqlWherePart += " and BT.verifyrule not in ('V','N')  ";
+
+		// //不支持跨公司暂估:V51逻辑, del since v53
+		// if (sZG.trim().equals("N")) sCondition += " and A.pk_corp =
+		// B.pk_invoicecorp ";
+		// "and A.pk_corp = " + "'" + unitCode + "' ";
+
+		// since V502,支持分收集结的采购公司暂估，不支持分收集结的收货公司暂估(收货公司暂估内部交易完成)
+
+		// 仓库“是否计算存货成本”属性过滤(只约束普通暂估，FENGPING)--zhf add 过滤掉资产仓
+		strSqlWherePart += "and (coalesce(S.iscalculatedinvcost,'N') = 'Y' or A.cwarehouseid is null) and coalesce(S.iscapitalstor,'N') = 'N' ";
+		// 普通暂估
+		strSqlWherePart += " and ( A.pk_corp = '" + strLoginCorpId + "' ";
+		strSqlWherePart += " and A.pk_corp = B.pk_invoicecorp ";
+		// 分收集结采购公司暂估
+		strSqlWherePart += " or A.pk_purcorp <> A.pk_corp ";
+		strSqlWherePart += " and A.pk_purcorp = '" + strLoginCorpId + "' ";
+		strSqlWherePart += " and A.pk_purcorp = B.pk_invoicecorp ";
+		strSqlWherePart += " ) ";
+
+		// 数据权限
+		if (strDataPowerSql != null) {
+			strSqlWherePart += " and " + strDataPowerSql;
+		}
+
+		// 其它条件
+		strSqlWherePart += "and (cbilltypecode = '45' or cbilltypecode='46') and A.dr = 0 and B.dr = 0 and (A.fbillflag = 3 or A.fbillflag = 4) ";
+
+		// 不支持跨公司暂估:V51逻辑, del since v53
+		// if (unitCode != null) {
+		// sql += "and A.pk_corp = " + "'" + unitCode + "' ";
+		// }
+
+		strSqlWherePart += "and upper(bzgflag) = '" + strZG + "' ";
+
+		// 已结算的入库单不能暂估
+		if ("N".equalsIgnoreCase(strZG)) {
+			strSqlWherePart += "and naccountnum1 = 0.0 and  abs(ninnum) > 0.0 ";
+		}
+
+		// 已结算(包括做过费用结算)的暂估入库单不能取消暂估
+		if ("Y".equalsIgnoreCase(strZG)) {
+			strSqlWherePart += "and naccountnum1 = 0.0  and isnull(nfeesettletimes,0) = 0 ";
+		}
+
+		return strSqlWherePart;
+	}
+
+	/**
+	 * 通过单位编码返回指定公司所有记录VO数组。如果单位编码为空返回所有记录。 创建日期：(2001-5-30)
+	 * 
+	 * <p>
+	 * ------- 效率优化 by zhaoyha at 2009.2.9 --------------------------
+	 * <p>
+	 * 为提高效率,在这里缓存暂估入库单的来源订单信息(批查,防止一条一条查) 主要优化思路是:
+	 * 对来源的订单信息,在nc.bs.ps.estimate.EstimateImpl.
+	 * setEstimateVosInfos(EstimateVO[], String, String, String)中一次查出
+	 * 保存到HashMap中,传到EstimateDMO类中,当前是作为类域(poSrcOdersInfo,scSrcOdersInfo)
+	 * ,没有走参数,以后可以考虑用参数传过来.<b>但为了保证减少内存占用量,这两个
+	 * HashMap用完之后,在EstimateImpl.setEstimateVosInfos()中清空了</b>
+	 * <p>
+	 * <p>
+	 * ------ V55 by zhaoyha end -----------------------------------
+	 * 
+	 * @return nc.vo.ps.estimate.EstimateVO[] 查到的VO对象数组
+	 * @param strLoginCorpId
+	 *            公司主键
+	 * @exception BusinessException
+	 *                异常说明。
+	 * @since v502, 支持分收集结的跨公司暂估， by czp , 2007-06-29
+	 */
+	public EstimateVO[] queryEstimate(String strLoginCorpId,
+			ConditionVO[] conditionVOs, String strZG, String strEstPriceSource)
+			throws BusinessException {
+
+		EstimateVO[] estimates = null;
+
+		try {
+			nc.vo.scm.pu.Timer traceTimer = new nc.vo.scm.pu.Timer();
+			traceTimer.start();
+			EstimateDMO dmo = new EstimateDMO();
+
+			// since v502,重构，抽取方法
+			String strSqlWherePart = getWherePartSQLForEstimate(strLoginCorpId,
+					conditionVOs, strZG);
+			traceTimer.addExecutePhase("暂估入库单查询条件生成");
+			// 查询入库单，组织暂估VO数组
+			estimates = dmo.queryEstimate(strSqlWherePart, strZG);
+			traceTimer.addExecutePhase("暂估入库单查询");
+			String strLocalCurrId = CurrParamQuery.getInstance()
+					.getLocalCurrPK(strLoginCorpId);
+
+			// 设置本币币种:联动计算金额精度需要
+			if (estimates != null && estimates.length > 0) {
+				for (int i = 0; i < estimates.length; i++) {
+					estimates[i].setCcurrencytypeid(strLocalCurrId);
+				}
+			}
+			traceTimer.addExecutePhase("暂估入库单设置精度联动");
+			// 设置暂估VO{暂估价(单价或含税单价)、扣税类别、税率、含税(无税)优先}
+			setEstimateVosInfos(estimates, strLocalCurrId, strLoginCorpId,
+					strZG);
+			traceTimer.addExecutePhase("暂估入库单询价");
+			traceTimer.stop();
+			traceTimer.showAllExecutePhase("暂估入库单查询后台运行");
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return estimates;
+	}
+
+	/**
+	 * 
+	 * 方法功能描述：
+	 * <p>
+	 * 从入库单中查询出暂估VO
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param strLoginCorpId
+	 *            当前公司ID
+	 * @param sqlWherePart
+	 *            查询条件
+	 * @param strZG
+	 *            "N"查未暂估,"Y"查已暂估
+	 * @return 暂估VO数组,可能为null
+	 * @throws BusinessException
+	 *             <p>
+	 * @author zhaoyha
+	 * @time 2008-10-6 下午08:51:40
+	 */
+	public EstimateVO[] queryEstimate(String strLoginCorpId,
+			String sqlWherePart, String strZG) throws BusinessException {
+		EstimateVO[] estimates = null;
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			// 查询入库单，组织暂估VO数组
+			estimates = dmo.queryEstimate(sqlWherePart, strZG);
+			String strLocalCurrId = CurrParamQuery.getInstance()
+					.getLocalCurrPK(strLoginCorpId);
+			// 设置本币币种:联动计算金额精度需要
+			if (estimates != null && estimates.length > 0) {
+				for (int i = 0; i < estimates.length; i++) {
+					estimates[i].setCcurrencytypeid(strLocalCurrId);
+				}
+			}
+			// 设置暂估VO{暂估价(单价或含税单价)、扣税类别、税率、含税(无税)优先}
+			setEstimateVosInfos(estimates, strLocalCurrId, strLoginCorpId,
+					strZG);
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			PubDMO.throwBusinessException(e);
+		}
+		return estimates;
+	}
+
+	/**
+	 * 供应商默认交易币种 zhf
+	 */
+	private HashMap getVendorCurrPk(EstimateVO[] estimates) throws Exception {
+		ArrayList<String> list = new ArrayList<String>();
+		HashMap retMap = null;
+		for (EstimateVO vo : estimates) {
+			if ((vo.getCfirsttype() == null || vo.getCfirstbillbid() == null)
+					&& vo.getCvendorid() != null
+					&& vo.getCvendorid().trim().length() != 0) {
+				if (!list.contains(vo.getCvendorid())) {
+					list.add(vo.getCvendorid());
+				}
+			}
+		}
+
+		if (list != null && list.size() > 0) {
+			String inWhere = new TempTableUtil().getSubSql(list);
+			retMap = (HashMap) new PubDMO()
+					.queryArrayValues("bd_cumandoc", "pk_cumandoc",
+							new String[] { "pk_currtype1" },
+							new String[] { inWhere.substring(2, inWhere
+									.length() - 2) }, " dr=0");
+		}
+		return retMap;
+	}
+
+	/**
+	 * @作者 zhf
+	 * @说明：(for v5.5)设置外币币种和折本汇率；取价规则为入库单价 取本位币 其余都按取外币优先顺序---来源订单原币币种
+	 * @修改说明：由V55最新需求，只取来源订单币种，如果没有来源订单就取本位币 by zhaoyha at 2008.9.23
+	 */
+	private void setOrgCurrPkExchRate(EstimateVO estimate, HashMap t21,
+			HashMap t61, HashMap mapVendorCurrPk,
+			BusinessCurrencyRateUtil dmoCurrArith, String strEstPriceSource,
+			String sLocalCurId) throws Exception {
+		// 最新进价 取本位币 其余都按取外币优先顺序 来源订单原币币种 供应商默认交易币种 公司本位币
+		// 由V55最新需求，只取来源订单币种，如果没有来源订单就取本位币
+		String orgCurrPk = sLocalCurId;
+		UFDouble exchRate = new UFDouble(1.0);
+
+		// if (! "入库单价".equals(strEstPriceSource)) {
+
+		Object[] objs = null;
+		if (estimate.getCfirsttype() != null
+				&& estimate.getCfirstbillbid() != null) {
+			if (ScmConst.PO_Order.equalsIgnoreCase(estimate.getCfirsttype()
+					.trim())) {
+				objs = (Object[]) t21.get(estimate.getCfirstbillbid());
+			} else if (ScmConst.SC_Order.equals((estimate.getCfirsttype()
+					.trim()))) {
+				objs = (Object[]) t61.get(estimate.getCfirstbillbid());
+			}
+			if (objs != null && objs[0] != null)
+				orgCurrPk = (String) objs[0];
+		}
+		// else {// 取供应商默认交易币种
+		// if (estimate.getCvendorid() != null
+		// && estimate.getCvendorid().trim().length() != 0) {
+		// objs = (Object[]) mapVendorCurrPk.get(estimate.getCvendorid());
+		// orgCurrPk = (String) objs[0];
+		// }
+		// else {
+		// orgCurrPk = sLocalCurId;
+		// }
+		// }
+		if (!sLocalCurId.equalsIgnoreCase(orgCurrPk.trim())) {
+			exchRate = dmoCurrArith.getRate(orgCurrPk, sLocalCurId, BsPuTool
+					.getLoginDate().toString());
+		}
+		// }
+
+		estimate.setCurrencytypeid(orgCurrPk);
+		estimate.setNexchangeotobrate(exchRate);
+
+	}
+
+	/**
+	 * 设置暂估VO{暂估价、扣税类别、税率、含税(无税)优先}
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param estimates
+	 *            暂估VO数组, 非空
+	 * @param strLoginCorpId
+	 *            登录公司ID, 非空
+	 * @param strZG
+	 *            是否已经暂估过, 非空
+	 * @param strEstPriceSource
+	 *            暂估单价来源, 可空
+	 * @throws Exception
+	 * @author czp
+	 * @time 2007-8-8 下午03:48:21
+	 */
+	public void setEstimateVosInfos(EstimateVO[] estimates,
+			String strLocalCurrId, String strLoginCorpId, String strZG)
+			throws Exception {
+		//
+		if (estimates == null || estimates.length == 0) {
+			return;
+		}
+		Timer traceTimer = new Timer();
+		traceTimer.start();
+		// 获取单价和金额精度
+		BusinessCurrencyRateUtil dmoCurrArith = new BusinessCurrencyRateUtil(
+				strLoginCorpId);
+		int nMoneyDecimal = 0;
+		String sPricePolicy = null;
+		ISysInitQry myService = (ISysInitQry) nc.bs.framework.common.NCLocator
+				.getInstance().lookup(ISysInitQry.class.getName());
+		int nPriceDecimal = myService.getParaInt(strLoginCorpId, "BD505");
+		nMoneyDecimal = BsPuTool.getCCurrDecimal(strLoginCorpId);
+		sPricePolicy = myService.getParaString(strLoginCorpId, "PO28");
+		if (sPricePolicy == null) {
+			sPricePolicy = OrderPubVO.PRICE_PRIOR_TO_TAXPRICE_NAME;
+		}
+		// since v502 ,设置内部结算库存组织(取计划价或向存货核算传数据时用到)
+		setCalBodyStorDocIds(estimates, strLoginCorpId, BsPuTool
+				.getCCurrDecimal(strLoginCorpId));
+		//
+		EstimateDMO dmo = new EstimateDMO();
+
+		// 调用公式计算前的设置：税率、扣税类别
+		setTaxRateDiscountType(estimates);
+		traceTimer.addExecutePhase("暂估询价前处理");
+
+		// 做暂估操作时要处理暂估价
+
+		if (strZG.trim().equals("N")) {
+
+			// 获取参数PO45:计划价存货是否按计划价暂估
+			String sPara = "N";
+			try {
+				ISysInitQry myService1 = (ISysInitQry) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(ISysInitQry.class.getName());
+				SysInitVO initVO = myService.queryByParaCode(strLoginCorpId,
+						"PO45");
+				if (initVO != null)
+					sPara = initVO.getValue();
+			} catch (Exception e) {
+				throw new SQLException(nc.bs.ml.NCLangResOnserver.getInstance()
+						.getStrByID("40040503", "UPP40040503-000021")/*
+																	 * @res
+																	 * "获取参数PO45时出现异常，请稍后再试！"
+																	 */);
+			}
+
+			SysInitVO initVO = null;
+			initVO = nc.ui.pub.para.SysInitBO_Client.queryByParaCode(
+					strLoginCorpId, "PO270");
+			String strOldValue = initVO.getValue();
+			if (null == strOldValue || strOldValue.trim().length() == 0) {
+				throw new BusinessException(
+						"Parameter Error : Check 'PO270' please");
+			}
+
+			HashMap t21 = new HashMap(), t61 = new HashMap(), mapVendorCurrPk = new HashMap();
+			t21 = getOrderOrgInfor(estimates, ScmConst.PO_Order);
+			t61 = getOrderOrgInfor(estimates, ScmConst.SC_Order);
+			// 为优化效率增加处理 by zhaoyha at 2009.2.9
+			dmo.setSourceOdersInfo(t21, ScmConst.PO_Order);
+			dmo.setSourceOdersInfo(t61, ScmConst.SC_Order);
+
+			mapVendorCurrPk = getVendorCurrPk(estimates);
+
+			String strValue = null;
+			UFDouble dOldPrice = null;
+			UFDouble dNewPrice = null;
+			String strEstPriceSource = null;
+			traceTimer.addExecutePhase("暂估询价前查询入库单处理");
+			if (strOldValue.indexOf('2') >= 0// "计划价".equals(strEstPriceSource.trim())
+					|| "Y".equalsIgnoreCase(sPara) || "是".equals(sPara)) {
+				setPriceJHJ(estimates, strLoginCorpId, nMoneyDecimal);
+			}
+			traceTimer.addExecutePhase("暂估询价设置每行的计划价");
+
+			for (int i = 0; i < estimates.length; i++) {
+				strValue = strOldValue;
+				while (true) {
+					Timer dtimer1 = new Timer();
+					strEstPriceSource = AppConstant.getNameByIndex(strValue
+							.substring(0, 1));
+					// 设置外币币种、折本汇率
+					setOrgCurrPkExchRate(estimates[i], t21, t61,
+							mapVendorCurrPk, dmoCurrArith, strEstPriceSource,
+							strLocalCurrId);
+
+					strValue = strValue.substring(1, strValue.length());
+					dOldPrice = getPriceForCompare(estimates[i],
+							strEstPriceSource, sPricePolicy);
+					// 获取计划价(两种情况：1、普通暂估时直接用收货公司库存组织 2、分收集结时用采购公司结算库存组织)
+					dtimer1.start();
+					// if ("计划价".equals(strEstPriceSource.trim())
+					// || "Y".equalsIgnoreCase(sPara) || "是".equals(sPara)) {
+					// setPriceJHJ(estimates[i], strLoginCorpId, nMoneyDecimal);
+					// }
+					// dtimer1.addExecutePhase("计划价查询");
+					// 处理单价
+					if (strEstPriceSource != null
+							&& strEstPriceSource.trim().length() > 0) {
+						ArrayList paraList = new ArrayList();
+						paraList.add(strEstPriceSource);
+						paraList.add(new Integer(nPriceDecimal));
+						paraList.add(new Integer(nMoneyDecimal));
+						paraList.add(sPricePolicy);
+						paraList.add(sPara);
+						paraList.add(strLoginCorpId);
+						// zhf add for v55
+						paraList.add(dmoCurrArith);
+						paraList.add(strLocalCurrId);
+						// zhf -----end
+
+						estimates[i] = dmo.replacePriceForEstimate(
+								estimates[i], paraList);
+					}
+					dtimer1.addExecutePhase("其它价格询价");
+					dtimer1.stop();
+					dtimer1.showAllExecutePhase("询价比例分析");
+					dNewPrice = getPriceForCompare(estimates[i],
+							strEstPriceSource, sPricePolicy);
+					/* 参数处理完 或者 (新价不空且新价<>旧价) */
+					if (strValue.length() == 0
+							|| PuPubVO.getUFDouble_NullAsZero(dNewPrice)
+									.doubleValue() != 0
+							&& PuPubVO
+									.getUFDouble_NullAsZero(dNewPrice)
+									.compareTo(
+											PuPubVO
+													.getUFDouble_NullAsZero(dOldPrice)) != 0
+							|| "订单价".equals(strEstPriceSource)
+							&& PuPubVO.getUFDouble_NullAsZero(dNewPrice)
+									.doubleValue() != 0) {
+						break;
+					}
+				}
+			}
+			// 为优化效率增加处理 by zhaoyha at 2009.2.9
+			// 释放掉内在
+			dmo.setSourceOdersInfo(null, ScmConst.PO_Order);
+			dmo.setSourceOdersInfo(null, ScmConst.SC_Order);
+		}
+		traceTimer.addExecutePhase("暂估询价执行");
+		// 设置收票公司本位币
+		setLocalCurrForInvoiceCorp(estimates);
+		traceTimer.addExecutePhase("暂估询价后处理");
+		traceTimer.showAllExecutePhase("暂估询价");
+
+		// 计算已经暂估，但未存储起来的数据 by zhaoyha at 2008.9.24
+		if ("Y".equalsIgnoreCase(strZG)) {
+
+			for (EstimateVO vo : estimates) {
+				// 如果没有币，则设置为本位币，防止查询以前的数据报错
+				if (vo.getCurrencytypeid() == null
+						|| vo.getCurrencytypeid().trim().length() == 0) {
+					vo.setCurrencytypeid(strLocalCurrId);
+					vo.setNexchangeotobrate(new UFDouble(1.00));
+				}
+
+				// 计算暂估应付的本币无税单价金额
+				UFDouble noriginalnetprice = PuPubVO.getUFDouble_NullAsZero(vo
+						.getNoriginalnetprice());
+				UFDouble norgnettaxprice = PuPubVO.getUFDouble_NullAsZero(vo
+						.getNorgnettaxprice());
+				UFDouble tempRate = PuPubVO
+						.getUFDouble_NullAsZero(noriginalnetprice
+								.div(norgnettaxprice));// 税率计算
+				// UFDouble
+				// totalMoney=PuPubVO.getUFDouble_NullAsZero(vo.getNtotalmoney());
+				// UFDouble
+				// taxPrice=PuPubVO.getUFDouble_NullAsZero(vo.getNtaxprice());
+				// vo.setNzgyfnotaxmoney(totalMoney.multiply(tempRate).add(new
+				// UFDouble(0.0),nMoneyDecimal));
+				// vo.setNzgyfnotaxprice(taxPrice.multiply(tempRate).add(new
+				// UFDouble(0.0),nPriceDecimal));
+				UFDouble noTaxMoney = PuPubVO.getUFDouble_NullAsZero(vo
+						.getNmoney());
+				UFDouble noTaxPrice = PuPubVO.getUFDouble_NullAsZero(vo
+						.getNprice());
+
+				// 将税率也设置上
+				if (vo.getIdiscounttaxtype().intValue() == 0) {// 应税内含
+					if (tempRate.doubleValue() == 0) // 如果未暂估应付或原币价格为零,则无法反算税率,直接置零
+					{
+						vo.setNtaxrate(tempRate);
+						vo.setNcbtaxprice(vo.getNprice());
+						vo.setNcbtotalmoney(vo.getNmoney());
+					} else
+						vo.setNtaxrate((new UFDouble(1.0).sub(tempRate, 4))
+								.multiply(new UFDouble(100.0)));
+					// 计算暂估成本的本币含税单价
+					vo.setNcbtaxprice(noTaxPrice.div(new UFDouble(1.0).sub(vo
+							.getNtaxrate().div(new UFDouble(100.0))),
+							nPriceDecimal));
+				} else {// 应税外加
+					tempRate = PuPubVO.getUFDouble_NullAsZero(norgnettaxprice
+							.div(noriginalnetprice));
+					if (tempRate.doubleValue() == 0) {
+						vo.setNtaxrate(tempRate);
+						vo.setNcbtaxprice(vo.getNprice());
+						vo.setNcbtotalmoney(vo.getNmoney());
+					} else
+						vo.setNtaxrate((tempRate.sub(new UFDouble(1.0), 4))
+								.multiply(new UFDouble(100.0)));
+					// 计算暂估成本的本币含税单价
+					vo.setNcbtaxprice(noTaxPrice.multiply(new UFDouble(1.0)
+							.add(vo.getNtaxrate().div(new UFDouble(100.0))),
+							nPriceDecimal));
+				}
+				// 计算暂估成本的本币含税金额
+				vo.setNcbtotalmoney(vo.getNcbtaxprice().multiply(
+						vo.getNinnum(), nMoneyDecimal));
+			}
+		}
+	}
+
+	/**
+	 * 返回待暂估入库单的来源订单（采购订单，委外加工订单）的原币信息 来源订单行id-------订单原币币种id，订单折本汇率 zhf
+	 * 为提高效率,在这里一次性查出来源订单的信息 by zhaoyha at 2009.2.9
+	 */
+	private HashMap getOrderOrgInfor(EstimateVO[] VOs, String orderType)
+			throws Exception {
+
+		HashMap retMap = null;
+		Set<String> orderIds = new HashSet<String>();
+		for (int i = 0; i < VOs.length; i++) {
+			if (VOs[i].getCfirsttype() != null
+					&& orderType.equalsIgnoreCase(VOs[i].getCfirsttype())
+					&& VOs[i].getCfirstbillbid() != null)
+				orderIds.add(VOs[i].getCfirstbillbid());
+		}
+
+		// 来源是订单 订单主键---外币币种，折本汇率
+		if (orderIds != null && orderIds.size() > 0) {
+			String tableName = null;
+			String[] selectCols = null;
+			String addWhere = "";
+			if (ScmConst.PO_Order.equalsIgnoreCase(orderType)) {
+				tableName = "po_order,po_order_b";// 采购订单
+				selectCols = new String[] { "ccurrencytypeid",
+						"nexchangeotobrate", "nordernum", "nmoney",
+						"ntaxpricemny", "noriginalnetprice", "norgnettaxprice",
+						"nexchangeotobrate", "nexchangeotobrate",
+						"ccurrencytypeid", "pk_invoicecorp", "noriginalcurmny",
+						"noriginaltaxpricemny" };
+				addWhere = " po_order.corderid = po_order_b.corderid and "
+						+ OrderPubVO.SQL_PO_HEAD + " and po_order_b.dr=0 ";
+			} else {
+				tableName = "sc_order_b";// 委外订单
+				selectCols = new String[] { "ccurrencytypeid",
+						"nexchangeotobrate", "nordernum", "nmoney",
+						"ntaxpricemny", "noriginalnetprice", "norgnettaxprice",
+						"nexchangeotobrate", "nexchangeotobrate",
+						"ccurrencytypeid", "pk_corp", "noriginalcurmny",
+						"noriginaltaxpricemny" };
+				addWhere = " dr=0 ";
+			}
+			// retMap = (HashMap) new PubDMO().queryArrayValues(tableName,
+			// "corder_bid",
+			// new String[] {"ccurrencytypeid", "nexchangeotobrate"},
+			// orderIds.toArray(new String[0]), " dr=0");
+			retMap = (HashMap) new PubDMO().queryArrayValues(tableName,
+					"corder_bid", selectCols, orderIds.toArray(new String[0]),
+					addWhere);
+		}
+		return retMap;
+	}
+
+	/**
+	 * 取用来比较的单价
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param voEst
+	 *            暂估VO
+	 * @param strEstPriceSource
+	 *            暂估价来源
+	 * @param sPricePolicy
+	 *            价格优先策略
+	 * @return <p>
+	 * @author czp
+	 * @time 2008-5-26 下午04:45:27
+	 */
+	private UFDouble getPriceForCompare(EstimateVO voEst,
+			String strEstPriceSource, String sPricePolicy) {
+
+		UFDouble dPrice = null;
+
+		if (OrderPubVO.TAXPRICE_PRIOR_TO_PRICE_NAME.equals(sPricePolicy)) {
+			// dPrice = voEst.getNtaxprice();
+			dPrice = voEst.getNcbtaxprice();
+		} else {
+			dPrice = voEst.getNprice();
+		}
+		return dPrice;
+	}
+
+	/**
+	 * 设置收票公司(为空时取收货公司)对应的本位币币种ID
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * <p>
+	 * 
+	 * @author czp
+	 * @time 2007-8-21 下午01:36:20
+	 */
+	public void setLocalCurrForInvoiceCorp(EstimateVO[] estimates)
+			throws BusinessException {
+		if (estimates == null || estimates.length == 0) {
+			return;
+		}
+		// 哈希：{收票公司(如果收票公司为空，取收货公司) = 本位币币种ID}
+		HashMap<String, String> mapCurrTypeId = new HashMap<String, String>();
+		String strKey = null;
+		BusinessCurrencyRateUtil rateUtil = null;
+		// 循环设置暂估VO的本位币币种ID
+		for (int i = 0; i < estimates.length; i++) {
+			strKey = estimates[i].getPk_corp();
+			if (PuPubVO.getString_TrimZeroLenAsNull(estimates[i]
+					.getPk_invoicecorp()) != null) {
+				strKey = estimates[i].getPk_invoicecorp();
+			}
+			// 如果已经缓存过本位币种ID，则直接设置继续
+			if (mapCurrTypeId.containsKey(strKey)) {
+				estimates[i].setCcurrencytypeid((String) mapCurrTypeId
+						.get(strKey));
+				continue;
+			}
+			// 没有缓存过本位币种ID，缓存
+			try {
+				rateUtil = new BusinessCurrencyRateUtil(strKey);
+			} catch (Exception e) {
+				PubDMO.throwBusinessException(e);
+			}
+			mapCurrTypeId.put(strKey, CurrParamQuery.getInstance()
+					.getLocalCurrPK(strKey));
+			// 设置本位币种ID后继续
+			estimates[i].setCcurrencytypeid((String) mapCurrTypeId.get(strKey));
+		}
+	}
+
+	/**
+	 * 设置：税率、扣税类别
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * <p>
+	 * 
+	 * @author czp
+	 * @time 2007-8-21 上午09:51:44
+	 */
+	public void setTaxRateDiscountType(EstimateVO[] estimates)
+			throws BusinessException {
+
+		if (estimates == null || estimates.length == 0) {
+			return;
+		}
+		// 区分来源为:来源于委外或采购，缓存两种订单的行ID
+		Vector vPuOrderBId = new Vector();
+		Vector vScOrderBId = new Vector();
+		// 记录存货基本ID(采购入库单非来源于采购订单或委外订单)
+		Vector vBaseId = new Vector();
+		for (int i = 0; i < estimates.length; i++) {
+			if (estimates[i].getCfirsttype() == null) {
+				// 非来源于订单(采购、委外)，设置为应税外加
+				vBaseId.add(estimates[i].getCbaseid());
+				// estimates[i].setIdiscounttaxtype(1);
+			}
+			// 来源于采购订单
+			else if (estimates[i].getCfirsttype().equals(ScmConst.PO_Order)) {
+				if (!vPuOrderBId.contains(estimates[i].getCfirstbillbid())) {
+					vPuOrderBId.addElement(estimates[i].getCfirstbillbid());
+				}
+			}
+			// 来源于委外订单
+			else if (estimates[i].getCfirsttype().equals(ScmConst.SC_Order)) {
+				if (!vScOrderBId.contains(estimates[i].getCfirstbillbid())) {
+					vScOrderBId.addElement(estimates[i].getCfirstbillbid());
+				}
+			}
+			// 非来源于采购订单或委外订单时，记录存货基本ID
+			else {
+				if (!vBaseId.contains(estimates[i].getCbaseid()))
+					vBaseId.add(estimates[i].getCbaseid());
+				// estimates[i].setIdiscounttaxtype(1);
+			}
+		}
+		//
+		UFDouble ufdTaxRate = null;
+		// 来源于采购订单或委外订单的处理:取订单的税率、扣税类别
+		if (vPuOrderBId.size() > 0 || vScOrderBId.size() > 0) {
+
+			EstimateDMO dmo = null;
+			String sID[] = null;
+			Hashtable hashPuOrder = new Hashtable();
+			Hashtable hashScOrder = new Hashtable();
+			try {
+				dmo = new EstimateDMO();
+				if (vPuOrderBId.size() > 0) {
+					sID = new String[vPuOrderBId.size()];
+					vPuOrderBId.toArray(sID);
+					hashPuOrder = dmo.queryOrderTaxRate(sID, false);
+				}
+				if (vScOrderBId.size() > 0) {
+					sID = new String[vScOrderBId.size()];
+					vScOrderBId.toArray(sID);
+					hashScOrder = dmo.queryOrderTaxRate(sID, true);
+				}
+			} catch (NamingException ne) {
+				PubDMO.throwBusinessException(ne);
+			} catch (SystemException se) {
+				PubDMO.throwBusinessException(se);
+			} catch (SQLException sqlExc) {
+				PubDMO.throwBusinessException(sqlExc);
+			}
+			Object[] oaRateDis = null;
+
+			//
+			if (hashPuOrder != null && hashPuOrder.size() > 0
+					|| hashScOrder != null && hashScOrder.size() > 0) {
+				for (int i = 0; i < estimates.length; i++) {
+					if (estimates[i].getCfirsttype() == null) {
+						continue;
+					}
+					// 只处理来源于采购订单或委外订单的情况
+					if (!(estimates[i].getCfirsttype()
+							.equals(ScmConst.PO_Order))
+							&& !(estimates[i].getCfirsttype()
+									.equals(ScmConst.SC_Order))) {
+						continue;
+					}
+					// 来源于采购订单
+					if (estimates[i].getCfirsttype().equals(ScmConst.PO_Order)
+							&& hashPuOrder.get(estimates[i].getCfirstbillbid()) != null) {
+						oaRateDis = (Object[]) hashPuOrder.get(estimates[i]
+								.getCfirstbillbid());
+					}
+					// 来源于委外订单
+					else if (estimates[i].getCfirsttype().equals(
+							ScmConst.SC_Order)
+							&& hashScOrder.get(estimates[i].getCfirstbillbid()) != null) {
+						oaRateDis = (Object[]) hashScOrder.get(estimates[i]
+								.getCfirstbillbid());
+					}
+					// 设值
+					ufdTaxRate = new UFDouble(0);
+					Integer iDiscountTaxType = new Integer(1);
+					if (oaRateDis[0] != null) {
+						ufdTaxRate = new UFDouble(oaRateDis[0].toString());
+					}
+					if (oaRateDis[1] != null) {
+						iDiscountTaxType = (Integer) oaRateDis[1];
+					}
+					estimates[i].setNtaxrate(ufdTaxRate);
+					estimates[i].setIdiscounttaxtype(iDiscountTaxType);
+				}
+			}
+		}
+		// 非来源于采购订单也非来源于委外订单时的处理:取存货对应的税目税率,扣税类别为应税外加
+		if (vBaseId.size() > 0) {
+			String[] saBaseId = new String[vBaseId.size()];
+			vBaseId.copyInto(saBaseId);
+			HashMap hashRates = null;
+			try {
+				hashRates = new PubDMO()
+						.queryArrayValues(
+								"bd_invbasdoc left outer join bd_taxitems on bd_invbasdoc.pk_taxitems = bd_taxitems.pk_taxitems",
+								"bd_invbasdoc.pk_invbasdoc",
+								new String[] { "bd_taxitems.taxratio" },
+								saBaseId, null);
+			} catch (NamingException ne) {
+				PubDMO.throwBusinessException(ne);
+			} catch (SystemException se) {
+				PubDMO.throwBusinessException(se);
+			}
+			if (hashRates != null && hashRates.size() > 0) {
+				Object[] oaValue = null;
+				for (int i = 0; i < estimates.length; i++) {
+					if (estimates[i].getCfirsttype() == null) {
+						ufdTaxRate = new UFDouble(0);
+						oaValue = (Object[]) hashRates.get(estimates[i]
+								.getCbaseid());
+						if (oaValue != null && oaValue.length > 0) {
+							ufdTaxRate = PuPubVO
+									.getUFDouble_NullAsZero(oaValue[0]);
+						}
+						estimates[i].setNtaxrate(ufdTaxRate);
+						estimates[i].setIdiscounttaxtype(new Integer(1));
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 设置：内部结算库存组织ID及直运仓库ID到暂估VO，以备用(设置计划价或向存货核算传递数据)
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param estimates
+	 *            <p>
+	 * @author czp
+	 * @time 2007-6-29 下午03:35:06
+	 */
+	private void setCalBodyStorDocIds(EstimateVO[] estimates,
+			String strLoginCorpId, int nMoneyDecimal) throws BusinessException {
+		if (estimates == null || estimates.length == 0) {
+			return;
+		}
+		// 设置库存组织ID(如果是分收集结采购公司暂估，则库存组织取“采购入库单源头采购订单上采购组织定义的内部结算库存组织”)
+		int iLen = estimates.length;
+		ArrayList<String> listHid = new ArrayList<String>();
+		for (int i = 0; i < iLen; i++) {
+			// 只有来源为采购订单才可能是分收集结模式
+			if (!"21".equals(estimates[i].getCfirsttype())) {
+				continue;
+			}
+			if (estimates[i].getCfirstbillhid() == null) {
+				continue;
+			}
+			// 不必重复记录订单ID
+			if (listHid.contains(estimates[i].getCfirstbillhid())) {
+				continue;
+			}
+			// 分收集结暂估(采购公司自动＋手工，收货公司自动)才有必要处理内部结算库存组织，否则直接使用收货公司库存组织即可
+			if (EstimateVO.NORMAL.equals(estimates[i]
+					.getEstType(strLoginCorpId))) {
+				continue;
+			}
+			listHid.add(estimates[i].getCfirstbillhid());
+		}
+		if (listHid.size() == 0) {
+			return;
+		}
+		// 查询采购组织{订单ID=采购组织对应的内部结算库存组织}
+		Hashtable hashRet = null;
+		PubDMO dmo = null;
+		try {
+			dmo = new PubDMO();
+			hashRet = dmo
+					.queryHtResultFromAnyTable(
+					// tables:
+							"bd_purorg, (select corderid, cpurorganization from po_order "
+									+ "where corderid in "
+									+ new TempTableUtil().getSubSql(listHid) + // 临时表
+									" and dr = 0) tmp, bd_stordoc",
+							// key:
+							"tmp.corderid",
+							// values:
+							new String[] { "bd_purorg.settlestockorg",
+									"bd_stordoc.pk_stordoc" },
+							// where:
+							"tmp.cpurorganization = bd_purorg.pk_purorg "
+									+ "and bd_purorg.settlestockorg = bd_stordoc.pk_calbody "
+									+ "and coalesce(bd_stordoc.isdirectstore,'N')='Y' "
+									+ "and bd_purorg.dr = 0 ");
+
+			// 暂时性修改：解决成本域库存组织没有仓库的问题，导致以上SQL查找不到数据.IA接受没有仓库的数据
+			if (hashRet == null || hashRet.size() == 0) {
+				hashRet = dmo.queryHtResultFromAnyTable(
+				// tables:
+						"bd_purorg, (select corderid, cpurorganization from po_order "
+								+ "where corderid in "
+								+ new TempTableUtil().getSubSql(listHid) + // 临时表
+								" and dr = 0) tmp ",
+						// key:
+						"tmp.corderid",
+						// values:
+						new String[] { "bd_purorg.settlestockorg" },
+						// where:
+						"tmp.cpurorganization = bd_purorg.pk_purorg ");
+			}
+
+		} catch (Exception e) {
+			PubDMO.throwBusinessException(e);
+		}
+		/*
+		 * 设置：内部结算库存组织ID到暂估VO，以备用(设置计划价或向存货核算传递)
+		 */
+		Vector vecRet = null;
+		Object[] oaRet = null;
+		//
+		if (hashRet != null && hashRet.size() > 0) {
+			for (int i = 0; i < iLen; i++) {
+				// 目前只有采购订单才支持跨公司情况，委外订单未支持
+				if (!"21".equals(estimates[i].getCfirsttype())
+						|| estimates[i].getCfirstbillhid() == null
+						|| EstimateVO.NORMAL.equals(estimates[i]
+								.getEstType(strLoginCorpId))) {
+					continue;
+				}
+				// 如果没有查询到内部结算库存组织，则为空
+				if (!hashRet.containsKey(estimates[i].getCfirstbillhid())) {
+					continue;
+				}
+				vecRet = (Vector) hashRet.get(estimates[i].getCfirstbillhid());
+				if (vecRet == null || vecRet.size() == 0
+						|| vecRet.elementAt(0) == null) {
+					continue;
+				}
+				// 设置内部结算库存组织
+				oaRet = (Object[]) vecRet.elementAt(0);
+				// 检查是否取得内部结算库存组织
+				if (oaRet == null || oaRet.length == 0 || oaRet[0] == null) {
+					Hashtable hashRetUnitName = null;
+					try {
+						hashRetUnitName = dmo.queryHtResultFromAnyTable(
+								"bd_corp", "pk_corp", new String[] {
+										"unitcode", "unitname" }, "pk_corp = '"
+										+ estimates[i].getPk_purcorp() + "'");
+					} catch (SQLException e) {
+						PubDMO.throwBusinessException(e);
+					}
+					Object[] oaRetUnitCodeName = (Object[]) ((Vector) hashRetUnitName
+							.get(estimates[i].getPk_purcorp())).get(0);
+					String strUnitCode = oaRetUnitCodeName[0] + "";
+					String strUnitName = oaRetUnitCodeName[1] + "";
+					throw new BusinessException(NCLangResOnserver.getInstance()
+							.getStrByID("40040503", "UPP40040503-000100", null,
+									new String[] { strUnitCode, strUnitName })
+					/* @res"采购公司未定义内部结算库存组织!公司编码：{0}，公司名称：{1}" */);
+				}
+				estimates[i].setPkBody(oaRet[0].toString().trim());
+				if (oaRet.length == 2)
+					// 设置直运仓
+					estimates[i].setCwarehouseidZY(oaRet[1].toString().trim());
+			}
+		}
+	}
+
+	/**
+	 * 设置:暂估VO的计划单价(取档案计划价)。如果没有取得档案的计划价，将暂估VO的计划单价设置为空(本方法不处理金额)
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param estVOs
+	 *            <p>
+	 *            暂估VO数据
+	 * @author czp
+	 * @time 2007-6-29 下午03:35:06
+	 * @modify by zhaoyha at 2009.1.17
+	 * @说明 修改为批查方式,为提高效率.
+	 */
+	private void setPriceJHJ(EstimateVO[] estVOs, String strLoginCorpId,
+			int nMoneyDecimal) throws BusinessException {
+		if (estVOs == null || estVOs.length == 0) {
+			return;
+		}
+		int iLen = 0;
+		/*
+		 * 缓存：存货基本ID+收票公司ID+内部结算库存组织ID，以备用(查询计划价)
+		 */
+		ArrayList<String> listBaseId = new ArrayList<String>();
+		ArrayList<String> listInvoiceCorpId = new ArrayList<String>();
+		ArrayList<String> listCalbodyId = new ArrayList<String>();
+
+		for (EstimateVO estVO : estVOs)
+
+			// 本情况是：分收集结暂估(采购公司自动＋手工，收货公司自动)模式下采购公司暂估时未定义内部结算库存组织
+			if ((!estVO.getEstType(strLoginCorpId).equals(EstimateVO.NORMAL))
+					&& estVO.getPkBody() == null) {
+
+			} else {
+				listBaseId.add(estVO.getCbaseid());
+				listInvoiceCorpId.add(estVO.getPk_invoicecorp());
+				// 分情况设置库存组织
+				if ((!estVO.getEstType(strLoginCorpId)
+						.equals(EstimateVO.NORMAL))) {
+					listCalbodyId.add(estVO.getPkBody());
+				} else {
+					listCalbodyId.add(estVO.getCcalbodyid());
+				}
+			}
+		// 查询物料生产档案计划价{采购公司ID+库存组织(收货库存组织 或 内部结算库存组织)+存货基本ID=计划价}
+		ArrayList listTmp = null;
+		ArrayList listCorp = new ArrayList();
+		ArrayList listStor = new ArrayList();
+		ArrayList listInv = new ArrayList();
+		iLen = listBaseId.size();
+		for (int i = 0; i < iLen; i++) {
+			listTmp = new ArrayList();
+			listTmp.add(new Integer(i));
+			listTmp.add(listInvoiceCorpId.get(i));
+			listCorp.add(listTmp);
+			listTmp = new ArrayList();
+			listTmp.add(new Integer(i));
+			listTmp.add(listCalbodyId.get(i));
+			listStor.add(listTmp);
+			listTmp = new ArrayList();
+			listTmp.add(new Integer(i));
+			listTmp.add(listBaseId.get(i));
+			listInv.add(listTmp);
+		}
+		HashMap<String, ArrayList> mapJHJ = null;
+		try {
+			TempTableDMO dmo = new TempTableDMO();
+			String strTblCorp = dmo.getTempStringTable(
+					TempTableVO.TEMPTABLE_3_A, new String[] {
+							TempTableVO.TEMPPKFIELD_PU,
+							TempTableVO.TEMPBUSINESSID_PU }, new String[] {
+							"int", "char(20)" }, TempTableVO.TEMPPKFIELD_PU,
+					listCorp);
+			String strTblStor = dmo.getTempStringTable(
+					TempTableVO.TEMPTABLE_3_B, new String[] {
+							TempTableVO.TEMPPKFIELD_PU,
+							TempTableVO.TEMPBUSINESSID_PU }, new String[] {
+							"int", "char(20)" }, TempTableVO.TEMPPKFIELD_PU,
+					listStor);
+			String strTblInv = dmo.getTempStringTable(
+					TempTableVO.TEMPTABLE_3_C, new String[] {
+							TempTableVO.TEMPPKFIELD_PU,
+							TempTableVO.TEMPBUSINESSID_PU }, new String[] {
+							"int", "char(20)" }, TempTableVO.TEMPPKFIELD_PU,
+					listInv);
+			// From、Where子句
+			String strSqlFromWhere = "from bd_produce, ";
+			strSqlFromWhere += strTblCorp + ",";
+			strSqlFromWhere += strTblStor + ",";
+			strSqlFromWhere += strTblInv + " ";
+			strSqlFromWhere += "where ";
+			strSqlFromWhere += "bd_produce.pk_corp = " + strTblCorp + "."
+					+ TempTableVO.TEMPBUSINESSID_PU + " ";
+			strSqlFromWhere += "and bd_produce.pk_calbody = " + strTblStor
+					+ "." + TempTableVO.TEMPBUSINESSID_PU + " ";
+			strSqlFromWhere += "and bd_produce.pk_invbasdoc = " + strTblInv
+					+ "." + TempTableVO.TEMPBUSINESSID_PU + " ";
+			strSqlFromWhere += "and " + strTblCorp + "."
+					+ TempTableVO.TEMPPKFIELD_PU;
+			strSqlFromWhere += "=" + strTblStor + "."
+					+ TempTableVO.TEMPPKFIELD_PU + " ";
+			strSqlFromWhere += "and " + strTblStor + "."
+					+ TempTableVO.TEMPPKFIELD_PU;
+			strSqlFromWhere += "=" + strTblInv + "."
+					+ TempTableVO.TEMPPKFIELD_PU + " ";
+			// 完整的SQL语句
+			String strSql = "select bd_produce.pk_corp,bd_produce.pk_calbody,bd_produce.pk_invbasdoc,bd_produce.jhj,bd_produce.pricemethod ";
+			strSql += strSqlFromWhere;
+			//
+			mapJHJ = new EstimateDMO().getHashJHJ(strSql);
+		} catch (Exception e) {
+			PubDMO.throwBusinessException(e);
+		}
+		// 将计划价、记价方式设置到暂估VO{按：收票公司ID+内部结算库存组织ID+存货基本ID}
+		String strComKey = null;
+		UFDouble ufdNum = null;
+		ArrayList listPriceAndMethod = null;
+		UFDouble ufdPrice = null;
+		Integer iPriceMethod = null;
+		// iLen = estimates.length;
+		if (mapJHJ != null && mapJHJ.size() > 0) {
+			for (EstimateVO estVO : estVOs)
+
+				// 本情况是：分收集结模式下采购公司暂估时未定义内部结算库存组织
+				if ((!estVO.getEstType(strLoginCorpId)
+						.equals(EstimateVO.NORMAL))
+						&& estVO.getPkBody() == null) {
+
+				} else {
+					// 按：收票公司ID+库存组织ID(可能是内部结算库存组织)+存货基本ID
+					strComKey = estVO.getPk_invoicecorp();
+					// 分情况设置库存组织
+					if ((!estVO.getEstType(strLoginCorpId).equals(
+							EstimateVO.NORMAL))) {
+						strComKey += estVO.getPkBody();
+					} else {
+						strComKey += estVO.getCcalbodyid();
+					}
+					strComKey += estVO.getCbaseid();
+					//
+					listPriceAndMethod = (ArrayList<UFDouble>) mapJHJ
+							.get(strComKey);
+					// 与V51计划价方式处理相同(未取得计划价时也不采用入库单价)
+					if (listPriceAndMethod == null
+							|| listPriceAndMethod.size() == 0) {
+						estVO.setNpriceJhj(null);
+					} else {
+						ufdPrice = (UFDouble) listPriceAndMethod.get(0);
+						iPriceMethod = (Integer) listPriceAndMethod.get(1);
+						// 与V51计划价方式处理相同(未取得计划价时也不采用入库单价)
+						if (ufdPrice == null || ufdPrice.doubleValue() == 0.0) {
+							estVO.setNpriceJhj(null);
+						} else {
+							// 设置记价方式
+							estVO.setPriceMethod(iPriceMethod);
+							// 设置计划价
+							estVO.setNpriceJhj(ufdPrice);
+						}
+					}
+				}
+
+		}
+		// 与V51计划价方式处理相同(未取得计划价时也不采用入库单价)
+		else {
+			for (EstimateVO estVO : estVOs)
+				estVO.setNpriceJhj(null);
+
+		}
+		//
+		return;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:查询期初暂估入库单表体及结算子子表 输入参数: 返回值: 异常处理: 修改日期：2003/02/20
+	 */
+	public ArrayList queryInitialBody(String pkHead, String ts)
+			throws BusinessException {
+
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+
+			String temp = " and B.cgeneralhid = '" + pkHead
+					+ "' and upper(bzgflag) = 'Y' and B.ts = '" + ts + "'";
+
+			GeneralHItemVO itemVO[] = dmo.queryInitialBody(temp);
+
+			if (itemVO != null && itemVO.length > 0) {
+				// 自由项
+				GeneralHVO VO = new GeneralHVO();
+				VO.setChildrenVO(itemVO);
+				String vfree[][] = getFreeItem0(new GeneralHVO[] { VO });
+				if (vfree != null && vfree.length > 0) {
+					for (int j = 0; j < itemVO.length; j++) {
+						itemVO[j].setVfree(vfree[0][j]);
+					}
+				}
+
+				// 根据入库单表体,查询结算子子表
+				GeneralBb3VO bb3VO[] = dmo.queryStockBb3(itemVO);
+
+				if (bb3VO != null && bb3VO.length > 0) {
+					ArrayList list = new ArrayList();
+					list.add(itemVO);
+					list.add(bb3VO);
+					return list;
+				} else
+					return null;
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * 功能:查询期初暂估入库单表体--临时表方案 输入:String[],入库单表头ID[]；String[],入库单表头TS[]
+	 * 返回:ArrayList{GeneralHItemVO[],GeneralBb3VO[];...} 异常:SQLException
+	 * 日期:2003/02/20 修改:晁志平 FOR V30 效率优化，采用临时表方案拼接查询条件
+	 */
+	public ArrayList queryInitialBodyBatch(String pkHead[], String ts[])
+			throws BusinessException {
+		if (pkHead == null || pkHead.length == 0) {
+			SCMEnv.out("传入表头ID参数为空，直接返回NULL");
+			return null;
+		}
+		if (ts == null || ts.length == 0) {
+			SCMEnv.out("传入表头Ts参数为空，直接返回NULL");
+			return null;
+		}
+		if (ts.length != pkHead.length) {
+			SCMEnv.out("传入表头ID与表头Ts参数长度不一致，直接返回NULL");
+			return null;
+		}
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			/*
+			 * String temp = " and upper(bzgflag) = 'Y' and ("; for (int i = 0;
+			 * i < pkHead.length - 1; i++) { temp += "(B.cgeneralhid = '" +
+			 * pkHead[i] + "' and B.ts = '" + ts[i] + "') or "; } temp +=
+			 * "(B.cgeneralhid = '" + pkHead[pkHead.length - 1] +
+			 * "' and B.ts = '" + ts[pkHead.length - 1] + "')) ";
+			 */
+			GeneralHItemVO itemVO[] = dmo.queryInitialBodys(pkHead, ts);
+
+			if (itemVO != null && itemVO.length > 0) {
+				// 自由项
+				GeneralHVO VO = new GeneralHVO();
+				VO.setChildrenVO(itemVO);
+				String vfree[][] = getFreeItem0(new GeneralHVO[] { VO });
+				if (vfree != null && vfree.length > 0) {
+					for (int j = 0; j < itemVO.length; j++) {
+						itemVO[j].setVfree(vfree[0][j]);
+					}
+				}
+
+				// 根据入库单表体,查询结算子子表
+				GeneralBb3VO bb3VO[] = dmo.queryStockBb3(itemVO);
+
+				if (bb3VO != null && bb3VO.length > 0) {
+					ArrayList list = new ArrayList();
+					for (int i = 0; i < pkHead.length; i++) {
+						String s1 = pkHead[i].trim();
+						Vector v1 = new Vector();
+						Vector v2 = new Vector();
+						for (int j = 0; j < itemVO.length; j++) {
+							String s2 = itemVO[j].getCgeneralhid().trim();
+							if (s1.equals(s2))
+								v1.addElement(itemVO[j]);
+						}
+						for (int j = 0; j < bb3VO.length; j++) {
+							String s3 = bb3VO[j].getCgeneralhid().trim();
+							if (s1.equals(s3))
+								v2.addElement(bb3VO[j]);
+						}
+
+						GeneralHItemVO tempBodyVO[] = new GeneralHItemVO[v1
+								.size()];
+						v1.copyInto(tempBodyVO);
+						GeneralBb3VO tempBb3VO[] = new GeneralBb3VO[v2.size()];
+						v2.copyInto(tempBb3VO);
+
+						if (tempBodyVO == null || tempBodyVO.length == 0)
+							return null;
+						if (tempBb3VO == null || tempBb3VO.length == 0)
+							return null;
+
+						ArrayList list0 = new ArrayList();
+						list0.add(tempBodyVO);
+						list0.add(tempBb3VO);
+
+						list.add(list0);
+					}
+					return list;
+
+				} else
+					return null;
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述: 输入参数: 返回值: 异常处理: 日期:
+	 * 
+	 * @return nc.vo.ps.settle.StockVO[]
+	 * @param VO
+	 *            nc.vo.ps.settle.StockVO[]
+	 */
+	private StockVO[] queryNegStockByStock(StockVO[] VO)
+			throws BusinessException {
+		if (VO == null || VO.length == 0)
+			return null;
+
+		// 来源单据行ID唯一性组合
+		Vector vID = new Vector();
+		vID.addElement(VO[0].getCfirstbillbid());
+		for (int i = 1; i < VO.length; i++) {
+			String s = VO[i].getCfirstbillbid();
+			if (!vID.contains(s))
+				vID.addElement(s);
+		}
+
+		// 设置查询条件
+		String unitCode = VO[0].getPk_corp();
+		String sCondition = " and upper(isok) = 'N' and upper(bzgflag) = 'Y' and cfirstbillbid in ";
+		/*
+		 * ('"; for (int i = 0; i < vID.size() - 1; i++) sCondition +=
+		 * vID.elementAt(i) + "','"; sCondition += vID.elementAt(vID.size() - 1)
+		 * + "')";
+		 */
+		try {
+			// 临时表
+			String strSetId = null;
+			nc.bs.scm.pub.TempTableDMO dmoTempTbl = new nc.bs.scm.pub.TempTableDMO();
+			String[] sTemp = new String[vID.size()];
+			vID.copyInto(sTemp);
+			strSetId = dmoTempTbl.insertTempTable(sTemp,
+					nc.vo.scm.pub.TempTableVO.TEMPTABLE_PU56,
+					nc.vo.scm.pub.TempTableVO.TEMPPKFIELD_PU);
+			if (strSetId == null || strSetId.trim().equals("()")) {
+				strSetId = " ('ErrorPk') ";
+			}
+			sCondition += strSetId;
+
+			SettleDMO dmo = new SettleDMO();
+			int iDigitLocalCurrType = BsPuTool.getCCurrDecimal(unitCode);
+			StockVO stockVOs[] = dmo.queryStock(unitCode, sCondition,
+					iDigitLocalCurrType, false);
+
+			// 比较查询出的副入库单是否已存在,若存在,应删除
+			if (stockVOs != null && stockVOs.length > 0) {
+				Vector vTemp = new Vector();
+				for (int i = 0; i < VO.length; i++) {
+					if (!vTemp.contains(VO[i].getCgeneralbid()))
+						vTemp.addElement(VO[i].getCgeneralbid());
+				}
+				Vector vvTemp = new Vector();
+				for (int i = 0; i < stockVOs.length; i++) {
+					if (!vTemp.contains(stockVOs[i].getCgeneralbid()))
+						vvTemp.addElement(stockVOs[i]);
+				}
+				stockVOs = new StockVO[vvTemp.size()];
+				vvTemp.copyInto(stockVOs);
+			}
+			//
+
+			if (stockVOs != null && stockVOs.length > 0) {
+				Vector vTemp = new Vector();
+				for (int i = 0; i < stockVOs.length; i++)
+					vTemp.addElement(stockVOs[i].getCprovidermangid());
+				String sVendorMangID[] = new String[vTemp.size()];
+				vTemp.copyInto(sVendorMangID);
+				String sVendorBaseID[] = dmo.getVendorBaseKey(sVendorMangID);
+
+				// 计算未结算数量，本币未结算金额
+				for (int i = 0; i < stockVOs.length; i++) {
+					stockVOs[i].setCproviderbaseid(sVendorBaseID[i]);
+					UFDouble d1 = stockVOs[i].getNinnum();
+					UFDouble d2 = stockVOs[i].getNaccumsettlenum();
+					if (d1 == null || d1.toString().trim().length() == 0)
+						d1 = new UFDouble(0);
+					if (d2 == null || d2.toString().trim().length() == 0)
+						d2 = new UFDouble(0);
+					double d = d1.doubleValue() - d2.doubleValue();
+					stockVOs[i].setNnosettlenum(new UFDouble(d));
+					d1 = stockVOs[i].getNmoney();
+					d2 = stockVOs[i].getNaccumsettlemny();
+					if (d1 == null || d1.toString().trim().length() == 0)
+						d1 = new UFDouble(0);
+					if (d2 == null || d2.toString().trim().length() == 0)
+						d2 = new UFDouble(0);
+					d = d1.doubleValue() - d2.doubleValue();
+					stockVOs[i].setNnosettlemny(new UFDouble(d).add(
+							new UFDouble(0.0), BsPuTool.getCCurrDecimal(null)));
+				}
+
+				// 未结算数量相反，暂估金额相反
+				Vector vStockVOs = new Vector();
+				for (int i = 0; i < VO.length; i++) {
+					boolean bFound = false;
+					String s1 = VO[i].getCsourcebillbid();
+					if (s1 == null || s1.trim().length() == 0) {
+						vStockVOs.addElement(null);
+						continue;
+					}
+					UFDouble nNum1 = VO[i].getNnosettlenum();
+					UFDouble nMoney1 = VO[i].getNmoney();
+					for (int j = 0; j < stockVOs.length; j++) {
+						String s2 = stockVOs[j].getCsourcebillbid();
+						if (s2 == null || s2.trim().length() == 0)
+							continue;
+						UFDouble nNum2 = stockVOs[j].getNnosettlenum();
+						UFDouble nMoney2 = stockVOs[j].getNmoney();
+						if (s1.equals(s2)
+								&& (nNum1.doubleValue() == -1
+										* nNum2.doubleValue())
+								&& (nMoney1.doubleValue() == -1
+										* nMoney2.doubleValue())) {
+							vStockVOs.addElement(stockVOs[j]);
+							bFound = true;
+							break;
+						}
+					}
+
+					if (!bFound)
+						vStockVOs.addElement(null);
+				}
+				if (vStockVOs.size() > 0) {
+					StockVO VOs[] = new StockVO[vStockVOs.size()];
+					vStockVOs.copyInto(VOs);
+					return VOs;
+				}
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:订单查询(不包括费用属性的存货) 输入参数: 返回值: 异常处理:
+	 */
+	public OorderVO[] queryOrder(String strLoginCorpId,
+			ConditionVO conditionVO[], String biztypeID[],
+			String sEstPriceSource) throws BusinessException {
+
+		OorderVO[] orders = null;
+		int nPriceDecimal = 2;
+		int nMoneyDecimal = 0;
+
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+
+			// 分解查询条件
+			String sCondition = "";
+
+			ArrayList listRet = dealCondVosForPowerForOrder(conditionVO);
+			conditionVO = (ConditionVO[]) listRet.get(0);
+			String strDataPowerSql = (String) listRet.get(1);
+
+			for (int i = 0; i < conditionVO.length; i++) {
+				String sName = conditionVO[i].getFieldCode().trim();
+				String sOpera = conditionVO[i].getOperaCode().trim();
+				String sValue = conditionVO[i].getValue();
+				String sSQL = conditionVO[i].getSQLStr();
+				String sReplace = null;
+
+				if (sName.equals("dorderdate") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "po_order.dorderdate " + sOpera + " '" + sValue
+							+ "'";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("vordercode") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "po_order.vordercode " + sOpera + " '" + sValue
+							+ "'";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("cvendorbaseid") && sValue != null
+						&& sValue.length() > 0) {
+					if (strLoginCorpId != null)
+						sReplace = "po_order.cvendorbaseid in (select A.pk_cubasdoc from bd_cubasdoc A,bd_cumandoc B where B.pk_corp = '"
+								+ strLoginCorpId
+								+ "' and A.pk_cubasdoc = B.pk_cubasdoc and custcode "
+								+ sOpera
+								+ " '"
+								+ sValue
+								+ "' and (custflag = '1' or custflag = '3'))";
+					else
+						sReplace = "po_order.cvendorbaseid in (select A.pk_cubasdoc from bd_cubasdoc A,bd_cumandoc B where A.pk_cubasdoc = B.pk_cubasdoc and custcode "
+								+ sOpera
+								+ " '"
+								+ sValue
+								+ "' and (custflag = '1' or custflag = '3'))";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("cbaseid") && sValue != null
+						&& sValue.length() > 0) {
+					if (strLoginCorpId != null)
+						sReplace = "po_order_b.cbaseid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invmandoc B where B.pk_corp = '"
+								+ strLoginCorpId
+								+ "' and A.pk_invbasdoc = B.pk_invbasdoc and invcode "
+								+ sOpera + " '" + sValue + "')";
+					else
+						sReplace = "po_order_b.cbaseid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invmandoc B where A.pk_invbasdoc = B.pk_invbasdoc and invcode "
+								+ sOpera + " '" + sValue + "')";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("cinvclassid") && sValue != null
+						&& sValue.length() > 0) {
+					try {
+						String sClassCode[] = dmo.getSubInvClassCode(sValue);
+
+						if (sClassCode != null && sClassCode.length > 0) {
+							sValue = "(";
+							for (int j = 0; j < sClassCode.length; j++) {
+								if (j < sClassCode.length - 1)
+									sValue += "invclasscode " + sOpera + " '"
+											+ sClassCode[j] + "' or ";
+								else
+									sValue += "invclasscode " + sOpera + " '"
+											+ sClassCode[j] + "')";
+							}
+							sReplace = "po_order_b.cbaseid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invmandoc B,bd_invcl C where B.pk_corp = '"
+									+ strLoginCorpId
+									+ "' and A.pk_invbasdoc = B.pk_invbasdoc and A.pk_invcl = C.pk_invcl and "
+									+ sValue + ")";
+						} else {
+							sReplace = "po_order_b.cbaseid in (select A.pk_invbasdoc from bd_invbasdoc A,bd_invmandoc B,bd_invcl C where B.pk_corp = '"
+									+ strLoginCorpId
+									+ "' and A.pk_invbasdoc = B.pk_invbasdoc and A.pk_invcl = C.pk_invcl and invclasscode "
+									+ sOpera + " '" + sValue + "')";
+						}
+						String s = getReplacedSQL(sSQL, sName, sReplace);
+						sCondition += s;
+					} catch (Exception e) {
+						/* 此异常不必抛出,直接返回NULL */
+						SCMEnv.out(e);
+						return null;
+					}
+				}
+
+				if (sName.equals("cbiztype") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "po_order.cbiztype in (select pk_busitype from bd_busitype where busicode "
+							+ sOpera + " '" + sValue + "')";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+			}
+
+			sCondition = PubDMO.processFirst(sCondition);
+
+			String s = " and po_order.cbiztype in (";
+			for (int i = 0; i < biztypeID.length; i++) {
+				if (i != biztypeID.length - 1)
+					s += "'" + biztypeID[i] + "',";
+				else
+					s += "'" + biztypeID[i] + "')";
+			}
+			sCondition += s;
+
+			// 订单头查询条件
+			sCondition += " and coalesce(po_order.bislatest, 'Y') = 'Y' ";
+			// 订单体查询条件
+			sCondition += " and po_order_b.iisactive = "
+					+ nc.vo.po.OrderItemVO.IISACTIVE_ACTIVE;
+
+			// 支持集中采购,since v502, 支持分收集结模式的订单生成期初暂估, by czp&fengping
+			sCondition += " and (po_order_b.pk_invoicecorp = po_order_b.pk_arrvcorp and po_order_b.pk_invoicecorp = '"
+					+ strLoginCorpId + "' ";
+			sCondition += " or po_order_b.pk_arrvcorp <> '" + strLoginCorpId
+					+ "' and po_order_b.pk_invoicecorp = '" + strLoginCorpId
+					+ "') ";
+
+			if (strDataPowerSql != null)
+				sCondition += " and " + strDataPowerSql;
+
+			orders = dmo.queryOrder(strLoginCorpId, sCondition);
+
+			// 获取单价和金额精度,公司,since v502, 重构到一处算法，by czp&fengping
+			setEstVosPricesForOorderBills(orders, strLoginCorpId);
+
+			// ISysInitQry myService =
+			// (ISysInitQry)nc.bs.framework.common.NCLocator.getInstance().lookup(ISysInitQry.class.getName());
+			// nPriceDecimal = myService.getParaInt(unitCode,"BD505");
+			// UFDouble dTemp = VMIDMO.getDigitRMB(unitCode);
+			// while(dTemp.doubleValue() < 1){
+			// dTemp = dTemp.multiply(10);
+			// nMoneyDecimal++;
+			// }
+			//
+			// //计算暂估数量，暂估单价，暂估金额
+			// if (orders == null || orders.length == 0)
+			// return orders;
+			// for (int i = 0; i < orders.length; i++) {
+			// UFDouble d1 = orders[i].getNordernum();
+			// UFDouble d2 = orders[i].getNaccumstorenum();
+			// UFDouble d3 = orders[i].getNmoney();
+			// if (d2 == null)
+			// d2 = new UFDouble(0.0);
+			// if (d1 != null && d2 != null) {
+			// double d = d1.doubleValue() - d2.doubleValue();
+			// orders[i].setNgaugenum(new UFDouble(d));
+			// }
+			// if (d1 != null && d3 != null && d1.doubleValue() != 0.0) {
+			// double d = d3.doubleValue() / d1.doubleValue();
+			// orders[i].setNprice(new
+			// UFDouble(PubDMO.getRoundDouble(nPriceDecimal,d)));
+			// }
+			// UFDouble d4 = orders[i].getNgaugenum();
+			// UFDouble d5 = orders[i].getNprice();
+			// if (d4 != null && d5 != null) {
+			// double d = d4.doubleValue() * d5.doubleValue();
+			// orders[i].setNmoney(new
+			// UFDouble(PubDMO.getRoundDouble(nMoneyDecimal,d)));
+			// }
+			// }
+			//
+			// if (sEstPriceSource != null && sEstPriceSource.trim().length() >
+			// 0) {
+			// orders = dmo.replacePriceForOrder(orders, sEstPriceSource,
+			// nPriceDecimal, nMoneyDecimal);
+			// }
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return orders;
+	}
+
+	/**
+	 * 
+	 * 父类方法重写
+	 * 
+	 * @see nc.itf.ps.estimate.IEstimate#queryOrder(java.lang.String,
+	 *      java.lang.String)
+	 */
+	public OorderVO[] queryOrder(String strLoginCorpId, String sCondition)
+			throws BusinessException {
+
+		OorderVO[] orders = null;
+		int nPriceDecimal = 2;
+		int nMoneyDecimal = 0;
+
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+
+			// 订单头查询条件
+			sCondition += " and coalesce(po_order.bislatest, 'Y') = 'Y' ";
+			// 订单体查询条件
+			sCondition += " and po_order_b.iisactive = "
+					+ nc.vo.po.OrderItemVO.IISACTIVE_ACTIVE;
+
+			// 支持集中采购,since v502, 支持分收集结模式的订单生成期初暂估, by czp&fengping
+			sCondition += " and (po_order_b.pk_invoicecorp = po_order_b.pk_arrvcorp and po_order_b.pk_invoicecorp = '"
+					+ strLoginCorpId + "' ";
+			sCondition += " or po_order_b.pk_arrvcorp <> '" + strLoginCorpId
+					+ "' and po_order_b.pk_invoicecorp = '" + strLoginCorpId
+					+ "') ";
+
+			orders = dmo.queryOrder(strLoginCorpId, sCondition);
+
+			// 获取单价和金额精度,公司,since v502, 重构到一处算法，by czp&fengping
+			setEstVosPricesForOorderBills(orders, strLoginCorpId);
+
+			// ISysInitQry myService =
+			// (ISysInitQry)nc.bs.framework.common.NCLocator.getInstance().lookup(ISysInitQry.class.getName());
+			// nPriceDecimal = myService.getParaInt(unitCode,"BD505");
+			// UFDouble dTemp = VMIDMO.getDigitRMB(unitCode);
+			// while(dTemp.doubleValue() < 1){
+			// dTemp = dTemp.multiply(10);
+			// nMoneyDecimal++;
+			// }
+			//
+			// //计算暂估数量，暂估单价，暂估金额
+			// if (orders == null || orders.length == 0)
+			// return orders;
+			// for (int i = 0; i < orders.length; i++) {
+			// UFDouble d1 = orders[i].getNordernum();
+			// UFDouble d2 = orders[i].getNaccumstorenum();
+			// UFDouble d3 = orders[i].getNmoney();
+			// if (d2 == null)
+			// d2 = new UFDouble(0.0);
+			// if (d1 != null && d2 != null) {
+			// double d = d1.doubleValue() - d2.doubleValue();
+			// orders[i].setNgaugenum(new UFDouble(d));
+			// }
+			// if (d1 != null && d3 != null && d1.doubleValue() != 0.0) {
+			// double d = d3.doubleValue() / d1.doubleValue();
+			// orders[i].setNprice(new
+			// UFDouble(PubDMO.getRoundDouble(nPriceDecimal,d)));
+			// }
+			// UFDouble d4 = orders[i].getNgaugenum();
+			// UFDouble d5 = orders[i].getNprice();
+			// if (d4 != null && d5 != null) {
+			// double d = d4.doubleValue() * d5.doubleValue();
+			// orders[i].setNmoney(new
+			// UFDouble(PubDMO.getRoundDouble(nMoneyDecimal,d)));
+			// }
+			// }
+			//
+			// if (sEstPriceSource != null && sEstPriceSource.trim().length() >
+			// 0) {
+			// orders = dmo.replacePriceForOrder(orders, sEstPriceSource,
+			// nPriceDecimal, nMoneyDecimal);
+			// }
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return orders;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:来源是订单的入库单的业务类型 输入参数: 返回值: 异常处理:
+	 */
+	public String[] querySpeBiztypeID(String unitCode) throws BusinessException {
+		String s[] = null;
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			s = dmo.querySpeBiztypeID(unitCode);
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return s;
+	}
+
+	/**
+	 * 支持数据权限处理，拆分查询条件是用户录入自定义查询条件，还是UI端系统拼接的数据权限查询条件
+	 * 
+	 * @param voaCond
+	 * @return{0、非权限条件VO[]；1、权限条件查询串
+	 */
+	private ArrayList dealCondVosForPowerForInitial(ConditionVO[] voaCond) {
+
+		// 拆分用户录入VO、数据权限VO
+		ArrayList listUserInputVos = new ArrayList();
+		ArrayList listPowerVos = new ArrayList();
+
+		int iLen = voaCond.length;
+
+		for (int i = 0; i < iLen; i++) {
+			if (voaCond[i].getOperaCode().trim().equalsIgnoreCase("IS")
+					&& voaCond[i].getValue().trim().equalsIgnoreCase("NULL")) {
+				listPowerVos.add(voaCond[i]);
+				i++;
+				listPowerVos.add(voaCond[i]);
+			} else {
+				listUserInputVos.add(voaCond[i]);
+			}
+		}
+
+		// 组织返回VO
+		ArrayList listRet = new ArrayList();
+
+		// 用户录入
+		ConditionVO[] voaCondUserInput = null;
+		if (listUserInputVos.size() > 0) {
+			voaCondUserInput = new ConditionVO[listUserInputVos.size()];
+			listUserInputVos.toArray(voaCondUserInput);
+		}
+		listRet.add(voaCondUserInput);
+
+		// 数据权限VO==>查询条件串
+		ConditionVO[] voaCondPower = null;
+		if (listPowerVos.size() > 0) {
+			voaCondPower = new ConditionVO[listPowerVos.size()];
+			listPowerVos.toArray(voaCondPower);
+			String strPowerWherePart = voaCondPower[0]
+					.getWhereSQL(voaCondPower);
+			// 将非标准的字段替换掉
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "custcode", "pk_cumandoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cvendorbaseid", "cproviderid");
+
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "invcode", "b.pk_invbasdoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cbaseid", "cinvbasid");
+
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cinvclassid", "cinvbasid");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "invclasscode", "pk_invbasdoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil
+					.replaceAllString(
+							strPowerWherePart,
+							"bd_invcl where 0=0  and pk_invcl",
+							"bd_invcl, bd_invbasdoc where bd_invcl.pk_invcl = bd_invbasdoc.pk_invcl and bd_invcl.pk_invcl");
+			//   
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "deptcode", "pk_deptdoc");
+			strPowerWherePart = nc.vo.jcom.lang.StringUtil.replaceAllString(
+					strPowerWherePart, "cdeptid", "cdptid");
+			//
+			listRet.add(strPowerWherePart);
+		} else {
+			listRet.add(null);
+		}
+
+		return listRet;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:查询期初暂估入库单 输入参数: 返回值: 异常处理:
+	 */
+	public GeneralHVO[] queryStockForEstimate(String unitCode,
+			ConditionVO conditionVO[]) throws BusinessException {
+
+		GeneralHVO[] generals = null;
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			// 分解查询条件
+			String sCondition = "";
+
+			ArrayList listRet = dealCondVosForPowerForInitial(conditionVO);
+			conditionVO = (ConditionVO[]) listRet.get(0);
+			String strDataPowerSql = (String) listRet.get(1);
+
+			for (int i = 0; i < conditionVO.length; i++) {
+				String sName = conditionVO[i].getFieldCode().trim();
+				String sOpera = conditionVO[i].getOperaCode().trim();
+				String sValue = conditionVO[i].getValue();
+				String sSQL = conditionVO[i].getSQLStr();
+
+				String sReplace = null;
+
+				if (sName.equals("dbilldate") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "dbilldate " + sOpera + " '" + sValue + "'";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("vordercode") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "vsourcebillcode " + sOpera + " '" + sValue
+							+ "'";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("vbillcode") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "vbillcode " + sOpera + " '" + sValue + "'";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("coperatorid") && sValue != null
+						&& sValue.length() > 0) {
+					// sReplace = "coperatorid " + sOpera + " '" + sValue + "'";
+					sReplace = "coperatorid in (select cuserid from sm_user where user_code "
+							+ sOpera + " '" + sValue + "')";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("cwarehouseid") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "cwarehouseid in (select pk_stordoc from bd_stordoc where storcode "
+							+ sOpera + " '" + sValue + "')";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+					//      
+					// sReplace = "cwarehouseid " + sOpera + " '" + sValue +
+					// "'";
+					// String s = getReplacedSQL(sSQL, sName, sReplace);
+					// sCondition += s;
+				}
+
+				if (sName.equals("cbaseid") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc where invcode "
+							+ sOpera + " '" + sValue + "')";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				if (sName.equals("cinvclassid") && sValue != null
+						&& sValue.length() > 0) {
+					try {
+						String sClassCode[] = dmo.getSubInvClassCode(sValue);
+
+						if (sClassCode != null && sClassCode.length > 0) {
+							sValue = "(";
+							for (int j = 0; j < sClassCode.length; j++) {
+								if (j < sClassCode.length - 1)
+									sValue += "invclasscode " + sOpera + " '"
+											+ sClassCode[j] + "' or ";
+								else
+									sValue += "invclasscode " + sOpera + " '"
+											+ sClassCode[j] + "')";
+							}
+							sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc B,bd_invcl C where "
+									+ sValue + " and B.pk_invcl = C.pk_invcl)";
+						} else {
+							sReplace = "B.cinvbasid in (select pk_invbasdoc from bd_invbasdoc B,bd_invcl C where "
+									+ "invclasscode "
+									+ sOpera
+									+ " '"
+									+ sValue
+									+ "' and B.pk_invcl = C.pk_invcl)";
+						}
+						String s = getReplacedSQL(sSQL, sName, sReplace);
+						sCondition += s;
+					} catch (Exception e) {
+						/* 此异常不必抛出,直接返回NULL */
+						SCMEnv.out(e);
+						return null;
+					}
+				}
+
+				if (sName.equals("cvendorbaseid") && sValue != null
+						&& sValue.length() > 0) {
+					if (unitCode != null)
+						sReplace = "cproviderid in (select pk_cumandoc from bd_cumandoc A, bd_cubasdoc B where A.pk_corp = '"
+								+ unitCode
+								+ "' and custcode "
+								+ sOpera
+								+ " '"
+								+ sValue
+								+ "' and A.pk_cubasdoc = B.pk_cubasdoc and (custflag = '1' or custflag = '3'))";
+					else
+						sReplace = "cproviderid in (select pk_cumandoc from bd_cumandoc A, bd_cubasdoc B where custcode "
+								+ sOpera
+								+ " '"
+								+ sValue
+								+ "'and A.pk_cubasdoc = B.pk_cubasdoc and (custflag = '1' or custflag = '3'))";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				// 打印次数
+				if (sName.equals("iprintcount") && sValue != null
+						&& sValue.length() > 0) {
+					String s = " and (A.iprintcount" + sOpera + sValue + ")";
+					sCondition += s;
+				}
+
+				if (sName.equals("cgeneralhid") && sValue != null
+						&& sValue.length() > 0) {
+					String s = " and (A.cgeneralhid " + sOpera + "'" + sValue
+							+ "')";
+					sCondition += s;
+				}
+
+				// 收货公司
+				if (sName.equals("pk_stockcorp") && sValue != null
+						&& sValue.length() > 0) {
+					sReplace = "A.pk_corp in (select pk_corp from bd_corp where unitcode "
+							+ sOpera + " '" + sValue + "')";
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+				// 表体备注
+				if (sName.equals("ic_general_b.vnotebody") && sValue != null
+						&& sValue.length() > 0) {
+					String snValue = " '" + sValue + "'";
+					if ("like".equalsIgnoreCase(sOpera.trim()))
+						snValue = " '%" + sValue + "%'";
+					sReplace = "B.vnotebody " + sOpera + snValue;
+					String s = getReplacedSQL(sSQL, sName, sReplace);
+					sCondition += s;
+				}
+
+			}
+
+			sCondition = PubDMO.processFirst(sCondition);
+
+			if (strDataPowerSql != null)
+				sCondition += " and " + strDataPowerSql;
+
+			// 收票公司=登录公司
+			sCondition += " and B.pk_invoicecorp = '" + unitCode + "' ";
+			//
+			GeneralHHeaderVO hVO[] = dmo.queryStockHead(null, sCondition);
+			if (hVO == null || hVO.length == 0)
+				return null;
+
+			// 根据入库单表头，查询入库单表体(入库单未结算)
+			Vector v = new Vector();
+			String temp = "";
+			String key = hVO[0].getCgeneralhid();
+			if (key != null && key.trim().length() > 0) {
+				temp = " where dr = 0 and cgeneralhid = '" + key
+						+ "' and upper(bzgflag) = 'Y'";
+			} else {
+				temp = " where dr = 0 and upper(bzgflag) = 'Y'";
+			}
+
+			GeneralHItemVO itemVO[] = dmo.queryStockBodyForInitial(temp);
+			GeneralHVO vo = new GeneralHVO(itemVO.length);
+			vo.setParentVO(hVO[0]);
+			vo.setChildrenVO(itemVO);
+
+			if (itemVO != null && itemVO.length > 0) {
+				// 根据入库单表体,查询结算子子表
+				GeneralBb3VO bb3VO[] = dmo.queryStockBb3(itemVO);
+				vo.setGrandVO(bb3VO);
+			}
+
+			v.addElement(vo);
+
+			for (int i = 1; i < hVO.length; i++) {
+				GeneralHVO VO = new GeneralHVO(1);
+				VO.setParentVO(hVO[i]);
+
+				v.addElement(VO);
+			}
+
+			if (v.size() > 0) {
+				generals = new GeneralHVO[v.size()];
+				v.copyInto(generals);
+
+				// 自由项（第一张单据）
+				String vfree[][] = getFreeItem0(new GeneralHVO[] { generals[0] });
+				if (vfree != null && vfree.length > 0) {
+					GeneralHItemVO bodyVO[] = generals[0].getBodyVO();
+					if (bodyVO != null && bodyVO.length > 0) {
+						for (int j = 0; j < bodyVO.length; j++) {
+							bodyVO[j].setVfree(vfree[0][j]);
+						}
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return generals;
+	}
+
+	/**
+	 * 功能描述:查询入库单表体。服务于存货核算。 输入参数: 返回值: 异常处理: 修改：2004-05-31 晁志平 FOR V30
+	 * 向存货核算传递换算率
+	 */
+	private Vector queryStockBodyForIA(EstimateVO VOs[])
+			throws BusinessException {
+		Vector v = new Vector();
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			Vector v1 = new Vector();
+			Vector v2 = new Vector();
+			Vector v3 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				v1.addElement(VOs[i].getCmangid());
+				v2.addElement(VOs[i].getCwarehouseid());
+				v3.addElement(VOs[i].getCgeneralbid());
+			}
+			String cMangID[] = new String[v1.size()];
+			v1.copyInto(cMangID);
+			String cWarehouseID[] = new String[v2.size()];
+			v2.copyInto(cWarehouseID);
+			String keys[] = new String[v3.size()];
+			v3.copyInto(keys);
+
+			GeneralHItemVO tempVO[] = dmo.queryStockBodyForIA(keys);
+			ArrayList list = dmo.queryPriceMethod(cMangID, cWarehouseID);
+
+			for (int i = 0; i < VOs.length; i++) {
+				ArrayList list1 = (ArrayList) list.get(i);
+
+				Vector vTemp = new Vector();
+				vTemp.addElement(tempVO[i]);
+				if (list1 != null && list1.size() > 1) {
+					vTemp.addElement(list1.get(0));
+					vTemp.addElement(list1.get(1));
+				} else {
+					vTemp.addElement(null);
+					vTemp.addElement(null);
+				}
+
+				v.addElement(vTemp);
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return v;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:查询期初暂估入库单 输入参数: 返回值: 异常处理:
+	 */
+	public GeneralHVO queryStockByHeadKey(String unitCode, String headKey)
+			throws BusinessException {
+		if (headKey == null || headKey.trim().length() == 0)
+			return null;
+		GeneralHVO[] generals = null;
+
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+
+			String sCondition = " and A.cgeneralhid = '" + headKey + "'";
+			GeneralHHeaderVO hVO[] = dmo.queryStockHead(unitCode, sCondition);
+			if (hVO == null || hVO.length == 0)
+				return null;
+
+			// 根据入库单表头，查询入库单表体(入库单未结算)
+			Vector v = new Vector();
+			String temp = "";
+			String key = hVO[0].getCgeneralhid();
+			if (key != null && key.trim().length() > 0) {
+				temp = " where dr = 0 and cgeneralhid = '" + key
+						+ "' and upper(bzgflag) = 'Y'";
+			} else {
+				temp = " where dr = 0 and upper(bzgflag) = 'Y'";
+			}
+
+			GeneralHItemVO itemVO[] = dmo.queryStockBodyForInitial(temp);
+			GeneralHVO vo = new GeneralHVO(itemVO.length);
+			vo.setParentVO(hVO[0]);
+			vo.setChildrenVO(itemVO);
+
+			if (itemVO != null && itemVO.length > 0) {
+				// 根据入库单表体,查询结算子子表
+				GeneralBb3VO bb3VO[] = dmo.queryStockBb3(itemVO);
+				vo.setGrandVO(bb3VO);
+			}
+
+			v.addElement(vo);
+
+			for (int i = 1; i < hVO.length; i++) {
+				GeneralHVO VO = new GeneralHVO(1);
+				VO.setParentVO(hVO[i]);
+
+				v.addElement(VO);
+			}
+
+			if (v.size() > 0) {
+				generals = new GeneralHVO[v.size()];
+				v.copyInto(generals);
+
+				// 自由项（第一张单据）
+				String vfree[][] = getFreeItem0(new GeneralHVO[] { generals[0] });
+				if (vfree != null && vfree.length > 0) {
+					GeneralHItemVO bodyVO[] = generals[0].getBodyVO();
+					if (bodyVO != null && bodyVO.length > 0) {
+						for (int j = 0; j < bodyVO.length; j++) {
+							bodyVO[j].setVfree(vfree[0][j]);
+						}
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return generals[0];
+	}
+
+	/**
+	 * 功能描述:查询入库单表头。服务于存货核算。 输入参数: 返回值: 异常处理:
+	 */
+	private Vector queryStockHeadForIA(String sGeneralhid[],
+			String sWarehouseid[]) throws BusinessException {
+
+		Vector v = new Vector();
+		try {
+			EstimateDMO dmo = new EstimateDMO();
+			GeneralHHeaderVO tempVO[] = dmo.queryStockHeadForIA(sGeneralhid);
+			String temp[] = dmo.queryStoreOrgID(sWarehouseid);
+
+			for (int i = 0; i < sGeneralhid.length; i++) {
+				Vector vTemp = new Vector();
+				vTemp.addElement(tempVO[i]);
+				vTemp.addElement(temp[i]);
+
+				v.addElement(vTemp);
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+
+		return v;
+	}
+
+	/**
+	 * 功能描述:回退入库单号 输入参数: 返回值: 异常处理: 日期:2004-06-02
+	 */
+
+	private void returnBillCode(GeneralHHeaderVO head) throws BusinessException {
+		String vBillcode = null;
+
+		// 获取入库单号
+		try {
+			nc.vo.pub.billcodemanage.BillCodeObjValueVO vo = new nc.vo.pub.billcodemanage.BillCodeObjValueVO();
+
+			String sNames[] = { "仓库", "当前操作员", "收发类别" };
+			String sKeys[] = { "cwarehouseid", "coperatorid", "cdispatcherid" };
+			for (int i = 0; i < sNames.length; i++) {
+				Object o = head.getAttributeValue(sKeys[i]);
+				vo.setAttributeValue(sNames[i], o);
+			}
+			vo.setAttributeValue("库存组织", getStoreOrg(head.getCwarehouseid()));
+
+			vBillcode = head.getVbillcode();
+			if (vBillcode == null || vBillcode.length() == 0)
+				vBillcode = null;
+
+			IBillcodeRuleService bo = (IBillcodeRuleService) nc.bs.framework.common.NCLocator
+					.getInstance().lookup(IBillcodeRuleService.class.getName());
+			bo.returnBillCodeOnDelete(head.getPk_corp(), "45", vBillcode, vo);
+
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+	}
+
+	/**
+	 * 功能描述:入库单暂估时向存货核算系统传送数据(成批单据传送)
+	 */
+	private void saveBillFromOutter(EstimateVO[] VOs, String cOperator,
+			UFDate dCurrDate, String strLoginCorpId, String strModuleCode)
+			throws BusinessException {
+		nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
+		timer.start();
+
+		try {
+			// 将暂估VO转换为存货VO，包含部分后续处理
+			BillVO[] billVOs = transferIAData(VOs, cOperator, dCurrDate,
+					strLoginCorpId);
+			timer.addExecutePhase("暂估VO转换为存货VO[VO对照及后续处理]");
+			//
+			String sTime = (new UFDateTime(new Date())).toString();
+			// 检查重复表体行
+			String strErrLines = "";
+			HashMap<String, String> mapErrLine = new HashMap<String, String>();
+			for (int i = 0; i < billVOs.length; i++) {
+				((BillHeaderVO) billVOs[i].getParentVO()).setVbillcode(null);
+				((BillHeaderVO) billVOs[i].getParentVO()).setTmaketime(sTime);
+				((BillHeaderVO) billVOs[i].getParentVO())
+						.setTlastmaketime(sTime);
+				((BillHeaderVO) billVOs[i].getParentVO())
+						.setClastoperatorid(cOperator);
+				BillItemVO bodyVO[] = (BillItemVO[]) billVOs[i].getChildrenVO();
+				if (bodyVO != null && bodyVO.length > 0) {
+					for (int j = 0; j < bodyVO.length; j++) {
+						bodyVO[j].setVbillcode(null);
+						bodyVO[j].setIrownumber(new Integer(j));
+						if (PuPubVO.getString_TrimZeroLenAsNull(bodyVO[j]
+								.getCsourcebillitemid()) != null
+								&& mapErrLine.containsKey(bodyVO[j]
+										.getCsourcebillitemid())) {
+							strErrLines += NCLangResOnserver
+									.getInstance()
+									.getStrByID(
+											"4004050301",
+											"UPP4004050301-000003",
+											null,
+											new String[] {
+													bodyVO[j].getCicbillcode(),
+													bodyVO[j]
+															.getCsourcebillitemid() })/*
+																					 * 入库单号：
+																					 * {
+																					 * 0
+																					 * }
+																					 * 入库单行主键
+																					 * ：
+																					 * {
+																					 * 1
+																					 * }
+																					 * \
+																					 * n
+																					 */;
+						} else {
+							mapErrLine
+									.put(bodyVO[j].getCsourcebillitemid(), "");
+						}
+					}
+				}
+			}
+			timer.addExecutePhase("保存存货核算单据前检查");
+
+			// 保存存货核算单据前检查
+			if (strErrLines.length() > 0) {
+				throw new BusinessException(NCLangResOnserver.getInstance()
+						.getStrByID("4004050301", "UPP4004050301-000005", null,
+								new String[] { strErrLines })/*
+															 * 本次要传递给存货核算单据中存在重复的入库单行：
+															 * \n{0}
+															 */);
+			}
+			// IIAToPUBill myService = (IIAToPUBill)
+			// NCLocator.getInstance().lookup(IIAToPUBill.class.getName());
+			// 保存前处理
+			SettleImpl.dealBeforeCallIaSave(billVOs);
+			timer.addExecutePhase("保存前处理");
+
+			// 调用IA保存
+			// myService.saveBillFromOutterArray(billVOs, s1, s2);
+			ClientLink cl = PuUtils.getClintLink(strLoginCorpId, cOperator,
+					dCurrDate);
+			if (ProductCode.PROD_PO.equals(strModuleCode)) {
+				IIAToPU myService = (IIAToPU) NCLocator.getInstance().lookup(
+						IIAToPU.class.getName());
+				myService.estimatePU(billVOs, cl);
+			} else if (ProductCode.PROD_SC.equals(strModuleCode)) {
+				IIAToSC myService = (IIAToSC) NCLocator.getInstance().lookup(
+						IIAToSC.class.getName());
+				myService.estimateSC(billVOs, cl);
+			} else {
+				throw new BusinessException("Impossible : not PO and not SC!");
+			}
+			timer.addExecutePhase("执行IA保存接口方法");
+
+			// 保存存货核算单据后检查：针对碧桂园等项目出现过生成重复单据情况做此检查
+			ArrayList<String> listIcBids = new EstimateDMO()
+					.getIdsFromIA(billVOs);
+			if (listIcBids != null && listIcBids.size() > 0) {
+				strErrLines = "";
+				mapErrLine = new HashMap<String, String>();
+				for (int i = 0; i < billVOs.length; i++) {
+					BillItemVO bodyVO[] = (BillItemVO[]) billVOs[i]
+							.getChildrenVO();
+					if (bodyVO != null && bodyVO.length > 0) {
+						for (int j = 0; j < bodyVO.length; j++) {
+							if (PuPubVO.getString_TrimZeroLenAsNull(bodyVO[j]
+									.getCsourcebillitemid()) != null
+									&& listIcBids.contains(bodyVO[j]
+											.getCsourcebillitemid())) {
+								strErrLines += NCLangResOnserver
+										.getInstance()
+										.getStrByID(
+												"4004050301",
+												"UPP4004050301-000003",
+												null,
+												new String[] {
+														bodyVO[j]
+																.getCicbillcode(),
+														bodyVO[j]
+																.getCsourcebillitemid() })/*
+																						 * 入库单号：
+																						 * {
+																						 * 0
+																						 * }
+																						 * 入库单行主键
+																						 * ：
+																						 * {
+																						 * 1
+																						 * }
+																						 * \
+																						 * n
+																						 */;
+							}
+						}
+					}
+				}
+				//
+				if (strErrLines.length() > 0) {
+					throw new BusinessException(NCLangResOnserver.getInstance()
+							.getStrByID("4004050301", "UPP4004050301-000005",
+									null, new String[] { strErrLines })/*
+																		 * 本次要传递给存货核算单据中存在重复的入库单行：
+																		 * \n{0}
+																		 */);
+				}
+			}
+			//
+			timer.addExecutePhase("保存存货核算单据后检查");
+			//
+			timer.showAllExecutePhase("存货核算保存方法[数据准备、存货核算保存、保存后检查]时间消耗情况：\n");
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:入库单暂估时向存货核算系统传送数据 (成批单据传送) 输入参数: 返回值: 异常处理:
+	 */
+	private void saveBillFromOutterForSC(EstimateVO VOs[], String strLoginCorp,
+			String cOperator, UFDate dCurrDate) throws BusinessException {
+		Vector vTemp = new Vector();
+		for (int i = 0; i < VOs.length; i++) {
+			StockVO VO = new StockVO();
+			VO.setPk_corp(VOs[i].getPk_corp());
+			VO.setCgeneralhid(VOs[i].getCgeneralhid());
+			VO.setCgeneralbid(VOs[i].getCgeneralbid());
+			VO.setCgeneralbb3(VOs[i].getCgeneralbb3());
+			VO.setNinnum(VOs[i].getNinnum());
+			VO.setNprice(VOs[i].getNprice());
+			VO.setNmoney(VOs[i].getNmoney());
+			VO.setNnosettlenum(VOs[i].getNinnum());
+			VO.setNnosettlemny(VOs[i].getNmoney());
+			VO.setNaccumsettlenum(new UFDouble(0));
+			VO.setNaccumsettlemny(new UFDouble(0));
+			VO.setCmangid(VOs[i].getCmangid());
+			VO.setCbaseid(VOs[i].getCbaseid());
+			VO.setCprovidermangid(VOs[i].getCprovidermangid());
+			VO.setCproviderbaseid(VOs[i].getCproviderbaseid());
+			vTemp.addElement(VO);
+		}
+		StockVO stockVOs[] = new StockVO[vTemp.size()];
+		vTemp.copyInto(stockVOs);
+
+		// 生成结算单体
+		SettlebillItemVO settlebillItemVOs[] = generateSettlebillItemForSC(stockVOs);
+		if (settlebillItemVOs == null || settlebillItemVOs.length == 0)
+			return;
+
+		// 修改参与结算的入库单的累计结算数量/累计结算金额
+		Vector v = doModificationForSC(stockVOs, settlebillItemVOs, cOperator,
+				dCurrDate);
+
+		SettlebillVO settlebillVO = (SettlebillVO) v.elementAt(0);
+		stockVOs = (StockVO[]) v.elementAt(1);
+
+		// IIAToPUBill myService = null;
+		try {
+			// myService = (IIAToPUBill) NCLocator.getInstance().lookup(
+			// IIAToPUBill.class.getName());
+			BillVO billVOs[] = transferIADataForSC(VOs, cOperator, dCurrDate,
+					settlebillVO);
+
+			// 对存货核算单进行处理: 相同表头的单据组合成一张单据
+			// (1) 存货核算单据来源单据头ID唯一性组合
+			v = new Vector();
+			Vector vTemp0 = new Vector();
+			vTemp0.addElement(((BillHeaderVO) billVOs[0].getParentVO())
+					.getCbillid().trim());
+			v.addElement(billVOs[0]);
+			for (int i = 1; i < billVOs.length; i++) {
+				String s1 = ((BillHeaderVO) billVOs[i].getParentVO())
+						.getCbillid().trim();
+				if (!vTemp0.contains(s1)) {
+					vTemp0.addElement(s1);
+					v.addElement(billVOs[i]);
+				}
+			}
+
+			// (3) 所有存货核算单据体的来源单据头ID相同, 归为同一张存货核算单据
+			Vector vv = new Vector();
+			for (int i = 0; i < v.size(); i++) {
+				BillVO tempVO = (BillVO) v.elementAt(i);
+				String s1 = ((BillHeaderVO) tempVO.getParentVO()).getCbillid()
+						.trim();
+				vTemp = new Vector();
+				for (int j = 0; j < billVOs.length; j++) {
+					String s2 = ((BillHeaderVO) billVOs[j].getParentVO())
+							.getCbillid().trim();
+					if (s1.equals(s2)) {
+						BillItemVO tempItemVO[] = (BillItemVO[]) billVOs[j]
+								.getChildrenVO();
+						for (int k = 0; k < tempItemVO.length; k++)
+							vTemp.addElement(tempItemVO[k]);
+					}
+				}
+
+				BillItemVO tempItemVOs[] = new BillItemVO[vTemp.size()];
+				vTemp.copyInto(tempItemVOs);
+
+				// 重新设置表体行号
+				for (int j = 0; j < tempItemVOs.length; j++)
+					tempItemVOs[j].setIrownumber(new Integer(j));
+
+				tempVO.setChildrenVO(tempItemVOs);
+				vv.addElement(tempVO);
+			}
+
+			// (4) 整理需向存货传送的单据
+			billVOs = null;
+			billVOs = new BillVO[vv.size()];
+			vv.copyInto(billVOs);
+
+			// 传送数据
+			if (billVOs == null || billVOs.length == 0)
+				return;
+
+			String s1 = ((BillHeaderVO) billVOs[0].getParentVO())
+					.getCsourcemodulename();
+			String s2 = ((BillItemVO[]) billVOs[0].getChildrenVO())[0]
+					.getCsourcebilltypecode();
+			//
+			String sTime = (new UFDateTime(new Date())).toString();
+			for (int i = 0; i < billVOs.length; i++) {
+				((BillHeaderVO) billVOs[i].getParentVO()).setVbillcode(null);
+				((BillHeaderVO) billVOs[i].getParentVO())
+						.setTlastmaketime(sTime);
+				((BillHeaderVO) billVOs[i].getParentVO()).setTmaketime(sTime);
+				((BillHeaderVO) billVOs[i].getParentVO())
+						.setClastoperatorid(cOperator);
+				BillItemVO bodyVO[] = (BillItemVO[]) billVOs[i].getChildrenVO();
+				if (bodyVO != null && bodyVO.length > 0) {
+					for (int j = 0; j < bodyVO.length; j++)
+						bodyVO[j].setVbillcode(null);
+				}
+			}
+			// 保存前处理
+			SettleImpl.dealBeforeCallIaSave(billVOs);
+			// 调用IA保存
+			// myService.saveBillFromOutterArray(billVOs, s1, s2);
+			IIAToSC srvIa = (IIAToSC) NCLocator.getInstance().lookup(
+					IIAToSC.class.getName());
+			srvIa.estimateSC(billVOs, PuUtils.getClintLink(strLoginCorp,
+					cOperator, dCurrDate));
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+	}
+
+	/**
+	 * 功能描述:暂估中，已暂估正负入库单可自动结算 日期:2003/05/29 作者：熊海情 修改：晁志平 For V30
+	 * 增加返回值{调用者解锁用主键}
+	 */
+	private String[] settleForEstimate(EstimateVO VOs[], String cOperator,
+			UFDate dCurrDate, String sEstMode, String sDifferMode)
+			throws BusinessException {
+		// 暂估入库单VO转换为结算入库单VO
+		StockVO stockVOs[] = switchStockVO(VOs);
+		// 查询已暂估的负入库单VO
+		StockVO negStockVOs[] = queryNegStockByStock(stockVOs);
+		// 生成结算单体
+		SettlebillItemVO settlebillItemVOs[] = generateSettlebillItem(stockVOs,
+				negStockVOs);
+		if (settlebillItemVOs == null || settlebillItemVOs.length == 0)
+			return null;
+		// 修改参与结算的入库单的累计结算数量/累计结算金额
+		Vector v = doModification(stockVOs, negStockVOs, settlebillItemVOs,
+				cOperator, dCurrDate);
+		SettlebillVO settlebillVO = (SettlebillVO) v.elementAt(0);
+		stockVOs = (StockVO[]) v.elementAt(1);
+		negStockVOs = (StockVO[]) v.elementAt(2);
+
+		// 对参与结算的已暂估的负入库单做加锁，在调用者解锁
+		String[] saIdForLock = getStockLockKeys(negStockVOs);
+
+		// 向存货核算传送数据
+		nc.bs.ps.settle.SettleImpl myService0 = null;
+		boolean bLock = false;
+		try {
+			bLock = LockTool.setLockForPks(saIdForLock, cOperator);
+			if (!bLock) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000017")/*
+													 * @res
+													 * "暂估自动结算用到的已结入库单正在被使用，请稍后再试!"
+													 */);
+			}
+			myService0 = new nc.bs.ps.settle.SettleImpl();
+			ArrayList listPara = new ArrayList();
+			listPara.add(sEstMode);
+			listPara.add(sDifferMode);
+			listPara.add(settlebillVO);
+			listPara.add(cOperator);
+			listPara.add(dCurrDate);
+			listPara.add(null);
+			listPara.add(null);
+			listPara.add(null);// since v55
+			listPara.add(null);// since v55
+			myService0.saveBillFromOutter1(listPara);
+		} catch (Exception e) {
+			// 出现异常时释放锁
+			if (bLock) {
+				LockTool.releaseLockForPks(saIdForLock, cOperator);
+			}
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return saIdForLock;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:暂估入库单VO转换为结算入库单VO 输入参数: 返回值: 异常处理: 日期:2003/05/29
+	 * 
+	 * @return nc.vo.ps.settle.StockVO[]
+	 * @param VO
+	 *            nc.vo.ps.estimate.EstimateVO[]
+	 * @modify by czp since v502 ，支持跨公司暂估
+	 */
+	private StockVO[] switchStockVO(EstimateVO[] VO) throws BusinessException {
+		Vector v = new Vector();
+
+		for (int i = 0; i < VO.length; i++) {
+			StockVO vo = new StockVO();
+			vo.setCdeptid(null);
+			vo.setCoperatorid(null);
+			vo.setCprovidermangid(VO[i].getCprovidermangid());
+			vo.setCproviderbaseid(VO[i].getCproviderbaseid());
+
+			// since v502 修改， 支持跨公司暂估------------
+			// vo.setPk_corp(VO[i].getPk_corp());
+			vo.setPk_corp(VO[i].getPk_invoicecorp());
+			vo.setPk_stockcorp(VO[i].getPk_corp());
+			vo.setPk_purcorp(VO[i].getPk_purcorp());
+			// -------------------------------------------
+
+			vo.setVbillcode(VO[i].getVbillcode());
+			vo.setCgeneralhid(VO[i].getCgeneralhid());
+			vo.setCgeneralbid(VO[i].getCgeneralbid());
+			vo.setCgeneralbb3(VO[i].getCgeneralbb3());
+			vo.setCmangid(VO[i].getCmangid());
+			vo.setCbaseid(VO[i].getCbaseid());
+
+			// 数量：入库数量
+			vo.setNinnum(VO[i].getNinnum());
+			// 单价：暂估单价
+			vo.setNprice(VO[i].getNprice());
+			// 金额：暂估金额
+			vo.setNmoney(VO[i].getNmoney());
+			// 累计结算数量
+			vo.setNaccumsettlenum(VO[i].getNsettlenum());
+			// 累计结算金额
+			vo.setNaccumsettlemny(VO[i].getNsettlemny());
+
+			// 未结算数量
+			UFDouble d1 = vo.getNinnum();
+			UFDouble d2 = vo.getNaccumsettlenum();
+			if (d1 == null)
+				d1 = new UFDouble(0);
+			if (d2 == null)
+				d2 = new UFDouble(0);
+			double d = d1.doubleValue() - d2.doubleValue();
+			vo.setNnosettlenum(new UFDouble(d));
+			// 未结算金额
+			d1 = vo.getNmoney();
+			d2 = vo.getNaccumsettlemny();
+			if (d1 == null)
+				d1 = new UFDouble(0);
+			if (d2 == null)
+				d2 = new UFDouble(0);
+			d = d1.doubleValue() - d2.doubleValue();
+			vo.setNnosettlemny(new UFDouble(d).add(new UFDouble(0.0), BsPuTool
+					.getCCurrDecimal(null)));
+
+			// 来源信息
+			vo.setCsourcebillhid(VO[i].getCsourcebillhid());
+			vo.setCsourcebillbid(VO[i].getCsourcebillbid());
+			vo.setVsourcebillcode(null);
+			// 源头信息
+			vo.setCfirstbillhid(VO[i].getCfirstbillhid());
+			vo.setCfirstbillbid(VO[i].getCfirstbillbid());
+
+			vo.setVuserdefh1(VO[i].getVuserdefh1());
+			vo.setVuserdefh2(VO[i].getVuserdefh2());
+			vo.setVuserdefh3(VO[i].getVuserdefh3());
+			vo.setVuserdefh4(VO[i].getVuserdefh4());
+			vo.setVuserdefh5(VO[i].getVuserdefh5());
+			vo.setVuserdefh6(VO[i].getVuserdefh6());
+			vo.setVuserdefh7(VO[i].getVuserdefh7());
+			vo.setVuserdefh8(VO[i].getVuserdefh8());
+			vo.setVuserdefh9(VO[i].getVuserdefh9());
+			vo.setVuserdefh10(VO[i].getVuserdefh10());
+
+			vo.setVuserdefh11(VO[i].getVuserdefh11());
+			vo.setVuserdefh12(VO[i].getVuserdefh12());
+			vo.setVuserdefh13(VO[i].getVuserdefh13());
+			vo.setVuserdefh14(VO[i].getVuserdefh14());
+			vo.setVuserdefh15(VO[i].getVuserdefh15());
+			vo.setVuserdefh16(VO[i].getVuserdefh16());
+			vo.setVuserdefh17(VO[i].getVuserdefh17());
+			vo.setVuserdefh18(VO[i].getVuserdefh18());
+			vo.setVuserdefh19(VO[i].getVuserdefh19());
+			vo.setVuserdefh20(VO[i].getVuserdefh20());
+
+			vo.setPk_defdoch1(VO[i].getPk_defdoch1());
+			vo.setPk_defdoch2(VO[i].getPk_defdoch2());
+			vo.setPk_defdoch3(VO[i].getPk_defdoch3());
+			vo.setPk_defdoch4(VO[i].getPk_defdoch4());
+			vo.setPk_defdoch5(VO[i].getPk_defdoch5());
+			vo.setPk_defdoch6(VO[i].getPk_defdoch6());
+			vo.setPk_defdoch7(VO[i].getPk_defdoch7());
+			vo.setPk_defdoch8(VO[i].getPk_defdoch8());
+			vo.setPk_defdoch9(VO[i].getPk_defdoch9());
+			vo.setPk_defdoch10(VO[i].getPk_defdoch10());
+
+			vo.setPk_defdoch11(VO[i].getPk_defdoch11());
+			vo.setPk_defdoch12(VO[i].getPk_defdoch12());
+			vo.setPk_defdoch13(VO[i].getPk_defdoch13());
+			vo.setPk_defdoch14(VO[i].getPk_defdoch14());
+			vo.setPk_defdoch15(VO[i].getPk_defdoch15());
+			vo.setPk_defdoch16(VO[i].getPk_defdoch16());
+			vo.setPk_defdoch17(VO[i].getPk_defdoch17());
+			vo.setPk_defdoch18(VO[i].getPk_defdoch18());
+			vo.setPk_defdoch19(VO[i].getPk_defdoch19());
+			vo.setPk_defdoch20(VO[i].getPk_defdoch20());
+
+			vo.setVuserdefb1(VO[i].getVuserdef1());
+			vo.setVuserdefb2(VO[i].getVuserdef2());
+			vo.setVuserdefb3(VO[i].getVuserdef3());
+			vo.setVuserdefb4(VO[i].getVuserdef4());
+			vo.setVuserdefb5(VO[i].getVuserdef5());
+			vo.setVuserdefb6(VO[i].getVuserdef6());
+			vo.setVuserdefb7(VO[i].getVuserdef7());
+			vo.setVuserdefb8(VO[i].getVuserdef8());
+			vo.setVuserdefb9(VO[i].getVuserdef9());
+			vo.setVuserdefb10(VO[i].getVuserdef10());
+
+			vo.setVuserdefb11(VO[i].getVuserdef11());
+			vo.setVuserdefb12(VO[i].getVuserdef12());
+			vo.setVuserdefb13(VO[i].getVuserdef13());
+			vo.setVuserdefb14(VO[i].getVuserdef14());
+			vo.setVuserdefb15(VO[i].getVuserdef15());
+			vo.setVuserdefb16(VO[i].getVuserdef16());
+			vo.setVuserdefb17(VO[i].getVuserdef17());
+			vo.setVuserdefb18(VO[i].getVuserdef18());
+			vo.setVuserdefb19(VO[i].getVuserdef19());
+			vo.setVuserdefb20(VO[i].getVuserdef20());
+
+			vo.setPk_defdocb1(VO[i].getPk_defdocb1());
+			vo.setPk_defdocb2(VO[i].getPk_defdocb2());
+			vo.setPk_defdocb3(VO[i].getPk_defdocb3());
+			vo.setPk_defdocb4(VO[i].getPk_defdocb4());
+			vo.setPk_defdocb5(VO[i].getPk_defdocb5());
+			vo.setPk_defdocb6(VO[i].getPk_defdocb6());
+			vo.setPk_defdocb7(VO[i].getPk_defdocb7());
+			vo.setPk_defdocb8(VO[i].getPk_defdocb8());
+			vo.setPk_defdocb9(VO[i].getPk_defdocb9());
+			vo.setPk_defdocb10(VO[i].getPk_defdocb10());
+
+			vo.setPk_defdocb11(VO[i].getPk_defdocb11());
+			vo.setPk_defdocb12(VO[i].getPk_defdocb12());
+			vo.setPk_defdocb13(VO[i].getPk_defdocb13());
+			vo.setPk_defdocb14(VO[i].getPk_defdocb14());
+			vo.setPk_defdocb15(VO[i].getPk_defdocb15());
+			vo.setPk_defdocb16(VO[i].getPk_defdocb16());
+			vo.setPk_defdocb17(VO[i].getPk_defdocb17());
+			vo.setPk_defdocb18(VO[i].getPk_defdocb18());
+			vo.setPk_defdocb19(VO[i].getPk_defdocb19());
+			vo.setPk_defdocb20(VO[i].getPk_defdocb20());
+
+			if (vo.getCsourcebillhid() != null
+					&& vo.getCsourcebillhid().trim().length() > 0
+					&& (VO[i].getBzgyf() == null || !VO[i].getBzgyf()
+							.booleanValue()))
+				v.addElement(vo);
+		}
+
+		if (v.size() > 0) {
+			StockVO VOs[] = new StockVO[v.size()];
+			v.copyInto(VOs);
+			return VOs;
+		}
+
+		return null;
+	}
+
+	/*
+	 * 暂估VO转换为库存入库单VO,服务于暂估VO对照 2007-03-19 xhq
+	 */
+	private GeneralBillVO switchVOFromEstimate2IC(EstimateVO estVO,
+			String strLoginCorpId) {
+		GeneralBillItemVO bodyVO = new GeneralBillItemVO();
+
+		bodyVO.setCgeneralbid(estVO.getCgeneralbid());
+		bodyVO.setCgeneralhid(estVO.getCgeneralhid());
+
+		bodyVO.setCinventoryid(estVO.getCmangid());
+
+		bodyVO.setVbatchcode(estVO.getVbatchcode());
+		bodyVO.setNinnum(estVO.getNinnum());
+		bodyVO.setNmny(estVO.getNmoney());
+		bodyVO.setNprice(estVO.getNprice());
+
+		bodyVO.setCaccountunitid(estVO.getCastunitid());
+		bodyVO.setHsl(estVO.getHsl());
+		bodyVO.setNinassistnum(estVO.getNinassistnum());
+
+		bodyVO.setCfirstbillhid(estVO.getCfirstbillhid());
+		bodyVO.setCfirstbillbid(estVO.getCfirstbillbid());
+		bodyVO.setCfirsttype(estVO.getCfirsttype());
+
+		bodyVO.setVfree1(estVO.getVfree1());
+		bodyVO.setVfree2(estVO.getVfree2());
+		bodyVO.setVfree3(estVO.getVfree3());
+		bodyVO.setVfree4(estVO.getVfree4());
+		bodyVO.setVfree5(estVO.getVfree5());
+
+		bodyVO.setCprojectid(estVO.getCprojectid());
+		bodyVO.setCprojectphaseid(estVO.getCprojectphaseid());
+
+		bodyVO.setVuserdef1(estVO.getVuserdef1());
+		bodyVO.setVuserdef2(estVO.getVuserdef2());
+		bodyVO.setVuserdef3(estVO.getVuserdef3());
+		bodyVO.setVuserdef4(estVO.getVuserdef4());
+		bodyVO.setVuserdef5(estVO.getVuserdef5());
+		bodyVO.setVuserdef6(estVO.getVuserdef6());
+		bodyVO.setVuserdef7(estVO.getVuserdef7());
+		bodyVO.setVuserdef8(estVO.getVuserdef8());
+		bodyVO.setVuserdef9(estVO.getVuserdef9());
+		bodyVO.setVuserdef10(estVO.getVuserdef10());
+
+		bodyVO.setAttributeValue("vuserdef11", estVO.getVuserdef11());
+		bodyVO.setAttributeValue("vuserdef12", estVO.getVuserdef12());
+		bodyVO.setAttributeValue("vuserdef13", estVO.getVuserdef13());
+		bodyVO.setAttributeValue("vuserdef14", estVO.getVuserdef14());
+		bodyVO.setAttributeValue("vuserdef15", estVO.getVuserdef15());
+		bodyVO.setAttributeValue("vuserdef16", estVO.getVuserdef16());
+		bodyVO.setAttributeValue("vuserdef17", estVO.getVuserdef17());
+		bodyVO.setAttributeValue("vuserdef18", estVO.getVuserdef18());
+		bodyVO.setAttributeValue("vuserdef19", estVO.getVuserdef19());
+		bodyVO.setAttributeValue("vuserdef20", estVO.getVuserdef20());
+
+		bodyVO.setAttributeValue("pk_defdoc1", estVO.getPk_defdocb1());
+		bodyVO.setAttributeValue("pk_defdoc2", estVO.getPk_defdocb2());
+		bodyVO.setAttributeValue("pk_defdoc3", estVO.getPk_defdocb3());
+		bodyVO.setAttributeValue("pk_defdoc4", estVO.getPk_defdocb4());
+		bodyVO.setAttributeValue("pk_defdoc5", estVO.getPk_defdocb5());
+		bodyVO.setAttributeValue("pk_defdoc6", estVO.getPk_defdocb6());
+		bodyVO.setAttributeValue("pk_defdoc7", estVO.getPk_defdocb7());
+		bodyVO.setAttributeValue("pk_defdoc8", estVO.getPk_defdocb8());
+		bodyVO.setAttributeValue("pk_defdoc9", estVO.getPk_defdocb9());
+		bodyVO.setAttributeValue("pk_defdoc10", estVO.getPk_defdocb10());
+
+		bodyVO.setAttributeValue("pk_defdoc11", estVO.getPk_defdocb11());
+		bodyVO.setAttributeValue("pk_defdoc12", estVO.getPk_defdocb12());
+		bodyVO.setAttributeValue("pk_defdoc13", estVO.getPk_defdocb13());
+		bodyVO.setAttributeValue("pk_defdoc14", estVO.getPk_defdocb14());
+		bodyVO.setAttributeValue("pk_defdoc15", estVO.getPk_defdocb15());
+		bodyVO.setAttributeValue("pk_defdoc16", estVO.getPk_defdocb16());
+		bodyVO.setAttributeValue("pk_defdoc17", estVO.getPk_defdocb17());
+		bodyVO.setAttributeValue("pk_defdoc18", estVO.getPk_defdocb18());
+		bodyVO.setAttributeValue("pk_defdoc19", estVO.getPk_defdocb19());
+		bodyVO.setAttributeValue("pk_defdoc20", estVO.getPk_defdocb20());
+
+		bodyVO.setDbizdate(estVO.getDbizdate());
+		bodyVO.setCvendorid(estVO.getCvendorid());
+
+		// since v502---------------------
+		bodyVO.setAttributeValue("pk_corp", estVO.getPk_corp());
+		bodyVO.setAttributeValue("pk_invoicecorp", estVO.getPk_invoicecorp());
+		bodyVO.setCinvbasid(estVO.getCbaseid());
+		bodyVO.setCastunitid(estVO.getCastunitid());// 辅计量
+		// -------------------------------
+
+		// zhf v55 支持传应付vo转换调整
+		bodyVO.setAttributeValue("noriginalnetprice", estVO
+				.getNoriginalnetprice());
+		bodyVO.setAttributeValue("norgnettaxprice", estVO.getNorgnettaxprice());
+		bodyVO.setAttributeValue("noriginalcurmny", estVO.getNoriginalcurmny());
+		bodyVO.setAttributeValue("noriginaltaxpricemny", estVO
+				.getNoriginaltaxpricemny());
+
+		// bodyVO.setAttributeValue("nprice", estVO.getNprice());
+		// bodyVO.setAttributeValue("ntaxprice", estVO.getNtaxprice());
+
+		// ----- v55 by zhaoyha at 2008.9.22 --------------
+		// 暂估成本和暂估应付单独处理
+		// bodyVO.setAttributeValue("nmoney", estVO.getNmoney());
+		bodyVO.setAttributeValue("nmoney", estVO.getNzgyfnotaxmoney());
+		bodyVO.setAttributeValue("ntotalmoney", estVO.getNtotalmoney());
+		bodyVO.setAttributeValue("norgtaxmoney", PuPubVO
+				.getUFDouble_NullAsZero(estVO.getNoriginaltaxpricemny()).sub(
+						PuPubVO.getUFDouble_NullAsZero(estVO
+								.getNoriginalcurmny())));
+		bodyVO.setAttributeValue("ntaxmoney", PuPubVO.getUFDouble_NullAsZero(
+				estVO.getNtotalmoney()).sub(
+				PuPubVO.getUFDouble_NullAsZero(estVO.getNzgyfnotaxmoney())));
+		// ------ end by zhaoyha ----------------------------
+
+		// zhf end ---------------------------------------------------------
+
+		bodyVO.setCcorrespondbid(estVO.getCcorrespondbid());
+		bodyVO.setCcorrespondcode(estVO.getCcorrespondcode());
+		bodyVO.setCcorrespondhid(estVO.getCcorrespondhid());
+
+		GeneralBillHeaderVO headVO = new GeneralBillHeaderVO();
+		headVO.setPk_corp(estVO.getPk_corp());
+		// since v502---------------------
+		headVO.setAttributeValue("pk_purcorp", estVO.getPk_purcorp());
+		// -------------------------------
+		headVO.setCbilltypecode(estVO.getCbilltypecode());
+		headVO.setCgeneralhid(estVO.getCgeneralhid());
+
+		headVO.setCdispatcherid(estVO.getCdispatcherid());
+
+		headVO.setCbiztypeid(estVO.getCbiztype());
+
+		headVO.setPk_calbody(estVO.getCcalbodyid());
+		headVO.setCwarehouseid(estVO.getCwarehouseid());
+
+		// since v502,取采购公司(=收票公司)内部结算库存组织、直运仓--------------
+		if (!estVO.getEstType(strLoginCorpId).equals(EstimateVO.NORMAL)) {
+			headVO.setPk_calbody(estVO.getPkBody());
+			headVO.setCwarehouseid(estVO.getCwarehouseidZY());
+		}
+		// ----------------------------------------------------------------------------
+
+		headVO.setCdptid(estVO.getCdptid());
+
+		headVO.setCproviderid(estVO.getCprovidermangid());
+
+		headVO.setVnote(estVO.getVnote());
+
+		headVO.setCwhsmanagerid(estVO.getCwhsmanagerid());
+		headVO.setCbizid(estVO.getCoperatorid());
+
+		headVO.setVbillcode(estVO.getVbillcode());
+
+		/*
+		 * since v502 ----------------------------------- bgn
+		 * 如果是分收集结，需要记录暂估VO是否已经设置过供应商(收货公司档案ID)为收票方(收票公司档案ID)，
+		 * 从而在对库存单据进行跨公司ID转换时决定是否要转换客商档案ID
+		 * 在跨公司ID转换方法中，完成判断是否需要转换ID后即恢复单据号属性,跨公司ID转换方法
+		 * ：changeDocIdsFromArrToPur()
+		 */
+		if (EstimateVO.isFSJJAll(estVO.getPk_purcorp(), estVO.getPk_corp(),
+				estVO.getPk_invoicecorp(), strLoginCorpId)) {
+			// 入库单号=入库单号+ 分隔符号 + {true:false}
+			headVO.setVbillcode(headVO.getVbillcode() + EstimateVO.SEPSIGN
+					+ estVO.isNeedChgVendorDoc());
+		}
+		/* since v502 ----------------------------------- end */
+
+		headVO.setIscalculatedinvcost(estVO.getBcalculatecost());
+
+		headVO.setVuserdef1(estVO.getVuserdefh1());
+		headVO.setVuserdef2(estVO.getVuserdefh2());
+		headVO.setVuserdef3(estVO.getVuserdefh3());
+		headVO.setVuserdef4(estVO.getVuserdefh4());
+		headVO.setVuserdef5(estVO.getVuserdefh5());
+		headVO.setVuserdef6(estVO.getVuserdefh6());
+		headVO.setVuserdef7(estVO.getVuserdefh7());
+		headVO.setVuserdef8(estVO.getVuserdefh8());
+		headVO.setVuserdef9(estVO.getVuserdefh9());
+		headVO.setVuserdef10(estVO.getVuserdefh10());
+
+		headVO.setAttributeValue("vuserdef11", estVO.getVuserdefh11());
+		headVO.setAttributeValue("vuserdef12", estVO.getVuserdefh12());
+		headVO.setAttributeValue("vuserdef13", estVO.getVuserdefh13());
+		headVO.setAttributeValue("vuserdef14", estVO.getVuserdefh14());
+		headVO.setAttributeValue("vuserdef15", estVO.getVuserdefh15());
+		headVO.setAttributeValue("vuserdef16", estVO.getVuserdefh16());
+		headVO.setAttributeValue("vuserdef17", estVO.getVuserdefh17());
+		headVO.setAttributeValue("vuserdef18", estVO.getVuserdefh18());
+		headVO.setAttributeValue("vuserdef19", estVO.getVuserdefh19());
+		headVO.setAttributeValue("vuserdef20", estVO.getVuserdefh20());
+
+		headVO.setAttributeValue("pk_defdoc1", estVO.getPk_defdoch1());
+		headVO.setAttributeValue("pk_defdoc2", estVO.getPk_defdoch2());
+		headVO.setAttributeValue("pk_defdoc3", estVO.getPk_defdoch3());
+		headVO.setAttributeValue("pk_defdoc4", estVO.getPk_defdoch4());
+		headVO.setAttributeValue("pk_defdoc5", estVO.getPk_defdoch5());
+		headVO.setAttributeValue("pk_defdoc6", estVO.getPk_defdoch6());
+		headVO.setAttributeValue("pk_defdoc7", estVO.getPk_defdoch7());
+		headVO.setAttributeValue("pk_defdoc8", estVO.getPk_defdoch8());
+		headVO.setAttributeValue("pk_defdoc9", estVO.getPk_defdoch9());
+		headVO.setAttributeValue("pk_defdoc10", estVO.getPk_defdoch10());
+
+		headVO.setAttributeValue("pk_defdoc11", estVO.getPk_defdoch11());
+		headVO.setAttributeValue("pk_defdoc12", estVO.getPk_defdoch12());
+		headVO.setAttributeValue("pk_defdoc13", estVO.getPk_defdoch13());
+		headVO.setAttributeValue("pk_defdoc14", estVO.getPk_defdoch14());
+		headVO.setAttributeValue("pk_defdoc15", estVO.getPk_defdoch15());
+		headVO.setAttributeValue("pk_defdoc16", estVO.getPk_defdoch16());
+		headVO.setAttributeValue("pk_defdoc17", estVO.getPk_defdoch17());
+		headVO.setAttributeValue("pk_defdoc18", estVO.getPk_defdoch18());
+		headVO.setAttributeValue("pk_defdoc19", estVO.getPk_defdoch19());
+		headVO.setAttributeValue("pk_defdoc20", estVO.getPk_defdoch20());
+
+		//
+		headVO.setDbilldate(estVO.getDbilldate());
+
+		GeneralBillVO VO = new GeneralBillVO(1);
+		VO.setParentVO(headVO);
+		VO.setChildrenVO(new GeneralBillItemVO[] { bodyVO });
+		return VO;
+	}
+
+	/**
+	 * 跨公司ID转换{收货公司->采购公司}，需要转换的档案包括：供应商、项目、存货。
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param icVOs
+	 *            库存单据VO数组
+	 *            <p>
+	 *            注意，将暂估VO转换为库存VO后，是否转换过供应商为收票方信息丢失，
+	 *            <p>
+	 *            为了标明是否需要转换供应商，将单据号=单据号+{true:false},需要在此方法中恢复单据号属性内容
+	 * @throws BusinessException
+	 *             <p>
+	 * @author czp
+	 * @time 2007-7-11 上午11:08:21
+	 */
+	private void changeDocIdsFromArrToPur(GeneralBillVO[] vos,
+			String strLoginCorp) throws BusinessException {
+		if (vos == null || vos.length == 0) {
+			return;
+		}
+		// 获取要转换的档案VO及金额VO
+		ArrayList<ChgDocPkVO> listVendor = new ArrayList<ChgDocPkVO>();
+		ArrayList<ChgDocPkVO> listProject = new ArrayList<ChgDocPkVO>();
+		ArrayList<ChgDocPkVO> listInventory = new ArrayList<ChgDocPkVO>();
+		ChgDocPkVO chgDocVo = null;
+		String strArrCorp = null;
+		String strPurCorp = null;
+		String strInvoiceCorp = null;
+		GeneralBillItemVO[] items = null;
+		GeneralBillHeaderVO head = null;
+		UFDate ufdArrDate = null;
+		int iLen = vos.length;
+		int jLen = 0;
+		int iInvCntOld = 0;
+		for (int i = 0; i < iLen; i++) {
+			if (vos[i].getChildrenVO() == null
+					|| vos[i].getChildrenVO().length == 0) {
+				continue;
+			}
+			head = (GeneralBillHeaderVO) vos[i].getParentVO();
+			strPurCorp = (String) head.getAttributeValue("pk_purcorp");
+			strArrCorp = head.getPk_corp();
+			//
+			items = (GeneralBillItemVO[]) vos[i].getChildrenVO();
+			jLen = items.length;
+
+			// 用于判断本张单据是否存在分收集结入库单行
+			iInvCntOld = listInventory.size();
+
+			for (int j = 0; j < jLen; j++) {
+				//
+				if (items[j] == null) {
+					continue;
+				}
+				// 不是分收集结采购公司暂估时不必处理转换
+				strInvoiceCorp = PuPubVO.getString_TrimZeroLenAsNull(items[j]
+						.getAttributeValue("pk_invoicecorp"));
+				if (!EstimateVO.isFSJJAll(strPurCorp, strArrCorp,
+						strInvoiceCorp, strLoginCorp)) {
+					continue;
+				}
+				// 项目
+				if (items[j].getCprojectid() != null) {
+					chgDocVo = new ChgDocPkVO();
+					chgDocVo.setSrcCorpId(strArrCorp);
+					chgDocVo.setDstCorpId(strInvoiceCorp);
+					chgDocVo.setSrcManId(items[j].getCprojectid());
+					listProject.add(chgDocVo);
+				}
+				// 存货
+				chgDocVo = new ChgDocPkVO();
+				chgDocVo.setSrcCorpId(strArrCorp);
+				chgDocVo.setDstCorpId(strInvoiceCorp);
+				chgDocVo.setSrcManId(items[j].getCinventoryid());
+				listInventory.add(chgDocVo);
+			}
+			// 供应商
+			if (listInventory.size() > iInvCntOld) {
+				// 在将暂估VO转换成库存VO时，单据号=单据号+EstimateVO.SEPSIGN+{true:false}
+				if ("true".equalsIgnoreCase(head.getVbillcode().substring(
+						head.getVbillcode().indexOf(EstimateVO.SEPSIGN) + 1))) {
+					chgDocVo = new ChgDocPkVO();
+					chgDocVo.setSrcCorpId(strArrCorp);
+					chgDocVo.setDstCorpId(strPurCorp);
+					chgDocVo.setSrcManId(head.getCproviderid());
+					listVendor.add(chgDocVo);
+				}
+			}
+		}
+		// 转换
+		if (listInventory.size() == 0) {
+			return;
+		}
+		// 客商
+		ChgDocPkVO[] vendorVos = null;
+		vendorVos = (ChgDocPkVO[]) listVendor.toArray(new ChgDocPkVO[listVendor
+				.size()]);
+		vendorVos = ChgDataUtil.chgPkCuByCorp(vendorVos);
+		// 项目
+		ChgDocPkVO[] projectVos = null;
+		projectVos = (ChgDocPkVO[]) listProject
+				.toArray(new ChgDocPkVO[listProject.size()]);
+		projectVos = ChgDataUtil.chgPkjobByCorp(projectVos);
+		// 存货
+		ChgDocPkVO[] inventoryVos = null;
+		inventoryVos = (ChgDocPkVO[]) listInventory
+				.toArray(new ChgDocPkVO[listInventory.size()]);
+		inventoryVos = ChgDataUtil.chgPkInvByCorp(inventoryVos);
+
+		// 设置
+		int iPosProj = 0;
+		int iPosInv = 0;
+		int iPosVendor = 0;
+		for (int i = 0; i < iLen; i++) {
+			if (vos[i].getChildrenVO() == null
+					|| vos[i].getChildrenVO().length == 0) {
+				continue;
+			}
+			head = (GeneralBillHeaderVO) vos[i].getParentVO();
+			strPurCorp = (String) head.getAttributeValue("pk_purcorp");
+			strArrCorp = head.getPk_corp();
+			//
+			items = (GeneralBillItemVO[]) vos[i].getChildrenVO();
+			jLen = items.length;
+
+			// 用于判断本张单据是否存在分收集结入库单行
+			iInvCntOld = iPosInv;
+
+			for (int j = 0; j < jLen; j++) {
+				//
+				if (items[j] == null) {
+					continue;
+				}
+				// 不是分收集结采购公司暂估时不必处理转换
+				strInvoiceCorp = PuPubVO.getString_TrimZeroLenAsNull(items[j]
+						.getAttributeValue("pk_invoicecorp"));
+				if (!EstimateVO.isFSJJAll(strPurCorp, strArrCorp,
+						strInvoiceCorp, strLoginCorp)) {
+					continue;
+				}
+				// 项目
+				if (items[j].getCprojectid() != null) {
+					items[j].setCprojectid(projectVos[iPosProj].getDstManId());
+					iPosProj++;
+				}
+				// 存货
+				items[j].setCinventoryid(inventoryVos[iPosInv].getDstManId());
+				iPosInv++;
+			}
+			// 供应商
+			if (iPosInv > iInvCntOld) {
+				// 在将暂估VO转换成库存VO时，单据号=单据号+EstimateVO.SEPSIGN+{true:false}
+				if ("true".equalsIgnoreCase(head.getVbillcode().substring(
+						head.getVbillcode().indexOf(EstimateVO.SEPSIGN) + 1))) {
+					head.setCproviderid(vendorVos[iPosVendor].getDstManId());
+					iPosVendor++;
+				}
+			}
+			// 判断结束：单据号+EstimateVO.SEPSIGN+{true:false} ==> 单据号
+			if (head.getVbillcode().indexOf(EstimateVO.SEPSIGN) > 0) {
+				head.setVbillcode(head.getVbillcode().substring(0,
+						head.getVbillcode().indexOf(EstimateVO.SEPSIGN)));
+			}
+		}
+	}
+
+	/**
+	 * 功能:依据暂估方式不同,向存货核算系统传递数据;单到回冲,传送暂估入库单;单到补差,传送采购入库单(成批单据传送)
+	 * 输入:暂估VO[],当前操作员,当前日期 返回:BillVO[] 异常:javax.naming.NamingException,
+	 * java.rmi.RemoteException, java.sql.SQLException 作者:熊海情
+	 * <p>
+	 * 修改:晁志平 FOR V30 删除查询入库单表头表体操作，表头表体对照信息由调用者参数传入
+	 * <p>
+	 * 修改:晁志平 FOR V502 支持分收集结采购公司暂估、单价精度
+	 */
+
+	private BillVO[] transferIAData(EstimateVO[] voaEst, String cOperator,
+			UFDate dCurrDate, String strLoginCorp) throws BusinessException {
+		nc.bs.pu.pub.PubImpl myPubService = null;
+		if (voaEst == null || voaEst.length == 0) {
+			SCMEnv.out("传入参数为空，直接返回NULL；调用堆栈如下：");
+			SCMEnv.out(new Exception());
+			return null;
+		}
+		BillVO[] billVOs = null;
+		int iPriceDigit = 2;
+		try {
+			ISysInitQry queryService = (ISysInitQry) NCLocator.getInstance()
+					.lookup(ISysInitQry.class.getName());
+			iPriceDigit = queryService.getParaInt(
+					voaEst[0].getPk_invoicecorp(), "BD505");
+			// 获取本位币精度
+			myPubService = new nc.bs.pu.pub.PubImpl();
+			// since v502,支持分收集结采购公司暂估
+			int nMnyDecimal[] = myPubService.getDigitBatch(voaEst[0]
+					.getPk_invoicecorp(), new String[] { "BD301" });
+			if (nMnyDecimal == null || nMnyDecimal.length == 0) {
+				nMnyDecimal = new int[1];
+				nMnyDecimal[0] = 2;
+			}
+
+			// VO转换:将暂估VO转换为库存VO(PU->IC)
+			GeneralBillVO[] icVOs = new GeneralBillVO[voaEst.length];
+			//
+			for (int i = 0; i < voaEst.length; i++) {
+				// since v502, FengPing&Chaozp,
+				// 如果是分收集结模式下的采购公司暂估，但采购组织下没有定义内部结算库存组织，则业务约束不可以自动结算
+				if ((!voaEst[i].getEstType(strLoginCorp).equals(
+						EstimateVO.NORMAL))
+						&& voaEst[i].getPkBody() == null) {
+					// //liyc修改 ------ czp需要确定
+					// if
+					// ((VOs[i].getEstType(strLoginCorp).equals(EstimateVO.PURCHASE))
+					// && VOs[i].getPkBody() == null) {
+					throw new BusinessException(NCLangResOnserver.getInstance()
+							.getStrByID("4004pub", "UPP4004pub-000256"
+							/* res"分收集结模式下的采购公司暂估，但采购组织下没有定义内部结算库存组织" */));
+				}
+				icVOs[i] = switchVOFromEstimate2IC(voaEst[i], strLoginCorp);
+			}
+
+			/*
+			 * since v502 : VO对照前处理, 跨公司档案ID转换，从收货公司到采购公司(收票公司) 1)、供应商 2)、存货
+			 * 3)、项目
+			 */
+			changeDocIdsFromArrToPur(icVOs, strLoginCorp);
+
+			// 将单行的多个入库单VO，按表头ID重新组合
+			icVOs = rearrangeGeneralBillVO(icVOs);
+
+			// VO转换:将暂估VO转换为库存VO(IC->IA)
+			if (voaEst[0].getCbilltypecode().equals("45")) {
+				billVOs = (BillVO[]) PfUtilTools.runChangeDataAry("45", "I2",
+						icVOs);
+			} else if (voaEst[0].getCbilltypecode().equals("47")) {
+				billVOs = (BillVO[]) PfUtilTools.runChangeDataAry("47", "ID",
+						icVOs);
+			}
+			if (billVOs == null || billVOs.length == 0) {
+				return null;
+			}
+			// 通版问题，支持前台排序后台匹配，此处不必打平处理，用暂估哈希表与表体对应
+			// // 将多行VO[]处理为单行VO[],便于匹配暂估VO处理
+			// billVOs = rearrangeBillVO(billVOs);
+
+			// 暂估哈希表,后续处理时用于和存货单据的表体对应
+			HashMap<String, EstimateVO> mapEstVo = new HashMap<String, EstimateVO>();
+			for (int i = 0; i < voaEst.length; i++) {
+				mapEstVo.put(voaEst[i].getCgeneralbid(), voaEst[i]);
+			}
+			// 后续处理:表体
+			EstimateVO voEst = null;
+			BillHeaderVO headVO = null;
+			BillItemVO bodyVOs[] = null;
+			for (int i = 0; i < billVOs.length; i++) {
+				//
+				headVO = (BillHeaderVO) billVOs[i].getParentVO();
+				//
+				bodyVOs = (BillItemVO[]) billVOs[i].getChildrenVO();
+				for (int j = 0; j < bodyVOs.length; j++) {
+					voEst = mapEstVo.get(bodyVOs[j].getCsourcebillitemid());
+					bodyVOs[j].setPk_corp(voEst.getPk_corp());
+					/*
+					 * since v502, 分收集结采购公司暂估的特殊处理 1)、将存货单据的当前公司设置为暂估VO的收票公司
+					 */
+					if (voEst.isFSJJAll(voEst.getPk_purcorp(), voEst
+							.getPk_corp(), voEst.getPk_invoicecorp(),
+							strLoginCorp)) {
+						bodyVOs[j].setPk_corp(voEst.getPk_invoicecorp());
+					}
+					if (voEst.getCbilltypecode().equals("45")) {
+						bodyVOs[j].setCbilltypecode("I2");
+					} else {
+						bodyVOs[j].setCbilltypecode("ID");
+					}
+					bodyVOs[j].setCbill_bid(voEst.getCgeneralbid());
+					bodyVOs[j].setCbillid(voEst.getCgeneralhid());
+
+					bodyVOs[j].setCsourcebillid(voEst.getCgeneralhid());
+					bodyVOs[j].setCsourcebillitemid(voEst.getCgeneralbid());
+					bodyVOs[j].setCsourcebilltypecode(voEst.getCbilltypecode());
+
+					UFDouble d1 = voEst.getNmoney();
+					UFDouble d2 = voEst.getNmaterialmoney();
+					if (d1 == null)
+						d1 = new UFDouble(0.0);
+					if (d2 == null)
+						d2 = new UFDouble(0.0);
+					double d = d1.doubleValue() + d2.doubleValue();
+					bodyVOs[j].setNmoney(new UFDouble(PubDMO.getRoundDouble(
+							nMnyDecimal[0], d)));
+					bodyVOs[j].setNdrawsummny(d2);
+
+					d1 = bodyVOs[j].getNmoney();
+					d2 = bodyVOs[j].getNnumber();
+
+					// since v502, 有单价直接取，解决精度问题
+					if (PuPubVO.getUFDouble_ZeroAsNull(voEst.getNprice()) != null) {
+						bodyVOs[j].setNprice(voEst.getNprice());
+					}
+					//
+					else if (d2 != null && d2.doubleValue() != 0.0) {
+						bodyVOs[j].setNprice(d1.div(d2, iPriceDigit));
+					}
+
+					bodyVOs[j].setCfirstbillid(voEst.getCfirstbillhid());
+					bodyVOs[j].setCfirstbillitemid(voEst.getCfirstbillbid());
+					bodyVOs[j].setCfirstbilltypecode(voEst.getCfirsttype());
+					bodyVOs[j].setIrownumber(new Integer(i));
+					bodyVOs[j].setVbillcode(voEst.getVbillcode());
+
+					bodyVOs[j].setDbizdate(voEst.getDbizdate());
+					// since v502, 在VO对照前已经处理为采购公司的档案ID
+					// bodyVO[0].setCvendorid(voEst.getCvendorid());
+					bodyVOs[j].setCvendorid(headVO.getCcustomvendorid());
+					bodyVOs[j].setDr(new Integer(0));
+
+					// V5新增:库存入库单相关信息
+					bodyVOs[j].setCicbilltype(voEst.getCbilltypecode());
+					bodyVOs[j].setCicbillcode(voEst.getVbillcode());
+					bodyVOs[j].setCicbillid(voEst.getCgeneralhid());
+					bodyVOs[j].setCicitemid(voEst.getCgeneralbid());
+					bodyVOs[j]
+							.setNchangerate(PuPubVO
+									.getUFDouble_ZeroAsNull(bodyVOs[j]
+											.getNchangerate()));
+				}
+				// 表头相关处理
+				if (voEst.getCbilltypecode().trim().equals("47")) {
+					headVO.setCbilltypecode("ID");
+				} else {
+					headVO.setCbilltypecode("I2");
+				}
+				headVO.setCbillid(voEst.getCgeneralhid());
+				headVO.setDbilldate(dCurrDate);
+				headVO.setCsourcemodulename("PO");
+				headVO.setFdispatchflag(new Integer(0));
+				headVO.setCoperatorid(cOperator);
+				headVO.setBestimateflag(new UFBoolean(true));
+				headVO.setCwarehousemanagerid(voEst.getCwhsmanagerid());
+				headVO.setCemployeeid(voEst.getCoperatorid());// estiVo.getCoperatorid()
+				// 即为入库单表头的业务员(cbizid)
+				// Czp 2004-07-21
+				headVO.setVbillcode(voEst.getVbillcode());
+				headVO.setBwithdrawalflag(new UFBoolean(false));
+				headVO.setBdisableflag(new UFBoolean(false));
+				headVO.setBauditedflag(new UFBoolean(false));
+				headVO.setDr(new Integer(0));
+				/*
+				 * since v502, 分收集结采购(收货)公司暂估的特殊处理 1)、清空收货公司私有档案ID
+				 * 2)、将存货单据的当前公司设置为暂估VO的收票公司
+				 */
+				if (voEst.isFSJJAll(voEst.getPk_purcorp(), voEst.getPk_corp(),
+						voEst.getPk_invoicecorp(), strLoginCorp)) {
+					headVO.setCwarehousemanagerid(null);// 跨公司情况下，庫管员清空
+					headVO.setPk_corp(voEst.getPk_invoicecorp());
+				}
+				if (!headVO.getPk_corp().equals(voEst.getPk_invoicecorp())) {
+					headVO.setPk_corp(voEst.getPk_invoicecorp());
+				}
+			}
+			// 设置表体来源单据类型
+			for (int i = 0; i < billVOs.length; i++) {
+				headVO = (BillHeaderVO) billVOs[i].getParentVO();
+				bodyVOs = (BillItemVO[]) billVOs[i].getChildrenVO();
+				for (int j = 0; j < bodyVOs.length; j++) {
+					bodyVOs[j].setCbilltypecode(headVO.getCbilltypecode());
+					if (headVO.getCbilltypecode().equals("ID")) {
+						bodyVOs[j].setCsourcebilltypecode("47");
+					}
+				}
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		// 返回存货核算所需要的VO
+		return billVOs;
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:依据暂估方式不同,向存货核算系统传递数据 单到回冲,传送暂估入库单;单到补差,传送采购入库单 (成批单据传送)
+	 * 输入参数:暂估VO,当前操作员,当前日期 返回值: 异常处理: 日期：2002/05/30(批次暂估，库存调用)
+	 */
+	private BillVO[] transferIADataBatch(IGeneralBillVO[] VOs)
+			throws BusinessException {
+		nc.bs.pu.pub.PubImpl myPubService = null;
+		BillVO[] voRslts = null;
+		try {
+			// 获取本位币精度
+			myPubService = new nc.bs.pu.pub.PubImpl();
+			int nMnyDecimal[] = myPubService.getDigitBatch(VOs[0].getPk_corp(),
+					new String[] { "BD301" });
+			if (nMnyDecimal == null || nMnyDecimal.length == 0) {
+				nMnyDecimal = new int[1];
+				nMnyDecimal[0] = 2;
+			}
+
+			// VO转换
+			voRslts = (BillVO[]) PfUtilTools.runChangeDataAry("45", "I2", VOs);
+			if (voRslts == null || voRslts.length == 0)
+				return null;
+
+			// VO转换后续处理
+			for (int i = 0; i < VOs.length; i++) {
+				GeneralBillHeaderVO headVO = (GeneralBillHeaderVO) VOs[i]
+						.getParentVO();
+				IGeneralBillItemVO bodyVO[] = (IGeneralBillItemVO[]) VOs[i]
+						.getChildrenVO();
+
+				BillItemVO abodyVO[] = (BillItemVO[]) voRslts[i]
+						.getChildrenVO();
+				for (int j = 0; j < bodyVO.length; j++) {
+					// VO转换后续处理:存货核算体
+					abodyVO[j].setPk_corp(headVO.getPk_corp());
+					abodyVO[j].setCbilltypecode("I2");
+					abodyVO[j].setCbill_bid(bodyVO[j].getCgeneralbid());
+					abodyVO[j].setCbillid(bodyVO[j].getCgeneralhid());
+
+					abodyVO[j].setCsourcebillid(bodyVO[j].getCgeneralhid());
+					abodyVO[j].setCsourcebillitemid(bodyVO[j].getCgeneralbid());
+					abodyVO[j].setCsourcebilltypecode("45");
+
+					// V5新增:库存入库单相关信息
+					abodyVO[j].setCicbilltype("45");
+					abodyVO[j].setCicbillcode(headVO.getVbillcode());
+					abodyVO[j].setCicbillid(bodyVO[j].getCgeneralhid());
+					abodyVO[j].setCicitemid(bodyVO[j].getCgeneralbid());
+
+					// since v502, 直接使用在调用方已经处理过的结果
+					abodyVO[j].setNprice(bodyVO[j].getNprice());
+
+					/*
+					 * del since v502, 此处理在调用方已经处理过 UFDouble d1 =
+					 * bodyVO[j].getNmny(); UFDouble d2 = null; if (d1 == null)
+					 * d1 = new UFDouble(0.0); if (d2 == null) d2 = new
+					 * UFDouble(0.0); double d = d1.doubleValue() +
+					 * d2.doubleValue(); abodyVO[j].setNmoney(new
+					 * UFDouble(PubDMO.getRoundDouble(nMnyDecimal[0], d))); d1 =
+					 * bodyVO[j].getNmny(); d2 = bodyVO[j].getNinnum(); if (d1
+					 * != null && d2 != null && d2.doubleValue() != 0.0) { d =
+					 * d1.doubleValue() / d2.doubleValue();
+					 * abodyVO[j].setNprice(new UFDouble(d)); }
+					 */
+
+					abodyVO[j].setCfirstbillid(bodyVO[j].getCfirstbillhid());
+					abodyVO[j]
+							.setCfirstbillitemid(bodyVO[j].getCfirstbillbid());
+					abodyVO[j].setCfirstbilltypecode(bodyVO[j].getCfirsttype());
+					abodyVO[j].setIrownumber(new Integer(j));
+					abodyVO[j].setVbillcode(headVO.getVbillcode());
+
+					abodyVO[j].setDbizdate(bodyVO[j].getDbizdate());
+					abodyVO[j].setCvendorid(bodyVO[j].getCvendorid());
+					abodyVO[j]
+							.setNchangerate(PuPubVO
+									.getUFDouble_ZeroAsNull(abodyVO[j]
+											.getNchangerate()));
+				}
+
+				// VO转换后续处理:生成存货核算头
+				BillHeaderVO aheadVO = (BillHeaderVO) voRslts[i].getParentVO();
+				aheadVO.setPk_corp(headVO.getPk_corp());
+				if (headVO.getCbilltypecode().trim().equals("47"))
+					aheadVO.setCbilltypecode("ID");
+				else
+					aheadVO.setCbilltypecode("I2");
+				aheadVO.setCbillid(headVO.getCgeneralhid());
+
+				aheadVO.setDbilldate(headVO.getDaccountdate());
+				aheadVO.setCsourcemodulename("PO");
+				aheadVO.setFdispatchflag(new Integer(0));
+				aheadVO.setCoperatorid(headVO.getCregister());
+
+				aheadVO.setBestimateflag(new UFBoolean(true));
+				aheadVO.setCwarehousemanagerid(headVO.getCwhsmanagerid());
+				aheadVO.setCemployeeid(headVO.getCbizid());
+
+				aheadVO.setVbillcode(headVO.getVbillcode());
+				aheadVO.setBwithdrawalflag(new UFBoolean(false));
+				aheadVO.setBdisableflag(new UFBoolean(false));
+				aheadVO.setBauditedflag(new UFBoolean(false));
+			}
+
+			// 返回
+			for (int i = 0; i < voRslts.length; i++) {
+				BillHeaderVO headVO = (BillHeaderVO) voRslts[i].getParentVO();
+				BillItemVO bodyVO[] = (BillItemVO[]) voRslts[i].getChildrenVO();
+				if (bodyVO == null || bodyVO.length == 0)
+					continue;
+				String s1 = ((BillHeaderVO) voRslts[i].getParentVO())
+						.getCbillid();
+				for (int j = 0; j < bodyVO.length; j++) {
+					String s2 = bodyVO[j].getCbillid();
+					if (s1.equals(s2)) {
+						bodyVO[j].setCbilltypecode(headVO.getCbilltypecode());
+						if (headVO.getCbilltypecode().equals("ID"))
+							bodyVO[j].setCsourcebilltypecode("47");
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return voRslts;
+	}
+
+	/**
+	 * 功能描述:依据暂估方式不同,向存货核算系统传递数据 单到回冲,传送暂估入库单;单到补差,传送采购入库单 (成批单据传送)
+	 * 输入参数:暂估VO,当前操作员,当前日期 返回值: 异常处理:
+	 * 
+	 * @param VOs
+	 *            nc.vo.ps.estimate.EstimateVO[]
+	 */
+	private BillVO[] transferIADataForSC(EstimateVO[] VOs, String cOperator,
+			UFDate dCurrDate, SettlebillVO VO) throws BusinessException {
+		nc.bs.pu.pub.PubImpl myPubService = null;
+		BillVO[] vosRstl = null;
+		int iPriceDigit = 2;
+		try {
+			ISysInitQry queryService = (ISysInitQry) NCLocator.getInstance()
+					.lookup(ISysInitQry.class.getName());
+			iPriceDigit = queryService.getParaInt(VOs[0].getPk_invoicecorp(),
+					"BD505");
+			// 获取本位币精度
+			myPubService = new nc.bs.pu.pub.PubImpl();
+			int nMnyDecimal[] = myPubService.getDigitBatch(VOs[0].getPk_corp(),
+					new String[] { "BD301" });
+			if (nMnyDecimal == null || nMnyDecimal.length == 0) {
+				nMnyDecimal = new int[1];
+				nMnyDecimal[0] = 2;
+			}
+
+			// 查询存货表体VO所需的数据
+			Vector v = queryStockBodyForIA(VOs);
+			if (v == null || v.size() == 0) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000018")/*
+													 * @res
+													 * "查询存货表体VO所需的数据,没有符合条件的数据！"
+													 */);
+			}
+
+			// VO转换
+			GeneralBillVO icVOs[] = new GeneralBillVO[VOs.length];
+			for (int i = 0; i < VOs.length; i++) {
+				// 目前只支持单公司模式
+				icVOs[i] = switchVOFromEstimate2IC(VOs[i], VOs[0].getPk_corp());
+			}
+
+			icVOs = rearrangeGeneralBillVO(icVOs);
+
+			vosRstl = (BillVO[]) PfUtilTools
+					.runChangeDataAry("47", "ID", icVOs);
+			if (vosRstl == null || vosRstl.length == 0)
+				return null;
+
+			vosRstl = rearrangeBillVO(vosRstl);
+
+			// VO转换后续处理:存货表体
+			SettlebillItemVO billItemVO[] = VO.getBodyVO();
+			Vector v0 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				BillItemVO bodyVO[] = (BillItemVO[]) vosRstl[i].getChildrenVO();
+				Vector vTemp = (Vector) v.elementAt(i);
+				GeneralHItemVO itemVO = (GeneralHItemVO) vTemp.elementAt(0);
+
+				bodyVO[0].setPk_corp(VOs[i].getPk_corp());
+				bodyVO[0].setCbilltypecode("ID");
+				bodyVO[0].setCbill_bid(VOs[i].getCgeneralbid());
+				bodyVO[0].setCbillid(VOs[i].getCgeneralhid());
+
+				bodyVO[0].setCsourcebillid(billItemVO[i].getCsettlebillid());
+				bodyVO[0].setCsourcebillitemid(billItemVO[i]
+						.getCsettlebill_bid());
+				bodyVO[0].setCsourcebilltypecode(ScmConst.PO_SettleBill);
+
+				// V5新增:库存入库单相关信息
+				bodyVO[0].setCicbilltype(VOs[i].getCbilltypecode());
+				bodyVO[0].setCicbillcode(VOs[i].getVbillcode());
+				bodyVO[0].setCicbillid(VOs[i].getCgeneralhid());
+				bodyVO[0].setCicitemid(VOs[i].getCgeneralbid());
+
+				UFDouble d1 = VOs[i].getNmoney();
+				UFDouble d2 = VOs[i].getNmaterialmoney();
+				if (d1 == null)
+					d1 = new UFDouble(0.0);
+				if (d2 == null)
+					d2 = new UFDouble(0.0);
+				double d = d1.doubleValue() + d2.doubleValue();
+				bodyVO[0].setNmoney(new UFDouble(PubDMO.getRoundDouble(
+						nMnyDecimal[0], d)));
+				bodyVO[0].setNdrawsummny(d2);
+
+				d1 = bodyVO[0].getNmoney();
+				d2 = bodyVO[0].getNnumber();
+				if (d2 != null && d2.doubleValue() != 0.0) {
+					bodyVO[0].setNprice(d1.div(d2, iPriceDigit));
+				}
+
+				bodyVO[0].setCfirstbillid(itemVO.getCfirstbillhid());
+				bodyVO[0].setCfirstbillitemid(itemVO.getCfirstbillbid());
+				bodyVO[0].setCfirstbilltypecode(itemVO.getCfirsttype());
+				bodyVO[0].setIrownumber(new Integer(i));
+				bodyVO[0].setVbillcode(VOs[i].getVbillcode());
+				bodyVO[0].setVsourcebillcode(VOs[i].getVbillcode());
+
+				bodyVO[0].setDbizdate(itemVO.getDbizdate());
+				bodyVO[0].setCvendorid(itemVO.getCvendorid());
+				bodyVO[0].setNchangerate(PuPubVO
+						.getUFDouble_ZeroAsNull(bodyVO[0].getNchangerate()));
+
+				v0.addElement(bodyVO[0]);
+			}
+			BillItemVO bodyVO[] = new BillItemVO[v0.size()];
+			v0.copyInto(bodyVO);
+
+			// 入库单主表ID和仓库ID唯一性组合
+			v0 = new Vector();
+			Vector vGeneralHID = new Vector();
+			Vector vWarehouseID = new Vector();
+			vGeneralHID.addElement(VOs[0].getCgeneralhid().trim());
+			vWarehouseID.addElement(VOs[0].getCwarehouseid());
+			for (int i = 1; i < VOs.length; i++) {
+				String s1 = VOs[i].getCgeneralhid().trim();
+				if (!vGeneralHID.contains(s1)) {
+					vGeneralHID.addElement(s1);
+					vWarehouseID.addElement(VOs[i].getCwarehouseid());
+					v0.addElement(vosRstl[i].getParentVO());
+				}
+			}
+
+			// 查询存货表头VO所需的数据
+			String sGeneralhid[] = new String[vGeneralHID.size()];
+			String sWarehouseid[] = new String[vWarehouseID.size()];
+			vGeneralHID.copyInto(sGeneralhid);
+			vWarehouseID.copyInto(sWarehouseid);
+
+			Vector vv = queryStockHeadForIA(sGeneralhid, sWarehouseid);
+			if (vv == null || vv.size() == 0) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000019")/*
+													 * @res
+													 * "查询存货表头VO所需的数据,没有符合条件的数据！"
+													 */);
+			}
+
+			// VO转换后续处理:存货表头
+			BillHeaderVO headVO[] = new BillHeaderVO[sGeneralhid.length];
+			v0.copyInto(headVO);
+			for (int i = 0; i < headVO.length; i++) {
+				headVO[i] = new BillHeaderVO();
+				Vector vTemp = (Vector) vv.elementAt(i);
+				GeneralHHeaderVO hVO = (GeneralHHeaderVO) vTemp.elementAt(0);
+				Object o = vTemp.elementAt(1);
+				String sStoreOrgID = null;
+				if (o != null)
+					sStoreOrgID = (String) o;
+
+				if (hVO.getCbilltypecode().trim().equals("47"))
+					headVO[i].setCbilltypecode("ID");
+				else
+					headVO[i].setCbilltypecode("I2");
+				headVO[i].setCbillid(hVO.getCgeneralhid());
+
+				headVO[i].setDbilldate(dCurrDate);
+				headVO[i].setCsourcemodulename("PO");
+				headVO[i].setFdispatchflag(new Integer(0));
+
+				headVO[i].setCoperatorid(cOperator);
+				headVO[i].setBestimateflag(new UFBoolean(true));
+				headVO[i].setCwarehousemanagerid(hVO.getCwhsmanagerid());
+				headVO[i].setCemployeeid(hVO.getCbizid());
+
+				headVO[i].setVbillcode(hVO.getVbillcode());
+				headVO[i].setBwithdrawalflag(new UFBoolean(false));
+				headVO[i].setBdisableflag(new UFBoolean(false));
+				headVO[i].setBauditedflag(new UFBoolean(false));
+			}
+
+			// 重新组合表头、表体
+			vosRstl = (BillVO[]) SplitBillVOs.getSplitVOs(
+					nc.vo.ia.bill.BillVO.class.getName(),
+					nc.vo.ia.bill.BillHeaderVO.class.getName(),
+					nc.vo.ia.bill.BillItemVO.class.getName(), vosRstl,
+					new String[] { "pk_corp" }, new String[] { "cicbillid" });
+
+			// 设置表体来源单据号
+			BillHeaderVO header = null;
+			BillItemVO[] bodyVOs = null;
+			for (int i = 0; i < vosRstl.length; i++) {
+				header = (BillHeaderVO) vosRstl[i].getParentVO();
+				bodyVOs = (BillItemVO[]) vosRstl[i].getChildrenVO();
+				for (int j = 0; j < bodyVOs.length; j++) {
+					bodyVOs[j].setCbilltypecode(header.getCbilltypecode());
+				}
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		// 返回存货核算所需要的VO
+		return vosRstl;
+	}
+
+	public void beforSaveSysinit(String pk_org, String initcode,
+			String paraValue, String pkValue) throws SQLException {
+		// TODO 自动生成方法存根
+		// 调用应付提供的接口
+		try {
+			if (paraValue != null && paraValue.equals("N")) {
+				IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator
+						.getInstance()
+						.lookup(IArapForGYLPublic.class.getName());
+				UFBoolean bModify = iArap.canModify(pk_org);
+				if (!bModify.booleanValue()) {
+					throw new BusinessException(nc.bs.ml.NCLangResOnserver
+							.getInstance().getStrByID("40040503",
+									"UPP40040503-000094")/*
+														 * @res
+														 * "暂估应付未冲减完毕,不能修改参数!"
+														 */);
+				}
+			}
+		} catch (Exception e) {
+			SCMEnv.out(e);
+			throw new SQLException(e.getMessage());
+		}
+	}
+
+	public void afterSaveSysinit(String pk_org, String initcode,
+			String paraValue, String pkValue) throws BusinessException {
+		// TODO 自动生成方法存根
+
+	}
+
+	/*
+	 * VO转换前组合库存入库单VO{将单行的多个入库单VO，按表头ID重新组合} 效率优化 2007-05-31 xhq 重构：2008-03-05，
+	 * czp
+	 */
+	private GeneralBillVO[] rearrangeGeneralBillVO(GeneralBillVO icVOs[]) {
+		GeneralBillVO[] voaRet = (GeneralBillVO[]) SplitBillVOs.getSplitVOs(
+				nc.vo.ic.pub.bill.GeneralBillVO.class.getName(),
+				nc.vo.ic.pub.bill.GeneralBillHeaderVO.class.getName(),
+				nc.vo.ic.pub.bill.GeneralBillItemVO.class.getName(), icVOs,
+				new String[] { "cgeneralhid" }, null);
+		return voaRet;
+	}
+
+	/*
+	 * VO转换后整平存货入库单VO 效率优化 2007-05-31 xhq
+	 */
+	private BillVO[] rearrangeBillVO(BillVO[] billVOs) {
+		Vector vTemp = new Vector();
+		for (int i = 0; i < billVOs.length; i++) {
+			BillHeaderVO headVO = (BillHeaderVO) billVOs[i].getParentVO();
+			BillItemVO bodyVO[] = (BillItemVO[]) billVOs[i].getChildrenVO();
+			for (int j = 0; j < bodyVO.length; j++) {
+				BillVO tempVO = new BillVO(1);
+				tempVO.setParentVO(headVO);
+				tempVO.setChildrenVO(new BillItemVO[] { bodyVO[j] });
+				vTemp.addElement(tempVO);
+			}
+		}
+
+		BillVO VOs[] = new BillVO[vTemp.size()];
+		vTemp.copyInto(VOs);
+		return VOs;
+	}
+
+	/**
+	 * 
+	 * 方法功能描述：过滤掉暂估VO中的资产类存货。
+	 * <p>
+	 * <b>examples:</b>
+	 * <p>
+	 * 使用示例
+	 * <p>
+	 * <b>参数说明</b>
+	 * 
+	 * @param estVos
+	 * @return 过滤掉资产存货的暂估VO(总不为null,长度可能为0)
+	 * @throws BusinessException
+	 *             <p>
+	 * @author zhaoyha
+	 * @time 2008-12-29 上午11:33:06
+	 */
+	private EstimateVO[] filteAssetInv(EstimateVO[] estVos)
+			throws BusinessException {
+		// 保存所有存货的基本档案
+		ArrayList<String> invBasIDs = new ArrayList<String>();
+		for (EstimateVO vo : estVos)
+			invBasIDs.add(vo.getCbaseid());
+		Map assetInvs = null;
+		try {
+			PubDMO dmo = new PubDMO();
+			assetInvs = dmo.queryArrayValues("bd_invbasdoc", "pk_invbasdoc",
+					new String[] { "asset" }, invBasIDs.toArray(new String[0]),
+					"asset='Y' ");
+		} catch (Exception e) {
+			PubDMO.throwBusinessException(e);
+		}
+		if (assetInvs == null || assetInvs.size() == 0)
+			return estVos;
+		// 将资产存货过滤掉
+		ArrayList<EstimateVO> retVos = new ArrayList<EstimateVO>();
+		Set<String> assetInvIDs = assetInvs.keySet();
+		for (EstimateVO vo : estVos)
+			if (!assetInvIDs.contains(vo.getCbaseid()))
+				retVos.add(vo);
+		return retVos.toArray(new EstimateVO[0]);
+	}
+
+	/**
+	 * 此处插入方法说明。 功能描述:检查入库单号是否重复 输入参数: 返回值: 异常处理:
+	 * 
+	 * @return boolean
+	 * @param VO
+	 *            nc.vo.ps.estimate.GeneralHVO
+	 */
+	private void checkBeforeSave(GeneralHVO VO) throws BusinessException {
+		boolean b = false;
+		try {
+			if (StringUtil.isEmptyWithTrim(VO.getHeadVO().getPrimaryKey()))
+				b = isCodeDuplicate(BsPuTool.getLoginCorp(null), VO.getHeadVO()
+						.getVbillcode(), null);
+			else
+				b = isCodeDuplicate(BsPuTool.getLoginCorp(null), VO.getHeadVO()
+						.getVbillcode(), VO.getHeadVO().getCgeneralhid().trim());
+		} catch (Exception e) {
+			SCMEnv.out(e);
+			PubDMO.throwBusinessException(e);
+		}
+		if (b)
+			new BusinessException(NCLangResOnserver.getInstance().getStrByID(
+					"40040503", "UPP40040503-000083")/* @res "入库单号重复，不能保存！" */);
+	}
+
+	/**
+	 * @function 费用暂估动作
+	 * 
+	 * @author QuSida
+	 * 
+	 * @param VOs
+	 * @param paraList
+	 * @throws BusinessException
+	 * 
+	 * @date 2010-9-20 下午02:40:02
+	 */
+	public void feeEstimate(EstimateVO[] VOs, ArrayList paraList)
+			throws BusinessException {
+		// TODO Auto-generated method stub
+
+		nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
+		timer.start();
+
+		EstimateDMO dmo = null;
+		ICreateCorpQueryService myService0 = null;
+		ISysInitQry myService1 = null;
+		nc.bs.pu.pub.PubImpl myService2 = null;
+		boolean bLock = false;
+
+		// String cOperator = (String)paraList.get(0);
+		// UFDate dCurrDate = (UFDate)paraList.get(1);
+		ClientLink cl = (ClientLink) paraList.get(0);
+		String strOperator = cl.getUser();
+		UFDate dateUserLogon = cl.getLogonDate();
+		String strLoginCorp = cl.getCorp();
+		String strEstMode = (String) paraList.get(1);
+		String strDifferDealMode = (String) paraList.get(2);
+		UFBoolean bZGYF = (UFBoolean) paraList.get(3);
+		String strCurrTypeID = (String) paraList.get(4);
+		UFBoolean ufbLockedFlag = UFBoolean.FALSE;
+		if (paraList.size() >= 6) {
+			ufbLockedFlag = (UFBoolean) paraList.get(5);
+		}
+		// 此处做区分，比如签字自动暂估不必加锁
+		boolean bNeedLock = ufbLockedFlag == null
+				|| !ufbLockedFlag.booleanValue();
+
+		// 组合所有需要加锁的主键
+		String[] saLockKey = null;
+
+		timer.addExecutePhase("组合所有需要加锁的主键");
+		String[] saSubLockedId = null;
+		try {
+			// 对单据加锁
+			if (bNeedLock) {
+				saLockKey = getEstimateLockKeys(VOs);
+				bLock = LockTool.setLockForPks(saLockKey, strOperator);
+			}
+
+			timer.addExecutePhase("加锁");
+
+			if (bNeedLock && !bLock) {
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000000")/*
+													 * @res "正在进行相关操作，请稍后再试！"
+													 */);
+			}
+
+			// 判断时间戳是否改变
+			String sMessage = isTimeStampChanged(VOs);
+			if (sMessage != null && sMessage.length() > 0) {
+				sMessage += nc.bs.ml.NCLangResOnserver.getInstance()
+						.getStrByID("40040503", "UPP40040503-000001")/*
+																	 * @res
+																	 * "请刷新！\n"
+																	 */;
+				throw new BusinessException(sMessage);
+			}
+			timer.addExecutePhase("判断时间戳是否改变");
+
+			Vector v1 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				v1.addElement(VOs[i].getCgeneralbid());
+			}
+			//
+			dmo = new EstimateDMO();
+			// 状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)
+			if (v1.size() > 0) {
+				dmo.checkExistEsti(v1);
+			}
+			timer.addExecutePhase("状态刷新：判断是否存在已经暂估的入库单行(存在抛异常)");
+
+			// 暂估时单价和金额的精度控制
+			myService2 = new nc.bs.pu.pub.PubImpl();
+			// sinve v502, 按登录公司取精度
+			// int digit[] = myService2.getDigitBatch(VOs[0].getPk_corp(), new
+			// String[] { "BD301", "BD505" });
+			int digit[] = myService2.getDigitBatch(strLoginCorp, new String[] {
+					"BD301", "BD505" });
+			if (digit == null || digit.length == 0)
+				throw new BusinessException(nc.bs.ml.NCLangResOnserver
+						.getInstance().getStrByID("40040503",
+								"UPP40040503-000008")/*
+													 * @res "获取本位币精度或单价精度异常!"
+													 */);
+
+			timer.addExecutePhase("暂估时单价和金额的精度控制");
+
+			// 入库单表体打上正常标志，重新计算暂估单价和暂估金额及材料费
+			Vector vAllBodyVoB = new Vector();
+			Vector vAllBodyVoBB3 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				GeneralHItemVO bodyVO = new GeneralHItemVO();
+				bodyVO.setCgeneralbid(VOs[i].getCgeneralbid());
+				bodyVO.setBzgflag(new UFBoolean(true));
+				bodyVO.setDzgdate(dateUserLogon);
+				bodyVO.setBzgyfflag(bZGYF);
+				vAllBodyVoB.addElement(bodyVO);
+
+				GeneralBb3VO bb3VO = new GeneralBb3VO();
+				if (VOs[i].getNprice() != null) {
+					bb3VO.setCgeneralbid(VOs[i].getCgeneralbid());
+					double d = PubDMO.getRoundDouble(digit[1], VOs[i]
+							.getNprice().doubleValue());
+					bb3VO.setNpprice(new UFDouble(d));
+					VOs[i].setNprice(bb3VO.getNpprice());
+					d = PubDMO.getRoundDouble(digit[1], VOs[i].getNtaxprice()
+							.doubleValue());
+					bb3VO.setNzygfprice(new UFDouble(d));
+					VOs[i].setNtaxprice(bb3VO.getNzgyfprice());
+				}
+				if (VOs[i].getNmoney() != null) {
+					double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+							.getNmoney().doubleValue());
+					bb3VO.setNpmoney(new UFDouble(d));
+					VOs[i].setNmoney(bb3VO.getNpmoney());
+					d = PubDMO.getRoundDouble(digit[0], VOs[i].getNtotalmoney()
+							.doubleValue());
+					bb3VO.setNzgyfmoney(new UFDouble(d));
+					VOs[i].setNtotalmoney(bb3VO.getNzgyfmoney());
+				}
+				if (VOs[i].getNmaterialmoney() != null) {
+					double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+							.getNmaterialmoney().doubleValue());
+					bb3VO.setNmaterialmoney(new UFDouble(d));
+					VOs[i].setNmaterialmoney(bb3VO.getNmaterialmoney());
+				}
+				// -----zhf add for 5.5
+				if (VOs[i].getCurrencytypeid() != null) {
+					bb3VO.setCurrencytypeid(VOs[i].getCurrencytypeid());
+				}
+				if (VOs[i].getNexchangeotobrate() != null) {
+					bb3VO.setNexchangeotobrate(VOs[i].getNexchangeotobrate());
+				}
+				if (VOs[i].getNoriginalcurmny() != null) {
+					// double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+					// .getNoriginalcurmny().doubleValue());
+					bb3VO.setNoriginalcurmny(VOs[i].getNoriginalcurmny());
+				}
+				if (VOs[i].getNorgtaxmoney() != null) {
+					// double d = PubDMO.getRoundDouble(digit[0],
+					// VOs[i].getNorgtaxmoney()
+					// .doubleValue());
+					bb3VO.setNorgtaxMoney(VOs[i].getNorgtaxmoney());
+				}
+				if (VOs[i].getNoriginalnetprice() != null) {
+					double d = PubDMO.getRoundDouble(digit[1], VOs[i]
+							.getNoriginalnetprice().doubleValue());
+					bb3VO.setNoriginalnetprice(new UFDouble(d));
+					d = PubDMO.getRoundDouble(digit[1], VOs[i]
+							.getNorgnettaxprice().doubleValue());
+					bb3VO.setNorgnettaxprice(new UFDouble(d));
+				}
+				if (VOs[i].getNoriginaltaxpricemny() != null) {
+					// double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+					// .getNoriginaltaxpricemny().doubleValue());
+					bb3VO.setNoriginaltaxpricemny(VOs[i]
+							.getNoriginaltaxpricemny());
+				}
+
+				// 回写暂估费用信息
+
+				if (VOs[i].getNfeemny() != null
+						&& Math.abs(VOs[i].getNfeemny().doubleValue()) > 0) {
+					double d = PubDMO.getRoundDouble(digit[0], VOs[i]
+							.getNfeemny().doubleValue());
+					bb3VO.setNfeemny(new UFDouble(d));
+
+					bb3VO.setCfeeid(VOs[i].getCfeeid());
+				}
+
+				// ---------------------end----------------------
+				vAllBodyVoBB3.addElement(bb3VO);
+			}
+
+			timer.addExecutePhase("打标志、计算单价金额材料费--循环赋值");
+
+			if (vAllBodyVoB.size() > 0) {
+				GeneralHItemVO[] bodyVOs = new GeneralHItemVO[vAllBodyVoB
+						.size()];
+				vAllBodyVoB.copyInto(bodyVOs);
+				dmo.updateBillBody(bodyVOs);
+			}
+
+			timer.addExecutePhase("打标志、计算单价金额材料费--更新子表");
+
+			if (vAllBodyVoBB3.size() > 0) {
+				GeneralBb3VO bb3VOs[] = new GeneralBb3VO[vAllBodyVoBB3.size()];
+				vAllBodyVoBB3.copyInto(bb3VOs);
+				dmo.updateBillBb3(bb3VOs);
+			}
+
+			timer.addExecutePhase("打标志、计算单价金额材料费--更新子表3");
+
+			// 判断存货核算是否启用
+			if (VOs != null && VOs.length > 0) {
+				String strInvoiceCorpId = VOs[0].getPk_invoicecorp();
+				myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(
+								ICreateCorpQueryService.class.getName());
+				// 暂估应付
+				if (bZGYF.booleanValue()
+						&& myService0.isEnabled(strInvoiceCorpId, "AP")) {
+					ArrayList list = new ArrayList();
+					list.add(strCurrTypeID);
+					list.add(strOperator);
+					list.add(dateUserLogon);
+					list.add(strLoginCorp);
+					list.add(null);// since v53
+					list.add(null);// since v53
+					EstimateVO[] newVOs = getArapVOs(VOs);
+					saveFeeBillForARAP(newVOs, list);
+				}
+				timer.showAllExecutePhase("暂估应付");
+
+				boolean bIAStartUp = myService0.isEnabled(strInvoiceCorpId,
+						"IA");
+
+				myService1 = (ISysInitQry) nc.bs.framework.common.NCLocator
+						.getInstance().lookup(ISysInitQry.class.getName());
+				boolean bStockRB = true; // 入库单是否红蓝对冲
+				nc.vo.pub.para.SysInitVO initVO[] = myService1.querySysInit(
+						strInvoiceCorpId, "PO36");
+				if (initVO != null && initVO.length > 0) {
+					if (initVO[0].getValue().equals("否"))
+						bStockRB = false;
+				}
+				timer.addExecutePhase("入库单是否红蓝对冲");
+
+				if (bIAStartUp) {
+					// 调用接口,向存货核算系统传送数据
+
+					// 传存货前暂估费用摊入成本---------------zhf 2008/06/24 since for v55
+
+					for (int i = 0; i < VOs.length; i++) {
+						if (VOs[i].getNfeemny() != null
+								&& Math.abs(VOs[i].getNfeemny().doubleValue()) > 0) {
+							// 存货金额=暂估金额+费用金额 存货单价=（暂估金额+费用金额）/暂估数量
+							UFDouble nmny = VOs[i].getNmoney().add(
+									VOs[i].getNfeemny());
+							UFDouble nprice = nmny.div(VOs[i].getNinnum());
+
+							VOs[i].setNmoney(new UFDouble(PubDMO
+									.getRoundDouble(digit[0], nmny
+											.doubleValue())));
+							VOs[i].setNprice(nprice.add(nprice, digit[1]));
+						}
+					}
+					//          
+					saveBillFromOutter(VOs, strOperator, dateUserLogon,
+							strLoginCorp, ProductCode.PROD_PO);
+
+					timer.addExecutePhase("调用保存存货核算单据方法saveBillFromOutter()");
+					// 结算
+					if (bStockRB) {
+						saSubLockedId = settleForEstimate(VOs, strOperator,
+								dateUserLogon, strEstMode, strDifferDealMode);
+					}
+					timer.addExecutePhase("入库单红蓝对冲自动结算");
+				}
+
+				//
+				timer.showAllExecutePhase("暂估处理时间分布：\n");
+
+			}
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		} finally {
+			// 对单据解锁
+			try {
+				if (bNeedLock && bLock || saSubLockedId != null
+						&& saSubLockedId.length > 0) {
+					String[] saAllKey = saLockKey;
+					if (saSubLockedId != null && saSubLockedId.length > 0) {
+						ArrayList listAll = new ArrayList();
+						int iLen = saAllKey == null ? 0 : saAllKey.length;
+						for (int i = 0; i < iLen; i++) {
+							listAll.add(saAllKey[i]);
+						}
+						iLen = saSubLockedId.length;
+						for (int i = 0; i < iLen; i++) {
+							listAll.add(saSubLockedId[i]);
+						}
+						saAllKey = new String[listAll.size()];
+						saAllKey = (String[]) listAll.toArray(saAllKey);
+					}
+					LockTool.releaseLockForPks(saAllKey, strOperator);
+				}
+			} catch (Exception e) {
+				/* 调用采购公用方法按规范抛出异常 */
+				nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+			}
+		}
+
+	}
+
+	/**
+	 * @function 得到要保存为应付单VO的费用暂估VO数组
+	 * 
+	 * @author QuSida
+	 * 
+	 * @param vos
+	 * 
+	 * @return EstimateVO[]
+	 * 
+	 * @date 2010-9-20 下午02:38:46
+	 */
+	private EstimateVO[] getArapVOs(EstimateVO[] vos) {
+		if (vos == null || vos.length == 0)
+			return null;
+
 		StringBuffer sql = new StringBuffer(" dr = 0 ");
 		Vector v = new Vector();
 		ArrayList list = new ArrayList();
@@ -8967,22 +9103,23 @@ private EstimateVO[] getArapVOs(EstimateVO[] vos){
 			}
 		}
 		InformationCostVO[] infovos = null;
-		AdapterPuToMm query  = new AdapterPuToMm();
-	 try{
-		 infovos = (InformationCostVO[])query.querySmartVOs(InformationCostVO.class, null, sql.toString());
-	 } catch(Exception e){
-		Logger.debug(e);
-	 }
-	 if(infovos == null || infovos.length == 0){
-               return null;
-	 }
-//	for (int i = 0; i < infovos.length; i++) {
-//		infovos[i].set
-//	}
-	 ArrayList esvos = new ArrayList();
-	 for (int i = 0; i < v.size(); i++) {
-//			UFDouble mny = new UFDouble().ZERO_DBL;
-//			UFDouble number = new UFDouble().ZERO_DBL;
+		AdapterPuToMm query = new AdapterPuToMm();
+		try {
+			infovos = (InformationCostVO[]) query.querySmartVOs(
+					InformationCostVO.class, null, sql.toString());
+		} catch (Exception e) {
+			Logger.debug(e);
+		}
+		if (infovos == null || infovos.length == 0) {
+			return null;
+		}
+		// for (int i = 0; i < infovos.length; i++) {
+		// infovos[i].set
+		// }
+		ArrayList esvos = new ArrayList();
+		for (int i = 0; i < v.size(); i++) {
+			// UFDouble mny = new UFDouble().ZERO_DBL;
+			// UFDouble number = new UFDouble().ZERO_DBL;
 			EstimateVO temp = new EstimateVO();
 			ArrayList<InformationCostVO> infoList = new ArrayList<InformationCostVO>();
 			ArrayList<EstimateVO> emvoList = new ArrayList<EstimateVO>();
@@ -8992,21 +9129,22 @@ private EstimateVO[] getArapVOs(EstimateVO[] vos){
 				}
 			}
 			for (int k = 0; k < vos.length; k++) {
-				if (vos[k].getCgeneralhid().equals(v.get(i))) {					
+				if (vos[k].getCgeneralhid().equals(v.get(i))) {
 					temp = (EstimateVO) vos[k].clone();
 					break;
 				}
 			}
-			if(temp == null) continue;
-            for (int l = 0; l < infoList.size(); l++) {
-            	EstimateVO newVO = new EstimateVO();
-            	newVO = (EstimateVO) temp.clone();
-			    InformationCostVO vo = infoList.get(l);
-			    String pk_invbasdoc = null	;
-			    String pk_invmandoc = null ;
-			    BaseDAO b = new BaseDAO();
-			  
-			    try {
+			if (temp == null)
+				continue;
+			for (int l = 0; l < infoList.size(); l++) {
+				EstimateVO newVO = new EstimateVO();
+				newVO = (EstimateVO) temp.clone();
+				InformationCostVO vo = infoList.get(l);
+				String pk_invbasdoc = null;
+				String pk_invmandoc = null;
+				BaseDAO b = new BaseDAO();
+
+				try {
 					pk_invbasdoc = (String) b.executeQuery(
 							"select pk_invbasdoc from bd_invbasdoc  where invcode ='"
 									+ vo.getCostcode() + "'",
@@ -9027,339 +9165,379 @@ private EstimateVO[] getArapVOs(EstimateVO[] vos){
 				newVO.setNzgyfnotaxprice(vo.getNoriginalcurprice());
 				newVO.setNdiscountrate(null);
 				newVO.setNoriginalnetprice(vo.getNoriginalcurprice());
-                newVO.setNorgnettaxprice(vo.getNoriginalcurprice());
-                newVO.setNoriginalcurmny(vo.getNoriginalcurmny());
-                newVO.setNoriginaltaxpricemny(vo.getNoriginalcurmny());
-                newVO.setNfeemny(null);
-                newVO.setCfeeid(null);
-                //newVO.setPk_invoicecorp(vo.getCcostunitid());
-                newVO.setCprovidermangid(vo.getCcostunitid());
-                newVO.setCvendorid(vo.getCcostunitid());
-                newVO.setNinnum(vo.getNnumber());
-                newVO.setNinassistnum(null);
-                newVO.setCbaseid(pk_invbasdoc);
-                newVO.setCmangid(pk_invmandoc);
-                newVO.setNtaxrate(null);
-                newVO.setVuserdef18("tureFree");//添加是否为费用暂估的标志 by 付世超 2010-10-26
-			    esvos.add(newVO);
-            }
-            
+				newVO.setNorgnettaxprice(vo.getNoriginalcurprice());
+				newVO.setNoriginalcurmny(vo.getNoriginalcurmny());
+				newVO.setNoriginaltaxpricemny(vo.getNoriginalcurmny());
+				newVO.setNfeemny(null);
+				newVO.setCfeeid(null);
+				// newVO.setPk_invoicecorp(vo.getCcostunitid());
+				newVO.setCprovidermangid(vo.getCcostunitid());
+				newVO.setCvendorid(vo.getCcostunitid());
+				newVO.setNinnum(vo.getNnumber());
+				newVO.setNinassistnum(null);
+				newVO.setCbaseid(pk_invbasdoc);
+				newVO.setCmangid(pk_invmandoc);
+				newVO.setNtaxrate(null);
+				newVO.setVuserdef18("tureFree");// 添加是否为费用暂估的标志 by 付世超
+												// 2010-10-26
+				esvos.add(newVO);
+			}
+
+		}
+		EstimateVO[] vos1 = new EstimateVO[esvos.size()];
+		esvos.toArray(vos1);
+		EstimateVO[] returnVO = new EstimateVO[vos.length + vos1.length];
+		System.arraycopy(vos, 0, returnVO, 0, vos.length);
+		System.arraycopy(vos1, 0, returnVO, vos.length, vos1.length);
+		return returnVO;
+
 	}
-	 EstimateVO[] vos1 = new EstimateVO[esvos.size()];
-	 esvos.toArray(vos1);
-	 EstimateVO[] returnVO = new EstimateVO[vos.length+vos1.length];
-	 System.arraycopy(vos, 0, returnVO, 0, vos.length);
-	 System.arraycopy(vos1, 0, returnVO, vos.length, vos1.length);
-	 return returnVO;
+
+	/**
+	 * @function 保存费用的应付单
+	 * 
+	 * @author QuSida
+	 * 
+	 * @param VOs
+	 * @param paraList
+	 * @throws BusinessException
+	 * 
+	 * @return void
+	 * 
+	 * @date 2010-9-20 下午02:38:18
+	 */
+	private void saveFeeBillForARAP(EstimateVO VOs[], ArrayList paraList)
+			throws BusinessException {
+		/**
+		 * 以下为2008.12.27需求变更:
+		 * 1.采购入库单中如果存货为资产类存货,则不允许作暂估应付,也就是针对该行作暂估时即使暂估应付参数为是也不生成暂估应付单.
+		 * 2.采购发票中存货为资产类存货的行,则不受暂估应付参数的控制,只要审核就可以传应付.
+		 */
+		VOs = filteAssetInv(VOs);
+		if (VOs == null || VOs.length == 0)
+			return;
+
+		// 检查暂估数据是否有零的情况
+		checkEstimateForARAP(VOs);
+
+		String sCurrTypeID = (String) paraList.get(0);
+		String cOperator = (String) paraList.get(1);
+		UFDate dCurrDate = (UFDate) paraList.get(2);
+		String strLoginCorp = (String) paraList.get(3);
+		// since v53
+		UFBoolean ufbChgDocFlag = PuPubVO.getUFBoolean_NullAs(paraList.get(4),
+				UFBoolean.TRUE);
+		// since v53 , 区分期初暂估调用
+		UFBoolean ufbInitFlag = PuPubVO.getUFBoolean_NullAs(paraList.get(5),
+				UFBoolean.FALSE);
+		//
+		nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
+		timer.start();
+
+		try {
+			nc.bs.ps.estimate.EstimateDMO dmo = new nc.bs.ps.estimate.EstimateDMO();
+
+			// 2006-09-12 xhq 支持应付单单据类型配置
+			IPFMetaModel myService = (IPFMetaModel) nc.bs.framework.common.NCLocator
+					.getInstance().lookup(IPFMetaModel.class.getName());
+			Hashtable tBillType = new Hashtable();// 应付单据类型
+			for (int i = 0; i < VOs.length; i++) {
+				String key = "25" + VOs[i].getCbiztype() + "APPROVE";
+				if (tBillType.get(key) == null) {
+					MessagedriveVO driveVO[] = myService.queryAllMsgdrvVOs(
+							null, "25", VOs[i].getCbiztype(), "APPROVE");
+					if (driveVO != null && driveVO.length > 0
+							&& driveVO[0].getPk_billtype() != null) {
+						tBillType.put(key, driveVO[0].getPk_billtype());
+					}
+				}
+			}
+
+			Hashtable tBillTemplet = new Hashtable();// 应付单据模板
+			for (int i = 0; i < VOs.length; i++) {
+				String key = "25" + VOs[i].getCbiztype() + "APPROVE";
+				if (tBillType.get(key) == null) {
+					tBillType.put(key, "D1");
+				}
+				// since v502
+				// String key1 = VOs[i].getPk_corp() + tBillType.get(key);
+				String key1 = VOs[i].getPk_invoicecorp() + tBillType.get(key);
+				if (tBillTemplet.get(key1) == null) {
+					String ss[] = dmo
+							.getDJDataForARAP(VOs[i].getPk_invoicecorp(),
+									tBillType.get(key).toString());
+					if (ss != null)
+						tBillTemplet.put(key1, ss);
+				}
+			}
+
+			// 暂估应付时,供应商取订单发票方,发票方不存在,取供应商 2006-08-25
+			Vector vTemp = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				String s = VOs[i].getCfirstbillhid();
+				if (s != null && !vTemp.contains(s))
+					vTemp.addElement(s);
+			}
+			Hashtable t = null;
+			if (vTemp.size() > 0) {
+				String corderid[] = new String[vTemp.size()];
+				vTemp.copyInto(corderid);
+				t = dmo.getOrderInvoiceReceiver(corderid);
+				// if (t != null && t.size() > 0) {
+				// for (int i = 0; i < VOs.length; i++) {
+				// String s = VOs[i].getCfirstbillhid();
+				// if (s != null && t.get(s) != null) {
+				// String ss[] = (String[]) t.get(s);
+				// if (ss != null && ss.length > 0 && ss[0] != null) {
+				// // 设置为发票方后，即已经是收票公司(采购公司)档案ID，不必再做档案转换ID
+				// VOs[i].setNeedChgVendorDoc(false);
+				// VOs[i].setCprovidermangid(ss[0]);
+				// }
+				// }
+				// }
+				// }
+			}
+
+			// 查询供应商基本ID
+			String pk_cumandoc[] = new String[VOs.length];
+			for (int i = 0; i < VOs.length; i++)
+				pk_cumandoc[i] = VOs[i].getCprovidermangid();
+			SettleDMO settleDMO = new SettleDMO();
+			String pk_cubasdoc[] = settleDMO
+					.queryVendorBaseIDForARAP(pk_cumandoc);
+			if (pk_cubasdoc != null && pk_cubasdoc.length > 0) {
+				for (int i = 0; i < VOs.length; i++) {
+					VOs[i].setCproviderbaseid(pk_cubasdoc[i]);
+				}
+			}
+			// 查询存货基本ID
+			Vector v1 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				if (VOs[i].getCbaseid() == null)
+					v1.addElement(VOs[i].getCmangid());
+			}
+			if (v1.size() > 0) {
+				pk_cumandoc = new String[v1.size()];
+				v1.copyInto(pk_cumandoc);
+				pk_cubasdoc = settleDMO.getInvBaseID(pk_cumandoc);
+				if (pk_cubasdoc != null && pk_cubasdoc.length > 0) {
+					int j = 0;
+					for (int i = 0; i < VOs.length; i++) {
+						if (VOs[i].getCbaseid() == null) {
+							VOs[i].setCbaseid(pk_cubasdoc[j]);
+							j++;
+						}
+					}
+				}
+			}
+
+			// VO转换
+			GeneralBillVO icVOs[] = new GeneralBillVO[VOs.length];
+			for (int i = 0; i < VOs.length; i++) {
+				icVOs[i] = switchVOFromEstimate2IC(VOs[i], strLoginCorp);
+			}
+			// since v502, 跨公司转换档案ID
+			if (ufbChgDocFlag.booleanValue()) {
+				changeDocIdsFromArrToPur(icVOs, strLoginCorp);
+			}
+
+			// icVOs = rearrangeGeneralBillVO(icVOs);
+
+			PfParameterVO voPfPara = new PfParameterVO();
+			voPfPara.m_currentDate = dCurrDate.toString();
+			voPfPara.m_coId = strLoginCorp;
+			String strSrcBillType = "45";
+			if (ufbInitFlag.booleanValue()) {
+				strSrcBillType = "4T";
+			}
+
+			// 调用应付提供接口，查询目标业务类型
+			IArapBillMapQureyPublic iArapPub = (IArapBillMapQureyPublic) NCLocator
+					.getInstance().lookup(
+							IArapBillMapQureyPublic.class.getName());
+
+			BillTypeMapVO billTypeMapVo = iArapPub.queryBillMap(strSrcBillType,
+					"yf", BsPuTool.getLoginCorp(null));
+			String strTargetBillType = "D1";
+			if (billTypeMapVo != null
+					&& billTypeMapVo.getTargetbilltype() != null
+					&& billTypeMapVo.getTargetbilltype().trim().length() > 0)
+				strTargetBillType = billTypeMapVo.getTargetbilltype();
+
+			// 进行VO对照转换
+			DJZBVO arapVO[] = (DJZBVO[]) PfUtilTools.runChangeDataAry(
+					strSrcBillType, strTargetBillType, icVOs, voPfPara);
+			if (arapVO == null || arapVO.length == 0)
+				return;
+
+			// arapVO = rearrangeDJZBVO(arapVO);
+
+			// 根据采购入库单生成应付单
+			v1 = new Vector();
+			Vector v2 = new Vector();
+			for (int i = 0; i < VOs.length; i++) {
+				// 后续处理:应付单头
+				DJZBHeaderVO headVO = (DJZBHeaderVO) arapVO[i].getParentVO();
+				headVO.setVouchid(VOs[i].getCgeneralhid());
+
+				// V55 by zhaoyha at 2008.9.26
+				// String key = "25" + VOs[i].getCbiztype() + "APPROVE";
+				// headVO.setDjlxbm(billTypeMapVo.getTargetparenttype());
+				// headVO.setXslxbm(billTypeMapVo.getBusitype());
+				// V55 by zhaoyha end
+
+				// String cBillType = tBillType.get(key).toString();
+				String ss[] = null;
+				// since v502
+				// key = VOs[i].getPk_corp() + tBillType.get(key);
+
+				// V55 by zhaoyha at 2008.9.26
+				// key = VOs[i].getPk_invoicecorp() + tBillType.get(key);
+				// if (tBillTemplet.get(key) != null)
+				// ss = (String[]) tBillTemplet.get(key);
+				// if (ss != null && ss.length > 0 &&
+				// PuPubVO.getString_TrimZeroLenAsNull(ss[0])!=null ) {
+				// headVO.setYwbm(ss[0]);
+				// }
+
+				// since v502,单一公司时用入库公司,跨公司时用收票公司
+				headVO.setDwbm(VOs[i].getPk_corp());
+				if (PuPubVO.getString_TrimZeroLenAsNull(VOs[i]
+						.getPk_invoicecorp()) != null) {
+					headVO.setDwbm(VOs[i].getPk_invoicecorp());
+				}
+				//
+				headVO.setLrr(cOperator);
+				headVO.setAttributeValue("zgyf", new Integer(1));// 暂估应付
+				// headVO.setDjlxbm(cBillType);
+				v1.addElement(headVO);
+
+				// 后续处理:应付单体
+				DJZBItemVO bodyVO[] = (DJZBItemVO[]) arapVO[i].getChildrenVO();
+				// since v502
+				// bodyVO[0].setDwbm(VOs[i].getPk_corp());
+				bodyVO[0].setDwbm(VOs[i].getPk_invoicecorp());
+				bodyVO[0].setFb_oid(VOs[i].getCgeneralbid());
+
+				bodyVO[0].setHbbm(VOs[i].getCproviderbaseid()); // 供应商基本ID
+				bodyVO[0].setZyx19(VOs[i].getCprovidermangid());// 使用自定义字段存放
+																// 供应商管理id
+																// 参照生成发票时用 add
+																// by 付世超
+																// 2010-10-26
+				bodyVO[0].setCinventoryid(VOs[i].getCbaseid()); // 存货基本ID
+
+				// bodyVO[0].setFbye(new UFDouble(0)); // 辅币余额
+				// bodyVO[0].setDffbje(new UFDouble(0)); // 贷方辅币余额
+				bodyVO[0].setWldx(new Integer(1));
+
+				bodyVO[0].setDdhid(VOs[i].getCfirstbillhid());// 订单行ID
+				bodyVO[0].setDdh(VOs[i].getVfirstbillcode());// 订单号
+				bodyVO[0].setCkdid(VOs[i].getCgeneralbid());// 出入库单行ID
+				bodyVO[0].setFphid(null);// 发票行ID
+				bodyVO[0].setFph(null);// 发票号
+				bodyVO[0].setAttributeValue("ckdh", VOs[i].getVbillcode());// 出库单号
+				if (VOs[i].getCfirstbillhid() != null && t != null) {
+					if (t.get(VOs[i].getCfirstbillhid()) != null) {
+						ss = (String[]) t.get(VOs[i].getCfirstbillhid());
+						bodyVO[0].setSfkxyh(ss[1]);// 付款协议
+					}
+				}
+				// 币种
+				bodyVO[0].setBzbm(VOs[i].getCurrencytypeid());
+				bodyVO[0].setBbhl(VOs[i].getNexchangeotobrate());
+				bodyVO[0].setFbhl(null);
+				// 扣税类别
+				bodyVO[0].setKslb(VOs[i].getIdiscounttaxtype());
+				// 税率
+				bodyVO[0].setSl(VOs[i].getNtaxrate());
+				// bodyVO[0].setYwybm(VOs[i].getCoperatorid());// 业务员
+				v2.addElement(bodyVO[0]);
+			}
+
+			timer.addExecutePhase("VO 对照");
+
+			// 对应付单进行处理: 相同表头的单据组合成一张单据
+			DJZBHeaderVO headVOs[] = new DJZBHeaderVO[v1.size()];
+			v1.copyInto(headVOs);
+			DJZBItemVO bodyVOs[] = new DJZBItemVO[v2.size()];
+			v2.copyInto(bodyVOs);
+
+			// 组合VO[]
+			v1 = new Vector();
+			for (int i = 0; i < headVOs.length; i++) {
+				DJZBVO VO = new DJZBVO();
+				VO.setParentVO(headVOs[i]);
+				VO.setChildrenVO(new DJZBItemVO[] { bodyVOs[i] });
+				v1.addElement(VO);
+			}
+			DJZBVO apVOs[] = new DJZBVO[v1.size()];
+			v1.copyInto(apVOs);
+			timer.addExecutePhase("组合VO[]");
+
+			// 2008.11.17根据NCdp200591951问题,需求变更如下:
+			// 针对采购入库单暂估应付的问题,本版已将暂估应付从原来的脚本提为组件配置,
+			// 可以在以后版本考虑采购入库暂估时支持配置暂估应付对应的流程,V55版本先不作调整,
+			// 仍按照上次统一沟通的结果来处理:即走接口获取暂估应付的业务类型,
+			// 同时支持原来分单参数按照来源业务类型进行分单.
+			apVOs = getSplittedBillVos(apVOs, strLoginCorp);
+			timer.addExecutePhase("支持多行:按供应商分单");
+			// 设置收付接口对照表中的业务类型
+			for (DJZBVO apVo : apVOs) {
+				DJZBHeaderVO headVo = (DJZBHeaderVO) apVo.getParentVO();
+				headVo.setXslxbm(billTypeMapVo.getBusitype());
+			}
+
+			// 调用应付提供接口
+			IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator
+					.getInstance().lookup(IArapForGYLPublic.class.getName());
+			VoTools tools = new VoTools();
+			for (int i = 0; i < apVOs.length; i++) {
+				// 重新计算合计项(调用应付提供接口)
+				tools.getSum(apVOs[i]);
+				// 保存暂估应付单
+				iArap.saveEffForCG(apVOs[i]);
+			}
+
+			timer.addExecutePhase("调用应付提供接口传送单据");
+
+			timer.showAllExecutePhase("无发票结算向应付传送数据时间分布--明细");
+
+		} catch (Exception e) {
+			/* 调用采购公用方法按规范抛出异常 */
+			SCMEnv.out(e);
+			nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+		}
+		return;
+	}
+
 	
-}
-/**
- * @function 保存费用的应付单
- *
- * @author QuSida
- *
- * @param VOs
- * @param paraList
- * @throws BusinessException 
- *
- * @return void
- *
- * @date 2010-9-20 下午02:38:18
- */
-private void saveFeeBillForARAP(EstimateVO VOs[], ArrayList paraList)
-throws BusinessException {
-/**
-* 以下为2008.12.27需求变更:
-* 1.采购入库单中如果存货为资产类存货,则不允许作暂估应付,也就是针对该行作暂估时即使暂估应付参数为是也不生成暂估应付单.
-* 2.采购发票中存货为资产类存货的行,则不受暂估应付参数的控制,只要审核就可以传应付.
-*/
-VOs=filteAssetInv(VOs);
-if(VOs==null || VOs.length==0) return;
+	/**
+	 * 2010-11-06 MeiChao
+	 * 费用发票弃审时,删除当前发票的下游单据: 红蓝回冲单,库存调整单
+	 */
+	public boolean rollbackEstimate(String invoicePK, String APpks,String IApks)
+			throws BusinessException {
+		try{
+		BaseDAO dao = new BaseDAO();
+		String deleteAPhead="update arap_djzb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
+		String deleteAPbody="update arap_djfb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
+		String deleteIAhead="update ia_bill t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
+		String deleteIAbody="update ia_bill_b t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
+		dao.executeUpdate(deleteAPhead);
+		dao.executeUpdate(deleteAPbody);
+		dao.executeUpdate(deleteIAhead);
+		dao.executeUpdate(deleteIAbody);
+		}catch (Exception e){
+			Logger.debug("费用发票弃审时出错!");
+			e.printStackTrace();
+			return false;
+			
+		}
+		return true;
+	}
 
-//检查暂估数据是否有零的情况
-checkEstimateForARAP(VOs);
-
-String sCurrTypeID = (String) paraList.get(0);
-String cOperator = (String) paraList.get(1);
-UFDate dCurrDate = (UFDate) paraList.get(2);
-String strLoginCorp = (String) paraList.get(3);
-// since v53
-UFBoolean ufbChgDocFlag = PuPubVO.getUFBoolean_NullAs(paraList.get(4),
-  UFBoolean.TRUE);
-// since v53 , 区分期初暂估调用
-UFBoolean ufbInitFlag = PuPubVO.getUFBoolean_NullAs(paraList.get(5),
-  UFBoolean.FALSE);
-//
-nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
-timer.start();
-
-try {
-nc.bs.ps.estimate.EstimateDMO dmo = new nc.bs.ps.estimate.EstimateDMO();
-
-// 2006-09-12 xhq 支持应付单单据类型配置
-IPFMetaModel myService = (IPFMetaModel) nc.bs.framework.common.NCLocator
-    .getInstance().lookup(IPFMetaModel.class.getName());
-Hashtable tBillType = new Hashtable();// 应付单据类型
-for (int i = 0; i < VOs.length; i++) {
-  String key = "25" + VOs[i].getCbiztype() + "APPROVE";
-  if (tBillType.get(key) == null) {
-    MessagedriveVO driveVO[] = myService.queryAllMsgdrvVOs(null, "25",
-        VOs[i].getCbiztype(), "APPROVE");
-    if (driveVO != null && driveVO.length > 0
-        && driveVO[0].getPk_billtype() != null) {
-      tBillType.put(key, driveVO[0].getPk_billtype());
-    }
-  }
-}
-
-Hashtable tBillTemplet = new Hashtable();// 应付单据模板
-for (int i = 0; i < VOs.length; i++) {
-  String key = "25" + VOs[i].getCbiztype() + "APPROVE";
-  if (tBillType.get(key) == null) {
-    tBillType.put(key, "D1");
-  }
-  // since v502
-  // String key1 = VOs[i].getPk_corp() + tBillType.get(key);
-  String key1 = VOs[i].getPk_invoicecorp() + tBillType.get(key);
-  if (tBillTemplet.get(key1) == null) {
-    String ss[] = dmo.getDJDataForARAP(VOs[i].getPk_invoicecorp(),
-        tBillType.get(key).toString());
-    if (ss != null)
-      tBillTemplet.put(key1, ss);
-  }
-}
-
-// 暂估应付时,供应商取订单发票方,发票方不存在,取供应商 2006-08-25
-Vector vTemp = new Vector();
-for (int i = 0; i < VOs.length; i++) {
-  String s = VOs[i].getCfirstbillhid();
-  if (s != null && !vTemp.contains(s))
-    vTemp.addElement(s);
-}
-  Hashtable t = null;
-if (vTemp.size() > 0) {
-  String corderid[] = new String[vTemp.size()];
-  vTemp.copyInto(corderid);
-   t = dmo.getOrderInvoiceReceiver(corderid);
-//  if (t != null && t.size() > 0) {
-//    for (int i = 0; i < VOs.length; i++) {
-//      String s = VOs[i].getCfirstbillhid();
-//      if (s != null && t.get(s) != null) {
-//        String ss[] = (String[]) t.get(s);
-//        if (ss != null && ss.length > 0 && ss[0] != null) {
-//          // 设置为发票方后，即已经是收票公司(采购公司)档案ID，不必再做档案转换ID
-//          VOs[i].setNeedChgVendorDoc(false);
-//          VOs[i].setCprovidermangid(ss[0]);
-//        }
-//      }
-//    }
-//  }
-}
-
-// 查询供应商基本ID
-String pk_cumandoc[] = new String[VOs.length];
-for (int i = 0; i < VOs.length; i++)
-  pk_cumandoc[i] = VOs[i].getCprovidermangid();
-SettleDMO settleDMO = new SettleDMO();
-String pk_cubasdoc[] = settleDMO.queryVendorBaseIDForARAP(pk_cumandoc);
-if (pk_cubasdoc != null && pk_cubasdoc.length > 0) {
-  for (int i = 0; i < VOs.length; i++) {
-    VOs[i].setCproviderbaseid(pk_cubasdoc[i]);
-  }
-}
-// 查询存货基本ID
-Vector v1 = new Vector();
-for (int i = 0; i < VOs.length; i++) {
-  if (VOs[i].getCbaseid() == null)
-    v1.addElement(VOs[i].getCmangid());
-}
-if (v1.size() > 0) {
-  pk_cumandoc = new String[v1.size()];
-  v1.copyInto(pk_cumandoc);
-  pk_cubasdoc = settleDMO.getInvBaseID(pk_cumandoc);
-  if (pk_cubasdoc != null && pk_cubasdoc.length > 0) {
-    int j = 0;
-    for (int i = 0; i < VOs.length; i++) {
-      if (VOs[i].getCbaseid() == null) {
-        VOs[i].setCbaseid(pk_cubasdoc[j]);
-        j++;
-      }
-    }
-  }
-}
-
-// VO转换
-GeneralBillVO icVOs[] = new GeneralBillVO[VOs.length];
-for (int i = 0; i < VOs.length; i++) {
-  icVOs[i] = switchVOFromEstimate2IC(VOs[i], strLoginCorp);
-}
-// since v502, 跨公司转换档案ID
-if (ufbChgDocFlag.booleanValue()) {
-  changeDocIdsFromArrToPur(icVOs, strLoginCorp);
-}
-
-// icVOs = rearrangeGeneralBillVO(icVOs);
-
-PfParameterVO voPfPara = new PfParameterVO();
-voPfPara.m_currentDate = dCurrDate.toString();
-voPfPara.m_coId = strLoginCorp;
-String strSrcBillType = "45";
-if (ufbInitFlag.booleanValue()) {
-  strSrcBillType = "4T";
-}
-
-// 调用应付提供接口，查询目标业务类型
-IArapBillMapQureyPublic iArapPub = (IArapBillMapQureyPublic) NCLocator.getInstance()
-    .lookup(IArapBillMapQureyPublic .class.getName());
- 
-BillTypeMapVO billTypeMapVo=iArapPub.queryBillMap(strSrcBillType, "yf",BsPuTool.getLoginCorp(null));
-String strTargetBillType="D1";
-if(billTypeMapVo!=null && billTypeMapVo.getTargetbilltype()!=null
-    && billTypeMapVo.getTargetbilltype().trim().length()>0)
-  strTargetBillType=billTypeMapVo.getTargetbilltype();
-
-//进行VO对照转换
-DJZBVO arapVO[] = (DJZBVO[]) PfUtilTools.runChangeDataAry(strSrcBillType,
-    strTargetBillType, icVOs, voPfPara);
-if (arapVO == null || arapVO.length == 0)
-  return;
-
-// arapVO = rearrangeDJZBVO(arapVO);
-
-// 根据采购入库单生成应付单
-v1 = new Vector();
-Vector v2 = new Vector();
-for (int i = 0; i < VOs.length; i++) {
-  // 后续处理:应付单头
-  DJZBHeaderVO headVO = (DJZBHeaderVO) arapVO[i].getParentVO();
-  headVO.setVouchid(VOs[i].getCgeneralhid());
-  
-  // V55 by zhaoyha at 2008.9.26
-  //String key = "25" + VOs[i].getCbiztype() + "APPROVE";
-  //headVO.setDjlxbm(billTypeMapVo.getTargetparenttype());
-  //headVO.setXslxbm(billTypeMapVo.getBusitype());
-  // V55 by zhaoyha end
-  
-  //String cBillType = tBillType.get(key).toString();
-  String ss[] = null;
-  // since v502
-  // key = VOs[i].getPk_corp() + tBillType.get(key);
-  
-  // V55 by zhaoyha at 2008.9.26
-  //  key = VOs[i].getPk_invoicecorp() + tBillType.get(key);
-  //  if (tBillTemplet.get(key) != null)
-  //    ss = (String[]) tBillTemplet.get(key);
-  //  if (ss != null && ss.length > 0 && PuPubVO.getString_TrimZeroLenAsNull(ss[0])!=null ) {
-  //    headVO.setYwbm(ss[0]);
-  //  }
-
-  // since v502,单一公司时用入库公司,跨公司时用收票公司
-  headVO.setDwbm(VOs[i].getPk_corp());
-  if (PuPubVO.getString_TrimZeroLenAsNull(VOs[i].getPk_invoicecorp()) != null) {
-    headVO.setDwbm(VOs[i].getPk_invoicecorp());
-  }
-  //
-  headVO.setLrr(cOperator);
-  headVO.setAttributeValue("zgyf", new Integer(1));// 暂估应付
-  //headVO.setDjlxbm(cBillType);
-  v1.addElement(headVO);
-
-  // 后续处理:应付单体
-  DJZBItemVO bodyVO[] = (DJZBItemVO[]) arapVO[i].getChildrenVO();
-  // since v502
-  // bodyVO[0].setDwbm(VOs[i].getPk_corp());
-  bodyVO[0].setDwbm(VOs[i].getPk_invoicecorp());
-  bodyVO[0].setFb_oid(VOs[i].getCgeneralbid());
-
-  bodyVO[0].setHbbm(VOs[i].getCproviderbaseid()); // 供应商基本ID
-  bodyVO[0].setZyx19(VOs[i].getCprovidermangid());//使用自定义字段存放 供应商管理id 参照生成发票时用  add by 付世超 2010-10-26
-  bodyVO[0].setCinventoryid(VOs[i].getCbaseid()); // 存货基本ID
-
-  // bodyVO[0].setFbye(new UFDouble(0)); // 辅币余额
-  // bodyVO[0].setDffbje(new UFDouble(0)); // 贷方辅币余额
-  bodyVO[0].setWldx(new Integer(1));
-
-  bodyVO[0].setDdhid(VOs[i].getCfirstbillhid());// 订单行ID
-  bodyVO[0].setDdh(VOs[i].getVfirstbillcode());// 订单号
-  bodyVO[0].setCkdid(VOs[i].getCgeneralbid());// 出入库单行ID
-  bodyVO[0].setFphid(null);// 发票行ID
-  bodyVO[0].setFph(null);// 发票号
-  bodyVO[0].setAttributeValue("ckdh", VOs[i].getVbillcode());// 出库单号
-  if (VOs[i].getCfirstbillhid() != null && t != null) {
-    if (t.get(VOs[i].getCfirstbillhid()) != null) {
-      ss = (String[]) t.get(VOs[i].getCfirstbillhid());
-      bodyVO[0].setSfkxyh(ss[1]);// 付款协议
-    }
-  }
-  // 币种
-  bodyVO[0].setBzbm(VOs[i].getCurrencytypeid());
-  bodyVO[0].setBbhl(VOs[i].getNexchangeotobrate());
-  bodyVO[0].setFbhl(null);
-  // 扣税类别
-  bodyVO[0].setKslb(VOs[i].getIdiscounttaxtype());
-  // 税率
-  bodyVO[0].setSl(VOs[i].getNtaxrate());
-  //bodyVO[0].setYwybm(VOs[i].getCoperatorid());// 业务员
-  v2.addElement(bodyVO[0]);
-}
-
-timer.addExecutePhase("VO 对照");
-
-// 对应付单进行处理: 相同表头的单据组合成一张单据
-DJZBHeaderVO headVOs[] = new DJZBHeaderVO[v1.size()];
-v1.copyInto(headVOs);
-DJZBItemVO bodyVOs[] = new DJZBItemVO[v2.size()];
-v2.copyInto(bodyVOs);
-
-// 组合VO[]
-v1 = new Vector();
-for (int i = 0; i < headVOs.length; i++) {
-  DJZBVO VO = new DJZBVO();
-  VO.setParentVO(headVOs[i]);
-  VO.setChildrenVO(new DJZBItemVO[] {
-    bodyVOs[i]
-  });
-  v1.addElement(VO);
-}
-DJZBVO apVOs[] = new DJZBVO[v1.size()];
-v1.copyInto(apVOs);
-timer.addExecutePhase("组合VO[]");
-
-// 2008.11.17根据NCdp200591951问题,需求变更如下:
-// 针对采购入库单暂估应付的问题,本版已将暂估应付从原来的脚本提为组件配置,
-// 可以在以后版本考虑采购入库暂估时支持配置暂估应付对应的流程,V55版本先不作调整,
-// 仍按照上次统一沟通的结果来处理:即走接口获取暂估应付的业务类型,
-// 同时支持原来分单参数按照来源业务类型进行分单.
-apVOs = getSplittedBillVos(apVOs, strLoginCorp);
-timer.addExecutePhase("支持多行:按供应商分单");
-// 设置收付接口对照表中的业务类型
-for(DJZBVO apVo:apVOs){
-  DJZBHeaderVO headVo = (DJZBHeaderVO)apVo.getParentVO();
-  headVo.setXslxbm(billTypeMapVo.getBusitype());
-}
-
-
-// 调用应付提供接口
-IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator.getInstance()
-    .lookup(IArapForGYLPublic.class.getName());
-VoTools tools = new VoTools();
-for (int i = 0; i < apVOs.length; i++) {
-  // 重新计算合计项(调用应付提供接口)
-  tools.getSum(apVOs[i]);
-  // 保存暂估应付单
-  iArap.saveEffForCG(apVOs[i]);
-}
-
-timer.addExecutePhase("调用应付提供接口传送单据");
-
-timer.showAllExecutePhase("无发票结算向应付传送数据时间分布--明细");
-
-}
-catch (Exception e) {
-/* 调用采购公用方法按规范抛出异常 */
-SCMEnv.out(e);
-nc.bs.pu.pub.PubDMO.throwBusinessException(e);
-}
-return;
-}
+	
+	
+	
 }
