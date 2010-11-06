@@ -5111,23 +5111,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     		//do nothing
     	}
     }
-    //判断检出的发票VO
-    if(expenseInvoiceVOs!=null){
-    	for(int i=0;i<expenseInvoiceVOs.size();i++){
-    		
-    		try {
-				if(this.rollbackAPandIA(expenseInvoiceVOs.get(i))){
-					MessageDialog.showHintDlg(this,"提示","费用发票弃审成功.");
-				}else{
-					MessageDialog.showHintDlg(this,"提示","费用发票弃审失败.");
-					return;
-				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    	}
-    }
+    
     
     
     //2010-11-03 MeiChao end
@@ -5191,10 +5175,27 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
         }
       }
       /**
-       * 2010-11-02 MeiChao  在原始校验结束后,弃审脚本开始前,进行采购费用发票弃审先决条件的判断.
+       * 2010-11-02 MeiChao  在对发票的原始校验结束后,弃审脚本开始前,进行采购费用发票弃审先决条件的判断.
        */
-      
-      
+    //2010-11-06 MeiChao begin
+    //判断检出的发票VO
+      if(expenseInvoiceVOs!=null){
+      	for(int i=0;i<expenseInvoiceVOs.size();i++){
+      		
+      		try {
+  				if(this.rollbackAPandIA(expenseInvoiceVOs.get(i))){
+  					MessageDialog.showHintDlg(this,"提示","费用发票弃审成功.");
+  				}else{
+  					MessageDialog.showHintDlg(this,"提示","费用发票弃审失败.");
+  					return;
+  				}
+  			} catch (Exception e) {
+  				// TODO Auto-generated catch block
+  				e.printStackTrace();
+  			}
+      	}
+      }
+      //2010-11-06 MeiChao end
       
       PfUtilClient.processBatch("UNAPPROVE" + nc.ui.pub.ClientEnvironment.getInstance().getUser().getPrimaryKey(),
           nc.vo.scm.pu.BillTypeConst.PO_INVOICE, ClientEnvironment.getInstance().getDate().toString(), proceVOs);
@@ -13842,16 +13843,18 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			IApks.append("'" + ((Object[]) iaResult.get(i))[0].toString()
 					+ "',");// 当前发票的下游应付单的PK列表(查询结果的第1列)
 		}
-		String iAPpks = APpks.toString().substring(0, APpks.toString().length()-1);
-		String iIApks = IApks.toString().substring(0, IApks.toString().length()-1);
+		String iAPpks = APpks.toString().substring(0, APpks.toString().length()-1);//处理PK组,将最后的逗号去掉
+		String iIApks = IApks.toString().substring(0, IApks.toString().length()-1);//处理PK组,将最后的逗号去掉
+		
 		IEstimate iEstimate = (IEstimate) NCLocator.getInstance().lookup(
-				IEstimate.class.getName());
+				IEstimate.class.getName());//获取暂估接口
 		if(iAPpks.length()<20||iIApks.length()<20){
 			MessageDialog.showHintDlg(this,"警告","当前费用发票无下游单据.");
 			return true;
 		}
 		
 		try {
+			//使用暂估接口中新增的移除当前采购发票下游单据的方法.
 			iEstimate.rollbackEstimate(invoicePK, iAPpks, iIApks);
 		} catch (Exception e) {
 			e.printStackTrace();
