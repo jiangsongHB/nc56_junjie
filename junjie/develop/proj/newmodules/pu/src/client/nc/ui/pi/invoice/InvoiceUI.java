@@ -4388,7 +4388,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
                                                                                                            * "审批成功"
                                                                                                          */);
           
-          if(this.getBillCardPanel().getHeadItem("vdef20").getValue().equals("Y")){//验证表头"是否费用发票"项的值
+          if(this.getBillCardPanel().getHeadItem("vdef20").getValue()!=null&&this.getBillCardPanel().getHeadItem("vdef20").getValue().equals("Y")){//验证表头"是否费用发票"项的值
         	  //2010-10-23 MeiChao 如果是费用发票,那么在审核时自动调用费用回冲及库存调整单方法.
         	  //获取卡片页面上的发票聚合VO
         	  InvoiceVO expenseInvoiceVO=(InvoiceVO)this.getBillCardPanel().getBillData().getBillValueVO(InvoiceVO.class.getName(), InvoiceHeaderVO.class.getName(), InvoiceItemVO.class.getName());
@@ -5105,7 +5105,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     //过滤出采购费用发票vo..方式二: 简单,但可能有不准确的信息.如果发票VO存在异常,则无法确保检出结果准确.
     List<InvoiceVO> expenseInvoiceVOs=new ArrayList<InvoiceVO>();
     for(int i=0;i<proceVOs.length;i++){//遍历VO数组
-    	if(proceVOs[i].getHeadVO().getVdef20().equals("Y")){
+    	if(proceVOs[i].getHeadVO().getVdef20()!=null&&proceVOs[i].getHeadVO().getVdef20().equals("Y")){
     		expenseInvoiceVOs.add(proceVOs[i]);
     	}else{
     		//do nothing
