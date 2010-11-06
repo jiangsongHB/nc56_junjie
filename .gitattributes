@@ -505,6 +505,16 @@ junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改�
 junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/class/nc/itf/uap/pub/jj/IJJUAPService.java -text
 junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/class/nc/vo/ic/md/MdcrkVO.class -text
 junjie/patches/scripts/2010-11-05[!!-~]问题0000072[!!-~]附加值接口修改毛边计算模板及UI修改/附加值接口/uap/class/nc/vo/ic/md/MdcrkVO.java -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/META-INF/classes/nc/bs/ps/estimate/EstimateImpl.class -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/META-INF/classes/nc/bs/ps/estimate/EstimateImpl.java -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/classes/nc/itf/ps/estimate/IEstimate.class -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/classes/nc/itf/ps/estimate/IEstimate.java -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$1.class -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$2.class -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$IMenuItemListener.class -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$MyBillData.class -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI.class -text
+junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI.java -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
