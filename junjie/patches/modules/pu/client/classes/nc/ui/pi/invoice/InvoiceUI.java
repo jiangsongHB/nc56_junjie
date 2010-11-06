@@ -13844,11 +13844,13 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 					+ "',");// 当前发票的下游应付单的PK列表(查询结果的第1列)
 		}
 		String iAPpks = APpks.toString().substring(0, APpks.toString().length()-1);//处理PK组,将最后的逗号去掉
-		String iIApks = IApks.toString().substring(0, IApks.toString().length()-1);//处理PK组,将最后的逗号去掉
-		
+		String iIApks="";
+		if(IApks!=null&&IApks.length()>0){
+			iIApks = IApks.toString().substring(0, IApks.toString().length()-1);//处理PK组,将最后的逗号去掉
+		}
 		IEstimate iEstimate = (IEstimate) NCLocator.getInstance().lookup(
 				IEstimate.class.getName());//获取暂估接口
-		if(iAPpks.length()<20||iIApks.length()<20){
+		if(iAPpks.length()>0&&(iAPpks.length()<20||iIApks.length()<20)){
 			MessageDialog.showHintDlg(this,"警告","当前费用发票无下游单据.");
 			return true;
 		}
