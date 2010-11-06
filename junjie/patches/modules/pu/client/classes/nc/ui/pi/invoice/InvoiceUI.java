@@ -13850,10 +13850,10 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		}
 		IEstimate iEstimate = (IEstimate) NCLocator.getInstance().lookup(
 				IEstimate.class.getName());//获取暂估接口
-		if(iAPpks.length()>0&&(iAPpks.length()<20||iIApks.length()<20)){
-			MessageDialog.showHintDlg(this,"警告","当前费用发票无下游单据.");
-			return true;
-		}
+//		if(iAPpks.length()>0&&(iAPpks.length()<20||iIApks.length()<20)){
+//			MessageDialog.showHintDlg(this,"警告","当前费用发票无下游单据.");
+//			//return true;
+//		}
 		
 		try {
 			//使用暂估接口中新增的移除当前采购发票下游单据的方法.
