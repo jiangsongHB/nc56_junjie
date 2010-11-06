@@ -272,4 +272,15 @@ public interface IEstimate {
 	 */
 	public abstract GeneralHVO queryStockByHeadKey(String unitCode,
 			String headKey) throws BusinessException;
+	
+	
+	/**
+	 * join since 2010-11-06 MeiChao
+	 * 
+	 * 说明:采购费用发票弃审时,将对应的红蓝单,调整单删除
+	 * 
+	 * 
+	 */
+	public abstract boolean rollbackEstimate(String invoicePK, String APpks,String IApks) throws BusinessException;
+	
 }
