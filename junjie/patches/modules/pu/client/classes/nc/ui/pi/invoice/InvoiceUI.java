@@ -13596,10 +13596,12 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 				oldbody[k].setDfbbwsje(new UFDouble(dfybje));
 				oldbody[k].setBbye(new UFDouble(dfybje));//本币余额
 				oldbody[k].setYbye(new UFDouble(dfybje));//原币余额
-				oldbody[k].setDdlx(backExpenseBody[i].getDdlx());//上层来源单据id--采购发票id
-				oldbody[k].setDdhh(backExpenseBody[i].getDdhh());//上层来源单据行id--
-				oldbody[k].setJsfsbm("25");//上层来源单据类型--25 采购发票
-				backExpenseBody[i]=oldbody[k];//VO交换
+				String ddlx=backExpenseBody[i].getDdlx();// 临时变量  上层来源单据id--采购发票id
+				String ddhh=backExpenseBody[i].getDdhh();//临时变量 上层来源单据行id--
+				backExpenseBody[i]=(DJZBItemVO)oldbody[k].clone();//VO交换
+				backExpenseBody[i].setDdlx(ddlx);//上层来源单据id--采购发票id
+				backExpenseBody[i].setDdhh(ddhh);//上层来源单据行id--
+				backExpenseBody[i].setJsfsbm("25");//上层来源单据类型--25 采购发票
 				break;
 			}
 			}
