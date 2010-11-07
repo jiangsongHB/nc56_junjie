@@ -2137,6 +2137,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 			GeneralBillVO voAudit = (GeneralBillVO) getM_voBill().clone();
 			GeneralBillHeaderVO generalHead=voAudit.getHeaderVO();//其他入库单表头
 			GeneralBillItemVO[] generalBody=voAudit.getItemVOs();//其他入库单表体
+			IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);//实例化客户端查询接口
 			for(int i=0;i<pk_cumandocArray.length;i++){
 				DJZBVO oneAPVO=new DJZBVO();//实例化一个应付单VO
 				DJZBHeaderVO head=new DJZBHeaderVO();//实例化一个暂估应付单表头VO.
@@ -2154,15 +2155,16 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					//body.setcheckflag 对账标记
 					String sql="select pk_invbasdoc from bd_invbasdoc where invcode='"+oneExpense.getCostcode();
 					sql+="' and invname='"+oneExpense.getCostname()+"'";
-					IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);
 					Object invbasid=null;
 					try {
 						invbasid= query.executeQuery(sql, new ColumnProcessor());
 					} catch (BusinessException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+						continue;
 					}   
 					body.setCinventoryid(invbasid==null?null:invbasid.toString());//存货基本档案ID--费用存货基本档案id
+					body.setDdhh(oneExpense.getPk_informantioncost());//上层来源单据行id--费用信息表id
 					body.setDdlx(generalHead.getPrimaryKey());//上层来源单据id--其他入库单ID
 					body.setDeptid(generalHead.getCdptid());//部门pk-其他入库单中的部门PK
 					body.setDfbbje(new UFDouble(oneExpense.getNoriginalcurmny()));//贷方本币金额--无税金额
@@ -2180,7 +2182,17 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					body.setFbye(new UFDouble(new Double(0.0)));//辅币余额--0
 					body.setFlbh(j);//分录编号--既行号
 					body.setFx(-1);//方向
-					body.setHbbm(oneExpense.getCcostunitid());//伙伴编码--客商管理id
+					//根据费用信息中的客商管理档案PK,查询对应的客商基本档案PK
+					String queryCustomerBasSQL="select t.pk_cubasdoc from bd_cumandoc t where t.pk_cumandoc='"+oneExpense.getCcostunitid()+"'";
+					Object cubasid=null;
+					try {
+						cubasid= query.executeQuery(queryCustomerBasSQL, new ColumnProcessor());
+					} catch (BusinessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						continue;
+					}
+					body.setHbbm(cubasid==null?null:cubasid.toString());//伙伴编码--客商管理id
 					body.setHsdj(new UFDouble(oneExpense.getNoriginalcurprice()));//含税单价--单价
 					body.setIsSFKXYChanged(new UFBoolean(false));//收付款协议是否发生变化--N
 					body.setIsverifyfinished(new UFBoolean(false));//是否核销完成--N
@@ -2228,7 +2240,18 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				head.setQcbz(new UFBoolean(false));//期初标志--N
 				head.setSpzt(null);//为空,表示未审批
 				head.setSxbz(0);//生效标志--0表示未生效  10 表示已生效
-				head.setXslxbm(generalHead.getCbiztypeid());//销售类型编码--其他入库单的业务类型(业务流程)编码
+				String queryBusitype="select t.pk_busitype from bd_busitype t where t.busicode='arap' and t.businame='收付通用流程'";
+				Object busitype=null;
+				if(generalHead.getCbiztypeid()==null){
+				try {//如果当前其他入库单的销售类型字段为空,那么开始查询通用收付流程的业务类型编码.
+					busitype= query.executeQuery(queryBusitype, new ColumnProcessor());
+				} catch (BusinessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					continue;
+				}
+				}
+				head.setXslxbm(generalHead.getCbiztypeid()==null?busitype==null?"00011110000000002RGT":busitype.toString():generalHead.getCbiztypeid());//销售类型编码--其他入库单的业务类型(业务流程)编码
 				head.setYbje(new UFDouble(oneExpenseSummny));//本币金额--表体累加金额
 				head.setYwbm("0001AA10000000006MFZ");//单据类型--默认0001AA10000000006MFZ
 				head.setZgyf(1);//暂估应付标志--1表示暂估应付 0表示非暂估应付
@@ -2308,7 +2331,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				changeBillBody[i].setCicbillcode(generalHead.getVbillcode());//上层来源单据编号,其他入库单编号
 				changeBillBody[i].setCicbillid(generalHead.getCgeneralhid());//上层来源单据id,其他入库单id
 				changeBillBody[i].setCicbilltype("4A");//上层来源单据类型 25
-				changeBillBody[i].setCicitemid(null);//上层来源单据体id
+				changeBillBody[i].setCicitemid(generalBody[i].getCgeneralbid());//上层来源单据体id--其他入库单表体id
 				changeBillBody[i].setCvendorbasid(generalBody[i].getPk_cubasdoc());//供应商基本档案id,取库存表体对应字段
 				changeBillBody[i].setCvendorid(generalBody[i].getCvendorid());//供应商管理档案id,取库存表体对应字段
 				changeBillBody[i].setCinvbasid(generalBody[i].getCinvbasid());//存货基本档案id,取库存表体对应字段
