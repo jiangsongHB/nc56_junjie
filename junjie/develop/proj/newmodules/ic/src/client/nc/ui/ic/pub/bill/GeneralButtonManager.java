@@ -1700,6 +1700,23 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 			default:
 				return;
 			}
+			/**
+			 * 2010-11-07 MeiChao 在其他入库单取消签字的时候,对其可能产生的下游单据进行查询.校验
+			 * 如果其下游单据已审核,那么不允许签字,否则删除其下游单据.
+			 */
+			//首先判断是否其他入库单,如果不是,则不执行以下校验.
+			
+			//首先判断当前取消签字的单据是否存在费用信息,如果没有,则直接跳出.
+			
+			//如果当前单据存在
+			
+			
+			
+			
+			
+			
+			
+			
 			showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
 					"4008bill", "UPP4008bill-000006")/*
 														 * @res "正在取消签字，请稍候..."
@@ -2214,6 +2231,14 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					body.setYbye(new UFDouble(oneExpense.getNoriginalcurmny()));//原币余额--无税金额
 					body.setYwbm("0001AA10000000006MFZ");//单据类型PK--固定0001AA10000000006MFZ
 					body.setYwybm(generalHead.getCbizid());//业务员PK--其他入库单业务员id
+					
+					/**
+					 * 特殊标志: 自定义项18 19
+					 */
+					body.setZyx18("trueFree");//2010-11-07 "费用暂估应付"标志,启用于: 暂估处理,See:EstimateImpl 约9181行 用于生成采购发票时的处理
+					body.setZyx19(body.getHbbm());//2010-11-07 "客商管理ID" 启用于: 暂估处理 ,See:EstimateImpl 约9423行 用于生成采购发票时的处理
+					
+					
 					oneExpenseSummny+=body.getDfbbje().toDouble();//累加贷方本币金额
 					bodyVOs[j]=body;
 				}
@@ -2256,6 +2281,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				head.setYwbm("0001AA10000000006MFZ");//单据类型--默认0001AA10000000006MFZ
 				head.setZgyf(1);//暂估应付标志--1表示暂估应付 0表示非暂估应付
 				head.setZzzt(0);//支付状态--0
+				head.setZyx20("Y");//2010-11-07  MeiChao 由于后续费用处理需要,加入此值,尚不明了其意义.
+				
 				oneAPVO.setParentVO(head);//加入表头
 				oneAPVO.setChildrenVO(bodyVOs);//加入表体
 				estimationTempVOs.add(oneAPVO);//将VO加入数组中.
