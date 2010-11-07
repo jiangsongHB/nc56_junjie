@@ -129,5 +129,16 @@ public interface IGeneralBill {
 	 */
 	public abstract void updateSmartVOs(SmartVO[] vos,String cbillid) throws Exception;
 	
+	/**
+	 * join since 2010-11-07 MeiChao
+	 * 
+	 * 说明:其他入库单取消签字时,将对应的暂估应付单,库存调整单作废
+	 * 
+	 * 
+	 */
+	public abstract boolean rollbackICtoAPandIA(String generalPk, String APpks,String IApks) throws BusinessException;
+	
+	
+	
 }
 
