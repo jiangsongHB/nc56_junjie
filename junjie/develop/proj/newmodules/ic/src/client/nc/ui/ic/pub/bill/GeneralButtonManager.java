@@ -6614,7 +6614,6 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 			//结果集结构: List中的数组,数组长度为2,下标0: 单据状态  下标1: 对应单据id
 			checkAPResult = (List) query.executeQuery(checkAPSQL,
 					new ArrayListProcessor());
-
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
 			Logger.debug("查询其他入库单下游单据状态时出错!");
