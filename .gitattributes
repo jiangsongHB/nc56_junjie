@@ -515,6 +515,13 @@ junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃�
 junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$MyBillData.class -text
 junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI.class -text
 junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI.java -text
+junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI$1.class -text
+junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI$2.class -text
+junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI$IMenuItemListener.class -text
+junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI$MyBillData.class -text
+junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI.class -text
+junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI.java -text
+junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/有关参照另一BUG的说明.txt -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
