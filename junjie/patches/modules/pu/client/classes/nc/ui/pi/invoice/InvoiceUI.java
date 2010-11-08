@@ -7371,7 +7371,11 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     //效率优化 by zhaoyha at 2009.9
     boolean isNeedCal=getBillCardPanel().getBillModel().isNeedCalculate();
     getBillCardPanel().getBillModel().setNeedCalculate(false);
-    getBillCardPanel().setDefaultPrice(getBillCardPanel());
+    //2010-11-08 MeiChao begin,防止采购发票根据费用暂估应付单拉式生成后的单价金额错误,原有的代码则没有这一个判断
+    if(!isfromexpenseARAP){//如果当前发票不是采购费用发票,那么走询价,否则不走询价
+    getBillCardPanel().setDefaultPrice(getBillCardPanel());//2010-11-08 询价
+    }
+    //2010-11-08 MeiChao begin,防止采购发票根据费用暂估应付单拉式生成后的单价金额错误
     //效率优化 by zhaoyha at 2009.9
     getBillCardPanel().getBillModel().setNeedCalculate(isNeedCal);
     if (getCurOperState() != STATE_LIST_FROM_BILLS) {
@@ -13721,7 +13725,7 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			changeBillBody[i].setCicbillcode(expenseInvoiceVO.getHeadVO().getVinvoicecode());//上层来源单据编号,发票号
 			changeBillBody[i].setCicbillid(expenseInvoiceVO.getHeadVO().getCinvoiceid());//上层来源单据id,发票id
 			changeBillBody[i].setCicbilltype("25");//上层来源单据类型 25
-			changeBillBody[i].setCicitemid(null);//上层来源单据体id
+			changeBillBody[i].setCicitemid(generalBody[i].getCgeneralbid());//上层来源单据体id--取库存表体行id
 			changeBillBody[i].setCvendorbasid(generalBody[i].getPk_cubasdoc());//供应商基本档案id,取库存表体对应字段
 			changeBillBody[i].setCvendorid(generalBody[i].getCvendorid());//供应商管理档案id,取库存表体对应字段
 			changeBillBody[i].setCinvbasid(generalBody[i].getCinvbasid());//存货基本档案id,取库存表体对应字段
