@@ -163,6 +163,7 @@ junjie/develop/proj/newmodules/ic/META-INF/module.xml -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic008/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic201/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic207/ClientUI.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic233/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/HwtzDialog.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/HwtzObj.java -text
