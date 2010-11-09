@@ -2,20 +2,29 @@ package nc.ui.ic.auditdlg;
 
 import java.util.ArrayList;
 
+import nc.bs.framework.common.NCLocator;
+import nc.bs.logging.Logger;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.ic001.BatchCodeDefSetTool;
+import nc.ui.ic.ic233.ClientUI;
+import nc.ui.ic.jj.JJIcScmPubHelper;
 import nc.ui.ic.pub.bill.GeneralBillClientUI;
 import nc.ui.ic.pub.bill.GeneralBillUICtl;
 import nc.ui.ic.pub.bill.GeneralButtonManager;
+import nc.ui.ic.pub.bill.SpecialBillBaseUI;
 import nc.ui.ic.pub.bill.initref.RefFilter;
 import nc.ui.ml.NCLangRes;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.scm.pub.AccreditLoginDialog;
+import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.GenMethod;
 import nc.vo.ic.pub.bc.BarCodeVO;
 import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
+import nc.vo.ic.pub.bill.SpecialBillVO;
 import nc.vo.ic.pub.bill.Timer;
 import nc.vo.ic.pub.exp.RightcheckException;
 import nc.vo.ic.pub.locator.LocatorVO;
@@ -47,6 +56,11 @@ import nc.vo.scm.pub.SCMEnv;
    修改：2003-08-19:wnj:代码规范化。
  */
 public class ClientUIInAndOut extends nc.ui.pub.beans.UIDialog {
+	//2010-11-09 MeiChao 全局费用信息
+	InformationCostVO[] expenseVOs = null;
+	
+	
+	
 	private javax.swing.JPanel ivjUIDialogContentPane = null;
 	//其他入库单界面
 	private nc.ui.ic.ic207.ClientUI ivjChldClientUIIn = null;
@@ -213,7 +227,6 @@ public class ClientUIInAndOut extends nc.ui.pub.beans.UIDialog {
 					getUIBtnBarcode().setEnabled(true);
 				else
 					getUIBtnBarcode().setEnabled(false);
-
 			} else {
 				GeneralBillVO billVO = getInVO();
 				// billVO.setIDItems(getChldClientUIIn().getBillVO());
@@ -234,6 +247,7 @@ public class ClientUIInAndOut extends nc.ui.pub.beans.UIDialog {
 				getUIBtnBarcode().setEnabled(false);
 
 			}
+			setExpenseVOs();//2010-11-09 MeiChao 设置费用信息
 			getUIBtnSave().setEnabled(getUIBtnSwitch().getText().equals(nc.ui.ml.NCLangRes.getInstance().getStrByID("scmcommon","UPPSCMCommon-000146")/*@res "列表"*/+ "(L)")&& !m_bIsTabInSaved);
 			getUIBtnSaveSign().setEnabled(
 					getUIBtnSwitch().getText().equals(nc.ui.ml.NCLangRes.getInstance().getStrByID("scmcommon","UPPSCMCommon-000146")/*@res "列表"*/) && !m_bIsTabInSaved);
@@ -1717,6 +1731,40 @@ protected void onSaveBaseKernel(GeneralBillVO[] voaAllBill,String sAccreditUserI
 		}
 		
 		m_bIsSignOK = false;
+		//2010-11-09 MeiChao Begin 当单据保存完毕之后,将费用信息保存入
+		if(this.m_voSpBill!=null&&voaAllBill.length==2){//只允许单张形态转换.(即只有1张出库,1张入库)
+			/**
+			 * 根据setvo()方法传进的形态转换单VO,获取其PK
+			 * 并通过形态转换单的PK 查询出其生成的其他入库单PK,
+			 * 再将费用信息以其他入库单子表的形式存入数据库
+			 */
+			//获取当前形态转换单PK
+			String specialBillPK=this.m_voSpBill.getParentVO().getPrimaryKey();
+			String queryPKSQL="select distinct t.cgeneralhid " +
+					"from ic_general_b t where " +
+					"t.cbodybilltypecode='4A' and t.cfirsttype='4N' " +
+					"and t.cfirstbillhid='"+specialBillPK+"' and t.csourcetype='4N' and " +
+					"t.csourcebillhid='"+specialBillPK+"' and t.dr=0";
+			//获取客户端查询接口
+			IUAPQueryBS iQueryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+			//查询形态转换生成的其他入库单PK
+			Object generalBillPK=iQueryService.executeQuery(queryPKSQL, new ColumnProcessor());
+
+			if(generalBillPK!=null){//如果成功查询到,其他入库单PK,那么保存费用信息.
+				for(int i=0;i<this.expenseVOs.length;i++){//遍历费用信息,将其他入库单PK存入其VO中
+					expenseVOs[i].setCbillid(generalBillPK.toString());
+					expenseVOs[i].setVdef10("4A");//自定义字段10: 所属单据类型
+				}
+				//
+				JJIcScmPubHelper expenseHelper=new JJIcScmPubHelper();
+				//插入费用信息VO
+				expenseHelper.insertSmartVOs(expenseVOs);
+				Logger.debug("形态转换单->其他入库单转化,插入费用信息成功!");
+			}
+		}
+		//2010-11-9 MeiChao End 当单据保存完毕之后,将费用信息保存入
+		
+		
 		if (isSign){
 			//修改人：刘家清 修改时间：2008-11-20 下午03:07:21 修改原因：把数据刷新到要进行下一步操作的VO中。
 			if (null != osPrimaryKey)
@@ -2225,6 +2273,7 @@ public void setVO(
 
 	afterInit();
 
+	
 	if (invos != null) {
     GeneralBillVO billvo = null;
     ArrayList<GeneralBillItemVO[]> itemVos = new ArrayList<GeneralBillItemVO[]> ();
@@ -2256,6 +2305,33 @@ public void setVO(
 		getChldClientUIIn().setScaleOfListData(invos);
 
 		getChldClientUIIn().setAllData(invos);
+		//2010-11-09 MeiChao Begin 添加 根据上游
+		
+		if(invos.size()==1 && voBill instanceof SpecialBillVO){//如果只有1个入库单,那么允许费用植入下游其他入库单中
+				// 如果parent是形态转换单.
+				// 获取PK
+				String specialVOPk = ((SpecialBillVO)voBill).getHeaderVO().getPrimaryKey();
+				// 获取协助类
+				JJIcScmPubHelper expenseManager = new JJIcScmPubHelper();
+				try {
+					// 根据PK查询对应费用信息
+					expenseVOs = (InformationCostVO[]) expenseManager
+							.querySmartVOs(InformationCostVO.class, null,
+									" dr=0 and cbillid='" + specialVOPk + "'");
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				// 将费用信息植入其他入库单表体
+				setExpenseVOs();//2010-11-09 
+				//getChldClientUIIn().getBillCardPanel().execHeadLoadFormulas();// 执行显示公式
+				//getChldClientUIIn().updateUI();
+				getChldClientUIIn().selectListBill(0);
+		}
+		//2010-11-09 MeiChao End 添加
+		
+		
+		
 		
 		//克隆之，防止被修改。
 		m_inVOs = (ArrayList) invos.clone();
@@ -2711,4 +2787,20 @@ private void synOut2InBill() {
 	}
 
 }
+/**
+ * MeiChao
+ * 2010
+ * @return
+ */
+private boolean setExpenseVOs(){
+	
+	this.getChldClientUIIn().getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(this.expenseVOs);
+	this.getChldClientUIIn().getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(this.expenseVOs);
+	if(this.expenseVOs==null){
+		return false;
+	}else{
+		return true;
+	}
+}
+
 }
