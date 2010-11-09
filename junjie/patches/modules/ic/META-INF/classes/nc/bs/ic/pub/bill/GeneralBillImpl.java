@@ -9,12 +9,14 @@ import java.util.HashMap;
 
 import javax.naming.NamingException;
 
+import nc.bs.dao.BaseDAO;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.ic.pub.GenMethod;
 import nc.bs.ic.pub.ICCommonBusiImpl;
 import nc.bs.ic.pub.ICDbVisitor;
 import nc.bs.ic.pub.tools.BillDataFillingUtil;
 import nc.bs.ic.pub.vmi.ICSmartToolsDmo;
+import nc.bs.logging.Logger;
 import nc.bs.ml.NCLangResOnserver;
 import nc.bs.pu.pr.PraybillDMO;
 import nc.bs.pub.SystemException;
@@ -1195,6 +1197,36 @@ public class GeneralBillImpl implements IGeneralBill {
       	return;
        insertSmartVOs(vos);
   }
+  
+	/**
+	 * 2010-11-07 MeiChao
+	 * 其他入库单取消签字时,将对应的暂估应付单,库存调整单作废
+	 */
+	public boolean rollbackICtoAPandIA(String generalPK, String APpks,String IApks)
+			throws BusinessException {
+		try{
+		BaseDAO dao = new BaseDAO();
+		String deleteAPhead="update arap_djzb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
+		String deleteAPbody="update arap_djfb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
+		String deleteIAhead="update ia_bill t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
+		String deleteIAbody="update ia_bill_b t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
+		dao.executeUpdate(deleteAPhead);
+		dao.executeUpdate(deleteAPbody);
+		dao.executeUpdate(deleteIAhead);
+		dao.executeUpdate(deleteIAbody);
+		}catch (Exception e){
+			Logger.debug("其他入库单取消签字时,作废下游单据出错!");
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+	
+
+  
+  
+  
 
 }
 
