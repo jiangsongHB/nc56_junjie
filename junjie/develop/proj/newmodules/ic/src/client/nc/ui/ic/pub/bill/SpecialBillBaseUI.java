@@ -11,6 +11,7 @@ import javax.swing.table.TableColumn;
 import nc.ui.ic.auditdlg.ClientUIInAndOut;
 import nc.ui.ic.ic001.BatchCodeDefSetTool;
 import nc.ui.ic.ic001.BatchcodeHelper;
+import nc.ui.ic.jj.JJIcScmPubHelper;
 import nc.ui.ic.pub.BillFormulaContainer;
 import nc.ui.ic.pub.ICCommonBusi;
 import nc.ui.ic.pub.InvOnHandDialog;
@@ -54,6 +55,7 @@ import nc.ui.scm.pub.def.DefSetTool;
 import nc.vo.bd.def.DefVO;
 import nc.vo.ic.ic001.BatchcodeVO;
 import nc.vo.ic.ic700.ICDataSet;
+import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.BillRowType;
 import nc.vo.ic.pub.BillTypeConst;
 import nc.vo.ic.pub.SmartVOUtilExt;
@@ -118,7 +120,8 @@ public class SpecialBillBaseUI
 		nc.ui.pub.bill.BillBodyMenuListener,IFreshTsListener ,BillModelCellEditableController,
 		ILinkApprove,ILinkQuery,ILinkMaintain,BillSortListener2,BillActionListener{
 
-
+	//--2010-11-08 MeiChao add
+	public InformationCostVO[] expenseVOs = null;//全局费用信息变量
 	//-----------------------------------------------------------------------------
 
 	protected ButtonObject m_boAdd;
@@ -1607,6 +1610,13 @@ public void onList() { //finished
 	} else {
 		m_iMode = BillMode.Browse;
 		switchListToBill();
+		//2010-11-08 MeiChao begin 当卡片切换时,将费用信息更新至卡片页面
+		if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null){
+			this.getBillCardPanel().getBillModel("jj_scm_informationcost")
+			.setBodyDataVO(expenseVOs);
+			this.getBillCardPanel().updateUI();
+		}
+		//2010-11-08 MeiChao end 当卡片切换时,将费用信息更新至卡片页面
 	}
 	m_iFirstSelListHeadRow = m_iLastSelListHeadRow;
 	showBtnSwitch();
@@ -2292,6 +2302,46 @@ public void selectListBill(int rownow) {
 	dispBodyRow(getBillListPanel().getBodyTable());
 	setButtonState();
 	setBillState();
+	/**
+	 * 2010-11-08 MeiChao 
+	 * 当前单据为形态转换单时(此项条件暂时无法实现),选择列表中1行记录便查询出对应的费用信息,
+	 * 将费用信息同时更新至列表及卡片页面下,
+	 */
+	//2010-11-08 MeiChao begin
+	//if("4N".equals(this.getBillCardPanel().getBillType())){
+		//如果存在费用信息页签...
+		if(this.getBillListPanel().getBodyBillModel("jj_scm_informationcost")!=null){
+			// 获取PK
+			String specialVOPk = sbvotemp.getHeaderVO().getPrimaryKey();
+			// 获取协助类
+			JJIcScmPubHelper expenseManager = new JJIcScmPubHelper();
+			
+			try {
+				// 根据PK查询对应费用信息
+				expenseVOs = (InformationCostVO[]) expenseManager
+						.querySmartVOs(InformationCostVO.class, null,
+								" dr=0 and cbillid='" + specialVOPk + "'");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			// 将费用信息写入费用信息页签
+			if (expenseVOs != null && expenseVOs.length > 0) {
+				this.getBillListPanel().getBodyBillModel(
+						"jj_scm_informationcost").setBodyDataVO(expenseVOs);
+				this.getBillCardPanel().getBillModel("jj_scm_informationcost")
+						.setBodyDataVO(expenseVOs);
+			} else {
+				// 如果查出空值,那么将费用信息页签置空
+				this.getBillListPanel().getBodyBillModel(
+						"jj_scm_informationcost").setBodyDataVO(null);
+				this.getBillCardPanel().getBillModel("jj_scm_informationcost")
+						.setBodyDataVO(null);
+
+			}
+		}
+	
+	
 }
 
 
