@@ -541,6 +541,11 @@ junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice
 junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI.class -text
 junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI.java -text
 junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/有关参照另一BUG的说明.txt -text
+junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默认为人民币/ic/client/classes/nc/ui/ic/jjpanel/InfoCostPanel.class -text
+junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默认为人民币/ic/client/classes/nc/ui/ic/jjpanel/InfoCostPanel.java -text
+junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默认为人民币/pu/client/classes/nc/ui/pu/jjpanel/InfoCostPanel.class -text
+junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默认为人民币/pu/client/classes/nc/ui/pu/jjpanel/InfoCostPanel.java -text
+junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默认为人民币/费用信息模板修改脚本.sql -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
