@@ -309,6 +309,13 @@ junjie/patches/modules/ic/classes/nc/vo/ic/xcl/MdxclVO.class -text
 junjie/patches/modules/ic/classes/nc/vo/ic/xcl/MdxclVO.java -text
 junjie/patches/modules/ic/classes/nc/vo/ic/xcl/XclBillVO.class -text
 junjie/patches/modules/ic/classes/nc/vo/ic/xcl/XclBillVO.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$1.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerIn.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerInAndOut.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerOut.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$IvjEventHandler.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic008/ClientUI$1.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic008/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic008/ClientUI.java -text
@@ -318,6 +325,9 @@ junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic201/ClientUI.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic207/ClientUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic207/ClientUI.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic233/ClientUI$1.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic233/ClientUI.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/ic233/ClientUI.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI$1.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI$ButtonManager251.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/ic251/ClientUI.class -text
@@ -368,6 +378,9 @@ junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralBillClientUI.j
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager$1IBillReferQueryProxyExt.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager$FreshTsListener.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI$1.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/dialog/MBJSDialog.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/dialog/MBJSDialog.java -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pi/InvoiceDMO.class -text
