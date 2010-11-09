@@ -547,6 +547,20 @@ junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃�
 junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI$MyBillData.class -text
 junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI.class -text
 junjie/patches/scripts/2010-11-06[!!-~]问题0000070[!!-~]采购费用发票弃审时删除下游单据问题/pu/client/classes/nc/ui/pi/invoice/InvoiceUI.java -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$1.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerIn.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerInAndOut.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerOut.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut$IvjEventHandler.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/auditdlg/ClientUIInAndOut.java -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/ic233/ClientUI$1.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/ic233/ClientUI.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/ic233/ClientUI.java -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI$1.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI.class -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI.java -text
+junjie/patches/scripts/2010-11-08[!!-~]0000075[!!-~]库存形态转换单添加费用处理/库存形态转换单单据模板修改脚本.sql -text
 junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI$1.class -text
 junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI$2.class -text
 junjie/patches/scripts/2010-11-08[!!-~]采购发票参照错误/nc/ui/pi/invoice/InvoiceUI$IMenuItemListener.class -text
