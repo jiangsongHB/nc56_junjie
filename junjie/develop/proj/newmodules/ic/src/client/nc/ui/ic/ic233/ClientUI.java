@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+import nc.ui.ic.jj.JJIcScmPubHelper;
+import nc.ui.ic.jjpanel.InfoCostPanel;
 import nc.ui.ic.pub.ICComboxItem;
 import nc.ui.ic.pub.PageCtrlBtn;
 import nc.ui.ic.pub.bill.QueryDlgHelpForSpec;
@@ -19,6 +21,7 @@ import nc.ui.pub.ButtonObject;
 import nc.ui.pub.beans.UIMenuItem;
 import nc.ui.pub.beans.UITextField;
 import nc.ui.pub.bill.BillCellEditor;
+import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.BillRowType;
 import nc.vo.ic.pub.BillTypeConst;
 import nc.vo.ic.pub.SmartVOUtilExt;
@@ -26,6 +29,7 @@ import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.ic.bill.InvVO;
 import nc.vo.ic.pub.bill.IItemKey;
 import nc.vo.ic.pub.bill.QryInfoConst;
@@ -52,7 +56,29 @@ import nc.vo.scm.constant.ic.InOutFlag;
  * 修改日期，修改人，修改原因，注释标志：
  */
 public class ClientUI extends SpecialBillBaseUI {
-  
+ 
+	
+	//2010-11-08 MeiChao 添加--费用录入按钮.Begin
+	
+	private UFDouble number = null;//费用页签下的数量
+
+	
+	//拉式生产的最初金额 add by 付世超 2010-10-15
+	private UFDouble pmny = null;
+	
+	private ButtonObject expenseInput;
+	private ButtonObject getButtonExpenseInput(){
+		if(this.expenseInput==null){
+			this.expenseInput=new ButtonObject("费用录入","费用录入","费用录入");
+		}
+		return this.expenseInput;
+	}
+	//2010-11-08 MeiChao 添加 End
+
+	
+	
+	
+	
   public final ICComboxItem[] comInvsetparttype = new ICComboxItem[]{
     new ICComboxItem(new Integer(BillRowType.beforeConvert),nc.ui.ml.NCLangRes.getInstance().getStrByID("4008spec","UPP4008spec-000142")),
     new ICComboxItem(new Integer(BillRowType.afterConvert),nc.ui.ml.NCLangRes.getInstance().getStrByID("4008spec","UPP4008spec-000143"))
@@ -110,6 +136,12 @@ public void afterEdit(nc.ui.pub.bill.BillEditEvent e) {
    */
 /* 警告：此方法将重新生成。 */
 protected void initialize() {
+	
+	//在父类初始化方法执行前,将费用录入按钮添加到按钮树中.
+	//this.getButtonManager().getButtonTree().addMenu(this.getButtonExpenseInput());
+	
+	
+	
   try {
     initVariable();
     super.initialize();
@@ -147,6 +179,10 @@ public void onButtonClicked(nc.ui.pub.ButtonObject bo) { //finished
     onCancelAudit();
   else if (bo == m_boSave)
     onSave();
+  //2010-11-08 MeiChao begin 添加对费用录入按钮的事件相应处理方法
+  else if (bo == this.getButtonExpenseInput())
+    this.onBoExpenseInput();
+  //2010-11-08 MeiChao end 添加对费用录入按钮的事件相应处理方法
   else
     super.onButtonClicked(bo);
 
@@ -157,6 +193,10 @@ public void onButtonClicked(nc.ui.pub.ButtonObject bo) { //finished
   * 创建日期：(2001-4-30 13:58:35)
   */
 protected void setButtonState() {
+	//2010-11-08 MeiChao 设置费用录入按钮的状态
+	this.setExpenseInputButtonStat(m_iMode);
+	
+	
   switch (m_iMode) {
     case BillMode.New : //新增
 
@@ -461,6 +501,14 @@ public boolean onSave() {
       m_iTotalListHeadNum = 0; //列表表头目前存在的行数
     }
 
+    /**
+     * 2010-11-08 MeiChao
+     * 获取需要保存的费用信息VO
+     */
+    //获取需要保存的费用信息
+    InformationCostVO[] expenseVOs=(InformationCostVO[])this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+    
+    
     //填入界面中数据
     getBillCardPanel().tableStopCellEditing();
     getBillCardPanel().stopEditing();
@@ -581,6 +629,23 @@ public boolean onSave() {
       //增加HVO
       m_iLastSelListHeadRow = m_iTotalListHeadNum;
       addBillVO();
+      /**
+       * 2010-11-08 MeiChao
+       * 如果是新增单据,则向数据库中插入新费用信息.
+       */
+      //2010-11-08 MeiChao begin
+      //将主键写入费用信息VO中
+				if (expenseVOs != null && expenseVOs.length > 0) {
+					for (int i = 0; i < expenseVOs.length; i++) {
+						expenseVOs[i].setCbillid(sHPK);//设置所属单据主键
+						expenseVOs[i].setVdef10("4N");//设置所属单据类型
+					}
+				}
+      JJIcScmPubHelper expenseManager=new JJIcScmPubHelper();
+      expenseManager.insertSmartVOs(expenseVOs);
+      //2010-11-08 MeiChao end
+      
+      
     } else if (BillMode.Update == m_iMode) { //修改
       //从界面中获得需要的数据
       voTempBill = getUpdatedBillVO();
@@ -663,6 +728,22 @@ public boolean onSave() {
       m_voBill.setIDItems(voTempBill);
       //修改HVO
       m_alListData.set(m_iLastSelListHeadRow, m_voBill.clone());*/
+      /**
+       * 2010-11-08 MeiChao
+       * 如果是修改单据,那么修改费用信息
+       */
+      //2010-11-08 MeiChao 将新费用信息中设置上单据id
+      for (int i = 0; i < expenseVOs.length; i++) {
+					if (expenseVOs[i].getCbillid() == null) {
+						expenseVOs[i].setCbillid(voTempBill.getHeaderVO()
+								.getPrimaryKey());//设置所属单据id
+						expenseVOs[i].setVdef10("4N");//设置所属单据类型
+					}
+				}
+      JJIcScmPubHelper expenseManager=new JJIcScmPubHelper();
+      expenseManager.updateSmartVOs(expenseVOs, voTempBill.getHeaderVO()
+								.getPrimaryKey());
+      
     }
     //set ui pk below,so put it before freshts.
     //switchListToBill();
@@ -678,6 +759,10 @@ public boolean onSave() {
     m_iFirstSelListHeadRow = -1;
     setButtonState();
     setBillState();
+    /**
+     * 2010-11-08 MeiChao
+     * 将费用VO信息重写至界面中(暂时不需要)
+     */
     showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID("4008spec","UPP4008spec-000136")/*@res "保存成功！"*/);
     return true;
   } catch (Exception e) {
@@ -781,7 +866,9 @@ protected void initButtons() {
       m_boRowQuyQty,
       m_boLocate,
       m_PrintMng,
-      m_boList };
+      m_boList,
+      this.getButtonExpenseInput()//2010-11-08 MeiChao 将费用录入按钮加入到按钮组中.
+  };
 }
 
 /**
@@ -890,7 +977,7 @@ public void onAuditBill() {
 
     return;
   }
-
+  
   SpecialBillVO voTempBill =
     (SpecialBillVO) m_alListData.get(m_iLastSelListHeadRow);
   
@@ -2087,5 +2174,71 @@ public boolean isCellEditable(boolean value, int row, String itemkey) {
   if("invsetparttype".equals(itemkey))
     return true;
   return super.isCellEditable(value, row, itemkey);
-}  
+}
+
+
+
+/**
+ *费用录入按钮的事件响应方法
+ * Meichao
+ *2010-11-08 16:58
+ */
+private void onBoExpenseInput() {
+	
+	
+	InformationCostVO[] vos = (InformationCostVO[] )getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+	ArrayList voList = new ArrayList();
+	for (int i = 0; i < vos.length; i++) {
+		if(vos[i] != null){
+			voList.add(vos[i]);
+		}
+	}
+	InfoCostPanel c = null;
+	if(voList.size()!=0&&voList!=null){
+		InformationCostVO[] vos1 = new InformationCostVO[voList.size()];
+		voList.toArray(vos1);
+		c = new InfoCostPanel(getBillCardPanel(),vos1);
+	}
+	else 			
+	c = new InfoCostPanel(getBillCardPanel());
+	// 打开费用录入界面
+	c.showModal();
+	// 当费用录入界面关闭时,将录入的数据存放到费用信息页签上
+	if (c.isCloseOK()) {
+		InformationCostVO[] infoCostVOs = c.getInfoCostVOs();
+		if (infoCostVOs != null && infoCostVOs.length != 0){
+			// 当费用录入界面的vo数组不为空时,将vo存到费用录入页签上
+					getBillCardPanel().getBillData().setBodyValueVO(
+						"jj_scm_informationcost", infoCostVOs);
+				getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+			}	
+		
+	}
+}
+/**
+ * 
+ * (设置费用录入按钮的可见/可用状态)
+ *  MeiChao  补充注释  2010-11-08  
+ * @see nc.ui.ic.pub.bill.GeneralBillClientUI#setExtendBtnsStat(int)
+ * 
+ */
+	public void setExpenseInputButtonStat(int iState) {
+		switch (iState) {
+		case BillMode.New:
+			getButtonExpenseInput().setEnabled(true);
+			break;
+		case BillMode.Update:
+			getButtonExpenseInput().setEnabled(true);
+			break;
+		case BillMode.Browse:
+			getButtonExpenseInput().setEnabled(false);
+			break;
+		default:
+			getButtonExpenseInput().setEnabled(false);
+			break;
+		}
+	}
+
+
+
 }
