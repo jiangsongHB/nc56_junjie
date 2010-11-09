@@ -7778,7 +7778,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					.getBillData().getBodyValueVOs(
 							"jj_scm_informationcost",
 							InformationCostVO.class.getName());
-			if(this.getBillType().equals("45")){//如果当前单据是采购入库单的话
+			if(this.getBillType().equals("45")||this.getBillType().equals("4A")){//如果当前单据是采购入库单的话
 			/**
 			 * 第一步获取当前订单中的存货数量总和
 			 */
@@ -10890,14 +10890,14 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 								"jj_scm_informationcost",
 								InformationCostVO.class.getName());
 				GeneralBillItemVO[] voaItem=voUpdatedBill.getItemVOs();
-				if(this.getBillType().equals("45")){//如果当前单据是采购入库单的话
+				if(this.getBillType().equals("45")||this.getBillType().equals("4A")){//如果当前单据是采购入库单/其他入库单的话
 				/**
 				 * 第一步获取当前订单中的存货数量总和
 				 */
 				//订单存货总数
 				Double generalItemNumber=0.0;
 				for(int i=0;i<voaItem.length;i++){//遍历表体信息
-					generalItemNumber+=voaItem[i].getNinnum().doubleValue();
+					generalItemNumber+=voaItem[i].getNinnum()==null?0.0:voaItem[i].getNinnum().doubleValue();
 				}
 				/**
 				 * 第二步,分类费用信息.
