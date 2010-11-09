@@ -9529,7 +9529,7 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 		dao.executeUpdate(deleteIAhead);
 		dao.executeUpdate(deleteIAbody);
 		}catch (Exception e){
-			Logger.debug("费用发票弃审时出错!");
+			Logger.debug("费用发票弃审时,作废下游单据出错!");
 			e.printStackTrace();
 			return false;
 			
