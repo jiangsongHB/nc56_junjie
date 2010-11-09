@@ -395,6 +395,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		// 增加按钮动作
 		else if (e.getSource() == this.m_btnAdd) {
 			getBillListPanel().getHeadBillModel().addLine();
+			getBillListPanel().getHeadBillModel().execLoadFormula();//add by MeiChao 2010-11-09
 			getBillListPanel().getHeadBillModel().setEnabledAllItems(true);
 		//add by 付世超 2010-10-13 begin
 			int row = getBillListPanel().getHeadTable().getRowCount();
