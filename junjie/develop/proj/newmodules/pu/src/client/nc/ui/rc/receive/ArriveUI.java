@@ -6339,6 +6339,18 @@ private boolean onSave() {
   //终止编辑
   getBillCardPanel().stopEditing();
   
+  /**
+   * add by ouyangzhb 
+   * 
+   * 在保存时设置合格数量，把'应到数量'传入‘合格数量’中，使得采购入库单参照采购到货单时能被检索到
+   */
+  UFDouble narrvnum = new UFDouble(0);
+  for(int i=0; i<this.getBillCardPanel().getBillModel().getRowCount();i++){
+ 	   narrvnum = (UFDouble) this.getBillCardPanel().getBillModel().getValueAt(i, "narrvnum") ;
+ 	   this.getBillCardPanel().getBillModel().setValueAt(narrvnum, i, "nelignum") ;
+ 	   this.getBillCardPanel().getBillModel().setValueAt(narrvnum, i, "naccumchecknum") ;
+ 	  
+   }
   // 增加对校验公式的支持,错误显示由UAP处理 since v501
   if ( ! getBillCardPanel().getBillData().execValidateFormulas()){
       return false;
