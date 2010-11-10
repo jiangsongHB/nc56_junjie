@@ -340,6 +340,9 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 				+ " t2.md_zlzsh,"
 				+ " t2.remark,"
 				+ " t2.def6,"
+				+ " t2.def7,"
+				+ " t2.def8,"
+				+ " t2.def9,"
 				+ " t2.pk_mdxcl_b"
 				+ " from nc_mdxcl t1"
 				+ " left join nc_mdxcl_b t2 on t1.pk_mdxcl = t2.pk_mdxcl"
@@ -390,6 +393,9 @@ public class HwtzDialog extends nc.ui.pub.beans.UIDialog {
 			vo.setMd_zyh((String) rsvo.get("md_zyh"));// 资源号 md_zyh
 			vo.setMd_zlzsh((String) rsvo.get("md_zlzsh"));// 质保证书号 md_zlzsh
 			vo.setRemark((String) rsvo.get("remark"));// 备注 remark
+			vo.setDef7((String) rsvo.get("def7"));
+			vo.setDef8((String) rsvo.get("def8"));
+			vo.setDef9((String) rsvo.get("def9"));
 			rsVos[i] = vo;
 		}
 		billList.setBodyValueVO(rsVos);

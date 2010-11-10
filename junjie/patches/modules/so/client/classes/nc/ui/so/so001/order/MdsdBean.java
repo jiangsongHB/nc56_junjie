@@ -1,5 +1,6 @@
 package nc.ui.so.so001.order;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -71,6 +72,10 @@ public class MdsdBean {
 			vos[i].setDr(new Integer(0));
 			vos[i].setDef6(null);
 			vos[i].setDef1(null);
+			vos[i].setDef2(null);
+			vos[i].setDef7(null);
+			vos[i].setDef8(null);
+			vos[i].setDef9(null);
 			rsList.add(vos[i]);
 		}
 		if (rsList.size() == 0)
@@ -106,9 +111,16 @@ public class MdsdBean {
 			vo.setDef2(new UFDouble(0));
 			return vo;
 		}
-		Integer kyzs = (Integer) rsmap.get("kyzs");
-		vo.setSdzs(new UFDouble(kyzs, MDConstants.ZS_XSW));
-		vo.setDef1(vo.getSdzs());
+		UFDouble zhishu = new UFDouble((BigDecimal) rsmap.get("zhishu"));// 现存支数
+		UFDouble zhongliang = new UFDouble((BigDecimal) rsmap.get("zhongliang"));// 现存重量
+		UFDouble kyzs = new UFDouble((Integer) rsmap.get("kyzs"),
+				MDConstants.ZS_XSW);// 可用支数
+		UFDouble kyzl = kyzs.multiply(zhongliang).div(zhishu,
+				MDConstants.ZL_XSW);// 可用重量
+		vo.setSdzs(kyzs);
+		vo.setDef3(kyzl);
+		vo.setDef1(kyzs);
+		vo.setDef2(kyzl);
 		vo.setSxrq(cdate.getDateAfter(3));// 失效日期
 		vo.setSdrq(cdate);// 锁定日期
 		return vo;

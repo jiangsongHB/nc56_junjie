@@ -36,8 +36,8 @@ import nc.vo.pub.lang.UFDouble;
 public class MdProcessBean {
 
 	// 构造保存VO
-	public MdcrkVO[] buliderMdcrkVOs(MdcrkVO[] vos, ChInfoVO infoVO)
-			throws BusinessException {
+	public MdcrkVO[] buliderMdcrkVOs(MdcrkVO[] vos, ChInfoVO infoVO,
+			boolean b_fjs) throws BusinessException {
 		if (vos == null || vos.length == 0)
 			return null;
 		List tempList = new ArrayList();
@@ -55,6 +55,10 @@ public class MdProcessBean {
 			if (vos[i].getSrkzs() == null
 					|| vos[i].getSrkzs().doubleValue() == 0)
 				throw new BusinessException("表体键编号" + jbh + "的出库支数不能为0");
+			if (infoVO.getSfbj().booleanValue() == false)
+				if (vos[i].getSrkzl() == null
+						|| vos[i].getSrkzl().doubleValue() == 0)
+					throw new BusinessException("表体键编号" + jbh + "的出库重量不能为0");
 			vos[i].setPk_corp(infoVO.getCorpVo().getPk_corp()); // 公司
 			vos[i].setDr(0);
 			vos[i].setDmakedate(infoVO.getUfdate());// 操作日期；
@@ -68,6 +72,7 @@ public class MdProcessBean {
 			vos[i].setDef1(null);
 			vos[i].setDef2(null);
 			vos[i].setSfbj(infoVO.getSfbj());
+			vos[i].setDef4(new UFBoolean(b_fjs));// 非计算
 			sumCkzs = sumCkzs.add(vos[i].getSrkzs());// 实出库支数
 			tempList.add(vos[i]);
 		}
@@ -100,11 +105,7 @@ public class MdProcessBean {
 				pk_mdxclStr);
 		MdxclBVO[] xclbvos = new MdxclBVO[coll.size()];
 		coll.toArray(xclbvos);
-		// String pk_mdxcl = null;
-		// UFDouble sum_zhishu = new UFDouble(0);
-		// UFDouble sum_zhongliang = new UFDouble(0);
 		for (int j = 0; j < xclbvos.length; j++) {
-			// pk_mdxcl = xclbvos[0].getPk_mdxcl();// 现存量表头PK
 			MdcrkVO crkvo = (MdcrkVO) crkvoMap.get(xclbvos[j].getPk_mdxcl_b());
 			// 出库后的支数
 			xclbvos[j].setZhishu(xclbvos[j].getZhishu().sub(crkvo.getSrkzs(),
@@ -116,20 +117,8 @@ public class MdProcessBean {
 				// 重量
 				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().sub(
 						crkvo.getSrkzl(), MDConstants.ZL_XSW));
-			// sum_zhishu = sum_zhishu.add(crkvo.getSrkzs(),
-			// MDConstants.ZS_XSW);
-			// sum_zhongliang = sum_zhongliang.add(crkvo.getSrkzl(),
-			// MDConstants.ZL_XSW);
 		}
 		iVOPersistence.updateVOArray(xclbvos);
-		// 表头VO
-		// MdxclVO hvo = (MdxclVO) iUAPQueryBS.retrieveByPK(MdxclVO.class,
-		// pk_mdxcl);
-		// hvo.setSum_zhishu(hvo.getSum_zhishu().sub(sum_zhishu,
-		// MDConstants.ZS_XSW));
-		// hvo.setSum_zhongliang(hvo.getSum_zhongliang().sub(sum_zhongliang,
-		// MDConstants.ZL_XSW));
-		// iVOPersistence.updateVO(hvo);
 	}
 
 	// 查询表体VOS
@@ -144,24 +133,6 @@ public class MdProcessBean {
 
 		MdcrkVO[] rsvos = new MdcrkVO[coll.size()];
 		coll.toArray(rsvos);
-		/*
-		 * // 查询现存量表的支数与重量 Map crkvoMap = new HashMap(); String pk_mdxclStr = "
-		 * pk_mdxcl_b in ("; for (int i = 0; i < rsvos.length; i++) {
-		 * pk_mdxclStr += "'" + rsvos[i].getPk_mdxcl_b() + "',"; } pk_mdxclStr =
-		 * pk_mdxclStr.substring(0, pk_mdxclStr.length() - 1); pk_mdxclStr =
-		 * pk_mdxclStr + ") and dr=0"; Collection coll2 =
-		 * iUAPQueryBS.retrieveByClause(MdxclBVO.class, pk_mdxclStr); MdxclBVO[]
-		 * xclbvos = new MdxclBVO[coll.size()]; coll2.toArray(xclbvos); for (int
-		 * j = 0; j < xclbvos.length; j++)
-		 * crkvoMap.put(xclbvos[j].getPk_mdxcl_b(), xclbvos[j]); for (int t = 0;
-		 * t < rsvos.length; t++) { String pk_mdxcl_b =
-		 * rsvos[t].getPk_mdxcl_b(); MdxclBVO xclvo = (MdxclBVO)
-		 * crkvoMap.get(pk_mdxcl_b);
-		 * rsvos[t].setDef1(rsvos[t].getSrkzs().add(xclvo.getZhishu(),
-		 * MDConstants.ZS_XSW));
-		 * rsvos[t].setDef2(rsvos[t].getSrkzl().add(xclvo.getZhongliang(),
-		 * MDConstants.ZL_XSW)); }
-		 */
 		return rsvos;
 	}
 
@@ -189,11 +160,7 @@ public class MdProcessBean {
 				pk_mdxclStr);
 		MdxclBVO[] xclbvos = new MdxclBVO[coll.size()];
 		coll.toArray(xclbvos);
-		// String pk_mdxcl = null;
-		// UFDouble sum_zhishu = new UFDouble(0);
-		// UFDouble sum_zhongliang = new UFDouble(0);
 		for (int j = 0; j < xclbvos.length; j++) {
-			// pk_mdxcl = xclbvos[0].getPk_mdxcl();// 现存量表头PK
 			MdcrkVO crkvo = (MdcrkVO) crkvoMap.get(xclbvos[j].getPk_mdxcl_b());
 			// 出库后的支数
 			xclbvos[j].setZhishu(xclbvos[j].getZhishu().add(crkvo.getSrkzs(),
@@ -201,20 +168,8 @@ public class MdProcessBean {
 			// 重量
 			xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().add(
 					crkvo.getSrkzl(), MDConstants.ZL_XSW));
-			// sum_zhishu = sum_zhishu.add(crkvo.getSrkzs(),
-			// MDConstants.ZS_XSW);
-			// sum_zhongliang = sum_zhongliang.add(crkvo.getSrkzl(),
-			// MDConstants.ZL_XSW);
 		}
 		iVOPersistence.updateVOArray(xclbvos);
-		// 表头VO
-		// MdxclVO hvo = (MdxclVO) iUAPQueryBS.retrieveByPK(MdxclVO.class,
-		// pk_mdxcl);
-		// hvo.setSum_zhishu(hvo.getSum_zhishu().add(sum_zhishu,
-		// MDConstants.ZL_XSW));
-		// hvo.setSum_zhongliang(hvo.getSum_zhongliang().add(sum_zhongliang,
-		// MDConstants.ZS_XSW));
-		// iVOPersistence.updateVO(hvo);
 		// 删除历史出库VO
 		iVOPersistence.deleteVOArray(lsckVos);
 		return true;
@@ -236,12 +191,6 @@ public class MdProcessBean {
 		dlg.setNoutassistnum(zhishu);
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
-		/*
-		 * try { iUAPQueryBS.executeQuery("update ic_general_b set noutnum=" +
-		 * zhongliang.doubleValue() + ",noutassistnum=" + zhishu.doubleValue() + "
-		 * where cgeneralbid='" + pk_ptzj + "'", new ArrayListProcessor()); }
-		 * catch (BusinessException e) { e.printStackTrace(); }
-		 */
 	}
 
 	// 码单全部删除后，将实出库支数、重量清空
@@ -279,8 +228,9 @@ public class MdProcessBean {
 			MdcrkVO vo = new MdcrkVO();
 			vo.setPk_mdxcl_b(sdvos[i].getPk_mdxcl_b());// 出入库单主键
 			vo.setSrkzs(sdvos[i].getSdzs());// 支数
-			vo.setSfbj(new UFBoolean(true)); // 是否磅计
-
+			vo.setSfbj(new UFBoolean(false)); // 是否磅计
+			vo.setDef4(sdvos[i].getDef4());// 非计算
+			vo.setSrkzl(sdvos[i].getDef3());// 锁定重量
 			// 现存量表头VO
 			MdxclBVO bvo = (MdxclBVO) iUAPQueryBS.retrieveByPK(MdxclBVO.class,
 					vo.getPk_mdxcl_b());
@@ -346,7 +296,7 @@ public class MdProcessBean {
 		UFDouble kyzs = new UFDouble((Integer) rsmap.get("kyzs")); // 可用支数
 		UFDouble kyzl = kyzs.multiply(zhongliang).div(zhishu,
 				MDConstants.ZL_XSW);// 可用重量
-		evo.setCspaceid((String) rsmap.get("cspaceid"));//货位
+		evo.setCspaceid((String) rsmap.get("cspaceid"));// 货位
 		// 如果是理计
 		if (bsfbj.booleanValue() == false) {
 			evo.setSrkzs(kyzs);

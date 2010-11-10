@@ -116,7 +116,10 @@ public class MDToolsImpl implements IMDTools {
 			bvo.setZhongliang(mdcrkVO.getSrkzl());
 			bvo.setZhishu(mdcrkVO.getSrkzs());
 			bvo.setDr(0);
-
+			bvo.setDef4(mdcrkVO.getDef4());//非计算标识
+			bvo.setDef7(mdcrkVO.getDef7());//自定义项7
+			bvo.setDef8(mdcrkVO.getDef8());//自定义项8
+			bvo.setDef9(mdcrkVO.getDef9());//自定义项9
 			bvo.setPk_mdxcl(pk_mdxcl.toString());
 
 			bvo.setStatus(VOStatus.NEW);

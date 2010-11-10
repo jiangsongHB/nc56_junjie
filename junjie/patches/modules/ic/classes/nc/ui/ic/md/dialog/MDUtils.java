@@ -1,7 +1,9 @@
 package nc.ui.ic.md.dialog;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
@@ -242,6 +244,7 @@ public class MDUtils {
 	 * @return
 	 */
 	static UFDouble getFJM(MdcrkVO vo) throws BusinessException {
+		MdcrkVO tempvo = (MdcrkVO) vo.clone();
 		UFDouble rsDouble = new UFDouble(0);
 		String pk_invbasid = getInvBasidByMDVO(vo);
 		if (pk_invbasid == null)
@@ -250,13 +253,16 @@ public class MDUtils {
 		boolean sffjz = queryFjzConfig(pk_invbasid);
 		if (sffjz == false)
 			return UFDouble.ZERO_DBL;
+		tempvo.setDef10(pk_invbasid);
+		List qList = new ArrayList();
+		qList.add(tempvo);
 		// FIXME 与佛山代码整合后,需要更改此处代码
 		IJJUAPService js = NCLocator.getInstance().lookup(IJJUAPService.class);
 		try {
-			Object obj = js.queryAdditionalvalue(pk_invbasid);
-			if (obj == null)
+			List rsList = js.queryAdditionalvalue(qList);
+			if (rsList == null)
 				throw new BusinessException("当前存货的附加值系数没有维护，计算失败！");
-			rsDouble = new UFDouble((BigDecimal) obj);
+			rsDouble = new UFDouble(((MdcrkVO) rsList.get(0)).getDef11());
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new BusinessException(e.getMessage());
