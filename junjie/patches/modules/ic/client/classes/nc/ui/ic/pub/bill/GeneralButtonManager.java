@@ -6417,7 +6417,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					/**
 					 * 特殊标志: 自定义项18 19
 					 */
-					body.setZyx18("trueFree");//2010-11-07 "费用暂估应付"标志,启用于: 暂估处理,See:EstimateImpl 约9181行 用于生成采购发票时的处理
+					body.setZyx18("tureFree");//2010-11-07 "费用暂估应付"标志,启用于: 暂估处理,See:EstimateImpl 约9181行 用于生成采购发票时的处理
 					body.setZyx19(body.getHbbm());//2010-11-07 "客商管理ID" 启用于: 暂估处理 ,See:EstimateImpl 约9423行 用于生成采购发票时的处理
 					
 					
@@ -6680,7 +6680,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 			}
 		}else{//否则,判断对应调整单状态.
 			for(int i=0;i<iaResult.size();i++){
-				if(!"Y".equals(((Object[])iaResult.get(i))[0].toString())){
+				if("Y".equals(((Object[])iaResult.get(i))[0].toString())){
 					//如果单据状态不等于Y,表示下游调整单已审核.则不允许弃审(取消签字)
 					Logger.debug("当前其他入库单的下游单据:库存调整单 已审核,不允许取消签字.");
 					MessageDialog.showHintDlg(this.getClientUI(), "提示", "下游单据:库存调整单 "+((Object[])iaResult.get(i))[1].toString()+" 已审核,不允许取消签字.");
@@ -6689,7 +6689,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					pkForIA.append("'");
 					pkForIA.append(((Object[])iaResult.get(i))[1].toString());
 					pkForIA.append("'");
-					if(i<checkAPResult.size()-1){
+					if(i<iaResult.size()-1){
 						pkForIA.append(",");
 					}
 				}
