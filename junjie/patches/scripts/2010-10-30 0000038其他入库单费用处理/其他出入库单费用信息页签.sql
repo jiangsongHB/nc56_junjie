@@ -1,10 +1,12 @@
 --第一步,获得当前数据库中其他入库单模板PK,如果脚本运行出错,可根据此信息校验.当前测试库中的PK为'IA000000000000000003'
 select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname='SYSTEM';
+
 --第二步,往对应PK的Table表中插入新页签(费用信息页签)
+delete pub_billtemplet_t t where t.pk_billtemplet=(select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname='SYSTEM') and t.tabcode='jj_scm_informationcost';
 insert into pub_billtemplet_t (BASETAB, DR, METADATACLASS, METADATAPATH, MIXINDEX, PK_BILLTEMPLET, PK_BILLTEMPLET_T, POS, POSITION, RESID, TABCODE, TABINDEX, TABNAME, TS, VDEF1, VDEF2, VDEF3)
 values ('', 0, '', '', null, (select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname='SYSTEM'), '0001JJ10000000005V5Y', 1, 1, '', 'jj_scm_informationcost', 4, '费用信息', (to_char(sysdate,'yyyy-mm-dd hh24:mi:ss')), '', '', '');
 --第三步,往费用信息页签中注册数据项
-delete pub_billtemplet_b t where t.pk_billtemplet=(select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname='SYSTEM');
+delete pub_billtemplet_b t where t.pk_billtemplet=(select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname='SYSTEM') and t.table_code='jj_scm_informationcost';
 insert into pub_billtemplet_b (CARDFLAG, DATATYPE, DEFAULTSHOWNAME, DEFAULTVALUE, DR, EDITFLAG, EDITFORMULA, FOREGROUND, IDCOLNAME, INPUTLENGTH, ITEMKEY, ITEMTYPE, LEAFFLAG, LISTFLAG, LISTSHOWFLAG, LOADFORMULA, LOCKFLAG, METADATAPATH, METADATAPROPERTY, METADATARELATION, NEWLINEFLAG, NULLFLAG, OPTIONS, PK_BILLTEMPLET, PK_BILLTEMPLET_B, PK_CORP, POS, REFTYPE, RESID, RESID_TABNAME, REVISEFLAG, SHOWFLAG, SHOWORDER, TABLE_CODE, TABLE_NAME, TOTALFLAG, TS, USERDEFFLAG, USERDEFINE1, USERDEFINE2, USERDEFINE3, USEREDITFLAG, USERFLAG, USERREVISEFLAG, USERSHOWFLAG, VALIDATEFORMULA, WIDTH)
 values (1, 0, '单据主键', '', 0, 0, '', -1, '', 50, 'cbillid', 0, 'N', 1, 'N', '', 0, '', '', '', 'N', 0, '', (select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname='SYSTEM'), '0001ZZ10000000005F25', '@@@@', 1, '', '', '', 'N', 0, 1, 'jj_scm_informationcost', '费用信息', 0, (to_char(sysdate,'yyyy-mm-dd hh24:mi:ss')), 'N', '', '', '', 1, 1, 'N', 1, '', 100);
 
