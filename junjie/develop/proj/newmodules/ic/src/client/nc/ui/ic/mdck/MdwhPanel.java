@@ -60,26 +60,41 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 
 	private MdcrkVO[] crkvos = null;
 
+	private boolean b_fjs = false; // 销售订单锁定的数据是否为非计算的类型
+
+	private boolean ufsfbj = false;// 是否磅计
+
 	public MdwhPanel(ChInfoVO infoVO, MdwhDlg dlg) {
 		super();
 		this.infoVO = infoVO;
 		this.dlg = dlg;
 		initialize();
 		int rs = initDate();
+
+		// 设置非计算的标识
+		getOPBillCardPanel().setHeadItem("fjs", new UFBoolean(b_fjs));
+		if (b_fjs == true) {
+			getOPBillCardPanel().setHeadItem("sfbj", new UFBoolean(false));
+			getOPBillCardPanel().getHeadItem("sfbj").setEnabled(false);
+			getOPBillCardPanel().getHeadItem("gbzl").setEnabled(false);
+			getOPBillCardPanel().getBodyItem("srkzl").setEnabled(true);
+		}
+
 		if (infoVO.getFbillflag() == 3)
 			buttonState(false, false, false, true, false);
 		else {
 			if (getOPBillCardPanel().getHeadItem("sfbj").getValue().equals(
 					"true"))
-				buttonState(true, true, false, true, false);
+				buttonState(true, true, false, true, true);
 			else {
-				buttonState(true, true, false, true, false);
+				buttonState(true, true, true, true, false);
 				getOPBillCardPanel().getHeadItem("gbzl").setEdit(false);
 			}
 
 		}
-		if (rs == 1)
-			buttonState(true, true, false, true, true);
+		// if (rs == 1)
+
+		// buttonState(true, true, false, true, true);
 	}
 
 	/**
@@ -108,7 +123,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 		// 始始化值
 		getOPBillCardPanel().setHeadItem("invcode", infoVO.getPk_invbasdoc());
 		getOPBillCardPanel().setHeadItem("gbzl", infoVO.getNoutnum());
-		getOPBillCardPanel().setHeadItem("sfbj", new UFBoolean(true));
+		getOPBillCardPanel().setHeadItem("sfbj", new UFBoolean(false));
 		getOPBillCardPanel().execHeadLoadFormulas();
 		int mdsd = 0;
 		try {
@@ -131,6 +146,10 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 		if (crkvos == null || crkvos.length == 0) {
 			onBtnAdd();
 		} else {
+			// 只要加有历史数据，非计算就不能再编辑
+			getOPBillCardPanel().getHeadItem("fjs").setEnabled(false);
+			// 是否非计算
+			b_fjs = crkvos[0].getDef4().booleanValue();
 			// 加载现存量
 			try {
 				for (int i = 0; i < crkvos.length; i++) {
@@ -160,7 +179,12 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 						getOPBillCardPanel().execBodyFormulas(n, s1);
 				}
 			}
+			// 是否磅计
 			getOPBillCardPanel().setHeadItem("sfbj", crkvos[0].getSfbj());
+			if (crkvos[0].getSfbj().booleanValue() == true)
+				getOPBillCardPanel().getHeadItem("sfbj").setEnabled(false);
+
+			ufsfbj = crkvos[0].getSfbj().booleanValue();
 			// 如果锁定带出来的数据，则修改背景颜色
 			if (mdsd == 1) {
 				TableColumnModel tcm = getOPBillCardPanel().getBodyPanel()
@@ -347,7 +371,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			else
 				infoVO.setSfbj(new UFBoolean(true));
 			// 表体数据构造成较验
-			MdcrkVO[] rsvos = bean.buliderMdcrkVOs(vos, infoVO);
+			MdcrkVO[] rsvos = bean.buliderMdcrkVOs(vos, infoVO, b_fjs);
 			// 删除码单出入库单信息，并对原有单据做入库处理
 			boolean ders = bean.deleteAndRK(infoVO);
 			// 保存到出入库单位表体
@@ -355,14 +379,11 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				throw new BusinessException("保存失败，没有码单明细！");
 			if (rsvos == null && ders == true) {
 				bean.updateSdbs(infoVO, "0");// 还原码单锁定数据
-				// bean.updateBillNull(infoVO);// 将数据实出库数量、支数清空
 				dlg.setNoutnum(null);
 				dlg.setNoutassistnum(null);
-				// buttonState(true, true, false, true, false);
 				dlg.setSfsqmd(new UFBoolean(true));// 是否删除码单
 				onBtnCan();
 				return;
-				// throw new BusinessException("码单明细全部删除成功！");
 			}
 			// 构造并更新现存量主子表
 			bean.updateXcl(vos);
@@ -371,13 +392,11 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			bean.updateBill(dlg, rsvos);
 			// 将锁定记录标识为无效
 			bean.updateSdbs(infoVO, "2");
-			// getUIButtonCan().setText("关 闭");
-			// buttonState(true, true, false, true, false);
-			// MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
 			onBtnCan();
 		} catch (BusinessException e) {
 			e.printStackTrace();
 			MessageDialog.showWarningDlg(dlg, "提示", e.getMessage());
+			buttonState(true, true, true, true, false);
 		}
 	}
 
@@ -406,7 +425,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			infoVO.setSfbj(new UFBoolean(true));
 		MdProcessBean bean = new MdProcessBean();
 		try {
-			MdcrkVO[] rsvos = bean.buliderMdcrkVOs(vos, infoVO);
+			MdcrkVO[] rsvos = bean.buliderMdcrkVOs(vos, infoVO, b_fjs);
 			if (rsvos == null)
 				throw new BusinessException("请维护码单！");
 			Map kylMap = new HashMap();
@@ -550,21 +569,51 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 
 		}
 		if (arg0.getKey().equals("sfbj")) {
+			if (ufsfbj == true)
+				return;
 			String usfbj = (String) arg0.getValue();
 			if (usfbj.equals("true")) {
 				getOPBillCardPanel().getHeadItem("gbzl").setEdit(true);
 				infoVO.setSfbj(new UFBoolean(true));
+				ufsfbj = true;
+				getOPBillCardPanel().getHeadItem("sfbj").setEnabled(false);
 			} else {
 				infoVO.setSfbj(new UFBoolean(false));
 				getOPBillCardPanel().getHeadItem("gbzl").setEdit(false);
 			}
-			getOPBillCardPanel().getBillModel().setBodyDataVO(null);
-			onBtnAdd();
-			buttonState(true, true, false, true, false);
+			MdcrkVO[] vos = (MdcrkVO[]) getOPBillCardPanel().getBillData()
+					.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
+			for (int i = 0; i < vos.length; i++)
+				vos[i].setSrkzl(null);
+			getOPBillCardPanel().getBillData().setBodyValueVO(vos);
+			getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+			buttonState(true, true, false, true, true);
 		}
 		// 过磅重量
 		if (arg0.getKey().equals("gbzl")) {
 			buttonState(true, true, false, true, true);
+		}
+		// 非计算
+		if (arg0.getKey().equals("fjs")) {
+			String fjsStr = (String) arg0.getValue();
+			if (fjsStr.equals("true")) {
+				getOPBillCardPanel().getHeadItem("sfbj").setValue(
+						new UFBoolean(false));
+				getOPBillCardPanel().getHeadItem("sfbj").setEdit(false);
+				getOPBillCardPanel().getHeadItem("gbzl").setEdit(false);
+				getOPBillCardPanel().getBodyItem("srkzl").setEnabled(true);
+				b_fjs = true;
+			} else {
+				getOPBillCardPanel().getHeadItem("sfbj").setValue(
+						new UFBoolean(false));
+				getOPBillCardPanel().getHeadItem("sfbj").setEdit(true);
+				getOPBillCardPanel().getHeadItem("gbzl").setEdit(false);
+				getOPBillCardPanel().getBodyItem("srkzl").setEnabled(false);
+				b_fjs = false;
+			}
+			getOPBillCardPanel().getBillModel().setBodyDataVO(null);
+			onBtnAdd();
+			buttonState(true, true, false, true, false);
 		}
 	}
 
@@ -583,6 +632,10 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 					+ infoVO.getCwarehouseidb() + "' and cinvbasid='"
 					+ infoVO.getPk_invbasdoc() + "' and cinventoryidb='"
 					+ infoVO.getPk_invmandoc() + "'";
+			if (b_fjs == true)
+				sqlWhere += " and def4='Y'";
+			else
+				sqlWhere += " and def4='N'";
 			jbhPa.setWhereString(sqlWhere);
 		}
 		return true;

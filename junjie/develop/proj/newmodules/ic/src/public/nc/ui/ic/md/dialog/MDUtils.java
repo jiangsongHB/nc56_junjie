@@ -1,9 +1,12 @@
 package nc.ui.ic.md.dialog;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import nc.bs.framework.common.NCLocator;
+import nc.bs.logging.Logger;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pub.jj.IJJUAPService;
 import nc.jdbc.framework.processor.ArrayProcessor;
@@ -242,6 +245,7 @@ public class MDUtils {
 	 * @return
 	 */
 	static UFDouble getFJM(MdcrkVO vo) throws BusinessException {
+		MdcrkVO tempvo = (MdcrkVO) vo.clone();
 		UFDouble rsDouble = new UFDouble(0);
 		String pk_invbasid = getInvBasidByMDVO(vo);
 		if (pk_invbasid == null)
@@ -250,17 +254,31 @@ public class MDUtils {
 		boolean sffjz = queryFjzConfig(pk_invbasid);
 		if (sffjz == false)
 			return UFDouble.ZERO_DBL;
+		tempvo.setDef10(pk_invbasid);
+		List qList = new ArrayList();
+		qList.add(tempvo);
+		Logger.init("heyq");
+		Logger.error("开始查询附加值:" + MDConstants.getCurrentTime());
+		Logger.error("传入的参数是：存货基本档案PK=" + pk_invbasid + ",长度="
+				+ tempvo.getMd_length().doubleValue() + ",宽度="
+				+ tempvo.getMd_width().doubleValue());
 		// FIXME 与佛山代码整合后,需要更改此处代码
 		IJJUAPService js = NCLocator.getInstance().lookup(IJJUAPService.class);
 		try {
-			Object obj = js.queryAdditionalvalue(pk_invbasid);
-			if (obj == null)
+			List rsList = js.queryAdditionalvalue(qList);
+			if (rsList == null)
 				throw new BusinessException("当前存货的附加值系数没有维护，计算失败！");
-			rsDouble = new UFDouble((BigDecimal) obj);
+			String def11 = ((MdcrkVO) rsList.get(0)).getDef11();
+			if (def11 == null || def11.equals(""))
+				throw new BusinessException("当前存货的附加值系数没有维护，计算失败！");
+			rsDouble = new UFDouble(def11);
+			Logger.error("通过接口查询到附加值的结果是:" + rsDouble.doubleValue());
 		} catch (Exception e) {
 			e.printStackTrace();
+			Logger.error("查询附加值异常：" + e.getMessage());
 			throw new BusinessException(e.getMessage());
 		}
+		Logger.error("查询附加值结束,返回的结果是" + rsDouble.doubleValue());
 		return rsDouble;
 		// queryAdditionalvalue(String pk_invbasdoc) 根据存货基本档案查出附加值
 		// return UFDouble.ZERO_DBL;

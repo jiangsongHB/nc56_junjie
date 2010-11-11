@@ -48,10 +48,15 @@ public class MdDetailVO extends SuperVO {
 	private String rkrq;// 入库日期
 
 	private String cqh;// 车船号
-	
+
+	private String def7;
+
+	private String def8;
+
+	private String def9;
+
 	private String pk_mdxcl_b;
-	
-	
+
 	public String getPk_mdxcl_b() {
 		return pk_mdxcl_b;
 	}
@@ -234,6 +239,31 @@ public class MdDetailVO extends SuperVO {
 
 	public void setZhongliang(UFDouble zhongliang) {
 		this.zhongliang = zhongliang;
+	}
+	
+
+	public String getDef7() {
+		return def7;
+	}
+
+	public void setDef7(String def7) {
+		this.def7 = def7;
+	}
+
+	public String getDef8() {
+		return def8;
+	}
+
+	public void setDef8(String def8) {
+		this.def8 = def8;
+	}
+
+	public String getDef9() {
+		return def9;
+	}
+
+	public void setDef9(String def9) {
+		this.def9 = def9;
 	}
 
 	@Override

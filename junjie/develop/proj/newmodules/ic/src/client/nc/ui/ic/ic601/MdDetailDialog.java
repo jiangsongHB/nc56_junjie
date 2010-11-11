@@ -399,11 +399,10 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 	private void onXstcsj() {
 		initDate();
 		/*
-		if (getCheckBox().isSelected() == true) {
-			getBillList().setHeaderValueVO(viewVos);
-		} else
-			getBillList().setHeaderValueVO(getGlVos(viewVos));
-	    */
+		 * if (getCheckBox().isSelected() == true) {
+		 * getBillList().setHeaderValueVO(viewVos); } else
+		 * getBillList().setHeaderValueVO(getGlVos(viewVos));
+		 */
 	}
 
 	// 进行数据帅选
@@ -441,6 +440,9 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ " t1.remark,"
 				+ " t1.zhishu,"
 				+ " t1.zhongliang,"
+				+ " t1.def7,"
+				+ " t1.def8,"
+				+ " t1.def9,"
 				+ " b.sdzs as yxsdzs,"
 				+ " (t1.zhishu - nvl(b.sdzs, 0)) as kyzs,"
 				+ " t8.dbilldate,"
@@ -508,6 +510,9 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 			vo.setRkdh((String) objMap.get("vbillcode"));// 入库单号
 			vo.setCqh((String) objMap.get("vuserdef4"));// 车船号
 			vo.setPk_mdxcl_b((String) objMap.get("pk_mdxcl_b"));
+			vo.setDef7((String) objMap.get("def7"));
+			vo.setDef8((String) objMap.get("def8"));
+			vo.setDef9((String) objMap.get("def9"));
 			// 有效锁定支数
 			if (objMap.get("yxsdzs") != null) {
 				vo.setYxsdzs(new UFDouble(((Integer) objMap.get("yxsdzs"))

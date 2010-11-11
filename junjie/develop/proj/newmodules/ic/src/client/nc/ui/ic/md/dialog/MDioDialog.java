@@ -22,6 +22,7 @@ import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillEditListener2;
+import nc.ui.pub.bill.BillItem;
 import nc.ui.trade.business.HYPubBO_Client;
 import nc.uif.pub.exception.UifException;
 import nc.vo.ic.md.MdcrkVO;
@@ -473,12 +474,17 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	private void onCalc() throws BusinessException {
+		String ispj = (String) getBillCardPanel().getHeadItem("ispj")
+				.getValueObject();
 		MdcrkVO[] mdvos = getBodyVOs();
 		if (mdvos.length < 1)
 			throw new BusinessException("码单表体没有数据！");
 		// 较验数据
 		UFDouble sum_srkzs = new UFDouble(0);
+		boolean ispjboolean = ispj.equals("true");
 		for (int i = 0; i < mdvos.length; i++) {
+			mdvos[i].setDef4(new UFBoolean(false)); // 是否非计算
+			mdvos[i].setSfbj(new UFBoolean(ispjboolean)); // 是否磅计
 			if (mdvos[i].getSrkzs() == null
 					|| mdvos[i].getSrkzs().doubleValue() == 0)
 				throw new BusinessException("第" + (i + 1) + "行，支数不能为空！");
@@ -487,11 +493,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		if (sum_srkzs.doubleValue() != this.getSsfsl().doubleValue())
 			throw new BusinessException("码单入库总支数" + sum_srkzs.doubleValue()
 					+ "不等于实入库辅数量" + this.getSsfsl().doubleValue());
-
 		UFDouble num = new UFDouble((String) getBillCardPanel().getHeadItem(
 				"realWeight").getValueObject());
-		String ispj = (String) getBillCardPanel().getHeadItem("ispj")
-				.getValueObject();
 		if (ispj == null || ispj.equals("false")) {
 			// 理计正材重量
 			mdvos = MDUtils.mdLJ(mdvos);
@@ -514,13 +517,25 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		}
 		getBillCardPanel().getBillData().setBodyValueVO(mdvos);
 		getBillCardPanel().getBillModel().execLoadFormula();
-		setMessage("计算成功...");
+		// setMessage("计算成功...");
 		edited = true;
+		MessageDialog.showWarningDlg(this, "提示", "计算成功!");
 	}
 
 	MdcrkVO[] getBodyVOs() {
-		return (MdcrkVO[]) getBillCardPanel().getBillData().getBodyValueVOs(
-				MdcrkVO.class.getName());
+		MdcrkVO[] rsvo = (MdcrkVO[]) getBillCardPanel().getBillData()
+				.getBodyValueVOs(MdcrkVO.class.getName());
+		if (rsvo == null || rsvo.length == 0)
+			return rsvo;
+		boolean bj = getBillCardPanel().getHeadItem("ispj").getValue().equals(
+				"true");
+		boolean fjs = getBillCardPanel().getHeadItem("fjs").getValue().equals(
+				"true");
+		for (int i = 0; i < rsvo.length; i++) {
+			rsvo[i].setSfbj(new UFBoolean(bj));
+			rsvo[i].setDef4(new UFBoolean(fjs));
+		}
+		return rsvo;
 	}
 
 	/**
@@ -537,6 +552,25 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		getBillCardPanel().dataNotNullValidate();
 		if (edited) {
 			MdcrkVO[] mdvos = getBodyVOs();
+
+			// 是否非计算
+			String fjs = (String) getBillCardPanel().getHeadItem("fjs")
+					.getValueObject();
+			if (fjs != null && !fjs.equals("false")) {
+				// 较验数据
+				UFDouble sum_srkzs = new UFDouble(0);
+				for (int i = 0; i < mdvos.length; i++) {
+					if (mdvos[i].getSrkzs() == null
+							|| mdvos[i].getSrkzs().doubleValue() == 0)
+						throw new BusinessException("第" + (i + 1) + "行，支数不能为空！");
+					sum_srkzs = sum_srkzs.add(mdvos[i].getSrkzs());
+				}
+				if (sum_srkzs.doubleValue() != this.getSsfsl().doubleValue())
+					throw new BusinessException("码单入库总支数"
+							+ sum_srkzs.doubleValue() + "不等于实入库辅数量"
+							+ this.getSsfsl().doubleValue());
+			}
+
 			IMDTools tools = NCLocator.getInstance().lookup(IMDTools.class);
 			tools.saveMDrk(mdvos, mdxclvo, (String) getGeneralBillVO()
 					.getItemValue(getGenSelectRowID(), "cgeneralbid"));
@@ -581,9 +615,19 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				}
 			}
 
+			// 是否非计算
+			if (fjs != null && !fjs.equals("false")) {
+				// 正材重量之和*正材单价=正材金额 stuffsumny
+				this.setStuffsumny(sum_sssl.multiply(this.getStuffprice(),
+						MDConstants.JE_XSW));
+				this.setStuffweight(sum_sssl);// 正材重量
+				this.setNmny(this.getStuffsumny().add(this.getGrosssumny())); // 实入库金额
+			}
+
 			closeCancel();
 			// ui.getButtonManager().onButtonClicked(ui.getButtonManager().getButton(ICButtonConst.BTN_BROWSE_REFRESH));
-		}
+		} else
+			MessageDialog.showWarningDlg(this, "提示", "请先计算！");
 	}
 
 	private void onAddline() {
@@ -678,6 +722,12 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					i - 1, "md_note"); // 厚宽长
 			getBillCardPanel().getBillModel().setValueAt(vo.getMd_zyh(), i - 1,
 					"md_zyh");// 资源号
+			getBillCardPanel().getBillModel().setValueAt(vo.getDef7(), i - 1,
+					"def7");// def7
+			getBillCardPanel().getBillModel().setValueAt(vo.getDef8(), i - 1,
+					"def8");// def8
+			getBillCardPanel().getBillModel().setValueAt(vo.getDef9(), i - 1,
+					"def9");// def9
 			getBillCardPanel().getBillModel().execLoadFormula();// 显示公式
 		}
 
@@ -693,6 +743,18 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				getBillCardPanel().getHeadItem("realWeight").setEdit(true);
 				getBillCardPanel().getHeadItem("grossprice").setEdit(false);
 				setIspj(UFBoolean.TRUE);
+				MdcrkVO[] vos = (MdcrkVO[]) getBillCardPanel().getBillData()
+						.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
+				if (vos != null && vos.length > 0) {
+					for (int i = 0; i < vos.length; i++) {
+						getBillCardPanel().getBillModel().setValueAt(null, i,
+								"def1");
+						getBillCardPanel().getBillModel().setValueAt(null, i,
+								"def2");
+						getBillCardPanel().getBillModel().setValueAt(
+								new UFBoolean(false), i, "def4");
+					}
+				}
 			} else {
 				getBillCardPanel().getHeadItem("realWeight").setEdit(false);
 
@@ -733,14 +795,176 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			MdcrkVO[] vos = (MdcrkVO[]) getBillCardPanel().getBillData()
 					.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
 			if (vos != null && vos.length > 0) {
-				int row = getBillCardPanel().getBillModel()
-						.getTotalTableModel().getRowCount();
-				for (int i = 0; i < row; i++)
-					getBillCardPanel().getBillModel().setValueAt(null, i,
-							"srkzl");
+				MdcrkVO[] rsvo = (MdcrkVO[]) getBillCardPanel().getBillData()
+						.getBodyValueVOs(MdcrkVO.class.getName());
+				if (rsvo != null && rsvo.length > 0) {
+					int row = rsvo.length;
+					for (int i = 0; i < row; i++)
+						getBillCardPanel().getBillModel().setValueAt(null, i,
+								"srkzl");
+				}
 			}
 
 		}
+		// 如果点了非计算选择项
+		else if (key.equals("fjs")) {
+			try {
+				boolean boolean_fjs = false;
+				if (editEvent.getValue().equals("true")) {
+					init();// 初始化
+					onEdit();// 编辑
+					getBillCardPanel().getHeadItem("realWeight").setEdit(false); // 实收重量
+					getBillCardPanel().getHeadItem("grossprice").setEdit(false); // 毛边单价
+					getBillCardPanel().getHeadItem("ispj").setValue(
+							new UFBoolean(false));
+					BillEditEvent e = new BillEditEvent(getBillCardPanel()
+							.getHeadItem("ispj").getComponent(),
+							getBillCardPanel().getHeadItem("ispj"), "ispj");
+					// afterEdit(e);
+					getBillCardPanel().getHeadItem("ispj").setEdit(false); // 是否磅计
+					getUIButton(MDUtils.CALC_BUTTON).setEnabled(false);
+					getBillCardPanel().getBodyItem("srkzl").setEnabled(true);
+					boolean_fjs = true;
+				} else {
+					getBillCardPanel().getHeadItem("ispj").setEdit(true); // 是否磅计
+					init();// 初始化
+					onEdit();// 编辑
+					getUIButton(MDUtils.CALC_BUTTON).setEnabled(true);
+					getBillCardPanel().getBodyItem("srkzl").setEnabled(false);
+					boolean_fjs = false;
+				}
+				// 重新设置值
+				MdcrkVO[] rsvo = (MdcrkVO[]) getBillCardPanel().getBillData()
+						.getBodyValueVOs(MdcrkVO.class.getName());
+				if (rsvo != null && rsvo.length > 0) {
+					for (int i = 0; i < rsvo.length; i++) {
+						getBillCardPanel().getBillModel().setValueAt(null, i,
+								"srkzl");
+						getBillCardPanel().getBillModel().setValueAt(
+								new UFBoolean(false), i, "sfbj");
+						getBillCardPanel().getBillModel().setValueAt(null, i,
+								"def1");
+						getBillCardPanel().getBillModel().setValueAt(null, i,
+								"def2");
+						getBillCardPanel().getBillModel().setValueAt(
+								new UFBoolean(boolean_fjs), i, "def4");
+					}
+				}
+			} catch (BusinessException e) {
+				e.printStackTrace();
+				MessageDialog.showWarningDlg(this, "错误", e.getMessage());
+			}
+		}
+		// 编辑了自定义项目7
+		else if (key.equals("def7")) {
+			String defStr = (String) editEvent.getValue();
+			// 非计算的值
+			boolean fsjboolean = getBillCardPanel().getHeadItem("fjs")
+					.getValue().equals("true");
+			// 如果是非计算
+			if (fsjboolean) {
+				if (isNumber(defStr))
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(defStr), editEvent.getRow(),
+							"md_length");
+				else
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(0), editEvent.getRow(), "md_length");
+			} else {
+				if (isNumber(defStr))
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(defStr), editEvent.getRow(),
+							"md_length");
+				else {
+					getBillCardPanel().getBillModel().setValueAt(null,
+							editEvent.getRow(), "def7");
+					getBillCardPanel().getBillModel().setValueAt(null,
+							editEvent.getRow(), "md_length");
+					MessageDialog.showWarningDlg(this, "提示", "长度必须是数字");
+				}
+			}
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "def9");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "md_meter");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "srkzl");
+		}
+		// 编辑了自定义项目8
+		else if (key.equals("def8")) {
+			String defStr = (String) editEvent.getValue();
+			// 非计算的值
+			boolean fsjboolean = getBillCardPanel().getHeadItem("fjs")
+					.getValue().equals("true");
+			// 如果是非计算
+			if (fsjboolean) {
+				if (isNumber(defStr))
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(defStr), editEvent.getRow(),
+							"md_width");
+				else
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(0), editEvent.getRow(), "md_width");
+			} else {
+				if (isNumber(defStr))
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(defStr), editEvent.getRow(),
+							"md_width");
+				else {
+					getBillCardPanel().getBillModel().setValueAt(null,
+							editEvent.getRow(), "def8");
+					getBillCardPanel().getBillModel().setValueAt(null,
+							editEvent.getRow(), "md_width");
+					MessageDialog.showWarningDlg(this, "提示", "宽度必须是数字");
+				}
+			}
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "def9");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "md_meter");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "srkzl");
+		}
+		// 编辑了自定义项目9
+		else if (key.equals("def9")) {
+			String defStr = (String) editEvent.getValue();
+			// 非计算的值
+			boolean fsjboolean = getBillCardPanel().getHeadItem("fjs")
+					.getValue().equals("true");
+			// 如果是非计算
+			if (fsjboolean) {
+				if (isNumber(defStr))
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(defStr), editEvent.getRow(),
+							"md_meter");
+				else
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(0), editEvent.getRow(), "md_meter");
+			} else {
+				if (isNumber(defStr))
+					getBillCardPanel().getBillModel().setValueAt(
+							new UFDouble(defStr), editEvent.getRow(),
+							"md_meter");
+				else {
+					getBillCardPanel().getBillModel().setValueAt(null,
+							editEvent.getRow(), "def9");
+					getBillCardPanel().getBillModel().setValueAt(null,
+							editEvent.getRow(), "md_meter");
+					MessageDialog.showWarningDlg(this, "提示", "米数必须是数字");
+				}
+			}
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "def7");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "def8");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "md_width");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "md_length");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "srkzl");
+		}
+
 		edited = true;
 		// md_width
 		// md_length
@@ -748,10 +972,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	void setIspj(UFBoolean issel) {
-		int i = getBillCardPanel().getRowCount();
-		for (int j = 0; j < i; j++) {
-			getBillCardPanel().getBillModel().setValueAt(issel, j, "sfbj");
-			getBillCardPanel().getBillModel().setValueAt(null, j, "srkzl");
+		MdcrkVO[] vos = (MdcrkVO[]) getBillCardPanel().getBillData()
+				.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
+		if (vos != null && vos.length > 0) {
+			int i = vos.length;
+			for (int j = 0; j < i; j++) {
+				getBillCardPanel().getBillModel().setValueAt(issel, j, "sfbj");
+				getBillCardPanel().getBillModel().setValueAt(null, j, "srkzl");
+			}
 		}
 	}
 
@@ -930,4 +1158,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		this.md_zyh = md_zyh;
 	}
 
+	// 判断一个字符串是否是数字
+	public static boolean isNumber(String strChar) {
+		if (strChar == null || strChar.equals(""))
+			return false;
+		for (int i = strChar.length(); --i >= 0;) {
+			if (!Character.isDigit(strChar.charAt(i)))
+				return false;
+		}
+		return true;
+	}
 }
