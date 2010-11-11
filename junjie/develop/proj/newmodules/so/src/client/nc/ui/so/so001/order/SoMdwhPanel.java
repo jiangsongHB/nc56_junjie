@@ -22,6 +22,7 @@ import nc.ui.pub.bill.BillItem;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.sd.MdsdVO;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.so.so001.SaleorderBVO;
@@ -103,6 +104,10 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 							.getSxrq());
 					mdsdVos[i].setDef1(mdsdVos[i].getSdzs()
 							.add(kylvo.getDef1()));// 现存支数
+					// 是否非计算
+					if (mdsdVos[0].getDef4().booleanValue() == true)
+						getOPBillCardPanel().setHeadItem("fjs",
+								new UFBoolean(true));
 				}
 
 		} catch (BusinessException e) {
@@ -259,9 +264,18 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 		IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
 				.getInstance().lookup(IVOPersistence.class.getName());
 		try {
+			String fjsStr = getOPBillCardPanel().getHeadItem("fjs").getValue();
+			boolean fjs_boolean = false;
+			if (fjsStr.equals("true"))
+				fjs_boolean = true;
 			UFDouble sum_sdzs = new UFDouble(0);
 			for (int i = 0; i < vos.length; i++) {
+				if (vos[i].getSdzs() == null)
+					throw new BusinessException("第" + (i + 1) + "行锁定键编号不能为空!");
+				if (vos[i].getSdzs() == null)
+					throw new BusinessException("第" + (i + 1) + "行锁定支数不能为空!");
 				sum_sdzs = sum_sdzs.add(vos[i].getSdzs());
+				vos[i].setDef4(new UFBoolean(fjs_boolean));
 			}
 			// npacknumber 辅数量
 			if (sum_sdzs.doubleValue() > bvo.getNpacknumber().doubleValue())
@@ -330,6 +344,7 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 					|| new UFDouble(bjhzs).doubleValue() == 0) {
 				MessageDialog.showWarningDlg(dlg, "提示", "锁定支数不能为空或为0!");
 				vos[arg0.getRow()].setSdzs(vo.getDef1());
+				vos[arg0.getRow()].setDef3(vo.getDef2());
 				getOPBillCardPanel().getBillData().setBodyValueVO(vos);
 				getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
 				buttonState(true, true, true, true);
@@ -339,9 +354,24 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 				MessageDialog.showWarningDlg(dlg, "提示", "锁定支数不能大于可用量支数"
 						+ vo.getDef1().doubleValue());
 				vos[arg0.getRow()].setSdzs(vo.getDef1());
+				vos[arg0.getRow()].setDef3(vo.getDef2());
 				getOPBillCardPanel().getBillData().setBodyValueVO(vos);
 				getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+				return;
 			}
+			UFDouble sdzs = new UFDouble(bjhzs); // 锁定支数
+			UFDouble sdzl = sdzs.multiply(vo.getDef2()).div(vo.getDef1(), 4); // 锁定重量
+			vos[arg0.getRow()].setSdzs(sdzs); // 锁定支数
+			vos[arg0.getRow()].setDef3(sdzl);
+			getOPBillCardPanel().getBillData().setBodyValueVO(vos);
+			getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+			buttonState(true, true, true, true);
+		}
+		// 如果点了非计算
+		if (arg0.getKey().equals("fjs")) {
+			getOPBillCardPanel().getBillData().setBodyValueVO(null);
+			// 增行
+			onBtnAdd();
 			buttonState(true, true, true, true);
 		}
 		if (arg0.getKey().equals("sxrq")) {
@@ -356,12 +386,17 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 
 	public boolean beforeEdit(BillEditEvent e) {
 		if (e.getKey().equals("jbh")) {
+			String fsjStr = getOPBillCardPanel().getHeadItem("fjs").getValue();
 			BillItem jbh = getOPBillCardPanel().getBodyItem("jbh");
 			UIRefPane jbhPa = (UIRefPane) jbh.getComponent();
 			String sqlWhere = " pk_corp='" + hvo.getPk_corp()
 					+ "' and dr=0  and ccalbodyidb='" + hvo.getCcalbodyid()
 					+ "'  and cinvbasid='" + bvo.getCinvbasdocid()
-					+ "' and cinventoryidb='" + bvo.getCinventoryid() + "'";
+					+ "' and cinventoryidb='" + bvo.getCinventoryid() + "'";			
+			if (fsjStr.equals("true"))
+				sqlWhere += " and def4='Y'";
+			else
+				sqlWhere += " and def4='N'";			
 			jbhPa.setWhereString(sqlWhere);
 		}
 		return true;
