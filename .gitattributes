@@ -580,15 +580,9 @@ junjie/patches/scripts/56修改档案报其他人正在操作的补丁/补丁说
 junjie/patches/scripts/到货单费用信息页签/维护到货单累计金额为不可显示.sql -text
 junjie/patches/scripts/码单/NC脚本/45Temp.sql -text
 junjie/patches/scripts/码单/NC脚本/mbic.sql -text
-junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/001.sql -text
-junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/002.sql -text
-junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/003.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/pub_billtemplet.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/pub_billtemplet_b.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001A1100000000091MN/pub_billtemplet_t.sql -text
-junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/001.sql -text
-junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/002.sql -text
-junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/003.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/pub_billtemplet.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/pub_billtemplet_b.sql -text
 junjie/patches/scripts/码单/NC脚本/pub_billtemplet/pub_billtemplet_0001AA10000000003JBT/pub_billtemplet_t.sql -text
