@@ -1,6 +1,7 @@
 package nc.itf.pu.mm;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import nc.vo.pr.pray.PraybillVO;
 import nc.vo.pu.pr.PrayExecVO;
@@ -314,5 +315,30 @@ public interface ISrvPUToMM {
 	 * @date 2010-9-11 下午02:34:46
 	 */
 	public abstract void updateSmartVOs(SmartVO[] vos,String cbillid) throws Exception;
+	
+	/**
+	 * 发票保存时,回写票到数量至暂估应付单表体
+	 * @author MeiChao
+	 * @return 成功回写的行数
+	 * @param Map集合  组成:  key: 应付单行ID 	value:发票数量
+	 * @since 2010-11-11 
+	 * @throws Exception 一般是数据库操作异常(网络问题,数据库问题等.)
+	 * 
+	 */
+	public abstract int updateSourceArriveNumToAP(Map bodyPKAndArriveNum) throws Exception;
+	
+	
+	/**
+	 * 删除发票时,回写票到数量至暂估应付单表体
+	 * @author MeiChao
+	 * @return 成功回写的行数
+	 * @param Map集合  组成:  key: 应付单行ID 	value:发票数量
+	 * @since 2010-11-11 
+	 * @throws Exception 一般是数据库操作异常(网络问题,数据库问题等.)
+	 * 
+	 */
+	public abstract int updateSourceNegativeNumToAP(Map bodyPKAndArriveNum) throws Exception;
+	
+	
 	
 }
