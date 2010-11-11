@@ -482,7 +482,6 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 		    for (int j = 0; j < tmpBodyVo.length; j++) {
 		    	DJZBItemVO tmpBVo = (DJZBItemVO) tmpBodyVo[j];
 		    	if(tmpBVo.getZyx18()!=null&&tmpBVo.getZyx18().equals("tureFree")){
-		    		tmpBVo.setZyx18(null);//因为自定义项有值时不能保存 所以清空标识
 		    		tempFreeVoList.add(tmpBVo);
 		    	}
 			}
@@ -523,7 +522,7 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 //				whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0)";
 				//因为生成的暂估应付单业务流程改为 arap中的 应付通用流程 所以将更改后的流程id加入查询条件 
 					//另加入对暂估应付的过滤  1 标识暂估应付  0 标识 非暂估应付 by 付世超 2010-10-23
-			tmpWhere = tmpWhere + " and zb.zgyf = '1' or zb.xslxbm = '00011110000000002RGT' ";
+			tmpWhere = tmpWhere + " and zb.zyx19 is null or zb.zyx19<>'Y' and zb.zgyf = '1' or zb.xslxbm = '00011110000000002RGT' ";
 				
 			String businessType = null;
 			if (getIsBusinessType()) {

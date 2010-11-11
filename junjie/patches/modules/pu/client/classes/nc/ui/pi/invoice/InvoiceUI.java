@@ -30,6 +30,7 @@ import nc.itf.ic.pub.IGeneralBill;
 import nc.itf.pi.IDataPowerForInv;
 import nc.itf.pi.IInvoiceD;
 import nc.itf.ps.estimate.IEstimate;
+import nc.itf.pu.mm.ISrvPUToMM;
 import nc.itf.scm.cenpur.service.TempTableUtil;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pf.IPFMetaModel;
@@ -6718,6 +6719,20 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
       removeOneFromInvVOs(getCurVOPos());
       // 设置卡片界面数据
       setVOToBillPanel();
+      /**
+       * 2010-11-11 MeiChao
+       * 本段代码需要在PfUtilClient.isSuccess()的条件下执行
+       * 作废采购费用发票时,将其已回写至应付的: 已生成发票数量 以及可能生成的: 已生成发票标志 恢复
+       */
+      //2010-11-11 MeiChao begin
+      boolean isrollBackSuccess=this.rollBackExpense(invVO);
+      if(isrollBackSuccess){
+    	  Logger.debug("费用发票删除时回写暂估应付表体已生成发票数量成功!");
+      }else{
+    	  Logger.debug("费用发票删除时回写暂估应付表体已生成发票数量失败!");
+      }
+      //2010-11-11 MeiChao end
+      
     }
     //showHintMessage("");
     return;
@@ -7371,11 +7386,11 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     //效率优化 by zhaoyha at 2009.9
     boolean isNeedCal=getBillCardPanel().getBillModel().isNeedCalculate();
     getBillCardPanel().getBillModel().setNeedCalculate(false);
-    //2010-11-08 MeiChao begin,防止采购发票根据费用暂估应付单拉式生成后的单价金额错误,原有的代码则没有这一个判断
+    //2010-11-08 MeiChao begin 防止采购发票根据费用暂估应付单拉式生成后的单价金额错误,原有的代码则没有这一个判断
     if(!isfromexpenseARAP){//如果当前发票不是采购费用发票,那么走询价,否则不走询价
     getBillCardPanel().setDefaultPrice(getBillCardPanel());//2010-11-08 询价
     }
-    //2010-11-08 MeiChao begin,防止采购发票根据费用暂估应付单拉式生成后的单价金额错误
+    //2010-11-08 MeiChao end 防止采购发票根据费用暂估应付单拉式生成后的单价金额错误
     //效率优化 by zhaoyha at 2009.9
     getBillCardPanel().getBillModel().setNeedCalculate(isNeedCal);
     if (getCurOperState() != STATE_LIST_FROM_BILLS) {
@@ -8113,7 +8128,18 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
       return false;
     }
 
+    /**
+     * 2010-11-11 MeiChao 嘿!光棍节!!!
+     * 发票保存时将发票中的费用数量回写累加至暂估应付表中,需要用到以下语句进行累加,其中的数字为发票数量
+     * update arap_djfb t set t.zyx17=to_char(To_number(case when zyx17 is null then '0' else zyx17 end)+17.55) where t.fb_oid='10022210000000005F7X';
+     */
 
+    //2010-11-11 MeiChao begin
+    if("Y".equals(vos.getHeadVO().getVdef20())){
+    	this.backWriteExpense(vos);
+    }
+    //2010-11-11 MeiChao end
+    
     // showHintMessage(getHeadHintText() + CommonConstant.SPACE_MARK +
     // nc.ui.ml.NCLangRes.getInstance().getStrByID("40040401","UPPSCMCommon-000006")/*@res
     // "保存成功"*/ + CommonConstant.SPACE_MARK);
@@ -13872,6 +13898,87 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		return true;
 	}
   
+  /**
+   * @author MeiChao
+   * @since 2010-11-11
+   * 当发票保存时,将费用数量回写(累加),回写时可能需要使用到以下语句,其已写入对应的接口实现中.
+   * update arap_djfb t set t.zyx17=to_char(To_number(case when zyx17 is null then '0' else zyx17 end)+17.55) where t.fb_oid='10022210000000005F7X';
+   */
+  private boolean backWriteExpense(InvoiceVO invoiceVO){
+	  /**
+	     * 首先获取当前已保存发票的表体中"上层来源单据行ID"
+	     */
+	    InvoiceItemVO[] body=invoiceVO.getBodyVO();//获取发票表体
+	    Map upSourceBodyPKsAndArriveNum=new HashMap();//实例化用于存储上层来源单据行PK和发票数量的集合
+	    if(body!=null||body.length>0){
+	    	boolean isBodyAllExpense=true;//表体是否全为应付来源费用标志
+	    	for(int i=0;i<body.length;i++){//遍历表体
+	    		if("D1".equals(body[i].getCupsourcebilltype())){//如果有上层来源单据类型是采购应付单D1 那么将其PK及数量存入 MAP中
+	    			upSourceBodyPKsAndArriveNum.put(body[i].getCupsourcebillrowid(),body[i].getNinvoicenum().doubleValue());
+	    		}else{
+	    			isBodyAllExpense=false;//一旦存在表体来源单据类型不为D1的,便将标志设定为false
+	    		}
+	    	}
+	    	if(upSourceBodyPKsAndArriveNum!=null&&upSourceBodyPKsAndArriveNum.size()>0){//如果Map不为空,那么表示有数据需要回写
+	    		ISrvPUToMM iSrvPUToMM=(ISrvPUToMM)NCLocator.getInstance().lookup(ISrvPUToMM.class.getName());
+	    		Integer backWrite=0;
+	    		try {
+	    			//调用接口将需要回写的PK及数量传入
+	    			backWrite=iSrvPUToMM.updateSourceArriveNumToAP(upSourceBodyPKsAndArriveNum);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return false;
+				}
+				if(backWrite==upSourceBodyPKsAndArriveNum.size()){
+					Logger.debug("费用发票保存时,其表体数量全部已成功回写至费用暂估应付!无其他费用.");
+				}
+				Logger.debug("费用发票保存时,回写了"+backWrite.toString()+"行费用已开发票数量");
+	    	}
+	    }
+	    
+	    return true;
+  }
+  /**
+   * @author MeiChao
+   * @since 2010-11-11
+   * 当删除发票时,将费用数量回写(减去),回写时可能需要使用到以下语句,其已写入对应的接口实现中.
+   * update arap_djfb t set t.zyx17=to_char(To_number(case when zyx17 is null then '0' else zyx17 end)-17.55) where t.fb_oid='10022210000000005F7X';
+   */
+  private boolean rollBackExpense(InvoiceVO invoiceVO){
   
+	  /**
+	     * 首先获取当前已保存发票的表体中"上层来源单据行ID"
+	     */
+	    InvoiceItemVO[] body=invoiceVO.getBodyVO();//获取发票表体
+	    Map upSourceBodyPKsAndArriveNum=new HashMap();//实例化用于存储上层来源单据行PK和发票数量的集合
+	    if(body!=null||body.length>0){
+	    	boolean isBodyAllExpense=true;//表体是否全为应付来源费用标志
+	    	for(int i=0;i<body.length;i++){//遍历表体
+	    		if("D1".equals(body[i].getCupsourcebilltype())){//如果有上层来源单据类型是采购应付单D1 那么将其PK及数量存入 MAP中
+	    			upSourceBodyPKsAndArriveNum.put(body[i].getCupsourcebillrowid(),body[i].getNinvoicenum().doubleValue());
+	    		}else{
+	    			isBodyAllExpense=false;//一旦存在表体来源单据类型不为D1的,便将标志设定为false
+	    		}
+	    	}
+	    	if(upSourceBodyPKsAndArriveNum!=null&&upSourceBodyPKsAndArriveNum.size()>0){//如果Map不为空,那么表示有数据需要回写
+	    		ISrvPUToMM iSrvPUToMM=(ISrvPUToMM)NCLocator.getInstance().lookup(ISrvPUToMM.class.getName());
+	    		Integer backWrite=0;
+	    		try {
+	    			//调用接口将需要回写的PK及数量传入
+	    			backWrite=iSrvPUToMM.updateSourceNegativeNumToAP(upSourceBodyPKsAndArriveNum);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return false;
+				}
+				if(backWrite==upSourceBodyPKsAndArriveNum.size()){
+					Logger.debug("删除费用发票时,其表体数量全部已成功回写至费用暂估应付!无其他费用.");
+				}
+				Logger.debug("删除费用发票时,回写了"+backWrite.toString()+"行费用已开发票数量");
+	    	}
+	    }
+	  return true;
+  }
   
 }
