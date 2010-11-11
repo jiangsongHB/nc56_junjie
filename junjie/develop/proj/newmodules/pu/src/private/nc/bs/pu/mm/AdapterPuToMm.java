@@ -2,10 +2,13 @@ package nc.bs.pu.mm;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 
 import javax.naming.NamingException;
 
-import nc.bs.pr.pary.PraybillImpl;
+import nc.bs.dao.BaseDAO;
+import nc.bs.pr.pray.PraybillImpl;
 import nc.bs.pu.pr.PraybillDMO;
 import nc.bs.pub.SystemException;
 import nc.bs.scm.pub.ScmPubDMO;
@@ -250,6 +253,104 @@ public class AdapterPuToMm implements ISrvPUToMM{
 		PraybillDMO dmo = new PraybillDMO();
 
 		dmo.updateSmartVOs(vos,cbillid);
-	}
+	} 
 
+	/**
+	 * 发票保存时,回写票到数量至暂估应付单表体
+	 * @author MeiChao
+	 * @return 成功回写的行数
+	 * @param Map: key: 应付单行ID 	value:发票数量
+	 * @since 2010-11-11 
+	 * @throws Exception 一般是数据库操作异常(网络问题,数据库问题等.)
+	 *--累加数量的语句:
+	 *update arap_djfb t set t.zyx17=to_char(To_number(case when zyx17 is null then '0' else zyx17 end)+17.55) where t.fb_oid='10022210000000005F7X';
+	 *--判断表体是否全部生成发票完毕并更新表头标志的语句:
+	 *update arap_djzb i set i.zyx19 = 'Y' where (select case
+         when (select count(*)
+                 from arap_djfb t
+                where t.vouchid =
+                      (select t.vouchid
+                         from arap_djfb t
+                        where t.fb_oid = '10022210000000005F7X')
+                  and t.dfshl > (case when t.zyx17 is null then '0' else t.zyx17 end)) = 0 then  --贷方数量>已生成发票数量的记录为0 那么表示已全部生成发票
+          'Y'
+       end
+  from dual)='Y' and i.vouchid=(select t.vouchid
+                         from arap_djfb t
+                        where t.fb_oid = '10022210000000005F7X');
+	 * 
+	 */
+	public int updateSourceArriveNumToAP(Map bodyPKAndArriveNum) throws Exception{
+		BaseDAO dao=new BaseDAO();
+		//遍历Map
+		Set keyset=bodyPKAndArriveNum.keySet();
+		Object[] trueKeyArray=keyset.toArray();
+		//更新行数
+		Integer changeNum=0;
+		for(int i=0;i<trueKeyArray.length;i++){
+			String apBodyPK=trueKeyArray[i].toString();//应付单行id
+			String invoiceNumber=bodyPKAndArriveNum.get(apBodyPK).toString();//发票数量
+			//累加表体已生成发票数量,并将影响行数累加
+			changeNum+=dao.executeUpdate("update arap_djfb t set t.zyx17=to_char(To_number(case when zyx17 is null then '0' else zyx17 end)+"+invoiceNumber+") where t.fb_oid='"+apBodyPK+"'");
+			String apHeadChangeSQL="update arap_djzb i set i.zyx19 = 'Y' where (select case " +
+					"when (select count(*) " +
+					"from arap_djfb t " +
+					"where t.vouchid = " +
+					"(select t.vouchid " +
+					"from arap_djfb t " +
+					"where t.fb_oid = '"+apBodyPK+"') " +
+					"and t.dfshl > (case when t.zyx17 is null then '0' else t.zyx17 end)) = 0 then " +
+					"'Y' " +
+					"end " +
+					"from dual)='Y' and i.vouchid=(select t.vouchid " +
+					"from arap_djfb t " +
+					"where t.fb_oid = '"+apBodyPK+"') ";
+			//执行主表: "是否已生成费用发票完毕"  标识校验SQL
+			dao.executeUpdate(apHeadChangeSQL);
+		}
+		return changeNum;
+	}
+	
+	/**
+	 * 删除发票时,回写票到数量至暂估应付单表体
+	 * @author MeiChao
+	 * @return 成功回写的行数
+	 * @param Map集合  组成:  key: 应付单行ID 	value:发票数量
+	 * @since 2010-11-11 
+	 * @throws Exception 一般是数据库操作异常(网络问题,数据库问题等.)
+	 * 表体:回写数量大于zyx17字段中的已生成发票数量时,将zyx17字段置空
+	 * 如果表头的zyx19字段中有N值,那么便表示当前暂估应付单生成过发票,并已删除发票.
+	 */
+	public int updateSourceNegativeNumToAP(Map bodyPKAndArriveNum) throws Exception{
+	
+		BaseDAO dao=new BaseDAO();
+		//遍历Map
+		Set keyset=bodyPKAndArriveNum.keySet();
+		Object[] trueKeyArray=keyset.toArray();
+		//更新行数
+		Integer changeNum=0;
+		for(int i=0;i<trueKeyArray.length;i++){
+			String apBodyPK=trueKeyArray[i].toString();//应付单行id
+			String invoiceNumber=bodyPKAndArriveNum.get(apBodyPK).toString();//发票数量
+			//累加表体已生成发票数量,并将影响行数累加
+			changeNum+=dao.executeUpdate("update arap_djfb t set t.zyx17=to_char(case when (To_number(case when zyx17 is null then '0' else zyx17 end)-"+invoiceNumber+")<0 then null end) where t.fb_oid='"+apBodyPK+"';");
+			String apHeadChangeSQL="update arap_djzb i set i.zyx19 = 'N' where (select case " +
+					"when (select count(*) " +
+					"from arap_djfb t " +
+					"where t.vouchid = " +
+					"(select t.vouchid " +
+					"from arap_djfb t " +
+					"where t.fb_oid = '"+apBodyPK+"') " +
+					"and t.dfshl > (case when t.zyx17 is null then '0' else t.zyx17 end)) > 0 then " +
+					"'N' " +
+					"end " +
+					"from dual)='N' and i.vouchid=(select t.vouchid " +
+					"from arap_djfb t " +
+					"where t.fb_oid = '"+apBodyPK+"') ";
+			//执行主表: "是否已生成费用发票完毕"  标识校验SQL
+			dao.executeUpdate(apHeadChangeSQL);
+		}
+		return changeNum;
+		
+	}
 }
