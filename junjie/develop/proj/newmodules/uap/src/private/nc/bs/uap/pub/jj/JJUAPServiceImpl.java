@@ -80,11 +80,11 @@ public class JJUAPServiceImpl implements nc.itf.uap.pub.jj.IJJUAPService {
 								width+
 								" and t.widthwmax>="+
 								width+"";
-						String result=dao.executeQuery(additionalValueSQL, new ColumnProcessor()).toString();
-						if(result==null){
+						Object result=dao.executeQuery(additionalValueSQL, new ColumnProcessor());
+						if(result==null||"".equals(result.toString())){
 							continue;//如果查询结果为空,那么查询下一级.
 						}else{
-							mdvo.get(i).setDef11(result);
+							mdvo.get(i).setDef11(result.toString());
 							break;//如果已获取到附加值,那么跳出内循环,结束当前存货的附加值查询,进行下个查询.
 						}
 					}
