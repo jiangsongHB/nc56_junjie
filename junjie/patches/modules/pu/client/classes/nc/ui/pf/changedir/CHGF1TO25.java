@@ -45,28 +45,31 @@ public class CHGF1TO25 extends VOConversionUI {
 "B_cupsourcebilltype->H_djlxbm",//上层来源单据类型 ->单据类型编码
 "B_idiscounttaxtype->B_kslb",//扣税类别 -> 扣税类别
 
-"B_ninvoicenum->B_dfshl",//发票数量 -> 贷方数量
 
-"B_nsummny->B_dfbbje",//本币价税合计 -> 贷方本币金额 
-"B_ntaxmny->B_dfbbsj",//->贷方本币无税金额
-"B_nmoney->B_dfbbwsje",//本币金额 -> 贷方本币无税金额
-"B_noriginalsummny->B_dffbje", //辅币价税合计 ->贷方辅币金额
-"B_nassisttaxmny->B_dffbsj",//辅币税额->贷方辅币税金
-"B_noriginalsummny->B_dfybje",//金额 -> 贷方原币金额
-"B_noriginaltaxmny->B_dfybsj",//税额 ->贷方原币税金
-"B_noriginalcurmny->B_dfybwsje",//原币无税金额 -> 贷方原币无税金额
+//2010-11-12 MeiChao begin注释掉
+//"B_ninvoicenum->B_dfshl",//发票数量 -> 贷方数量
+
+//"B_nsummny->B_dfbbje",//本币价税合计 -> 贷方本币金额 
+//"B_ntaxmny->B_dfbbsj",//->贷方本币无税金额
+//"B_nmoney->B_dfbbwsje",//本币金额 -> 贷方本币无税金额
+//"B_noriginalsummny->B_dffbje", //辅币价税合计 ->贷方辅币金额
+//"B_nassisttaxmny->B_dffbsj",//辅币税额->贷方辅币税金
+//"B_noriginalsummny->B_dfybje",//金额 -> 贷方原币金额
+//"B_noriginaltaxmny->B_dfybsj",//税额 ->贷方原币税金
+//"B_noriginalcurmny->B_dfybwsje",//原币无税金额 -> 贷方原币无税金额
+//2010-11-12 MeiChao end 注释掉
 "B_noriginalcurprice->B_dj",//单价 -> 单价
 "B_nexchangeotoarate->B_fbhl",//辅币汇率
 "B_nassistsummny->B_fbye",//辅币余额		
 "B_norgnettaxprice->B_hsdj",//含税单价	
 "B_idiscounttaxtype->B_kslb",//扣税类别
 "B_vproducenum->B_seqnum",//批次号 -> 批次号1 				
-"B_noriginalsummny->B_ybye",//原币价税合计 -> 原币余额
-"B_nsummny->B_bbye",//本币价税合计 -> 本币余额				
+//"B_noriginalsummny->B_ybye",//原币价税合计 -> 原币余额//2010-11-12 MeiChao 注释掉
+//"B_nsummny->B_bbye",//本币价税合计 -> 本币余额		//2010-11-12 MeiChao 注释掉		
 "B_nexchangeotobrate->B_bbhl",//折本汇率 -> 本币汇率			
 "B_ntaxrate->B_sl",//税率 -> 税率
-"B_ninvoicenum->B_shlye",//发票数量 -> 数量余额 
-"B_vmemo->B_zy",//备注 -> 摘要	
+//"B_ninvoicenum->B_shlye",//发票数量 -> 数量余额//2010-11-12 MeiChao 注释掉
+"B_vmemo->B_zy",//备注 -> 摘要
 //"B_vdef18->B_zyx18",//是否为费用暂估的标识 使用自定义项18
 "H_cvendormangid->B_zyx19"//从应付单的自定义项中取出 客商管理id 使用应付单的自定义项19
 				};
@@ -83,8 +86,20 @@ public class CHGF1TO25 extends VOConversionUI {
 				"H_iinvoicetype->int(0)",//公式 发票类型
 				"H_vdef20->\"Y\"",//2010-10-30 MeiChao  将表头的自定义字段20设置为Y 表示当前发票是由费用暂估应付单生成的,为采购费用发票.
 				
-				"B_cmangid->getColValue(bd_invmandoc,pk_invmandoc,pk_invbasdoc,B_cbaseid,pk_corp,H_pk_corp)",//存货管理ID 
+				//2010-11-12 MeiChao begin 添加
+				"B_nsummny->dfbbje*(dfshl-tonumber(zyx17))/dfshl",//本币价税合计 -> 贷方本币金额 
+				"B_ntaxmny->dfbbsj*(dfshl-tonumber(zyx17))/dfshl",//->贷方本币无税金额
+				"B_nmoney->dfbbwsje*(dfshl-tonumber(zyx17))/dfshl",//本币金额 -> 贷方本币无税金额
+				"B_noriginalsummny->dffbje*(dfshl-tonumber(zyx17))/dfshl", //辅币价税合计 ->贷方辅币金额
+				"B_nassisttaxmny->dffbsj*(dfshl-tonumber(zyx17))/dfshl",//辅币税额->贷方辅币税金
+				"B_noriginalsummny->dfybje*(dfshl-tonumber(zyx17))/dfshl",//金额 -> 贷方原币金额
+				"B_noriginaltaxmny->dfybsj*(dfshl-tonumber(zyx17))/dfshl",//税额 ->贷方原币税金
+				"B_noriginalcurmny->dfybwsje*(dfshl-tonumber(zyx17))/dfshl",//原币无税金额 -> 贷方原币无税金额
+				"B_noriginalsummny->ybye*(dfshl-tonumber(zyx17))/dfshl",//原币价税合计 -> 原币余额
 				
+				"B_ninvoicenum->dfshl-tonumber(zyx17)",//发票数量计算公式
+				//2010-11-12 MeiChao end 添加
+				"B_cmangid->getColValue(bd_invmandoc,pk_invmandoc,pk_invbasdoc,B_cbaseid,pk_corp,H_pk_corp)",//存货管理ID 
 				"B_dr->int(0)",//公式 删除标志
 				"B_cprojectid->getColValue(bd_jobmngfil,pk_jobmngfil,pk_jobbasfil,B_jobid)",// 公式 项目ID
 				};
