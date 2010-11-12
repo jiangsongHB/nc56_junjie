@@ -6,9 +6,9 @@ import nc.vo.ic.md.MdcrkVO;
 /**
  * @function 骏杰二次开发公共接口
  * 
- * @author QuSida
+ * @author QUSIDA
  * 
- * @date 2010-9-16 上午11:43:12
+ * @date 2010-11-12 上午11:43:12
  *
  */
 public interface IJJUAPService {
