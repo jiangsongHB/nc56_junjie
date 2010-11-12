@@ -61,12 +61,12 @@ public class JJUAPServiceImpl implements nc.itf.uap.pub.jj.IJJUAPService {
 					String invspec=invbaseresultArray[0].toString();//存货规格,既厚度
 					String invclpk=invbaseresultArray[1].toString();//末级存货分类pk
 					String invclcode=invbaseresultArray[2].toString();//末级存货分类编码
-					Integer invcllev=Integer.valueOf(invbaseresultArray[3].toString());//墨迹存货分类层级
+					Integer invcllev=Integer.valueOf(invbaseresultArray[3].toString());//末级存货分类层级
 					//String[] invclAllCode=new String[(invclcode.length()+1)/2];//存货分类所有所属层级的编码
 					for(int j=0;j<invcllev;j++){//使用末级存货分类层级号作为循环长度控制符
 						if(j!=0){//如果不是第一次循环,那么需要查询出上级的存货分类PK作为查询条件
 							//每次循环,都将末级存货分类编码的后2*j个字符去掉,即为上一级的分类编码
-							invclpk=dao.executeQuery("select t.pk_invcl from bd_invcl t where t.invclasscode='"+invclcode.substring(0, invclcode.length()-1-j*2)+"'", new ColumnProcessor()).toString();
+							invclpk=dao.executeQuery("select t.pk_invcl from bd_invcl t where t.invclasscode='"+invclcode.substring(0, invclcode.length()-j*2)+"'", new ColumnProcessor()).toString();
 						}
 						String additionalValueSQL="select t.nadditionalvalue  " +
 								"from jj_bd_additionalvalue t " +
