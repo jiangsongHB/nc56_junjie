@@ -6607,15 +6607,41 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
    * @return boolean true:删除下游单据成功 false: 删除下游单据失败 
    */
   protected boolean rollbackAudit(String generalbillid){
-	  	/**
-	  	 * 对应暂估应付单
-	  	 */
+		  IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);// 实例化UI查询接口
+		  /**
+		   * 判断对应的暂估应付单是否已生成发票	
+		   */
+		  String checkPUSQL="select i.cinvoiceid " +
+		  		" from po_invoice i " +
+		  		"where i.cinvoiceid in " +
+		  		"(select distinct p.cinvoiceid " +
+		  		"from po_invoice_b p " +
+		  		"where p.cupsourcebillid in (select distinct t.vouchid " +
+		  		"from arap_djfb t " +
+		  		"where t.ddlx = '"+generalbillid+"' " +
+		  		"and t.jsfsbm = '4A' " +
+		  		"and t.dr = 0) and p.dr = 0) and i.dr = 0  ";
+		  Object puResult=null;
+			 try {
+				  puResult=query.executeQuery(checkPUSQL, new ColumnProcessor());
+			} catch (BusinessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			if(puResult!=null&&!"".equals(puResult.toString())){
+				//如果推式生成的暂估应付单已生成了采购费用发票.则不允许弃审(取消签字)
+				Logger.debug("当前其他入库单的下游单据: 暂估应付单 已生成采购发票,不允许取消签字.");
+				MessageDialog.showHintDlg(this.getClientUI(),"提示","下游单据: 暂估应付单  已生成采购发票,不允许取消签字.");
+				return false;
+			}
+			/**
+			 * 对应暂估应付单
+			 */
 	  	String checkAPSQL = "select t.djzt,t.vouchid " + "from arap_djzb t "
 				+ "where t.vouchid in "
 				+ "(select distinct i.vouchid from arap_djfb i "
 				+ "where i.jsfsbm='4A' and i.ddlx='" + generalbillid
 				+ "' and i.dr=0) and t.dr=0";
-		IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);// 实例化UI查询接口
 		List checkAPResult = new ArrayList();
 		try {
 			// 查询其他入庫單所生成的应付单状态,
