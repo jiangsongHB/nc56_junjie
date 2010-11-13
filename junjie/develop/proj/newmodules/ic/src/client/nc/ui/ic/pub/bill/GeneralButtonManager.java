@@ -6430,7 +6430,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				head.setDjkjqj(ce.getAccountMonth());//会计期间--当前系统会计期间
 				head.setDjlxbm("D1");//单据类型编码--D1
 				head.setDjrq(new UFDate());//单据日期--当前系统日期
-				head.setDjzt(1);//单据状态--1 表示已保存 2表示已生效
+				head.setDjzt(2);//单据状态--1 表示已保存 2表示已生效
 				head.setDr(0);
 				head.setDwbm(this.getEnvironment().getCorpID());//单位编码--公司ID
 				head.setEffectdate(new UFDate());//起效日期--当前系统日期
@@ -6445,8 +6445,16 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				head.setPrepay(new UFBoolean(false));//预收款标志--N
 				head.setPzglh(1);//系统标志--1
 				head.setQcbz(new UFBoolean(false));//期初标志--N
-				head.setSpzt(null);//为空,表示未审批
-				head.setSxbz(0);//生效标志--0表示未生效  10 表示已生效
+				head.setSpzt("1");//为空,表示未审批
+				head.setShr(this.getEnvironment().getUserID());//审核人,当前登陆用户
+				head.setShkjnd(ce.getAccountYear());//审核会计年度
+				head.setShkjqj(ce.getAccountMonth());//审核会计期间
+				head.setShrq(ce.getDate());//审核日期
+				head.setSxbz(10);//生效标志--0表示未生效  10 表示已生效
+				head.setSxkjnd(ce.getAccountYear());//生效会计年度
+				head.setSxkjqj(ce.getAccountMonth());//生效会计期间
+				head.setSxr(this.getEnvironment().getUserID());//生效人
+				head.setSxrq(ce.getDate());//生效日期
 				String queryBusitype="select t.pk_busitype from bd_busitype t where t.busicode='arap' and t.businame='收付通用流程'";
 				Object busitype=null;
 				if(generalHead.getCbiztypeid()==null){
@@ -6631,7 +6639,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 		}else{
 			//判断下游单据状态
 			for(int i=0;i<checkAPResult.size();i++){
-				if(!"1".equals(((Object[])checkAPResult.get(i))[0].toString())){
+				if(!"2".equals(((Object[])checkAPResult.get(i))[0].toString())){
 					//如果单据状态不等于1,表示状态已变.则不允许弃审(取消签字)
 					Logger.debug("当前其他入库单的下游单据: 暂估应付单 已处理,不允许取消签字.");
 					MessageDialog.showHintDlg(this.getClientUI(),"提示","下游单据: 暂估应付单 "+((Object[])checkAPResult.get(i))[1].toString()+" 已处理,不允许取消签字.");
