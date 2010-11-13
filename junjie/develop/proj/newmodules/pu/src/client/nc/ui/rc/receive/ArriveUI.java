@@ -170,6 +170,7 @@ public class ArriveUI
   BillActionListener
   {
 	private InformationCostVO[] vos = null;
+	private ButtonObject boadditionalvaluetest;//2010-11-12 MeiChao 附加值取值测试按钮
 	private ButtonObject boInfoCost ;//费用录入按钮  add by QuSida 2010-8-28 (佛山骏杰)
 	private ButtonObject[] extendBtns ; //二次开发按钮数组  add by QuSida 2010-8-28 (佛山骏杰)
 	private UFDouble arrnumber ;//实际到货数量
@@ -10361,6 +10362,19 @@ private ButtonObject getBoInfoCost(){
 	}
 	else return boInfoCost;
 }
+
+
+//2010-11-12 MeiChao 附加值测试取数按钮
+private ButtonObject getBoadditionalvaluetest(){
+	if(boadditionalvaluetest == null){
+		//附加值测试取数按钮 add by MeiChao 2010-11-12  
+		boadditionalvaluetest = new ButtonObject("附加值测试","附加值测试","附加值测试");
+		return boadditionalvaluetest;
+	}
+	else return boadditionalvaluetest;
+}
+
+
 /**
  * @function 费用信息录入功能
  *
