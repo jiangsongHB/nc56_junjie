@@ -5926,6 +5926,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
 //          }
         }
       }
+      
     }
     // 修改
     else if (btn == m_btnInvBillModify) {// 卡片下修改
@@ -13527,7 +13528,17 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			  //使用数据转换平台工具类,将采购发票VO转换成采购应付单VO
 			expenseAPVO=(DJZBVO)PfChangeBO_Client.pfChangeBillToBill(expenseInvoiceVO, "25","D1");
 			((DJZBHeaderVO)expenseAPVO.getParentVO()).setZgyf(0);//设置此应付单为非暂估应付单
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSpzt("1");//设置审批状态
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setDjzt(2);//设置单据状态 2
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSpzt("1");//设置审核状态 1 
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShkjnd(this.getClientEnvironment().getAccountYear());//设置审核会计年度
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShkjqj(this.getClientEnvironment().getAccountMonth());//设置审核会计期间
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShr(this.getClientEnvironment().getUser().getPrimaryKey());//设置审核人
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShrq(this.getClientEnvironment().getDate());//设置审核日期
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxbz(10);//设置生效标志
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxkjnd(this.getClientEnvironment().getAccountYear());//设置生效会计年度
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxkjqj(this.getClientEnvironment().getAccountMonth());//设置生效会计期间
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxr(this.getClientEnvironment().getUser().getPrimaryKey());//设置生效人
+			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxrq(this.getClientEnvironment().getDate());//设置生效日期
 			iARAP.saveArapBill(expenseAPVO);
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
@@ -13826,7 +13837,7 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 	}
 	
 	for(int i=0;i<checkAPResult.size();i++){
-		if(!((Object[])checkAPResult.get(i))[0].toString().equals("1")){//查询结果的第一列
+		if(!((Object[])checkAPResult.get(i))[0].toString().equals("2")){//查询结果的第一列
 			MessageDialog.showHintDlg(this,"提示","下游单据已处理,不允许弃审.");
 			return false;
 		}
