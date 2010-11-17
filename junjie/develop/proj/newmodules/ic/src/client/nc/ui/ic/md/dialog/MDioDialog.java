@@ -88,10 +88,16 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	private String md_zyh;// 资源号
 
-	public MDioDialog(GeneralBillClientUI ui) throws BusinessException {
+	private boolean sfth = false;// 是否退货
+
+	private String vfree1;// 自由项1
+
+	public MDioDialog(GeneralBillClientUI ui, boolean sfth)
+			throws BusinessException {
 		super(ui, MDUtils.getBillNameByBilltype(ui.getBillType()) + "－码单维护");
 		this.ui = ui;
 		this.setSize(1024, 700);
+		this.sfth = sfth;
 		init();
 	}
 
@@ -104,6 +110,20 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			nowVObill = (GeneralBillVO) ui.getM_alListData().get(
 					ui.getM_iLastSelListHeadRow());
 		}
+		// 是否退货
+		if (sfth == true) {
+			GeneralBillItemVO[] bvos = (GeneralBillItemVO[]) nowVObill
+					.getChildrenVO();
+			if (bvos != null && bvos.length > 0) {
+				for (int i = 0; i < bvos.length; i++) {
+					bvos[i].setNinassistnum(new UFDouble(-bvos[i]
+							.getNoutassistnum().doubleValue()));
+					bvos[i].setNinnum(new UFDouble(-bvos[i].getNoutnum()
+							.doubleValue()));
+				}
+			}
+		}
+
 		return nowVObill;
 	}
 
@@ -142,7 +162,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				.getChildrenVO()[getGenSelectRowID()];
 		this.setMd_note(itemvo.getVuserdef2()); // 待备用字段确认
 		this.setMd_zyh(itemvo.getVuserdef1()); // 待备用字段确认
-
+		this.setVfree1(itemvo.getVfree1());// 待处理
 		// 实入数量
 		// this.setSssl((UFDouble) (getGeneralBillVO().getItemValue(
 		// getGenSelectRowID(), "ninnum")));
@@ -695,7 +715,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				i - 1, "def6");
 		getBillCardPanel().getBillModel().setValueAt(
 				getBillCardPanel().getHeadItem("ispj").getValueObject(), i - 1,
-				"sfpj");// 是否磅计
+				"sfbj");// 是否磅计
+
+		getBillCardPanel().getBillModel().setValueAt(this.getVfree1(), i - 1,
+				"remark");// 备注
+		getBillCardPanel().getBillModel().setValueAt(
+				getBillCardPanel().getHeadItem("fjs").getValueObject(), i - 1,
+				"def4");// 非计算
 
 		// 如果选择的行大于0
 		if (srow >= 0) {
@@ -728,6 +754,12 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					"def8");// def8
 			getBillCardPanel().getBillModel().setValueAt(vo.getDef9(), i - 1,
 					"def9");// def9
+			getBillCardPanel().getBillModel().setValueAt(vo.getRemark(), i - 1,
+					"remark");// 备注
+			getBillCardPanel().getBillModel().setValueAt(vo.getDef4(), i - 1,
+					"def4");// def4
+			getBillCardPanel().getBillModel().setValueAt(vo.getSfbj(), i - 1,
+					"sfbj");// 是否磅计
 			getBillCardPanel().getBillModel().execLoadFormula();// 显示公式
 		}
 
@@ -1168,4 +1200,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		}
 		return true;
 	}
+
+	public String getVfree1() {
+		return vfree1;
+	}
+
+	public void setVfree1(String vfree1) {
+		this.vfree1 = vfree1;
+	}
+
 }

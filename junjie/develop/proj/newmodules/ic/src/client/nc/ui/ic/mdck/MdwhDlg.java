@@ -25,7 +25,7 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 	private UFDouble noutnum;// 实出数量
 
 	private GeneralBillClientUI ui;
-	
+
 	public UFBoolean sfsqmd = new UFBoolean(false); // 是否删除码单
 
 	/**
@@ -77,6 +77,13 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 			throw new BusinessException("请选择需要维护码单的表体行");
 		GeneralBillItemVO itemVOa = ((GeneralBillItemVO[]) billvo
 				.getChildrenVO())[srow];
+		// 是否退货
+		if (hvo.getFreplenishflag().booleanValue() == true) {
+			itemVOa.setNoutassistnum(new UFDouble(-itemVOa.getNinassistnum()
+					.doubleValue())); // 辅数量
+			itemVOa
+					.setNoutnum(new UFDouble(-itemVOa.getNinnum().doubleValue()));// 数量
+		}
 		infoVO.setCgeneralbid(itemVOa.getCgeneralbid());// 表体行PK
 		infoVO.setPk_invbasdoc(itemVOa.getCinvbasid());// 存货基本档案
 		infoVO.setPk_invmandoc(itemVOa.getCinventoryid());// 存货管理档案
@@ -190,5 +197,4 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 		this.sfsqmd = sfsqmd;
 	}
 
-	
 }

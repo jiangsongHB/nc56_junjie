@@ -350,8 +350,8 @@ public class MdProcessBean {
 	}
 
 	// 构靠一个货位VOs
-	public LocatorVO[] builderHwVos(GeneralBillItemVO itemVO, String billType)
-			throws BusinessException {
+	public LocatorVO[] builderHwVos(GeneralBillItemVO itemVO, String billType,
+			boolean sfth) throws BusinessException {
 		LocatorVO[] rsvo = null;
 		String sql = "select t2.cspaceid,t3.cscode,t3.csname,t1.cgeneralbid,t1.srkzs,t1.srkzl"
 				+ " from nc_mdcrk t1 left join nc_mdxcl_b t2 on t1.pk_mdxcl_b=t2.pk_mdxcl_b"
@@ -370,23 +370,32 @@ public class MdProcessBean {
 			vo.setCspaceid((String) voMap.get("cspaceid")); // 货位PK值
 			vo.setVspacecode((String) voMap.get("cscode")); // 货位编码
 			vo.setVspacename((String) voMap.get("csname")); // 货位名称
+			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
+			UFDouble d2 = new UFDouble((BigDecimal) voMap.get("srkzs"));
 			// 入库
 			if (billType.equals("45") || billType.equals("4A")) {
-				vo
-						.setNinspacenum(new UFDouble((BigDecimal) voMap
-								.get("srkzl")));
-				vo.setNinspaceassistnum(new UFDouble((BigDecimal) voMap
-						.get("srkzs")));
-				vo.setNingrossnum(null);
+				if (sfth == true) {
+					vo.setNinspacenum(new UFDouble(-d1.doubleValue()));
+					vo.setNinspaceassistnum(new UFDouble(-d2.doubleValue()));
+					vo.setNingrossnum(null);
+				} else {
+					vo.setNinspacenum(d1);
+					vo.setNinspaceassistnum(d2);
+					vo.setNingrossnum(null);
+				}
 			}
 			// 出库
 			else {
-				vo
-						.setNoutspacenum(new UFDouble((BigDecimal) voMap
-								.get("srkzl")));
-				vo.setNoutspaceassistnum(new UFDouble((BigDecimal) voMap
-						.get("srkzs")));
-				vo.setNoutgrossnum(null);
+				if (sfth == true) {
+					vo.setNoutspacenum(new UFDouble(-d1.doubleValue()));
+					vo.setNoutspaceassistnum(new UFDouble(-d2.doubleValue()));
+					vo.setNoutgrossnum(null);
+				} else {
+					vo.setNoutspacenum(d1);
+					vo.setNoutspaceassistnum(d2);
+					vo.setNoutgrossnum(null);
+				}
+
 			}
 			rsvo[i] = vo;
 		}
