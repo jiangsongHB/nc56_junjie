@@ -83,6 +83,7 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 					.doubleValue())); // 辅数量
 			itemVOa
 					.setNoutnum(new UFDouble(-itemVOa.getNinnum().doubleValue()));// 数量
+			infoVO.setCbodybilltypecode("4I"); // 单据类型
 		}
 		infoVO.setCgeneralbid(itemVOa.getCgeneralbid());// 表体行PK
 		infoVO.setPk_invbasdoc(itemVOa.getCinvbasid());// 存货基本档案
