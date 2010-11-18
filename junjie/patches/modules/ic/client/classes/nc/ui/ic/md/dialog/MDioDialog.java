@@ -656,10 +656,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		int srow = getBillCardPanel().getBillTable().getSelectedRow();
 		getBillCardPanel().addLine();
 		int i = getBillCardPanel().getRowCount();
-		// 单据类型
-		getBillCardPanel().getBillModel().setValueAt(ui.getBillType(), i - 1,
-				"cbodybilltypecode");
-
+		// 单据类型  如果是退货，时全部作为其它入库单据
+		if (sfth == false)
+			getBillCardPanel().getBillModel().setValueAt(ui.getBillType(),
+					i - 1, "cbodybilltypecode");
+		else
+			getBillCardPanel().getBillModel().setValueAt("4A", i - 1,
+					"cbodybilltypecode");
 		// 单据方向
 		UFBoolean frep = (UFBoolean) getGeneralBillVO().getHeaderValue(
 				"freplenishflag");// 是否退货标识;
