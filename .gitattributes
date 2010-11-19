@@ -618,4 +618,5 @@ junjie/patches/scripts/骏杰正式库脚本/其他入库单/(历史补丁)只�
 junjie/patches/scripts/骏杰正式库脚本/其他入库单/(当前补丁)修改其他入库单表体页签显示顺序.sql -text
 junjie/patches/scripts/骏杰正式库脚本/到货单/到货单费用信息内容修改.sql -text
 junjie/patches/scripts/骏杰正式库脚本/到货单/到货单费用信息页签注册.sql -text
+junjie/patches/scripts/骏杰正式库脚本/采购入库单/采购入库单费用信息显示项修改.sql -text
 junjie/patches/scripts/骏杰正式库脚本/采购入库单/采购入库单费用信息页签注册.sql -text
