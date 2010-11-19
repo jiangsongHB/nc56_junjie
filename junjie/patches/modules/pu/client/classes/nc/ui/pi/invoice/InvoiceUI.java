@@ -13654,6 +13654,7 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		}
 		backExpenseHead.setYbje(new UFDouble(dfybjeSUM));//设置表头贷方原币总金额
 		backExpenseHead.setBbje(new UFDouble(dfybjeSUM));//设置表头本币金额
+		backExpenseHead.setZgyf(2);//2010-11-19 MeiChao 设置暂估应付标志为2 表示回冲单据
 		//将处理过后的回冲单表头表体set入应付VO
 		DJZBVO backExpenseVO=new DJZBVO();
 		backExpenseVO.setParentVO(backExpenseHead);
