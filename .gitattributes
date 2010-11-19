@@ -614,6 +614,7 @@ junjie/patches/scripts/采购订单模板/采购订单数量与辅数量换算�
 junjie/patches/scripts/采购订单费用信息页签/采购订单费用信息页签2.0-2010-10-25.sql -text
 junjie/patches/scripts/问题000004-公司级暂估费用参数注册及暂估处理模板修改脚本/暂估处理-费用编码-模板定义backup.sql -text
 junjie/patches/scripts/问题000004-公司级暂估费用参数注册及暂估处理模板修改脚本/暂估处理实现参数控制费用补丁.sql -text
+junjie/patches/scripts/骏杰正式库脚本/2010-11-19-MeiChao-应付单据模板更新脚本/应付单单据模板更新脚本.sql -text
 junjie/patches/scripts/骏杰正式库脚本/2010-11-19-MeiChao-费用信息单据模板/费用信息单据模板.sql -text
 junjie/patches/scripts/骏杰正式库脚本/2010-11-19-MeiChao-费用信息建库脚本/费用信息建库脚本.sql -text
 junjie/patches/scripts/骏杰正式库脚本/其他入库单/(历史补丁)只添加费用信息页签.sql -text
