@@ -120,6 +120,14 @@ public class MDToolsImpl implements IMDTools {
 			bvo.setDef7(mdcrkVO.getDef7());//自定义项7
 			bvo.setDef8(mdcrkVO.getDef8());//自定义项8
 			bvo.setDef9(mdcrkVO.getDef9());//自定义项9
+			//2010-11-20 MeiChao add begin
+			bvo.setDef10(mdcrkVO.getDef10());//自定义项10
+			bvo.setDef11(mdcrkVO.getDef11());//自定义项11
+			bvo.setDef12(mdcrkVO.getDef12());//自定义项12
+			bvo.setDef13(mdcrkVO.getDef13());//自定义项13
+			bvo.setDef14(mdcrkVO.getDef14());//自定义项14
+			bvo.setDef15(mdcrkVO.getDef15());//自定义项15
+			//2010-11-20 MeiChao add end
 			bvo.setPk_mdxcl(pk_mdxcl.toString());
 
 			bvo.setStatus(VOStatus.NEW);
