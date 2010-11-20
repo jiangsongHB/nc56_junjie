@@ -2,8 +2,7 @@
 select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname='SYSTEM';
 
 --删除模板历史数据项
-delete pub_billtemplet_b t where t.pk_billtemplet=(select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname
-'SYSTEM');
+delete pub_billtemplet_b t where t.pk_billtemplet=(select a.pk_billtemplet from pub_billtemplet a where a.pk_billtypecode='4A' and a.bill_templetname='SYSTEM');
 
 --重新注册数据项
 
