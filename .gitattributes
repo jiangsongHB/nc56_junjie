@@ -212,6 +212,7 @@ junjie/develop/proj/newmodules/pu/src/client/nc/ui/pf/changedir/CHGF1TO25.java -
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/pi/invoice/InvoiceUI.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/oper/OrderUI.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/oper/PoToftPanel.java -text
+junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/pub/OrderPrintData.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/pub/PoCardPanel.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/pub/PoListPanel.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/ps/estimate/EstimateHelper.java -text
