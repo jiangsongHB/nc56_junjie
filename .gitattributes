@@ -619,6 +619,8 @@ junjie/patches/scripts/问题000004-公司级暂估费用参数注册及暂估�
 junjie/patches/scripts/骏杰正式库脚本/2010-11-19-MeiChao-应付单据模板更新脚本/应付单单据模板更新脚本.sql -text
 junjie/patches/scripts/骏杰正式库脚本/2010-11-19-MeiChao-费用信息单据模板/费用信息单据模板.sql -text
 junjie/patches/scripts/骏杰正式库脚本/2010-11-19-MeiChao-费用信息建库脚本/费用信息建库脚本.sql -text
+junjie/patches/scripts/骏杰正式库脚本/2010-11-20-MeiChao有关出入库码单自定义项传值入现存量码单明细/ic/META-INF/nc/bs/ic/md/MDToolsImpl.class -text
+junjie/patches/scripts/骏杰正式库脚本/2010-11-20-MeiChao有关出入库码单自定义项传值入现存量码单明细/ic/META-INF/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/patches/scripts/骏杰正式库脚本/其他入库单/(历史补丁)只添加费用信息页签.sql -text
 junjie/patches/scripts/骏杰正式库脚本/其他入库单/(当前补丁)修改其他入库单表体页签显示顺序.sql -text
 junjie/patches/scripts/骏杰正式库脚本/其他入库单/其他入库单单据模板项目恢复.sql -text
