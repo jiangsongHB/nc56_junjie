@@ -4476,7 +4476,8 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
     getBodyPanel().addTableSortListener();
     getBillModel().setRowSort(true);
     timeDebug.addExecutePhase("设置排序的可用性");/* -=notranslate=- */
-
+    
+   setTatolRowShow("jj_scm_informationcost", true) ;
     // 千分位显示
     setBodyShowThMark(true);
     // 是否显示合计行
@@ -4604,6 +4605,7 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
   private void initiListener() {
     // since v55,增加合计监听
     addBodyTotalListener(this);
+    
     // 单据加监听
     addEditListener(this);
     addBodyEditListener2(this);
@@ -4652,6 +4654,8 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
     addActionListener("table_arr", this);
     addActionListener("table_pol", this);
     addActionListener("table_exe", this);
+    addActionListener("jj_scm_informationcost", this);
+    
     /** ******************************** */
   }
 
