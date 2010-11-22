@@ -84,7 +84,7 @@ public class CHGF1TO25 extends VOConversionUI {
 				"H_finitflag->int(0)",//公式  起初标志
 				"H_ibillstatus->int(0)",//公式 单据状态
 				"H_iinvoicetype->int(0)",//公式 发票类型
-				"H_vdef20->\"Y\"",//2010-10-30 MeiChao  将表头的自定义字段20设置为Y 表示当前发票是由费用暂估应付单生成的,为采购费用发票.
+				"H_vdef20->iif(qcbz==\"Y\",\"N\",\"Y\")",//2010-10-30 MeiChao  将表头的自定义字段20设置为Y 表示当前发票是由费用暂估应付单生成的,为采购费用发票.
 				
 				//2010-11-12 MeiChao begin 添加
 				"B_nsummny->dfbbje*(dfshl-tonumber(zyx17))/dfshl",//本币价税合计 -> 贷方本币金额 

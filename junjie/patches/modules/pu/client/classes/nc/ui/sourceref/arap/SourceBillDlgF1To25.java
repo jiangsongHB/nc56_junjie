@@ -15,7 +15,10 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ml.NCLangRes;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
@@ -40,6 +43,7 @@ import nc.vo.pf.change.PfUtilBaseTools;
 import nc.vo.pi.InvoiceItemVO;
 import nc.vo.pi.InvoiceVO;
 import nc.vo.pub.AggregatedValueObject;
+import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 
 /**
@@ -477,21 +481,31 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 			CircularlyAccessibleValueObject[] tmpBodyVo = PfUtilBO_Client.queryBodyAllData(getBillType(),
 					id, getBodyCondition());
 			
+			//2010-11-22 MeiChao begin 对应付单表体行费用信息的过滤改造
+			//防止对其他业务流程产生影响,因此也在此过滤处加一个判断
+			DJZBItemVO[] newtmpBodyVo = null;
+			if(this.getCurrentBillType()!=null&&this.getCurrentBillType().equals("25")){
 			//add by 付世超  2010-10-27 加入对非费用暂估的过滤 begin
-		    ArrayList<DJZBItemVO> tempFreeVoList = new ArrayList<DJZBItemVO>();
+		    ArrayList<DJZBItemVO> tempExpenseVoList = new ArrayList<DJZBItemVO>();
 		    for (int j = 0; j < tmpBodyVo.length; j++) {
 		    	DJZBItemVO tmpBVo = (DJZBItemVO) tmpBodyVo[j];
-		    	if(tmpBVo.getZyx18()!=null&&tmpBVo.getZyx18().equals("tureFree")){
-		    		tempFreeVoList.add(tmpBVo);
+//		    	if(tmpBVo.getZyx18()!=null&&tmpBVo.getZyx18().equals("tureFree")){
+//		    		tempFreeVoList.add(tmpBVo);
+//		    	}
+		    	String invbasid=tmpBVo.getCinventoryid();
+		    	Object o=this.execQuery(invbasid);
+		    	if(o!=null&&(((String)o).trim().toUpperCase()).equals("Y")){//判断存货的应税劳务标志是否为Y
+		    		tempExpenseVoList.add(tmpBVo);//如果是费用类存货,那么将此行加入费用VO数组
 		    	}
 			}
-		    DJZBItemVO[] newtmpBodyVo = null;
-		    if(tempFreeVoList!=null&&tempFreeVoList.size()!=0){
-		    	newtmpBodyVo = new DJZBItemVO[tempFreeVoList.size()];
-		    	newtmpBodyVo = tempFreeVoList.toArray(newtmpBodyVo);
+		    
+		    if(tempExpenseVoList!=null&&tempExpenseVoList.size()!=0){
+		    	newtmpBodyVo = new DJZBItemVO[tempExpenseVoList.size()];
+		    	newtmpBodyVo = tempExpenseVoList.toArray(newtmpBodyVo);
 		    }
 		  //add by 付世超  2010-10-27 加入对非费用暂估的过滤 end
-			
+			}
+		  //2010-11-22 MeiChao end 对应付单表体行费用信息的过滤改造
 			
 			if(getbillListPanel().getBillListData().isMeataDataTemplate())
 				getbillListPanel().getBillListData().setBodyValueObjectByMetaData(newtmpBodyVo);
@@ -522,8 +536,14 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 //				whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0)";
 				//因为生成的暂估应付单业务流程改为 arap中的 应付通用流程 所以将更改后的流程id加入查询条件 
 					//另加入对暂估应付的过滤  1 标识暂估应付  0 标识 非暂估应付 by 付世超 2010-10-23
-			tmpWhere = tmpWhere + " and zb.zyx19 is null and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0 or zb.zyx19<>'Y' or zb.xslxbm = '00011110000000002RGT' ";
+			//2010-11-22 将下面语句中的 or zb.xslxbm = '00011110000000002RGT' 去掉,
+			//并添加一个对当前单据类型的判断,防止其他地方使用到采购应付单拉式时此条件对其他业务产生影响
+			if(this.getCurrentBillType()!=null&&this.getCurrentBillType().equals("25")){
 				
+			tmpWhere = tmpWhere + " and zb.zyx19 is null and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0 or zb.zyx19<>'Y' ";
+			
+			}
+			
 			String businessType = null;
 			if (getIsBusinessType()) {
 				businessType = getBusinessType();
@@ -642,4 +662,30 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 			}
 		}
 	}
+	/**
+	 * @function 根据存货基本档案查询查询存货的应税劳务标示
+	 *
+	 * @author QuSida
+	 *
+	 * @param pk_invbasdoc 存货基本档案ID
+	 *
+	 * @return Object
+	 *
+	 * @date 2010-8-7 上午10:31:53
+	 */
+	private Object execQuery(String pk_invbasdoc) {  
+		IUAPQueryBS qryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		Object o = null;
+		String sql = "select laborflag from bd_invbasdoc where pk_invbasdoc = '"+pk_invbasdoc+"'";
+		try {
+			o = qryBS.executeQuery(sql, new ColumnProcessor());
+		} catch (BusinessException e) {
+			e.printStackTrace();
+		}
+		return o;
+	}
+
+	
+	
 }
