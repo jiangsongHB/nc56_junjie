@@ -333,7 +333,9 @@ public class AdapterPuToMm implements ISrvPUToMM{
 			String apBodyPK=trueKeyArray[i].toString();//应付单行id
 			String invoiceNumber=bodyPKAndArriveNum.get(apBodyPK).toString();//发票数量
 			//累加表体已生成发票数量,并将影响行数累加
-			changeNum+=dao.executeUpdate("update arap_djfb t set t.zyx17=to_char(case when (To_number(case when zyx17 is null then '0' else zyx17 end)-"+invoiceNumber+")<0 then null end) where t.fb_oid='"+apBodyPK+"';");
+			//changeNum+=dao.executeUpdate("update arap_djfb t set t.zyx17=to_char(case when (To_number(case when zyx17 is null then '0' else zyx17 end)-"+invoiceNumber+")<0 then null end) where t.fb_oid='"+apBodyPK+"';");
+			//重写
+			changeNum+=dao.executeUpdate("update arap_djfb t set t.zyx17=case when (nvl(zyx17,0)-"+invoiceNumber+")<0 then null else nvl(zyx17,0)-"+invoiceNumber+" end where t.fb_oid='"+apBodyPK+"';");
 			String apHeadChangeSQL="update arap_djzb i set i.zyx19 = 'N' where (select case " +
 					"when (select count(*) " +
 					"from arap_djfb t " +
