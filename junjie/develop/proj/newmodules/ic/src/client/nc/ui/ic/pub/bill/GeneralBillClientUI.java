@@ -4501,21 +4501,21 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			// ------------------------------------------------------------------------------
 			// 业务项检查
 
-			// 自由项
-			try {
-				VOCheck.checkFreeItemInput(getM_voBill(), getEnvironment()
-						.getNumItemKey());
-
-			} catch (ICNullFieldException e) {
-				// 显示提示
-				String sErrorMessage = GeneralMethod.getBodyErrorMessage(
-						getBillCardPanel(), getM_voBill(), e.getErrorRowNums(),
-						e.getHint());
-				sAllErrorMessage = sAllErrorMessage + sErrorMessage + "\n";
-				alRowNum.addAll(e.getErrorRowNums());
-				cExceptionColor = e.getExceptionColor(m_bRowLocateErrorColor);
-
-			}
+			// 自由项 2010-11-22 MeiChao 不作自由项的检查.
+//			try {
+//				VOCheck.checkFreeItemInput(getM_voBill(), getEnvironment()
+//						.getNumItemKey());
+//
+//			} catch (ICNullFieldException e) {
+//				// 显示提示
+//				String sErrorMessage = GeneralMethod.getBodyErrorMessage(
+//						getBillCardPanel(), getM_voBill(), e.getErrorRowNums(),
+//						e.getHint());
+//				sAllErrorMessage = sAllErrorMessage + sErrorMessage + "\n";
+//				alRowNum.addAll(e.getErrorRowNums());
+//				cExceptionColor = e.getExceptionColor(m_bRowLocateErrorColor);
+//
+//			}
 			// 辅计量
 			try {
 				VOCheck.checkAssistUnitInputByID(getM_voBill(),
@@ -10785,6 +10785,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				SCMEnv.out("data error." + iVORowCount + "<>" + iRowCount);
 				return false;
 			}
+			
 			m_timer.showExecuteTime("From fliterNullLine Before setIDItems");
 			// VO校验准备数据
 			getM_voBill().setIDItems(voInputBill);
