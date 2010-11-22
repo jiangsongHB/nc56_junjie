@@ -581,6 +581,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 		if (sItemKey.equals("vbillcode")) {
 			// 单据号
+			
 
 			getEditCtrl().afterBillCodeEdit(e);
 		} else if (sItemKey.equals("cdispatcherid")) {
@@ -4501,7 +4502,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			// ------------------------------------------------------------------------------
 			// 业务项检查
 
-			// 自由项 2010-11-22 MeiChao 不作自由项的检查.
+			// 自由项 2010-11-22 MeiChao 不作自由项的检查. 佛山骏杰 -- 由于程哥需要在存货编码中写一个为vfree1赋值的编辑公式
+			//而vfree0可默认不填,所以将此自由项校验取消
 //			try {
 //				VOCheck.checkFreeItemInput(getM_voBill(), getEnvironment()
 //						.getNumItemKey());
@@ -9201,6 +9203,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 * 
 	 */
 	public void afterInvMutiEdit(nc.ui.pub.bill.BillEditEvent e) {
+		
 		getEditCtrl().afterInvMutiEdit(e);
 
 	}
@@ -10785,6 +10788,14 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				SCMEnv.out("data error." + iVORowCount + "<>" + iRowCount);
 				return false;
 			}
+			for(int i=0;i<voInputBillItem.length;i++){
+				String vfree0=voInputBillItem[i].getVfree0();
+				String vfree1=voInputBillItem[i].getVfree1();
+				String vfree2=voInputBillItem[i].getVfree2();
+				String vfree3=voInputBillItem[i].getVfree3();
+				String vfree4=voInputBillItem[i].getVfree4();
+				String vfree5=voInputBillItem[i].getVfree5();
+			}
 			
 			m_timer.showExecuteTime("From fliterNullLine Before setIDItems");
 			// VO校验准备数据
@@ -11064,7 +11075,25 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 		try {
 			nc.vo.sm.log.OperatelogVO log = getNormalOperateLog();
-
+			//2010-11-22 MeiChao add begin 
+			//由于存货编码的afterEdit方法中清空了自由项,导致随后的存货编码中对自由项的赋值编辑公式失效,现在保存前重新赋值
+			int rowcount = this.getBillCardPanel().getRowCount();
+			GeneralBillItemVO[] bodys = voBill.getItemVOs();
+			String free1value = this.getBillCardPanel().getBodyValueAt(0,
+					"vfree1").toString();
+			for (int j = 0; j < rowcount; j++) {
+				String[] vfree = new String[] { "vfree1", "vfree2", "vfree3",
+						"vfree4", "vfree5", "vfree6", "vfree7", "vfree8",
+						"vfree9", "vfree10" };
+				for (int i = 0; i < vfree.length; i++) {
+					if (this.getBillCardPanel().getBodyValueAt(j, vfree[i]) != null) {
+						bodys[j].setAttributeValue(vfree[i], this
+								.getBillCardPanel().getBodyValueAt(j, vfree[i])
+								.toString());
+					}
+				}
+			}
+				//2010-11-22 MeiChao add end 
 			if (BillMode.New == getM_iMode()) {
 				voBill.setStatus(nc.vo.pub.VOStatus.NEW);
 				voBill.setHeaderValue("coperatorid", getEnvironment()
