@@ -211,8 +211,11 @@ public class MDUtils {
 					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
 				}
 				// 米数*支数*理算系数/1000
-				UFDouble zl = lsxs.multiply(zs).multiply(meter).div(1000);
-				zl = zl.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				//UFDouble zl = lsxs.multiply(zs).multiply(meter).div(1000);
+				//2010-11-23 MeiChao  槽钢理算系数计算方式修改: 米数*理算系数- (四舍五入3位小数)* 支数
+				UFDouble zl = lsxs.multiply(meter).setScale(3, UFDouble.ROUND_HALF_UP).multiply(zs);
+				//zl = zl.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				zl = zl.setScale(3, UFDouble.ROUND_HALF_UP);
 				vo.setSrkzl(zl);
 			} else {
 				UFDouble fjm = getFJM(vos[0]);
@@ -228,9 +231,13 @@ public class MDUtils {
 				}
 				UFDouble gui = new UFDouble(guige);
 				// （厚+附加值）*宽*长*支数*7.85 /1000000000
+//				UFDouble zl = gui.add(fjm).multiply(width).multiply(lenth)
+//						.multiply(zs).multiply(7.85).div(1000000000);
+				//2010-11-23 MeiChao 理计取数调整,厚*宽*长*7.85-四舍五入保留3位小数后 再/1000000000 ,其结果也保留3位小数
 				UFDouble zl = gui.add(fjm).multiply(width).multiply(lenth)
-						.multiply(zs).multiply(7.85).div(1000000000);
-				zl = zl.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				.multiply(zs).multiply(7.85).setScale(3, UFDouble.ROUND_HALF_UP).div(1000000000);
+				//zl = zl.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				zl = zl.setScale(3, UFDouble.ROUND_HALF_UP);
 				vo.setSrkzl(zl);
 			}
 		}
