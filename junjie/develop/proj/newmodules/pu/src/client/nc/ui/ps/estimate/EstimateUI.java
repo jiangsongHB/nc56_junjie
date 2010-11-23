@@ -3076,8 +3076,10 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
       if(UFDouble.ZERO_DBL.equals(PuPubVO.getUFDouble_NullAsZero(vos[i].getNfeemny()))    //费用编码和费用金额
               && !StringUtil.isEmptyWithTrim(vos[i].getCfeeid())
           || !UFDouble.ZERO_DBL.equals(PuPubVO.getUFDouble_NullAsZero(vos[i].getNfeemny()))
-              && StringUtil.isEmptyWithTrim(vos[i].getCfeeid())) 
+              && StringUtil.isEmptyWithTrim(vos[i].getCfeeid())){ 
         rowErrMsg.append(lineSeparator).append("\t").append(NCLangRes.getInstance().getStrByID("40040503", "EstimateUI-000001")/*暂估费用编码或金额未录入*/);
+        rowErrMsg.append("\n请先执行费用暂估处理!");
+      }
       if(!UFDouble.ZERO_DBL.equals(PuPubVO.getUFDouble_NullAsZero(vos[i].getNfeemny())) //暂估费用与数量正负符号
           && vos[i].getNfeemny().doubleValue()*vos[i].getNinnum().doubleValue()<0)
         rowErrMsg.append(lineSeparator).append("\t").append(NCLangRes.getInstance().getStrByID("40040503", "EstimateUI-000002")/*暂估费用与数量正负号不一致*/);
@@ -3298,6 +3300,22 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 		  if(havenotexpense.size()==selectedAllBillData.size()){
 			  //如果无费用单据数与选中树相等..那么..
 		 	 MessageDialog.showHintDlg(this, "提示", "所选择的单据无费用信息,无需进行费用分摊操作!");
+		 	 this.feeFlag=false;
+//		 	 for(int i=0;i<selectedAllBillData.size();i++){//清空所选择的暂估记录中对应的费用id
+//		 		 Map selectedOneBill=(Map)selectedAllBillData.get(i);
+//		 		List selectedOneBillBody=(List)selectedOneBill.get("body");
+//		 		for(int j=0;j<selectedOneBillBody.size();j++){
+//		 			EstimateVO estimateVO=(EstimateVO)selectedOneBillBody.get(j);
+//		 			estimateVO.setCfeeid(null);
+//		 		}
+//		 	 }//取消,不从封装结果中取值. 直接页面取值.
+		 	for(int i=0;i<selectedRowNOs.length;i++){
+		 		this.getBillCardPanel().setBodyValueAt(null, selectedRowNOs[i], "cfeeid");
+		    	//  allEstimateVOs[selectedRowNOs[i]].setCfeeid(null);
+		      }
+		 	 
+		 	 
+		 	 
 		 	 return;
 		  }else if(havenotexpense.size()>0&&havenotexpense.size()<selectedAllBillData.size()){
 			  //如果存在无费用的单据..那么...
