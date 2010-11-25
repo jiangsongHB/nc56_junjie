@@ -1,0 +1,41 @@
+
+一: 合同号,从采购订单 带到采购入库单中.
+1. 到货单: 使用表体   自定义项20字段  po_arriveorder_b.vdef20   
+        勾选: 显示属性-> 卡片是否显示,列表是否显示,  高级属性-> 能否修改属性,能否修改编辑标志,能否修改显示标志
+        显示公式: iif(vdef20!=null,vdef20 ,getColValue(ct_manage,ct_code,pk_ct_manage,getColValue(po_order_b, ccontractid, corder_bid,cupsourcebillrowid )))   
+        删除:  关键字名 中的值
+        
+        定义自定义项: 到货单->采购订单->合同 的合同号    并在"引用自定义项"中对 "到货单表体" 自定义字段20进行引用.
+2. 采购入库单: 使用表体   自定义20 字段  ic_general_b.vuserdef20
+        勾选同上
+        显示公式:  iif(vuserdef20!=null,vuserdef20 ,getColValue(ct_manage,ct_code,pk_ct_manage,getColValue(po_order_b, ccontractid, corder_bid,getColValue(po_arriveorder_b,cupsourcebillrowid ,carriveorder_bid , csourcebillbid) )))
+        删除: 关键字名 中的值
+        定义自定义项: 采购入库单->到货单->采购订单->合同 的合同号    并在"引用自定义项"中对 "出入库单" 表体自定义字段20进行引用.
+        
+        
+        
+二: 合同号,车船号,部门,入库日期 带到码单维护中:
+
+    车船号、入库日期、部门、合同号 在码单上的字段选择:
+
+  车船号(def11) 字符型、入库日期(def12) 字符型、部门(def13) 字符型、合同号(def14) 字符型
+  之所以不选择def15 是因为此字段定义长度为2000 ,存此信息比较浪费资源  ,如有必要,可将此4个字段均设置为不可编辑.
+  
+  在码单维护(MD01)的单据模板中:
+  车船号(def11), 添加显示公式:    getColValue(ic_general_b, vuserdef4, cgeneralbid,cgeneralbid )
+  入库日期(def12),添加显示公式:   getColValue(ic_general_h,dbilldate , cgeneralhid,getColValue(ic_general_b, cgeneralhid, cgeneralbid,cgeneralbid ))
+  部门(def13),添加显示公式:   getColValue(bd_deptdoc, deptname,pk_deptdoc ,getColValue(ic_general_h,cdptid , cgeneralhid,getColValue(ic_general_b, cgeneralhid, cgeneralbid,cgeneralbid )))
+  合同号(def14),添加显示公式:  getColValue(ic_general_b, vuserdef20, cgeneralbid,cgeneralbid )
+  
+  
+  代码层改动:  
+  1.  nc.ui.ic.md.dialog.MDioDialog   约1002-1006行  添加代码: 执行表体公式 
+  else if(key.equals("box")){//如果修改了货位编码
+			getBillCardPanel().getBillModel().execLoadFormula();
+		}
+  2.  nc.ui.ic.mdck.MdwhPanel 月618-622行  添加代码: 执行表体公式
+  if(arg0.getKey().equals("box")){//如果修改了货位编码
+			getOPBillCardPanel().getBillModel().execLoadFormula();
+		}
+		
+  
