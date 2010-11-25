@@ -615,6 +615,11 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			onBtnAdd();
 			buttonState(true, true, false, true, false);
 		}
+		//2010-11-25 MeiChao add begin
+		if(arg0.getKey().equals("box")){//如果修改了货位编码
+			getOPBillCardPanel().getBillModel().execLoadFormula();
+		}
+		//2010-11-25 MeiChao add end
 	}
 
 	public void bodyRowChange(BillEditEvent arg0) {
