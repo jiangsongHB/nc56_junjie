@@ -999,6 +999,11 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "srkzl");
 		}
+		//2010-11-25 MeiChao add begin
+		else if(key.equals("box")){//如果修改了货位编码
+			getBillCardPanel().getBillModel().execLoadFormula();
+		}
+		//2010-11-25 MeiChao add end
 
 		edited = true;
 		// md_width
