@@ -4995,7 +4995,9 @@ protected void switchBillToList() {
 		getBillListPanel().getHeadTable().setRowSelectionInterval(
 			m_iLastSelListHeadRow,
 			m_iLastSelListHeadRow);
-	
+		//2010-11-25 MeiChao add 重置页签显示顺序.
+		this.getBillListPanel().getBodyTabbedPane().setSelectedIndex(0);
+		//2010-11-25 MeiChao add 重置页签显示顺序.
 		getBillListPanel().getBodyBillModel().setBodyDataVO(voItems);
 		
 //		getBillListPanel().getBodyBillModel().execLoadFormula();//zhy注释掉,该行引起查询后表体行存货编码和名称显示不出来
@@ -5003,8 +5005,38 @@ protected void switchBillToList() {
 		//getBillListPanel().getBodyBillModel().execLoadFormula();
 		//getBillListPanel().getHeadBillModel().execLoadFormula();
 		dispBodyRow(getBillListPanel().getBodyTable());
-		
-		
+		//2010-11-25 MeiChao begin查询出结果时,将默认选中的单据费用信息查询出来并写入相应页签中.
+		if(this.getBillListPanel().getBodyBillModel("jj_scm_informationcost")!=null){
+			// 获取PK
+			String specialVOPk = voTemp.getHeaderVO().getPrimaryKey();
+			// 获取协助类
+			JJIcScmPubHelper expenseManager = new JJIcScmPubHelper();
+			
+			try {
+				// 根据PK查询对应费用信息
+				expenseVOs = (InformationCostVO[]) expenseManager
+						.querySmartVOs(InformationCostVO.class, null,
+								" dr=0 and cbillid='" + specialVOPk + "'");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			// 将费用信息写入费用信息页签
+			if (expenseVOs != null && expenseVOs.length > 0) {
+				this.getBillListPanel().getBodyBillModel(
+						"jj_scm_informationcost").setBodyDataVO(expenseVOs);
+				this.getBillCardPanel().getBillModel("jj_scm_informationcost")
+						.setBodyDataVO(expenseVOs);
+			} else {
+				// 如果查出空值,那么将费用信息页签置空
+				this.getBillListPanel().getBodyBillModel(
+						"jj_scm_informationcost").setBodyDataVO(null);
+				this.getBillCardPanel().getBillModel("jj_scm_informationcost")
+						.setBodyDataVO(null);
+
+			}
+		}
+		//2010-11-25 MeiChao end
 //		 控制翻页按钮的状态：
 		setPageBtnStatus(0,0);
 
