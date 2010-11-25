@@ -276,6 +276,7 @@ junjie/develop/proj/newmodules/uap/src/client/nc/ui/bd/bd1005/ClientEH.java -tex
 junjie/develop/proj/newmodules/uap/src/client/nc/ui/bd/bd1005/ClientUI.java -text
 junjie/develop/proj/newmodules/uap/src/private/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/itf/uap/pub/jj/IJJUAPService.java -text
+junjie/develop/proj/newmodules/uap/src/public/nc/ui/bd/ref/busi/InvmandocDefaultRefModel.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1001/AdjustmentCoefficientVO.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1003/AdditionalValueVO.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1003/MyBillVO.java -text
