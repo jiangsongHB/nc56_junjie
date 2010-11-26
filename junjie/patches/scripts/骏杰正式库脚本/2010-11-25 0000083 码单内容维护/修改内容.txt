@@ -22,10 +22,10 @@
   之所以不选择def15 是因为此字段定义长度为2000 ,存此信息比较浪费资源  ,如有必要,可将此4个字段均设置为不可编辑.
   
   在码单维护(MD01)的单据模板中:
-  车船号(def11), 添加显示公式:    getColValue(ic_general_b, vuserdef4, cgeneralbid,cgeneralbid )
-  入库日期(def12),添加显示公式:   getColValue(ic_general_h,dbilldate , cgeneralhid,getColValue(ic_general_b, cgeneralhid, cgeneralbid,cgeneralbid ))
-  部门(def13),添加显示公式:   getColValue(bd_deptdoc, deptname,pk_deptdoc ,getColValue(ic_general_h,cdptid , cgeneralhid,getColValue(ic_general_b, cgeneralhid, cgeneralbid,cgeneralbid )))
-  合同号(def14),添加显示公式:  getColValue(ic_general_b, vuserdef20, cgeneralbid,cgeneralbid )
+  车船号(def11), 添加显示公式:    iif(def11!=null,def11 ,getColValue(ic_general_b, vuserdef4, cgeneralbid,cgeneralbid ))
+  入库日期(def12),添加显示公式:   iif(def12!=null,def12 ,getColValue(ic_general_h,dbilldate , cgeneralhid,getColValue(ic_general_b, cgeneralhid, cgeneralbid,cgeneralbid )))
+  部门(def13),添加显示公式:   iif(def13!=null, def13,getColValue(bd_deptdoc, deptname,pk_deptdoc ,getColValue(ic_general_h,cdptid , cgeneralhid,getColValue(ic_general_b, cgeneralhid, cgeneralbid,cgeneralbid ))))
+  合同号(def14),添加显示公式:  iif(def14!=null,def14 ,getColValue(ic_general_b, vuserdef20, cgeneralbid,cgeneralbid ))
   
   
   代码层改动:  
