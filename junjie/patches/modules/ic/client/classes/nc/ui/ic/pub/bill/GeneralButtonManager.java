@@ -614,35 +614,66 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					}
 					// end v5
 					// add by 付世超 2010-10-15 begin
-					 arrnum = new UFDouble((o==null?"0":o).toString());//累计到货数量
-					 plannum = new UFDouble(p.toString());//上游单据应到总数量，用于按金额录入费用的比例分配
-						CircularlyAccessibleValueObject[] a = vos[0].getChildrenVO();
-						if(infovos!=null&&infovos.length!=0){
-						   arrnumber = new UFDouble(0.0);
-								for (int i = 0; i < a.length; i++) {
-									//因为入库单默认的实入数量是空 所以取应入数量用于计算总金额
-									arrnumber = arrnumber.add(new UFDouble(a[i].getAttributeValue("nshouldinnum").toString()));
-								}
-								//add by 付世超 2010-10-15 begin 费用基础数据
-								lmny = new ArrayList();
-								//累计金额废弃不用 by 付世超  2010-10-19
-								for (int i = 0; i < infovos.length; i++) {
-									pmny = infovos[i].getNoriginalcurmny().multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改 为先乘后除
-									lmny.add(pmny);
-									//因为入库单初始是没有实入数量的 所以应该也没有费用显示 清零 by 付世超  2010-10-19
-//									infovos[i].setAttributeValue("noriginalcurmny", new UFDouble(0.0));  --2010-11-02 MeiChao 注释,需要将上游单据的数量金额准确带入,不允许清零
-//									infovos[i].setNnumber(new UFDouble(0.0)); --2010-11-02 MeiChao 注释,原因同上
-								}
-					//add by 付世超 2010-10-15 end 
-				      getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(infovos); //add by QuSida 2010-9-2 (佛山骏杰) 将查询出来的费用信息写到界面上
-		  	          getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-		  	          getBillListPanel().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
-		              }else if(this.getBillType().equals("45")){
-		            	  //2010-10-11 MeiChao 当前单据类型为"采购入库单"时, 将卡片及列表中的费用页签中的信息清空
-		            	  getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null); 
-		      	          getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
-		              }
+					if (infovos != null && infovos.length != 0) {
+						// 给fushichao的代码 加入一个 当上游单据为23(采购到货单)时才执行的条件.
+						if ("23".equals((((GeneralBillVO[]) vos)[0]
+								.getItemVOs())[0].getCsourcetype())) {
+
+							arrnum = new UFDouble((o == null ? "0" : o)
+									.toString());// 累计到货数量
+							plannum = new UFDouble(p.toString());// 上游单据应到总数量，用于按金额录入费用的比例分配
+							CircularlyAccessibleValueObject[] a = vos[0]
+									.getChildrenVO();
+							arrnumber = new UFDouble(0.0);
+							for (int i = 0; i < a.length; i++) {
+								// 因为入库单默认的实入数量是空 所以取应入数量用于计算总金额
+								arrnumber = arrnumber.add(new UFDouble(a[i]
+										.getAttributeValue("nshouldinnum")
+										.toString()));
+							}
+							// add by 付世超 2010-10-15 begin 费用基础数据
+							lmny = new ArrayList();
+							// 累计金额废弃不用 by 付世超 2010-10-19
+							for (int i = 0; i < infovos.length; i++) {
+								pmny = infovos[i].getNoriginalcurmny()
+										.multiply(arrnumber).div(plannum);// 修改
+																			// 付世超
+																			// 2010-10-18
+																			// 算法修改
+																			// 为先乘后除
+								lmny.add(pmny);
+								// 因为入库单初始是没有实入数量的 所以应该也没有费用显示 清零 by 付世超
+								// 2010-10-19
+								// infovos[i].setAttributeValue("noriginalcurmny",
+								// new UFDouble(0.0)); --2010-11-02 MeiChao
+								// 注释,需要将上游单据的数量金额准确带入,不允许清零
+								// infovos[i].setNnumber(new UFDouble(0.0));
+								// --2010-11-02 MeiChao 注释,原因同上
+							}
+							// add by 付世超 2010-10-15 end
+						}
+						getBillListPanel().getBodyBillModel(
+								"jj_scm_informationcost")
+								.setBodyDataVO(infovos); // add by QuSida
+															// 2010-9-2 (佛山骏杰)
+															// 将查询出来的费用信息写到界面上
+						getBillCardPanel().getBillModel(
+								"jj_scm_informationcost")
+								.setBodyDataVO(infovos); // add by QuSida
+															// 2010-9-2 (佛山骏杰)
+															// 将查询出来的费用信息写到界面上
+						getBillCardPanel().getBillModel(
+								"jj_scm_informationcost").execLoadFormula();
+						getBillListPanel().getBodyBillModel(
+								"jj_scm_informationcost").execLoadFormula();
+					} else if (this.getBillType().equals("45")) {
+						// 2010-10-11 MeiChao 当前单据类型为"采购入库单"时,
+						// 将卡片及列表中的费用页签中的信息清空
+						getBillListPanel().getBodyBillModel(
+								"jj_scm_informationcost").setBodyDataVO(null);
+						getBillCardPanel().getBillModel(
+								"jj_scm_informationcost").setBodyDataVO(null);
+					}
 				}
 				
 	              
