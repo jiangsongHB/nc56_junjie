@@ -1770,10 +1770,10 @@ protected void onSaveBaseKernel(GeneralBillVO[] voaAllBill,String sAccreditUserI
 			IUAPQueryBS iQueryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
 			//查询形态转换生成的其他入库单PK
 			Object generalBillPK=iQueryService.executeQuery(queryPKSQL, new ColumnProcessor());
-			//如果上一个语句无法查询到其他入库单PK,那么表示当前流程可能为转库,再查一次PK
+			//如果上一个语句无法查询到其他入库单PK,那么表示当前业务可能为转库,再查一次PK
 			if(generalBillPK==null){
 			queryPKSQL="select distinct t.cgeneralhid " + //源头,上游单据类型均为4K 的其他入库单PK
-			"from ic_general_b t where " +
+			"from ic_general_b t where " +//不加上cfirst系列字段,是因为从转库到其他入库单的时候并不在相应字段填入值.
 			"t.cbodybilltypecode='4A' and t.csourcetype='4K' and " +
 			"t.csourcebillhid='"+specialBillPK+"' and t.dr=0";
 			generalBillPK=iQueryService.executeQuery(queryPKSQL, new ColumnProcessor());
