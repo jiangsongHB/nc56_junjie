@@ -457,6 +457,8 @@ junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.cl
 junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text
 junjie/patches/modules/uap/classes/nc/itf/uap/pub/jj/IJJUAPService.class -text
 junjie/patches/modules/uap/classes/nc/itf/uap/pub/jj/IJJUAPService.java -text
+junjie/patches/modules/uap/classes/nc/ui/bd/ref/busi/InvmandocDefaultRefModel.class -text
+junjie/patches/modules/uap/classes/nc/ui/bd/ref/busi/InvmandocDefaultRefModel.java -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1001/AdjustmentCoefficientVO.class -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1003/AdditionalValueVO.class -text
 junjie/patches/modules/uap/classes/nc/vo/bd/bd1003/MyBillVO.class -text
