@@ -12,6 +12,7 @@ import nc.ui.ic.pub.bill.initref.RefFilter;
 import nc.ui.ic.pub.report.ICReportHelper;
 import nc.ui.pub.ButtonObject;
 import nc.ui.pub.FramePanel;
+import nc.ui.pub.beans.UIRefPane;
 import nc.ui.pub.beans.UITextField;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.scm.ic.exp.GeneralMethod;
@@ -488,7 +489,6 @@ public void initialize() {
 	//	≤Œ’’π˝¬À
 	BillItem bi = getBillCardPanel().getHeadItem("cotherwhid");
     RefFilter.filtWh(bi,getEnvironment().getCorpID(),null);
-
 }
 
 /**
