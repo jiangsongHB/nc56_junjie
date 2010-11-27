@@ -582,6 +582,20 @@ junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默�
 junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默认为人民币/pu/client/classes/nc/ui/pu/jjpanel/InfoCostPanel.class -text
 junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默认为人民币/pu/client/classes/nc/ui/pu/jjpanel/InfoCostPanel.java -text
 junjie/patches/scripts/2010-11-09[!!-~]0000076[!!-~]费用录入币种设定默认为人民币/费用信息模板修改脚本.sql -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/auditdlg/ClientUIInAndOut$1.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerIn.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerInAndOut.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/auditdlg/ClientUIInAndOut$ActionListenerOut.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/auditdlg/ClientUIInAndOut$IvjEventHandler.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/auditdlg/ClientUIInAndOut.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/auditdlg/ClientUIInAndOut.java -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/ic221/ClientUI$1.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/ic221/ClientUI.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/ic221/ClientUI.java -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/pub/bill/SpecialBillBaseUI$1.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/pub/bill/SpecialBillBaseUI.class -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/ic/client/nc/ui/ic/pub/bill/SpecialBillBaseUI.java -text
+junjie/patches/scripts/2010-11-26-27[!!-~]转库单添加费用处理/转库单单据模板修改.sql -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
