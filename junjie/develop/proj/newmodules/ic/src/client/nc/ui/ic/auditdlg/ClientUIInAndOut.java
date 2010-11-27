@@ -1248,6 +1248,7 @@ public void TabStateChanged() {
 					getUIBtnSerials().setEnabled(false);
 					getUIBtnBarcode().setEnabled(false);
 				} else {
+					this.setExpenseVOs();//2010-11-26 MeiChao 切换到入库单为当前显示页签的时候,把费用信息重新插入一次.
 					getUIBtnSave().setEnabled(!m_bIsTabOutSaved);
 					getUIBtnSaveSign().setEnabled(!m_bIsTabOutSaved);
 					
@@ -1750,7 +1751,9 @@ protected void onSaveBaseKernel(GeneralBillVO[] voaAllBill,String sAccreditUserI
 		
 		m_bIsSignOK = false;
 		//2010-11-09 MeiChao Begin 当单据保存完毕之后,将费用信息保存入
-		if(this.m_voSpBill!=null&&voaAllBill.length==2){//只允许单张形态转换.(即只有1张出库,1张入库)
+		//2010-11-26 MeiChao 改造代码块执行条件: 如果是形态转换,那么保证m_voSpBill不为空的情况下有2个出入库单VO
+		//而如果是转库单,那么保证m_voSpBill不为空之后,
+		if(this.m_voSpBill!=null&&(voaAllBill.length==2||"4K".equals(voaAllBill[0].getItemVOs()[0].getCsourcetype()))){//只允许单张形态转换.(即只有1张出库,1张入库)
 			/**
 			 * 根据setvo()方法传进的形态转换单VO,获取其PK
 			 * 并通过形态转换单的PK 查询出其生成的其他入库单PK,
@@ -1767,7 +1770,14 @@ protected void onSaveBaseKernel(GeneralBillVO[] voaAllBill,String sAccreditUserI
 			IUAPQueryBS iQueryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
 			//查询形态转换生成的其他入库单PK
 			Object generalBillPK=iQueryService.executeQuery(queryPKSQL, new ColumnProcessor());
-
+			//如果上一个语句无法查询到其他入库单PK,那么表示当前流程可能为转库,再查一次PK
+			if(generalBillPK==null){
+			queryPKSQL="select distinct t.cgeneralhid " + //源头,上游单据类型均为4K 的其他入库单PK
+			"from ic_general_b t where " +
+			"t.cbodybilltypecode='4A' and t.csourcetype='4K' and " +
+			"t.csourcebillhid='"+specialBillPK+"' and t.dr=0";
+			generalBillPK=iQueryService.executeQuery(queryPKSQL, new ColumnProcessor());
+			}
 			if(generalBillPK!=null){//如果成功查询到,其他入库单PK,那么保存费用信息.
 				for(int i=0;i<this.expenseVOs.length;i++){//遍历费用信息,将其他入库单PK存入其VO中
 					expenseVOs[i].setCbillid(generalBillPK.toString());
@@ -1777,7 +1787,7 @@ protected void onSaveBaseKernel(GeneralBillVO[] voaAllBill,String sAccreditUserI
 				JJIcScmPubHelper expenseHelper=new JJIcScmPubHelper();
 				//插入费用信息VO
 				expenseHelper.insertSmartVOs(expenseVOs);
-				Logger.debug("形态转换单->其他入库单转化,插入费用信息成功!");
+				Logger.debug("形态转换单/转库单->其他入库单转化,插入费用信息成功!");
 			}
 		}
 		//2010-11-9 MeiChao End 当单据保存完毕之后,将费用信息保存入
@@ -2512,6 +2522,37 @@ public void setVO4Direct(
 		getChldClientUIIn().removeListHeadMouseListener();
 		getUITabPane().setEnabledAt(0, true);
 		m_bIsTabInHaveValue = true;
+		
+		
+//2010-11-09 MeiChao Begin 添加 根据上游
+		
+		if(invos.size()==1 && sOldPK !=null){//如果只有1个入库单,那么允许费用植入下游其他入库单中
+				// 如果parent是形态转换单.
+				// 获取PK
+				String specialVOPk = sOldPK;
+				// 获取协助类
+				JJIcScmPubHelper expenseManager = new JJIcScmPubHelper();
+				try {
+					// 根据PK查询对应费用信息
+					expenseVOs = (InformationCostVO[]) expenseManager
+							.querySmartVOs(InformationCostVO.class, null,
+									" dr=0 and cbillid='" + specialVOPk + "'");
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				// 将费用信息植入其他入库单表体
+				setExpenseVOs();//2010-11-09 
+				//getChldClientUIIn().getBillCardPanel().execHeadLoadFormulas();// 执行显示公式
+				//getChldClientUIIn().updateUI();
+				getChldClientUIIn().selectListBill(0);
+		}
+		//2010-11-09 MeiChao End 添加
+		
+		
+		
+		
+		
 	} else {
 		m_inVOs = null;
 		getUIPaneIn().setEnabled(false);
@@ -2828,6 +2869,7 @@ private boolean setExpenseVOs(){
 	
 	this.getChldClientUIIn().getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(this.expenseVOs);
 	this.getChldClientUIIn().getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(this.expenseVOs);
+	this.getChldClientUIIn().updateUI();
 	if(this.expenseVOs==null){
 		return false;
 	}else{
