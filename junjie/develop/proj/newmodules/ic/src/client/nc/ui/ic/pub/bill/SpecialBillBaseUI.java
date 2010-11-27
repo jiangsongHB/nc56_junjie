@@ -2055,6 +2055,27 @@ public  boolean onSave() {
 			//增加HVO
 			m_iLastSelListHeadRow = m_iTotalListHeadNum;
 			addBillVO();
+			//如果存在费用信息页签并且单据类型为4K 即 转库单界面
+			if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&"4K".equals(m_voBill.getHeaderVO().getCbilltypecode())){
+		    //获取需要保存的费用信息
+		    this.expenseVOs=(InformationCostVO[])this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+		    /**
+		       * 2010-11-26 MeiChao
+		       * 如果是新增单据,则向数据库中插入新费用信息.
+		       */
+		      //2010-11-08 MeiChao begin
+		      //将主键写入费用信息VO中
+						if (expenseVOs != null && expenseVOs.length > 0) {
+							for (int i = 0; i < expenseVOs.length; i++) {
+								expenseVOs[i].setCbillid(sHPK);//设置所属单据主键
+								expenseVOs[i].setVdef10("4K");//设置所属单据类型
+							}
+							JJIcScmPubHelper expenseManager=new JJIcScmPubHelper();
+						      expenseManager.insertSmartVOs(expenseVOs);
+						}
+		      //2010-11-08 MeiChao end
+			}
+			
 		} else if (BillMode.Update == m_iMode) { //修改
 			//从界面中获得需要的数据
 			voNowBill = null;
@@ -2164,6 +2185,29 @@ public  boolean onSave() {
       m_voBill.setIsYetExecBatchFormulas(false);
 			
 			BatchCodeDefSetTool.execFormulaForBatchCode(m_voBill.getChildrenVO());
+			
+			//如果存在费用信息页签并且单据类型为4K 即 转库单界面
+			if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&this.getBillCardPanel().getBillType().equals("4K")){
+		    //获取需要保存的费用信息
+		    this.expenseVOs=(InformationCostVO[])this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+		    /**
+		       * 2010-11-26 MeiChao
+		       * 如果是新增单据,则向数据库中插入新费用信息.
+		       */
+		      //2010-11-26 MeiChao begin
+		      //将主键写入费用信息VO中
+						if (expenseVOs != null && expenseVOs.length > 0) {
+							for (int i = 0; i < expenseVOs.length; i++) {
+								expenseVOs[i].setCbillid(sHPK);//设置所属单据主键
+								expenseVOs[i].setVdef10("4K");//设置所属单据类型
+							}
+							JJIcScmPubHelper expenseManager=new JJIcScmPubHelper();
+						      expenseManager.updateSmartVOs(expenseVOs,sHPK);
+						}
+		      //2010-11-26 MeiChao end
+			}
+			
+			
 			
 			//修改HVO
 			//m_alListData.set(m_iLastSelListHeadRow, m_voBill.clone());
