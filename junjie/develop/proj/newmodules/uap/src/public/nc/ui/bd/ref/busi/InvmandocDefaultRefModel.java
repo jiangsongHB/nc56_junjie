@@ -28,13 +28,13 @@ public class InvmandocDefaultRefModel extends AbstractRefGridTreeBigDataModel {
 		String[] filecode=this.getFieldCode();
 		String[] filename=this.getFieldName();
 		for(int i=0;i<filecode.length;i++){
-			if(filecode[i].toString().equals("bd_invbasdoc.graphid")){
+			if(filecode[i].toString().equals("bd_invbasdoc.graphid")){//
 			filename[i]="存货名称";
 			}
 			if(filecode[i].toString().equals("bd_invbasdoc.invname")){
 				filename[i]="产地";
 				}
-				if(filecode[i].toString().equals("bd_invbasdoc.invspec")){
+				if(filecode[i].toString().equals("bd_invbasdoc.invtype")){//"型号" 显示为 "材质"
 					filename[i]="材质";
 					}
 		}
