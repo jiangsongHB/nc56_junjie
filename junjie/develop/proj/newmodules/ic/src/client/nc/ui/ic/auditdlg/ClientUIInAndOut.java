@@ -1247,8 +1247,10 @@ public void TabStateChanged() {
 					getUIBtnSpace().setEnabled(false);
 					getUIBtnSerials().setEnabled(false);
 					getUIBtnBarcode().setEnabled(false);
+					//2010-11-27 MeiChao add
+					//this.getChldClientUIIn().getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(this.expenseVOs);
+					
 				} else {
-					this.setExpenseVOs();//2010-11-26 MeiChao 切换到入库单为当前显示页签的时候,把费用信息重新插入一次.
 					getUIBtnSave().setEnabled(!m_bIsTabOutSaved);
 					getUIBtnSaveSign().setEnabled(!m_bIsTabOutSaved);
 					
@@ -1289,12 +1291,16 @@ public void TabStateChanged() {
 		                getUIBtnBarcode().setEnabled(true);
 						//getChldClientUIIn().getBillCardPanel().getBillModel().setEnabledAllItems(true);
 					}
+					//2010-11-27 MeiChao add
+					//this.getChldClientUIIn().getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(this.expenseVOs);
+					
 
 				}
 
 				//置可编辑状态
 				if(m_bIsOK)
 					getChldClientUIIn().setCardPanelEnable(false);
+				//this.getChldClientUIIn().updateUI();//2010-11-27 MeiChao
 				break;
 			}
 		case 1 :
@@ -2544,7 +2550,7 @@ public void setVO4Direct(
 				// 将费用信息植入其他入库单表体
 				setExpenseVOs();//2010-11-09 
 				//getChldClientUIIn().getBillCardPanel().execHeadLoadFormulas();// 执行显示公式
-				//getChldClientUIIn().updateUI();
+				getChldClientUIIn().updateUI();
 				getChldClientUIIn().selectListBill(0);
 		}
 		//2010-11-09 MeiChao End 添加
@@ -2866,10 +2872,12 @@ private void synOut2InBill() {
  * @return
  */
 private boolean setExpenseVOs(){
-	
+	this.getChldClientUIIn().getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);
 	this.getChldClientUIIn().getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(this.expenseVOs);
+	this.getChldClientUIIn().getBillCardPanel().updateUI();
+	this.getChldClientUIIn().getBillListPanel().getBodyTabbedPane().setSelectedIndex(0);
 	this.getChldClientUIIn().getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(this.expenseVOs);
-	this.getChldClientUIIn().updateUI();
+	this.getChldClientUIIn().getBillListPanel().updateUI();
 	if(this.expenseVOs==null){
 		return false;
 	}else{
