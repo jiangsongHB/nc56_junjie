@@ -11079,8 +11079,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			//由于存货编码的afterEdit方法中清空了自由项,导致随后的存货编码中对自由项的赋值编辑公式失效,现在保存前重新赋值
 			int rowcount = this.getBillCardPanel().getRowCount();
 			GeneralBillItemVO[] bodys = voBill.getItemVOs();
-			String free1value = this.getBillCardPanel().getBodyValueAt(0,
-					"vfree1").toString();
+			
 			for (int j = 0; j < rowcount; j++) {
 				String[] vfree = new String[] { "vfree1", "vfree2", "vfree3",
 						"vfree4", "vfree5", "vfree6", "vfree7", "vfree8",
