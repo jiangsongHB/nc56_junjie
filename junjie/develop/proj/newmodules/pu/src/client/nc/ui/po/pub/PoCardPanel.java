@@ -3510,11 +3510,16 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
 
     // 设置自由项
     PoPublicUIClass.setFreeColValue(getBillModel(), "vfree");
-    // 计算并设置换算率
-    PuTool.setBillModelConvertRate(getBillModel(), new String[] {
-        "cbaseid", "cassistunit", "nordernum", "nassistnum", "nconvertrate"
-    });
-    timeDebug.addExecutePhase("计算并设置换算率");/* -=notranslate=- */
+    // 计算并设置换算率 //2010-12-02 MeiChao 将换算率计算机制修改为与列表模式下的计算换算率机制相同
+//    PuTool.setBillModelConvertRate(getBillModel(), new String[] {
+//        "cbaseid", "cassistunit", "nordernum", "nassistnum", "nconvertrate"
+//    }); 
+//    timeDebug.addExecutePhase("计算并设置换算率");/* -=notranslate=- */
+    //add by MeiChao 2010-12-02 begin 此代码由PoListPanel.displayCurVOBody()方法中拷贝而出.
+    PuTool.setBillModelConvertRateAndAssNum(getBillModel(),new	String[]{"cbaseid","cassistunit","nordernum","nassistnum","nconvertrate"},4, -1) ;
+	timeDebug.addExecutePhase("设置换算率");/*-=notranslate=-*/
+	//add by MeiChao 2010-12-02 end
+    
 
     // 处理来源单据类型、来源单据号
     PuTool.loadSourceInfoAll(this, BillTypeConst.PO_ORDER);
