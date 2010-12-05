@@ -1,0 +1,15 @@
+问题号：0000030增加合同相关后续到货单\入库单的取数数据信息  
+说明：  
+合同管理/合同执行情况明细（采购）
+合同管理/合同执行情况汇总（采购）
+
+
+1文件 “到货数.txt”中有两个视图：明细：v_num_ht_dhs 汇总： v_sumnum_ht_dhs
+
+
+2、在nc561011测试库中的 合同管理/合同执行情况明细（采购）、 合同管理/合同执行情况汇总（采购）报表模板中分别增加了两个字段，pk_ct_manage_b,narrvnum 
+合同表体id、pk_ct_manage_b不需要加公式，可以直接取数，
+到货数需要增加公式：
+明细：narrvnum->getcolnmv(v_num_ht_dhs,narrvnum, pk_ct_manage_b, pk_ct_manage_b)
+汇总：narrvnum->getcolnmv(v_sumnum_ht_dhs,narrvnum,pk_ct_manage_b,
+pk_ct_manage_b) 
