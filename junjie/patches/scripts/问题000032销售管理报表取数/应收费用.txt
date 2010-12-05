@@ -1,0 +1,12 @@
+create or replace view v_so_sale_cost
+as
+select noriginalcursummny  ,so_saleorder_b.csaleid,corder_bid ,cinvbasdocid 
+from so_saleorder_b,so_sale	
+where cinvbasdocid  in 
+(select pk_invbasdoc from bd_invbasdoc where laborflag='Y')
+and so_sale.csaleid = so_saleorder_b.csaleid
+
+
+
+
+ysfy->getcolnmv(v_so_sale_cost,noriginalcursummny, corder_bid, corder_bid)

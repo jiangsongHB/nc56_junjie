@@ -1,0 +1,7 @@
+问题号：0000032: 销售管理/销售订单/销售订单查询/销售订单明细增加统计应收费用数据信息 
+
+视图名称：v_so_sale_cost
+
+方法： 在销售订单明细 模板中增加两个字段：
+corder_bid: 表体ID,不需要写公式
+ysfy: 应收费用  公式：ysfy->getcolnmv(v_so_sale_cost,noriginalcursummny, corder_bid, corder_bid)
