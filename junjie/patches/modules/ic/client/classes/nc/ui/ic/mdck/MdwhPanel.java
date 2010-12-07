@@ -12,7 +12,9 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import nc.bs.framework.common.NCLocator;
+import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.md.dialog.MDUtils;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
@@ -24,6 +26,7 @@ import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.pub.bill.BillItem;
+import nc.vo.ic.md.MdcrkTempVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFBoolean;
@@ -133,6 +136,26 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				crkvos = new MdProcessBean().queryCrkVOSByXsdd(infoVO, dlg);
 				mdsd = 1;
 			}
+			//2010-12-04 MeiChao 
+			//如果没有出库记录,也没有锁定记录,并且其单据类型为{ 4K(转库) }  或  {单据类型为4I(库存其他出)&&上游单据类型为4K}
+			//那么去查找nc_mdcrk_temp表(转库单上的 码单出入库信息临时表)
+//			if (crkvos == null) {
+//				IUAPQueryBS queryBS = (IUAPQueryBS) NCLocator.getInstance()
+//						.lookup(IUAPQueryBS.class.getName());
+//				Object sourcetype = queryBS.executeQuery(
+//						"select t.csourcetype from ic_general_b t where t.cgeneralbid='"
+//								+ infoVO.getCgeneralbid()
+//								+ "' and t.cbodybilltypecode='4I'",
+//						new ColumnProcessor());
+//				if ("4K".equals(infoVO.getCbodybilltypecode())
+//						|| ("4I".equals(infoVO.getCbodybilltypecode()) && "4K"
+//								.equals(sourcetype.toString()))) {
+//					crkvos = new MdProcessBean().queryCrkVOS(infoVO);
+//					if (crkvos != null) {
+//						mdsd = 0;// 如果成功查询到临时表,那么把码单锁定标志重置
+//					}
+//				}
+//			}
 		} catch (BusinessException e) {
 			e.printStackTrace();
 			MessageDialog
@@ -356,47 +379,106 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 	 * 保存按钮事件处理
 	 */
 	private void onBtnSave() {
-		buttonState(true, true, false, true, false);
-		// 获取表体数据
-		MdcrkVO[] vos = (MdcrkVO[]) getOPBillCardPanel().getBillData()
-				.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
-		IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
-				.getInstance().lookup(IVOPersistence.class.getName());
-		try {
-			MdProcessBean bean = new MdProcessBean();
-			// 计算方式
-			String sfbj = getOPBillCardPanel().getHeadItem("sfbj").getValue();
-			if (sfbj == "false")
-				infoVO.setSfbj(new UFBoolean(false));
-			else
-				infoVO.setSfbj(new UFBoolean(true));
-			// 表体数据构造成较验
-			MdcrkVO[] rsvos = bean.buliderMdcrkVOs(vos, infoVO, b_fjs);
-			// 删除码单出入库单信息，并对原有单据做入库处理
-			boolean ders = bean.deleteAndRK(infoVO);
-			// 保存到出入库单位表体
-			if (rsvos == null && ders == false)
-				throw new BusinessException("保存失败，没有码单明细！");
-			if (rsvos == null && ders == true) {
-				bean.updateSdbs(infoVO, "0");// 还原码单锁定数据
-				dlg.setNoutnum(null);
-				dlg.setNoutassistnum(null);
-				dlg.setSfsqmd(new UFBoolean(true));// 是否删除码单
+		//2010-12-03 MeiChao 在转库单(4K)的码单维护中保存时,执行此段代码.
+		if ("4K".equals(infoVO.getCbodybilltypecode())) {
+			buttonState(true, true, false, true, false);
+			// 获取表体数据
+			MdcrkVO[] vos = (MdcrkVO[]) getOPBillCardPanel().getBillData()
+					.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
+			IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
+					.getInstance().lookup(IVOPersistence.class.getName());
+			try {
+				MdProcessBean bean = new MdProcessBean();
+				// 计算方式
+				String sfbj = getOPBillCardPanel().getHeadItem("sfbj")
+						.getValue();
+				if (sfbj == "false")
+					infoVO.setSfbj(new UFBoolean(false));
+				else
+					infoVO.setSfbj(new UFBoolean(true));
+				// 表体数据构造成较验
+				MdcrkVO[] rsvos = bean.buliderMdcrkVOs(vos, infoVO, b_fjs);
+				MdcrkTempVO[] tempvos=new MdcrkTempVO[rsvos.length];//开始将构造成的原始码单数据转变为码单Temp并保存
+				for(int i=0;i<rsvos.length;i++){
+					String[] attributeNames=rsvos[i].getAttributeNames();
+					MdcrkTempVO MdcrkTemp=new MdcrkTempVO();
+					for(int j=0;j<attributeNames.length;j++){
+						MdcrkTemp.setAttributeValue(attributeNames[j], rsvos[i].getAttributeValue(attributeNames[j]));
+					}
+					tempvos[i]=MdcrkTemp;
+				}
+				if(crkvos!=null&&crkvos.length>0){
+				//获取当前页面的原生VO,(根据页面的出入库码单VO 获取原始的  转库码单VO)
+				MdcrkTempVO[] oldtempvos=new MdcrkTempVO[crkvos.length];//
+				for(int i=0;i<crkvos.length;i++){
+					String[] attributeNames=crkvos[i].getAttributeNames();
+					MdcrkTempVO MdcrkTemp=new MdcrkTempVO();
+					for(int j=0;j<attributeNames.length;j++){
+						MdcrkTemp.setAttributeValue(attributeNames[j], crkvos[i].getAttributeValue(attributeNames[j]));
+					}
+					oldtempvos[i]=MdcrkTemp;
+				}
+				//删除历史转库码单vo
+				iVOPersistence.deleteVOArray(oldtempvos);
+				}
+				//保存新的MdcrkTempVO到nc_mdcrk_temp表中
+				iVOPersistence.insertVOArray(tempvos);
+				
+				
+				// 更新出库单表体数据库中数据
+				bean.updateBill(dlg, rsvos);
 				onBtnCan();
-				return;
+			} catch (BusinessException e) {
+				e.printStackTrace();
+				MessageDialog.showWarningDlg(dlg, "提示", e.getMessage());
+				buttonState(true, true, true, true, false);
 			}
-			// 构造并更新现存量主子表
-			bean.updateXcl(vos);
-			iVOPersistence.insertVOArray(rsvos);
-			// 更新出库单表体数据库中数据
-			bean.updateBill(dlg, rsvos);
-			// 将锁定记录标识为无效
-			bean.updateSdbs(infoVO, "2");
-			onBtnCan();
-		} catch (BusinessException e) {
-			e.printStackTrace();
-			MessageDialog.showWarningDlg(dlg, "提示", e.getMessage());
-			buttonState(true, true, true, true, false);
+			
+
+		} else {
+			buttonState(true, true, false, true, false);
+			// 获取表体数据
+			MdcrkVO[] vos = (MdcrkVO[]) getOPBillCardPanel().getBillData()
+					.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
+			IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
+					.getInstance().lookup(IVOPersistence.class.getName());
+			try {
+				MdProcessBean bean = new MdProcessBean();
+				// 计算方式
+				String sfbj = getOPBillCardPanel().getHeadItem("sfbj")
+						.getValue();
+				if (sfbj == "false")
+					infoVO.setSfbj(new UFBoolean(false));
+				else
+					infoVO.setSfbj(new UFBoolean(true));
+				// 表体数据构造成较验
+				MdcrkVO[] rsvos = bean.buliderMdcrkVOs(vos, infoVO, b_fjs);
+				// 删除码单出入库单信息，并对原有单据做入库处理
+				boolean ders = bean.deleteAndRK(infoVO);
+				// 保存到出入库单位表体
+				if (rsvos == null && ders == false)
+					throw new BusinessException("保存失败，没有码单明细！");
+				if (rsvos == null && ders == true) {
+					bean.updateSdbs(infoVO, "0");// 还原码单锁定数据
+					dlg.setNoutnum(null);
+					dlg.setNoutassistnum(null);
+					dlg.setSfsqmd(new UFBoolean(true));// 是否删除码单
+					onBtnCan();
+					return;
+				}
+				// 构造并更新现存量主子表
+				bean.updateXcl(vos);
+				iVOPersistence.insertVOArray(rsvos);
+				// 更新出库单表体数据库中数据
+				bean.updateBill(dlg, rsvos);
+				// 将锁定记录标识为无效
+				bean.updateSdbs(infoVO, "2");
+				onBtnCan();
+			} catch (BusinessException e) {
+				e.printStackTrace();
+				MessageDialog.showWarningDlg(dlg, "提示", e.getMessage());
+				buttonState(true, true, true, true, false);
+			}
 		}
 	}
 
@@ -615,6 +697,11 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			onBtnAdd();
 			buttonState(true, true, false, true, false);
 		}
+		//2010-11-25 MeiChao add begin
+		if(arg0.getKey().equals("box")){//如果修改了货位编码
+			getOPBillCardPanel().getBillModel().execLoadFormula();
+		}
+		//2010-11-25 MeiChao add end
 	}
 
 	public void bodyRowChange(BillEditEvent arg0) {
