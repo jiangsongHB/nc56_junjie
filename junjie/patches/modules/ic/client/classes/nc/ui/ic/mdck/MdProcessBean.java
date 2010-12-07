@@ -12,10 +12,12 @@ import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.ArrayProcessor;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.jdbc.framework.processor.MapListProcessor;
 import nc.jdbc.framework.processor.MapProcessor;
 import nc.ui.pub.beans.MessageDialog;
 import nc.vo.ic.md.CargInfVO;
+import nc.vo.ic.md.MdcrkTempVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.locator.LocatorVO;
@@ -46,19 +48,23 @@ public class MdProcessBean {
 		UFDouble sumCkzs = new UFDouble(0, 2);
 		for (int i = 0; i < vos.length; i++) {
 			jbh = vos[i].getJbh();
+			String numAndSpace=jbh+vos[i].getCspaceid();//2010-12-04 MeiChao 件编号及货位的复合体用以判断是否重复
 			if (jbh == null || jbh.equals(""))
-				continue;
-			if (jbhList.contains(jbh))
-				throw new BusinessException("表体键编号" + jbh + "不能重复！");
+				throw new BusinessException("表体" + i + "件编号不允许为空！");
+			if(vos[i].getCspaceid()==null||"".equals(vos[i].getCspaceid())){ //2010-12-04 MeiChao 添加货位不允许为空
+				throw new BusinessException("表体" + i + "货位不允许为空！");
+			}
+			if (jbhList.contains(numAndSpace))//2010-12-04 MeiChao 添加件编号+货位组合不允许重复
+				throw new BusinessException("表体件编号" + jbh + "及货位"+vos[i].getCspaceid()+"不允许重复！");
 			else
-				jbhList.add(jbh);
+				jbhList.add(numAndSpace);
 			if (vos[i].getSrkzs() == null
 					|| vos[i].getSrkzs().doubleValue() == 0)
-				throw new BusinessException("表体键编号" + jbh + "的出库支数不能为0");
+				throw new BusinessException("表体件编号" + jbh + "的出库支数不能为0");
 			if (infoVO.getSfbj().booleanValue() == false)
 				if (vos[i].getSrkzl() == null
 						|| vos[i].getSrkzl().doubleValue() == 0)
-					throw new BusinessException("表体键编号" + jbh + "的出库重量不能为0");
+					throw new BusinessException("表体件编号" + jbh + "的出库重量不能为0");
 			vos[i].setPk_corp(infoVO.getCorpVo().getPk_corp()); // 公司
 			vos[i].setDr(0);
 			vos[i].setDmakedate(infoVO.getUfdate());// 操作日期；
@@ -124,15 +130,45 @@ public class MdProcessBean {
 	// 查询表体VOS
 	public MdcrkVO[] queryCrkVOS(ChInfoVO infoVO) throws BusinessException {
 		// 查询表体VOS
+		boolean istemp=false;//是否查询的是出入库码单临时表(转库码单)
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
 		Collection coll = iUAPQueryBS.retrieveByClause(MdcrkVO.class,
 				" cgeneralbid='" + infoVO.getCgeneralbid() + "' and dr=0 ");
-		if (coll == null || coll.size() == 0)
-			return null;
-
+		if (coll == null || coll.size() == 0){//2010-12-04 MeiChao改造 如果查不到,那么便去nc_mdcrk_temp中查找
+			coll = iUAPQueryBS.retrieveByClause(MdcrkTempVO.class,
+					" cgeneralbid='" + infoVO.getCgeneralbid() + "' and dr=0 ");
+			if(coll == null || coll.size() == 0){//如果仍旧为空,那么假定其为转库生成的其他出,去查转库的临时码单nc_mdcrk_temp
+				Object sourcetype = iUAPQueryBS.executeQuery(
+						"select t.csourcebillbid from ic_general_b t where t.cgeneralbid='"
+								+ infoVO.getCgeneralbid()
+								+ "' and t.cbodybilltypecode='4I'",
+						new ColumnProcessor());
+				
+				coll = iUAPQueryBS.retrieveByClause(MdcrkTempVO.class,
+						" cgeneralbid='" + (sourcetype==null?"梅超最帅了":sourcetype.toString()) + "' and dr=0 ");
+				if(coll == null || coll.size() == 0)//如果依旧没找到码单信息,那么返回null
+					return null;
+			}
+			istemp=true;
+		}
+		
 		MdcrkVO[] rsvos = new MdcrkVO[coll.size()];
-		coll.toArray(rsvos);
+		
+		if(istemp){
+			MdcrkTempVO[] tempvos=new MdcrkTempVO[coll.size()];//将集合中的值传入TempVO再转化入正常的码单VO
+			coll.toArray(tempvos);
+			for(int i=0;i<tempvos.length;i++){
+				String[] attributeNames=tempvos[i].getAttributeNames();
+				MdcrkVO MdcrkTemp=new MdcrkVO();
+				for(int j=0;j<attributeNames.length;j++){
+					MdcrkTemp.setAttributeValue(attributeNames[j], tempvos[i].getAttributeValue(attributeNames[j]));
+				}
+				rsvos[i]=MdcrkTemp;
+			}
+		}else{
+			coll.toArray(rsvos);
+		}
 		return rsvos;
 	}
 
