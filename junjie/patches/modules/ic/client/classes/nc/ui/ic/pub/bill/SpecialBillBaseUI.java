@@ -8,7 +8,6 @@ import java.util.Vector;
 
 import javax.swing.table.TableColumn;
 
-import nc.bs.logging.Logger;
 import nc.ui.ic.auditdlg.ClientUIInAndOut;
 import nc.ui.ic.ic001.BatchCodeDefSetTool;
 import nc.ui.ic.ic001.BatchcodeHelper;
@@ -2186,9 +2185,9 @@ public  boolean onSave() {
       m_voBill.setIsYetExecBatchFormulas(false);
 			
 			BatchCodeDefSetTool.execFormulaForBatchCode(m_voBill.getChildrenVO());
-			Logger.debug(m_voBill.getHeaderVO().getCbilltypecode());
+			
 			//如果存在费用信息页签并且单据类型为4K 即 转库单界面
-			if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&"4K".equals(m_voBill.getHeaderVO().getCbilltypecode())){
+			if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&this.getBillCardPanel().getBillType().equals("4K")){
 		    //获取需要保存的费用信息
 		    this.expenseVOs=(InformationCostVO[])this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
 		    /**

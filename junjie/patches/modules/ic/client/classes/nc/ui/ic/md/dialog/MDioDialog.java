@@ -12,7 +12,6 @@ import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.ui.ic.mdck.MDConstants;
 import nc.ui.ic.pub.bill.Environment;
 import nc.ui.ic.pub.bill.GeneralBillClientUI;
-import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
 import nc.ui.pub.beans.UIDialog;
@@ -301,33 +300,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				if (vos != null && vos.length > 0) {
 					getBillCardPanel().getBillModel().setBodyDataVO(vos);
 					getBillCardPanel().getBillModel().execLoadFormula();
-				}else{//2010-12-01 MeiChao begin添加此else判断,当前无已存在码单信息时.
-					//尝试去寻找相同上游单据的对应其他出库单对应的表体存货下的码单信息.(有点绕)
-					vos = (MdcrkVO[]) HYPubBO_Client.queryByCondition(
-							MdcrkVO.class, " isnull(dr,0)=0 and cgeneralbid=(select t.cgeneralbid " +
-									"from ic_general_b t where t.csourcebillbid=" +
-									"(select t.csourcebillbid from ic_general_b t where t.cgeneralbid='" 
-									+ getGeneralBillVO().getItemValue(
-											getGenSelectRowID(), "cgeneralbid")
-									+ "' and t.dr=0) and t.cbodybilltypecode='4I' and t.dr=0)");
-					if (vos != null && vos.length > 0) {
-						//如果成功查询到对应的码单VO,那么将其当中的某几项修改掉: 
-						//pk_mdcrk,cbodybilltypecode,pk_mdxcl_b,cgeneralbid,cwarehouseidb,cspaceid,jbh,voperatorid
-						for(int i=0;i<vos.length;i++){
-							vos[i].setPk_mdcrk(null);//码单PK设置为空
-							vos[i].setCbodybilltypecode(this.ui.getBillTypeCode());
-							vos[i].setPk_mdxcl_b(null);
-							vos[i].setCgeneralbid(getGeneralBillVO().getItemValue(getGenSelectRowID(), "cgeneralbid").toString());
-							vos[i].setCwarehouseidb(getGeneralBillVO().getHeaderVO().getCwarehouseid());
-							vos[i].setCspaceid(null);
-							//vos[i].setJbh(null);
-							vos[i].setVoperatorid(ClientEnvironment.getInstance().getUser().getPrimaryKey());
-						}
-					getBillCardPanel().getBillModel().setBodyDataVO(vos);
-					getBillCardPanel().getBillModel().execLoadFormula();
-					}
 				}
-				//2010-12-01 MeiChao end
 			} catch (UifException e) {
 				e.printStackTrace();
 			}
@@ -1026,11 +999,6 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "srkzl");
 		}
-		//2010-11-25 MeiChao add begin
-		else if(key.equals("box")){//如果修改了货位编码
-			getBillCardPanel().getBillModel().execLoadFormula();
-		}
-		//2010-11-25 MeiChao add end
 
 		edited = true;
 		// md_width

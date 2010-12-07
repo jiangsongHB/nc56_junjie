@@ -4,15 +4,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import nc.ui.ic.pub.bill.GeneralBillClientUI;
-import nc.ui.ic.pub.bill.SpecialBillBaseUI;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.UIDialog;
 import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
-import nc.vo.ic.pub.bill.SpecialBillHeaderVO;
-import nc.vo.ic.pub.bill.SpecialBillItemVO;
-import nc.vo.ic.pub.bill.SpecialBillVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDouble;
@@ -189,30 +185,6 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 		for (int t = 0; t < itemVOaArrays.length; t++)
 			itemVOaArrays[t].setTs(MDConstants.getCurrentDateTime());
 		GeneralBillVO billvo = new GeneralBillVO();
-		billvo.setParentVO(hvo);
-		billvo.setChildrenVO(itemVOaArrays);
-		return billvo;
-	}
-	
-	// 需要更新的转库单界面数据
-	public SpecialBillVO getUpdateSpecialUIVO(int selectedColumn) {
-		// 单据VO
-		SpecialBillVO bill = ((SpecialBillBaseUI)this.getParent()).getM_voBill();
-		// 选择的行
-		int srow = selectedColumn;
-		SpecialBillHeaderVO hvo = bill.getHeaderVO();
-		hvo.setTs(MDConstants.getCurrentDateTime());
-		SpecialBillItemVO[] itemVOaArrays = (SpecialBillItemVO[]) bill
-				.getChildrenVO();
-		SpecialBillItemVO itemVOa = itemVOaArrays[srow];
-		itemVOa.setNshldtransastnum(getNoutassistnum());
-		itemVOa.setDshldtransnum(getNoutnum());
-		// itemVOa.set//出库日期
-
-		itemVOaArrays[srow] = itemVOa;
-		for (int t = 0; t < itemVOaArrays.length; t++)
-			itemVOaArrays[t].setTs(MDConstants.getCurrentDateTime());
-		SpecialBillVO billvo = new SpecialBillVO();
 		billvo.setParentVO(hvo);
 		billvo.setChildrenVO(itemVOaArrays);
 		return billvo;

@@ -3,13 +3,7 @@ package nc.ui.ic.ic221;
 import java.util.ArrayList;
 import java.util.Vector;
 
-import nc.bs.framework.common.NCLocator;
-import nc.itf.uap.IUAPQueryBS;
-import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.jjpanel.InfoCostPanel;
-import nc.ui.ic.mdck.ChInfoVO;
-import nc.ui.ic.mdck.MDConstants;
-import nc.ui.ic.mdck.MdwhDlg;
 import nc.ui.ic.pub.InvOnHandDialog;
 import nc.ui.ic.pub.PageCtrlBtn;
 import nc.ui.ic.pub.bill.QueryDlgHelpForSpec;
@@ -20,13 +14,10 @@ import nc.ui.ic.pub.print.PrintDataInterface;
 import nc.ui.ic.pub.query.QueryDlgUtil;
 import nc.ui.pub.ButtonObject;
 import nc.ui.pub.ClientEnvironment;
-import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIMenuItem;
 import nc.ui.pub.beans.UIRefPane;
 import nc.ui.pub.bill.BillCardPanel;
-import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillItem;
-import nc.ui.pub.bill.BillModel;
 import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.BillTypeConst;
 import nc.vo.ic.pub.GenMethod;
@@ -39,7 +30,6 @@ import nc.vo.ic.pub.bill.SpecialBillItemVO;
 import nc.vo.ic.pub.bill.SpecialBillVO;
 import nc.vo.ic.pub.lang.ResBase;
 import nc.vo.ic.pub.smallbill.SMSpecialBillVO;
-import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.constant.ic.BillMode;
 import nc.vo.scm.constant.ic.InOutFlag;
@@ -71,15 +61,9 @@ public class ClientUI extends SpecialBillBaseUI {
 		return this.expenseInput;
 	}
 	//2010-11-26 MeiChao end 添加费用录入按钮
-	//2010-12-02 MeiChao begin 添加码单处理按钮
-	private ButtonObject positionList;
-	private ButtonObject getButtonPositionList(){
-		if(this.positionList==null){
-			this.positionList=new ButtonObject("维护码单","维护码单","维护码单");
-		}
-		return this.positionList;
-	}
-	//2010-12-02 MeiChao end 添加码单处理按钮
+	
+	
+	
 	
 	
 	/**
@@ -410,10 +394,8 @@ public class ClientUI extends SpecialBillBaseUI {
 			onIn();
 		else if (bo == m_boDirectOut)
 			onDirectOut();
-		else if(bo== this.getButtonExpenseInput())//2010-11-26 MeiChao 添加对费用录入按钮的响应方法
+		else if(bo== this.getButtonExpenseInput())//2010-11-26 MeiChao 添加对费用录入按钮的相应方法
 			this.onBoExpenseInput();
-		else if(bo==this.getButtonPositionList())//2010-12-02 MeiChao 添加对维护码单按钮的响应方法
-			onBoPositionList();
 		else
 			super.onButtonClicked(bo);
 
@@ -920,7 +902,6 @@ public class ClientUI extends SpecialBillBaseUI {
 				m_boOut, m_boIn, m_boDirectOut, m_boQuery, m_boBrowse,
 				m_boJointCheck, m_boRowQuyQty, m_boLocate, m_PrintMng, m_boList,
 				this.getButtonExpenseInput()//2010-11-26 MeiChao 将费用录入按钮加入到按钮组中. 
-				,this.getButtonPositionList()//2010-12-02 MeiChao 将维护码单按钮加入到按钮组中.
 				};
 
 	}
@@ -1986,101 +1967,8 @@ public class ClientUI extends SpecialBillBaseUI {
   	}
 
 
-  	/**
-  	 * 码单维护按钮的响应方法
-  	 */
   
-  private void onBoPositionList(){
-		MdwhDlg dlg;
-		try {
-			dlg = new MdwhDlg(this,"维护转库码单",this.getInfoVO());
-			dlg.showModal();
-			if (dlg.getNoutassistnum() == null
-					|| dlg.getNoutnum() == null)
-				return;
-			//如果维护了码单,那么开始对表体存货行进行数量修正
-			int selectedRowNum = this.getBillCardPanel().getBillTable()
-					.getSelectedRow();// 所选行id
-			this.onButtonClicked(this.m_boChange);// 调用"修改"按钮
-			this.getBillCardPanel().setBodyValueAt(dlg.getNoutnum(),
-					selectedRowNum, "dshldtransnum");// 设置实发数量
-			BillEditEvent afterEditDshldtransnum = new BillEditEvent(
-					getBillCardPanel().getBodyItem("dshldtransnum")
-							.getComponent(), dlg.getNoutnum(), "dshldtransnum",
-					selectedRowNum, BillItem.BODY);// 组织实发数量编辑后事件
-			this.afterEdit(afterEditDshldtransnum);
-			this.getM_voBill().setItemValue(selectedRowNum, "dshldtransnum",
-					dlg.getNoutnum());
-			this.getBillCardPanel().setBodyValueAt(dlg.getNoutassistnum(),
-					selectedRowNum, "nshldtransastnum");// 设置实发辅数量
-			BillEditEvent afterEditNshldtransastnum = new BillEditEvent(
-					getBillCardPanel().getBodyItem("nshldtransastnum")
-							.getComponent(), dlg.getNoutassistnum(),
-					"nshldtransastnum", selectedRowNum, BillItem.BODY);// 组织施法辅数量编辑后事件
-			this.afterEdit(afterEditNshldtransastnum);
-			this.getM_voBill().setItemValue(selectedRowNum, "nshldtransastnum",
-					dlg.getNoutassistnum());
-			if (getBillCardPanel().getBillModel().getRowState(selectedRowNum) == BillModel.NORMAL)
-				getBillCardPanel().getBillModel().setRowState(selectedRowNum,
-						BillModel.MODIFICATION);// 将所编辑行状态設置为"修改" (重要)
-			this.onButtonClicked(this.m_boSave);// 调用"保存"按钮
-			
-		} catch (BusinessException e) {
-			MessageDialog.showHintDlg(this, "提示",e.getMessage());
-			e.printStackTrace();
-		}
-		getBillCardPanel().updateValue();
-		getBillCardPanel().updateUI();
-		getBillListPanel().updateUI();
-	  
-  }
-   //组织InfoVO
-	private ChInfoVO getInfoVO() throws BusinessException{
-		ChInfoVO infoVO = new ChInfoVO();
-		infoVO.setCorpVo(ClientEnvironment.getInstance().getCorporation());// 公司
-		infoVO.setUfdate(ClientEnvironment.getInstance().getDate());// 日期
-		infoVO.setUserVo(ClientEnvironment.getInstance().getUser());// 用户
-		if (this.getM_iMode() != BillMode.Browse)
-			throw new BusinessException("只有在浏览的状态下才可以维护码单，请先保存单据！");
-		SpecialBillVO billvo = (SpecialBillVO)this.getBillCardPanel().getBillValueVO(SpecialBillVO.class.getName(),SpecialBillHeaderVO.class.getName(),SpecialBillItemVO.class.getName());
-		if (billvo == null)
-			throw new BusinessException("请选择单据！");
-		SpecialBillHeaderVO hvo = (SpecialBillHeaderVO)billvo.getParentVO();
-		if (hvo == null)
-			throw new BusinessException("请选择需要维护码单的单据！");
-		infoVO.setCbodybilltypecode(hvo.getCbilltypecode()); // 单据类型
-		infoVO.setCwarehouseidb(hvo.getCoutwarehouseid());// 仓库
-		infoVO.setCcalbodyidb(hvo.getPk_calbody_out());// pk_calbody库存组织
-		infoVO.setFbillflag(2);// 单据状态；
-		int srow = this.getBillCardPanel().getBillTable().getSelectedRow();
-		if (srow < 0)
-			throw new BusinessException("请选择需要维护码单的表体行");
-		SpecialBillItemVO itemVOa = ((SpecialBillItemVO[]) billvo
-				.getChildrenVO())[srow];
-		// 是否退货
-		if (false) {
-			itemVOa.setNshldtransastnum(new UFDouble(-itemVOa.getNshldtransastnum()
-					.doubleValue())); // 辅数量
-			itemVOa
-					.setDshldtransnum(new UFDouble(-itemVOa.getDshldtransnum().doubleValue()));// 数量
-		}
-		infoVO.setCbodybilltypecode("4K"); // 单据类型
-		infoVO.setCgeneralbid(itemVOa.getCgeneralbid());// 表体行PK
-		IUAPQueryBS query=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
-		Object invbasid=query.executeQuery("select pk_invbasdoc from bd_invmandoc where pk_invmandoc='"+itemVOa.getCinventoryid()+"'", new ColumnProcessor());
-		infoVO.setPk_invbasdoc(invbasid.toString());// 存货基本档案
-		infoVO.setPk_invmandoc(itemVOa.getCinventoryid());// 存货管理档案
-		// infoVO.setNoutassistnum(itemVOa.getNoutassistnum());// 实出辅数量
-		// infoVO.setNoutnum(itemVOa.getNoutnum());// 实出数量
-		// infoVO.setNoutassistnum(itemVOa.getNshouldoutassistnum());// 应出辅数量
-		// infoVO.setNoutnum(itemVOa.getNshouldoutnum());// 应出数量
-		if (itemVOa.getNshldtransastnum() == null
-				|| itemVOa.getNshldtransastnum().doubleValue() == 0)
-			throw new BusinessException("实发辅数量为空，不能维护码单！");
-		infoVO.setNoutassistnum(itemVOa.getNshldtransastnum());// 实出辅数量
-		infoVO.setNoutnum(itemVOa.getDshldtransnum());// 实出数量
-		infoVO.setLydjh(itemVOa.getCfirstbillbid());// 来源单据号cfirstbillbid
-		return infoVO;
-	}
+  
+  
   
 }
