@@ -299,6 +299,8 @@ junjie/patches/modules/ic/classes/nc/vo/ic/jjvo/InformationCostVO.class -text
 junjie/patches/modules/ic/classes/nc/vo/ic/jjvo/InformationCostVOMeta.class -text
 junjie/patches/modules/ic/classes/nc/vo/ic/md/CargInfVO.class -text
 junjie/patches/modules/ic/classes/nc/vo/ic/md/CargInfVO.java -text
+junjie/patches/modules/ic/classes/nc/vo/ic/md/MdcrkTempVO.class -text
+junjie/patches/modules/ic/classes/nc/vo/ic/md/MdcrkTempVO.java -text
 junjie/patches/modules/ic/classes/nc/vo/ic/md/MdcrkVO.class -text
 junjie/patches/modules/ic/classes/nc/vo/ic/md/MdcrkVO.java -text
 junjie/patches/modules/ic/classes/nc/vo/ic/pub/bill/GeneralBillItemVO.class -text
