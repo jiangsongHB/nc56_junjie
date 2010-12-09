@@ -20,6 +20,7 @@ import nc.vo.ic.md.CargInfVO;
 import nc.vo.ic.md.MdcrkTempVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
+import nc.vo.ic.pub.bill.SpecialBillItemVO;
 import nc.vo.ic.pub.locator.LocatorVO;
 import nc.vo.ic.sd.MdsdVO;
 import nc.vo.ic.xcl.MdxclBVO;
@@ -459,4 +460,71 @@ public class MdProcessBean {
 				return false;
 		}
 	}
+	
+	/**
+	 * 2010-12-09 MeiChao 
+	 * 根据SpecialBillItemVO来构造货位,取数源为数据表nc_mdcrk_temp,
+	 * 而builderHwVos()是根据GeneralBillItemVO来构造货位,取数源为nc_mdcrk表
+	 * @param itemVO
+	 * @param billType 单据类型
+	 * @param sfth 是否退货
+	 * @return
+	 * @throws BusinessException
+	 */
+	// 构靠一个货位VOs
+	public LocatorVO[] builderHwVos2(SpecialBillItemVO itemVO, String billType,
+			boolean sfth) throws BusinessException {
+		LocatorVO[] rsvo = null;
+		String sql = "select t2.cspaceid,t3.cscode,t3.csname,t1.cgeneralbid,t1.srkzs,t1.srkzl"
+				+ " from nc_mdcrk_temp t1 left join nc_mdxcl_b t2 on t1.pk_mdxcl_b=t2.pk_mdxcl_b"
+				+ " left join bd_cargdoc t3 on t2.cspaceid=t3.pk_cargdoc where t1.cgeneralbid='"
+				+ itemVO.getCgeneralbid() + "' and t1.dr=0";
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		List rsList = (List) iUAPQueryBS.executeQuery(sql,
+				new MapListProcessor());
+		if (rsList == null || rsList.size() == 0)
+			return null;
+		rsvo = new LocatorVO[rsList.size()];
+		for (int i = 0; i < rsList.size(); i++) {
+			LocatorVO vo = new LocatorVO();
+			Map voMap = (Map) rsList.get(i);
+			vo.setCspaceid((String) voMap.get("cspaceid")); // 货位PK值
+			vo.setVspacecode((String) voMap.get("cscode")); // 货位编码
+			vo.setVspacename((String) voMap.get("csname")); // 货位名称
+			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
+			UFDouble d2 = new UFDouble((BigDecimal) voMap.get("srkzs"));
+			// 入库
+			if (billType.equals("45") || billType.equals("4A")) {
+				if (sfth == true) {
+					vo.setNinspacenum(new UFDouble(-d1.doubleValue()));
+					vo.setNinspaceassistnum(new UFDouble(-d2.doubleValue()));
+					vo.setNingrossnum(null);
+				} else {
+					vo.setNinspacenum(d1);
+					vo.setNinspaceassistnum(d2);
+					vo.setNingrossnum(null);
+				}
+			}
+			// 出库
+			else {
+				if (sfth == true) {
+					vo.setNoutspacenum(new UFDouble(-d1.doubleValue()));
+					vo.setNoutspaceassistnum(new UFDouble(-d2.doubleValue()));
+					vo.setNoutgrossnum(null);
+				} else {
+					vo.setNoutspacenum(d1);
+					vo.setNoutspaceassistnum(d2);
+					vo.setNoutgrossnum(null);
+				}
+
+			}
+			rsvo[i] = vo;
+		}
+		return rsvo;
+	}
+	
+	
+	
+	
 }
