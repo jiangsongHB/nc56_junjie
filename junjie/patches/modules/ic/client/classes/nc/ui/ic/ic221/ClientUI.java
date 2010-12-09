@@ -2035,7 +2035,7 @@ public class ClientUI extends SpecialBillBaseUI {
 	  
   }
    //组织InfoVO
-	private ChInfoVO getInfoVO() throws BusinessException{
+	public ChInfoVO getInfoVO() throws BusinessException{
 		ChInfoVO infoVO = new ChInfoVO();
 		infoVO.setCorpVo(ClientEnvironment.getInstance().getCorporation());// 公司
 		infoVO.setUfdate(ClientEnvironment.getInstance().getDate());// 日期
