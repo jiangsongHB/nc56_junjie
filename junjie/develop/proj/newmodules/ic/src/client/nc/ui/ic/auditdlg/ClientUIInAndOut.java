@@ -13,10 +13,15 @@ import nc.bs.logging.Logger;
 import nc.itf.arap.pub.IArapBillPublic;
 import nc.itf.ia.bill.IBill;
 import nc.itf.uap.IUAPQueryBS;
+import nc.itf.uap.IVOPersistence;
+import nc.jdbc.framework.processor.ArrayListProcessor;
+import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.ic001.BatchCodeDefSetTool;
 import nc.ui.ic.ic233.ClientUI;
 import nc.ui.ic.jj.JJIcScmPubHelper;
+import nc.ui.ic.mdck.ChInfoVO;
+import nc.ui.ic.mdck.MdProcessBean;
 import nc.ui.ic.pub.bill.GeneralBillClientUI;
 import nc.ui.ic.pub.bill.GeneralBillUICtl;
 import nc.ui.ic.pub.bill.GeneralButtonManager;
@@ -34,11 +39,14 @@ import nc.vo.ia.bill.BillHeaderVO;
 import nc.vo.ia.bill.BillItemVO;
 import nc.vo.ia.bill.BillVO;
 import nc.vo.ic.jjvo.InformationCostVO;
+import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.GenMethod;
 import nc.vo.ic.pub.bc.BarCodeVO;
 import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
+import nc.vo.ic.pub.bill.SpecialBillHeaderVO;
+import nc.vo.ic.pub.bill.SpecialBillItemVO;
 import nc.vo.ic.pub.bill.SpecialBillVO;
 import nc.vo.ic.pub.bill.Timer;
 import nc.vo.ic.pub.exp.RightcheckException;
@@ -1797,7 +1805,43 @@ protected void onSaveBaseKernel(GeneralBillVO[] voaAllBill,String sAccreditUserI
 			}
 		}
 		//2010-11-9 MeiChao End 当单据保存完毕之后,将费用信息保存入
-		
+		//2010-12-08 MeiChao Begin 当转库->出库时,将转库单中的码单信息,存至对应出库单下.
+			if (this.m_sSrcBillTypeCode != null
+					&& this.m_sSrcBillTypeCode.equals("4K")) {
+
+				// this.ivjChldClientUIOut.getM_alLocatorData();
+				MdProcessBean bean = new MdProcessBean();// 码单工具类
+				String specialBillPK = this.m_voSpBill.getParentVO()
+						.getPrimaryKey();// 转库单PK
+				// 获取客户端查询接口
+				IUAPQueryBS iQueryService = (IUAPQueryBS) NCLocator
+						.getInstance().lookup(IUAPQueryBS.class.getName());
+				IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
+						.getInstance().lookup(IVOPersistence.class.getName());// 持久化工具接口
+
+				String queryPKSQL = "select distinct t.cgeneralbid "
+						+ // 源头,上游单据类型均为4K 的其他入库单PK
+						"from ic_general_b t where "
+						+ // 不加上cfirst系列字段,是因为从转库到其他出库单的时候并不在相应字段填入值.
+						"t.cbodybilltypecode='4I' and t.csourcetype='4K' and "
+						+ "t.csourcebillhid='" + specialBillPK + "' and t.dr=0";
+				Object[] pkResults = (Object[]) iQueryService.executeQuery(queryPKSQL,
+						new ArrayProcessor());// 执行查询
+				for (int i = 0; i < this.m_voSpBill.getChildrenVO().length; i++) {// resultPKs与m_voSpBill.getChildrenVO.length必须相等
+
+					MdcrkVO[] crkvos = bean.queryCrkVOS(this.getInfoVO(
+							((SpecialBillItemVO) this.m_voSpBill
+									.getChildrenVO()[i]).getCgeneralbid(), i));
+					for (int j = 0; j < crkvos.length; j++) {
+						crkvos[j].setCgeneralbid(pkResults[i].toString());
+						crkvos[j].cbodybilltypecode="4I";
+					}
+					bean.updateXcl(crkvos);// 更新码单现存量表
+					iVOPersistence.insertVOArray(crkvos);// 将出入库码单信息插入数据库.
+
+				}
+			}
+		//2010-12-08 MeiChao End
 		
 		if (isSign){
 			//修改人：刘家清 修改时间：2008-11-20 下午03:07:21 修改原因：把数据刷新到要进行下一步操作的VO中。
@@ -2456,6 +2500,31 @@ public void setVO(
 		//zhy2005-05-27解决效率问题，下行的方法主要是处理批次改变后自动检验失效日期等信息，此处主要为初始化过程，并未改动批次，故此出可不进行调用，注释下面行
 //		getChldClientUIOut().setAllLotRefAuto();
 		getChldClientUIOut().removeListHeadMouseListener();
+		
+		/**
+		 * 2010-12-08 MeiChao Begin在初始化其他出库单界面时,便根据转库单码单组织好对应的货位VO
+		 */
+		if(m_sSrcBillTypeCode!=null&&m_sSrcBillTypeCode.equals("4K")){//如果来源单据类型为4K(转库)
+		/**
+		 * 查询转库单的码单信息(MdProcessBean中使用builderHwVos2方法)查询的是nc_mdcrk_temp表
+		 */
+		MdProcessBean bean=new MdProcessBean();	
+		try {
+			for(int i=0;i<this.m_voSpBill.getChildrenVO().length;i++){
+				//MdcrkVO[] crkvos=bean.queryCrkVOS(this.getInfoVO());
+				LocatorVO[] locVO=bean.builderHwVos2((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[i], "4K", false);
+				this.getChldClientUIOut().getM_alLocatorData().set(i, locVO);
+				}
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		}
+		/**
+		 * 2010-12-09(8日开始今日补完) MeiChao End 在初始化其他出库单界面时,便根据转库单码单组织好对应的货位VO
+		 */
+		
+		
 	} else {
 		m_outVOs = null;
 		getUIPaneOut().setEnabled(false);
@@ -2555,10 +2624,6 @@ public void setVO4Direct(
 		}
 		//2010-11-09 MeiChao End 添加
 		
-		
-		
-		
-		
 	} else {
 		m_inVOs = null;
 		getUIPaneIn().setEnabled(false);
@@ -2587,6 +2652,31 @@ public void setVO4Direct(
 		//zhy2005-05-27解决效率问题，下行的方法主要是处理批次改变后自动检验失效日期等信息，此处主要为初始化过程，并未改动批次，故此出可不进行调用，注释下面行
 //		getChldClientUIOut().setAllLotRefAuto();
 		getChldClientUIOut().removeListHeadMouseListener();
+		/**
+		 * 2010-12-09 MeiChao Begin在初始化其他出库单界面时,便根据转库单码单组织好对应的货位VO
+		 */
+		if(m_sSrcBillTypeCode!=null&&m_sSrcBillTypeCode.equals("4K")){//如果来源单据类型为4K(转库)
+		/**
+		 * 查询转库单的码单信息(MdProcessBean中使用builderHwVos2方法)查询的是nc_mdcrk_temp表
+		 */
+		MdProcessBean bean=new MdProcessBean();	
+		try {
+			for(int i=0;i<this.m_voSpBill.getChildrenVO().length;i++){
+				//MdcrkVO[] crkvos=bean.queryCrkVOS(this.getInfoVO());
+				LocatorVO[] locVO=bean.builderHwVos2((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[i], "4K", false);
+				this.getChldClientUIOut().getM_alLocatorData().set(i, locVO);
+				}
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		}
+		/**
+		 * 2010-12-09 MeiChao End 在初始化其他出库单界面时,便根据转库单码单组织好对应的货位VO
+		 */
+		
+		
+		
 	} else {
 		m_outVOs = null;
 		getUIPaneOut().setEnabled(false);
@@ -3187,7 +3277,46 @@ protected boolean icToAPAndIA(GeneralBillVO generalBill){
 //		}
 	  return true;
 }
-
+/**
+ * 构造执行"查询码单"等业务时候的infoVO方法
+ * @param cgeneralbid 表体pk
+ * @param selectedRowNO 表体行编号(从0开始)
+ * @return
+ * @throws BusinessException
+ */
+ public ChInfoVO getInfoVO(String cgeneralbid,int selectedRowNO) throws BusinessException{
+	 ChInfoVO infoVO = new ChInfoVO();
+		infoVO.setCorpVo(ClientEnvironment.getInstance().getCorporation());// 公司
+		infoVO.setUfdate(ClientEnvironment.getInstance().getDate());// 日期
+		infoVO.setUserVo(ClientEnvironment.getInstance().getUser());// 用户
+		infoVO.setCwarehouseidb(((SpecialBillHeaderVO)this.m_voSpBill.getParentVO()).getCoutwarehouseid());// 仓库
+		infoVO.setCcalbodyidb(((SpecialBillHeaderVO)this.m_voSpBill.getParentVO()).getPk_calbody_out());// pk_calbody库存组织
+		infoVO.setFbillflag(2);// 单据状态；
+		infoVO.setCbodybilltypecode("4K"); // 单据类型
+		infoVO.setCgeneralbid(cgeneralbid);// 表体行PK
+		IUAPQueryBS query=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+		Object invbasid;
+		try {
+			invbasid = query.executeQuery("select pk_invbasdoc from bd_invmandoc where pk_invmandoc='"+((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[selectedRowNO]).getCinventoryid()+"'", new ColumnProcessor());
+			infoVO.setPk_invbasdoc(invbasid.toString());// 存货基本档案
+			infoVO.setPk_invmandoc(((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[selectedRowNO]).getCinventoryid());// 存货管理档案
+			// infoVO.setNoutassistnum(itemVOa.getNoutassistnum());// 实出辅数量
+			// infoVO.setNoutnum(itemVOa.getNoutnum());// 实出数量
+			// infoVO.setNoutassistnum(itemVOa.getNshouldoutassistnum());// 应出辅数量
+			// infoVO.setNoutnum(itemVOa.getNshouldoutnum());// 应出数量
+			if (((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[selectedRowNO]).getNshldtransastnum() == null
+					|| ((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[selectedRowNO]).getNshldtransastnum().doubleValue() == 0)
+				throw new BusinessException("实发辅数量为空，不能维护码单！");
+			infoVO.setNoutassistnum(((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[selectedRowNO]).getNshldtransastnum());// 实出辅数量
+			infoVO.setNoutnum(((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[selectedRowNO]).getDshldtransnum());// 实出数量
+			infoVO.setLydjh(((SpecialBillItemVO)this.m_voSpBill.getChildrenVO()[selectedRowNO]).getCfirstbillbid());// 来源单据号cfirstbillbid
+			
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return infoVO;
+ }
 
 
 
