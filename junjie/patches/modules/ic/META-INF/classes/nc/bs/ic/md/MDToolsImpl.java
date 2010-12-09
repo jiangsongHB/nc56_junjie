@@ -178,17 +178,17 @@ public class MDToolsImpl implements IMDTools {
 				result = false;
 			}
 			if (mdcrkVO.getCrkfx() == MDUtils.KC_IN) {
-				String jbh = mdcrkVO.getJbh();
+				String jbhAndSpace = mdcrkVO.getJbh()+mdcrkVO.getCspaceid();//2010-12-09 MeiChao 用以比较的字符串加上了货位
 				String pk_md = mdcrkVO.getPk_mdxcl_b();
 
-				if (jbh_list.contains(jbh)) {
-					throw new BusinessException("表体存在相同的件编号: " + jbh);
+				if (jbh_list.contains(jbhAndSpace)) {
+					throw new BusinessException("表体第"+i+"行存在相同的货位+件编号的组合,件编号: "+mdcrkVO.getJbh() );
 				} else {
-					jbh_list.add(jbh);
+					jbh_list.add(jbhAndSpace);
 				}
 
 				String sql = " select jbh from nc_mdxcl_b where isnull(dr,0)=0 and zhishu<>0 and jbh='"
-						+ jbh + "' ";
+						+ mdcrkVO.getJbh() + "' and cspaceid='"+mdcrkVO.getCspaceid()+"' ";//2010-12-09 MeiChao 件编号唯一修改为 件编号+货位唯一
 				if (pk_md != null) {
 					sql = sql + " and pk_mdxcl_b != '" + pk_md + "' ";
 				}
@@ -196,8 +196,8 @@ public class MDToolsImpl implements IMDTools {
 				List list = (List) getDAO().executeQuery(sql,
 						new ColumnListProcessor());
 				if (!list.isEmpty()) {
-					throw new BusinessException("第" + i + "行,件编号" + jbh
-							+ "已经存在");
+					throw new BusinessException("第" + i + "行,对应货位中已存在 件编号" + mdcrkVO.getJbh()
+							+ "的记录! ");//2010-12-09 MeiChao 件编号唯一修改为 件编号+货位唯一
 				}
 			}
 			i++;
