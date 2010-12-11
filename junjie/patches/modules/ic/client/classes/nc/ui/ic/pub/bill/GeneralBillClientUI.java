@@ -17,7 +17,10 @@ import nc.vo.ic.md.MdcrkVO;
 import javax.swing.JFileChooser;
 
 import nc.bs.framework.common.NCLocator;
+import nc.bs.logging.Logger;
 import nc.itf.ic.md.IMDTools;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.bd.ref.AbstractRefModel;
 import nc.ui.ic.ic001.BatchCodeDefSetTool;
 import nc.ui.ic.ic001.BatchcodeHelper;
@@ -1907,6 +1910,10 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 	// 2010-10-12 heyq add
 	private void getMdwf() {
+		//所选择的行号 2010-12-11 MeiChao 添加此变量,因为在回写订单时需要取得此信息.
+		//由于码单维护的保存操作执行了出库界面的修改动作,导致保存时无法取得保存前的所选择行号,所以将其放于此.
+		int selectedRowNum=this.getBillCardPanel().getBillTable().getSelectedRow();
+		
 		if (getBillType().equals("4C") || getBillType().equals("4I")) {
 			MdwhDlg dlg;
 			try {
@@ -2096,6 +2103,31 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				if (getBillCardPanel().getBillModel().getRowState(j) == BillModel.NORMAL)
 					getBillCardPanel().getBillModel().setRowState(j,
 							BillModel.MODIFICATION);
+				
+				/**
+				 * 2010-12-10 MeiChao 有关销售出库单表体出库数量修改后,大于采购订单"已出库数量"时,不允许保存当前订单
+				 * 那么在保存前校验一下数量,如果超出,那么修改相应订单的"已出库数量"即可. 
+				 * begin
+				 */
+				//所选择的行VO
+				GeneralBillItemVO selectedBody=this.getM_voBill().getItemVOs()[selectedRowNum];
+				IUAPQueryBS iQueryBS=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+				Object SOntotalinventorynumber=iQueryBS.executeQuery("select t.ntotalinventorynumber from so_saleexecute t where t.csale_bid='"+selectedBody.getCsourcebillbid()+"' and t.dr=0", new ColumnProcessor());
+				if(SOntotalinventorynumber!=null){//已存在出库数量记录的时候才执行.
+					
+					Double SoNum=new Double(SOntotalinventorynumber.toString());
+					Double IcNum=new Double(this.getBillCardPanel().getBodyValueAt(selectedRowNum, "noutnum").toString());
+					if(SoNum<IcNum){//如果已出库数量小于当前出库码单数量,那么执行修改.
+						IMDTools Mdtool=(IMDTools)NCLocator.getInstance().lookup(IMDTools.class.getName());
+						boolean isUpdateSoSucess=Mdtool.updateNewOutToSo(selectedBody.getCsourcebillbid(), new UFDouble(IcNum-SoNum));
+						if(isUpdateSoSucess){
+							Logger.debug("出库数量发生增量变动,已修改对应销售订单出库关闭等 关闭订单的状态.");
+						}
+					}
+				}
+				/**
+				 * end
+				 */
 
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
