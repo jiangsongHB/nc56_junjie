@@ -261,7 +261,7 @@ public class MDToolsImpl implements IMDTools {
 	 */
 	public boolean updateNewOutToSo(String csalebid, UFDouble newNumber)
 			throws BusinessException {
-		String updateNewNum="update so_saleexcete t set t.ntotalinventorynumber='"+newNumber+"' where t.csale_bid='"+csalebid+"'";
+		String updateNewNum="update so_saleexecute t set t.ntotalinventorynumber='"+newNumber+"' where t.csale_bid='"+csalebid+"'";
 		int updateRowNumber=this.getDAO().executeUpdate(updateNewNum);
 		if(updateRowNumber==1)
 			return true;
