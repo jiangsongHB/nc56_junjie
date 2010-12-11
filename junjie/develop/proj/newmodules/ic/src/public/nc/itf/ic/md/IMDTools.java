@@ -16,7 +16,7 @@ public interface IMDTools {
 	 * 回写新出库数量至销售订单执行情况表
 	 * @author MeiChao
 	 * @date 2010-12-10
-	 * @param csalebid 销售订单表体id  newNumber 要回写至销售订单执行情况表的新入库数量  
+	 * @param csalebid 销售订单表体id  newNumber 要回写至销售订单执行情况表的新入库数量的累加差额  
 	 */
 	public boolean updateNewOutToSo(String csalebid,UFDouble newNumber) throws BusinessException;
 	
