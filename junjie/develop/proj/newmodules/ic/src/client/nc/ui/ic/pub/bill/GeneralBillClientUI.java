@@ -17,6 +17,7 @@ import nc.vo.ic.md.MdcrkVO;
 import javax.swing.JFileChooser;
 
 import nc.bs.framework.common.NCLocator;
+import nc.bs.logging.Logger;
 import nc.itf.ic.md.IMDTools;
 import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ColumnProcessor;
@@ -2120,7 +2121,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						IMDTools Mdtool=(IMDTools)NCLocator.getInstance().lookup(IMDTools.class.getName());
 						boolean isUpdateSoSucess=Mdtool.updateNewOutToSo(selectedBody.getCsourcebillbid(), new UFDouble(IcNum-SoNum));
 						if(isUpdateSoSucess){
-							this.showHintMessage("出库数量发生增量变动,已回写至对应订单表体执行结果中.");
+							Logger.debug("出库数量发生增量变动,已修改对应销售订单出库关闭等 关闭订单的状态.");
 						}
 					}
 				}
