@@ -1909,6 +1909,10 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 
 	// 2010-10-12 heyq add
 	private void getMdwf() {
+		//所选择的行号 2010-12-11 MeiChao 添加此变量,因为在回写订单时需要取得此信息.
+		//由于码单维护的保存操作执行了出库界面的修改动作,导致保存时无法取得保存前的所选择行号,所以将其放于此.
+		int selectedRowNum=this.getBillCardPanel().getBillTable().getSelectedRow();
+		
 		if (getBillType().equals("4C") || getBillType().equals("4I")) {
 			MdwhDlg dlg;
 			try {
@@ -2104,19 +2108,17 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				 * 那么在保存前校验一下数量,如果超出,那么修改相应订单的"已出库数量"即可. 
 				 * begin
 				 */
-				//所选择的行号
-				int selectedRowNum=this.getBillCardPanel().getBillTable().getSelectedRow();
 				//所选择的行VO
 				GeneralBillItemVO selectedBody=this.getM_voBill().getItemVOs()[selectedRowNum];
 				IUAPQueryBS iQueryBS=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
-				Object SOntotalinventorynumber=iQueryBS.executeQuery("select t.ntotalinventorynumber from so_saleexecute t where t.csale_bid='"+selectedBody.getCsourcebillbid()+"'", new ColumnProcessor());
+				Object SOntotalinventorynumber=iQueryBS.executeQuery("select t.ntotalinventorynumber from so_saleexecute t where t.csale_bid='"+selectedBody.getCsourcebillbid()+"' and t.dr=0", new ColumnProcessor());
 				if(SOntotalinventorynumber!=null){//已存在出库数量记录的时候才执行.
 					
 					Double SoNum=new Double(SOntotalinventorynumber.toString());
 					Double IcNum=new Double(this.getBillCardPanel().getBodyValueAt(selectedRowNum, "noutnum").toString());
 					if(SoNum<IcNum){//如果已出库数量小于当前出库码单数量,那么执行修改.
 						IMDTools Mdtool=(IMDTools)NCLocator.getInstance().lookup(IMDTools.class.getName());
-						boolean isUpdateSoSucess=Mdtool.updateNewOutToSo(selectedBody.getCsourcebillbid(), new UFDouble(IcNum));
+						boolean isUpdateSoSucess=Mdtool.updateNewOutToSo(selectedBody.getCsourcebillbid(), new UFDouble(IcNum-SoNum));
 						if(isUpdateSoSucess){
 							this.showHintMessage("出库数量发生增量变动,已回写至对应订单表体执行结果中.");
 						}
