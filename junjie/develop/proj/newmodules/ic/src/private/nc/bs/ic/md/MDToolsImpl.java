@@ -260,8 +260,9 @@ public class MDToolsImpl implements IMDTools {
 	 * 根据销售订单表体id,更新对应的销售执行情况表中的"以出库数量"字段.
 	 */
 	public boolean updateNewOutToSo(String csalebid, UFDouble newNumber)
-			throws BusinessException {
-		String updateNewNum="update so_saleexecute t set t.ntotalinventorynumber=t.ntotalinventorynumber+'"+newNumber+"',t.bifinventoryfinish='N',t.bifreceivefinish='N' where t.csale_bid='"+csalebid+"'";
+			throws BusinessException {//多此一举,不用将数量变动加入其中,系统会自动计算,只需将"是否出库关闭"等字段修改为N即可.
+		//String updateNewNum="update so_saleexecute t set t.ntotalinventorynumber=t.ntotalinventorynumber+'"+newNumber+"',t.bifinventoryfinish='N',t.bifreceivefinish='N' where t.csale_bid='"+csalebid+"'";
+		String updateNewNum="update so_saleexecute t set t.bifinventoryfinish='N',t.bifreceivefinish='N' where t.csale_bid='"+csalebid+"'";
 		int updateRowNumber=this.getDAO().executeUpdate(updateNewNum);
 		if(updateRowNumber==1)
 			return true;
