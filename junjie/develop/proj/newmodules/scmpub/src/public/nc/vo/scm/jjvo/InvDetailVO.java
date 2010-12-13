@@ -12,7 +12,7 @@ import nc.vo.pub.lang.*;
  * <p>
  *     在此处添加此类的描述信息
  * </p>
- * 创建日期:2010-12-12 14:29:21
+ * 创建日期:2010-12-13 14:30:25
  * @author MeiChao
  * @version NCPrj 1.0
  */
@@ -43,6 +43,7 @@ public class InvDetailVO extends SuperVO {
 	private UFBoolean booleandef2;
 	private String vdef18;
 	private String vdef4;
+	private String arrivemeter;
 	private UFDouble warehousenumber;
 	private UFBoolean booleandef3;
 	private String vdef17;
@@ -67,6 +68,7 @@ public class InvDetailVO extends SuperVO {
 	private String contractthick;
 	private UFDouble sellweight;
 	private String vdef11;
+	private String contractmeter;
 	private String vdef12;
 	private String vdef3;
 	private String vdef6;
@@ -99,6 +101,7 @@ public class InvDetailVO extends SuperVO {
 	public static final String BOOLEANDEF2 = "booleandef2";
 	public static final String VDEF18 = "vdef18";
 	public static final String VDEF4 = "vdef4";
+	public static final String ARRIVEMETER = "arrivemeter";
 	public static final String WAREHOUSENUMBER = "warehousenumber";
 	public static final String BOOLEANDEF3 = "booleandef3";
 	public static final String VDEF17 = "vdef17";
@@ -123,6 +126,7 @@ public class InvDetailVO extends SuperVO {
 	public static final String CONTRACTTHICK = "contractthick";
 	public static final String SELLWEIGHT = "sellweight";
 	public static final String VDEF11 = "vdef11";
+	public static final String CONTRACTMETER = "contractmeter";
 	public static final String VDEF12 = "vdef12";
 	public static final String VDEF3 = "vdef3";
 	public static final String VDEF6 = "vdef6";
@@ -132,7 +136,7 @@ public class InvDetailVO extends SuperVO {
 			
 	/**
 	 * 属性pk_corp的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getPk_corp () {
@@ -140,7 +144,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性pk_corp的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newPk_corp String
 	 */
 	public void setPk_corp (String newPk_corp ) {
@@ -148,7 +152,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性ts的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDateTime
 	 */
 	public UFDateTime getTs () {
@@ -156,7 +160,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性ts的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newTs UFDateTime
 	 */
 	public void setTs (UFDateTime newTs ) {
@@ -164,7 +168,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef9的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef9 () {
@@ -172,7 +176,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef9的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef9 String
 	 */
 	public void setVdef9 (String newVdef9 ) {
@@ -180,7 +184,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性contractlength的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getContractlength () {
@@ -188,7 +192,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性contractlength的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newContractlength String
 	 */
 	public void setContractlength (String newContractlength ) {
@@ -196,7 +200,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef10的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef10 () {
@@ -204,7 +208,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef10的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef10 String
 	 */
 	public void setVdef10 (String newVdef10 ) {
@@ -212,7 +216,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性cgeneralbid的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getCgeneralbid () {
@@ -220,7 +224,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性cgeneralbid的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newCgeneralbid String
 	 */
 	public void setCgeneralbid (String newCgeneralbid ) {
@@ -228,7 +232,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性arrivenumber的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getArrivenumber () {
@@ -236,7 +240,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性arrivenumber的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newArrivenumber UFDouble
 	 */
 	public void setArrivenumber (UFDouble newArrivenumber ) {
@@ -244,7 +248,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef15的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef15 () {
@@ -252,7 +256,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef15的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef15 String
 	 */
 	public void setVdef15 (String newVdef15 ) {
@@ -260,7 +264,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性modifytime的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDateTime
 	 */
 	public UFDateTime getModifytime () {
@@ -268,7 +272,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性modifytime的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newModifytime UFDateTime
 	 */
 	public void setModifytime (UFDateTime newModifytime ) {
@@ -276,7 +280,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef14的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef14 () {
@@ -284,7 +288,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef14的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef14 String
 	 */
 	public void setVdef14 (String newVdef14 ) {
@@ -292,7 +296,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef7的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef7 () {
@@ -300,7 +304,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef7的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef7 String
 	 */
 	public void setVdef7 (String newVdef7 ) {
@@ -308,7 +312,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性modifyoperator的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getModifyoperator () {
@@ -316,7 +320,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性modifyoperator的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newModifyoperator String
 	 */
 	public void setModifyoperator (String newModifyoperator ) {
@@ -324,7 +328,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性arrivethick的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getArrivethick () {
@@ -332,7 +336,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性arrivethick的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newArrivethick String
 	 */
 	public void setArrivethick (String newArrivethick ) {
@@ -340,7 +344,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性contractweight的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getContractweight () {
@@ -348,7 +352,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性contractweight的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newContractweight UFDouble
 	 */
 	public void setContractweight (UFDouble newContractweight ) {
@@ -356,7 +360,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef16的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef16 () {
@@ -364,7 +368,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef16的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef16 String
 	 */
 	public void setVdef16 (String newVdef16 ) {
@@ -372,7 +376,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef2的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef2 () {
@@ -380,7 +384,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef2的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef2 String
 	 */
 	public void setVdef2 (String newVdef2 ) {
@@ -388,7 +392,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef5的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef5 () {
@@ -396,7 +400,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef5的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef5 String
 	 */
 	public void setVdef5 (String newVdef5 ) {
@@ -404,7 +408,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性amount的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getAmount () {
@@ -412,7 +416,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性amount的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newAmount UFDouble
 	 */
 	public void setAmount (UFDouble newAmount ) {
@@ -420,7 +424,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef19的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef19 () {
@@ -428,7 +432,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef19的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef19 String
 	 */
 	public void setVdef19 (String newVdef19 ) {
@@ -436,7 +440,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性pk_invbasdoc的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getPk_invbasdoc () {
@@ -444,7 +448,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性pk_invbasdoc的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newPk_invbasdoc String
 	 */
 	public void setPk_invbasdoc (String newPk_invbasdoc ) {
@@ -452,7 +456,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性contractwidth的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getContractwidth () {
@@ -460,7 +464,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性contractwidth的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newContractwidth String
 	 */
 	public void setContractwidth (String newContractwidth ) {
@@ -468,7 +472,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性createtime的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDateTime
 	 */
 	public UFDateTime getCreatetime () {
@@ -476,7 +480,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性createtime的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newCreatetime UFDateTime
 	 */
 	public void setCreatetime (UFDateTime newCreatetime ) {
@@ -484,7 +488,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性booleandef2的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFBoolean
 	 */
 	public UFBoolean getBooleandef2 () {
@@ -492,7 +496,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性booleandef2的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newBooleandef2 UFBoolean
 	 */
 	public void setBooleandef2 (UFBoolean newBooleandef2 ) {
@@ -500,7 +504,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef18的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef18 () {
@@ -508,7 +512,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef18的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef18 String
 	 */
 	public void setVdef18 (String newVdef18 ) {
@@ -516,7 +520,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef4的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef4 () {
@@ -524,15 +528,31 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef4的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef4 String
 	 */
 	public void setVdef4 (String newVdef4 ) {
 	 	this.vdef4 = newVdef4;
 	} 	  
 	/**
+	 * 属性arrivemeter的Getter方法.
+	 * 创建日期:2010-12-13 14:30:25
+	 * @return String
+	 */
+	public String getArrivemeter () {
+		return arrivemeter;
+	}   
+	/**
+	 * 属性arrivemeter的Setter方法.
+	 * 创建日期:2010-12-13 14:30:25
+	 * @param newArrivemeter String
+	 */
+	public void setArrivemeter (String newArrivemeter ) {
+	 	this.arrivemeter = newArrivemeter;
+	} 	  
+	/**
 	 * 属性warehousenumber的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getWarehousenumber () {
@@ -540,7 +560,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性warehousenumber的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newWarehousenumber UFDouble
 	 */
 	public void setWarehousenumber (UFDouble newWarehousenumber ) {
@@ -548,7 +568,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性booleandef3的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFBoolean
 	 */
 	public UFBoolean getBooleandef3 () {
@@ -556,7 +576,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性booleandef3的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newBooleandef3 UFBoolean
 	 */
 	public void setBooleandef3 (UFBoolean newBooleandef3 ) {
@@ -564,7 +584,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef17的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef17 () {
@@ -572,7 +592,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef17的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef17 String
 	 */
 	public void setVdef17 (String newVdef17 ) {
@@ -580,7 +600,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性pk_invdetail的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getPk_invdetail () {
@@ -588,7 +608,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性pk_invdetail的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newPk_invdetail String
 	 */
 	public void setPk_invdetail (String newPk_invdetail ) {
@@ -596,7 +616,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef20的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef20 () {
@@ -604,7 +624,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef20的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef20 String
 	 */
 	public void setVdef20 (String newVdef20 ) {
@@ -612,7 +632,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef1的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef1 () {
@@ -620,7 +640,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef1的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef1 String
 	 */
 	public void setVdef1 (String newVdef1 ) {
@@ -628,7 +648,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef8的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef8 () {
@@ -636,7 +656,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef8的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef8 String
 	 */
 	public void setVdef8 (String newVdef8 ) {
@@ -644,7 +664,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性modifydate的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDate
 	 */
 	public UFDate getModifydate () {
@@ -652,7 +672,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性modifydate的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newModifydate UFDate
 	 */
 	public void setModifydate (UFDate newModifydate ) {
@@ -660,7 +680,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性carriveorder_bid的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getCarriveorder_bid () {
@@ -668,7 +688,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性carriveorder_bid的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newCarriveorder_bid String
 	 */
 	public void setCarriveorder_bid (String newCarriveorder_bid ) {
@@ -676,7 +696,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性booleandef1的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFBoolean
 	 */
 	public UFBoolean getBooleandef1 () {
@@ -684,7 +704,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性booleandef1的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newBooleandef1 UFBoolean
 	 */
 	public void setBooleandef1 (UFBoolean newBooleandef1 ) {
@@ -692,7 +712,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性arrivewidth的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getArrivewidth () {
@@ -700,7 +720,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性arrivewidth的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newArrivewidth String
 	 */
 	public void setArrivewidth (String newArrivewidth ) {
@@ -708,7 +728,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性booleandef5的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFBoolean
 	 */
 	public UFBoolean getBooleandef5 () {
@@ -716,7 +736,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性booleandef5的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newBooleandef5 UFBoolean
 	 */
 	public void setBooleandef5 (UFBoolean newBooleandef5 ) {
@@ -724,7 +744,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性corder_bid的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getCorder_bid () {
@@ -732,7 +752,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性corder_bid的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newCorder_bid String
 	 */
 	public void setCorder_bid (String newCorder_bid ) {
@@ -740,7 +760,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性note的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getNote () {
@@ -748,7 +768,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性note的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newNote String
 	 */
 	public void setNote (String newNote ) {
@@ -756,7 +776,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性price的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getPrice () {
@@ -764,7 +784,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性price的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newPrice UFDouble
 	 */
 	public void setPrice (UFDouble newPrice ) {
@@ -772,7 +792,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性arriveweight的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getArriveweight () {
@@ -780,7 +800,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性arriveweight的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newArriveweight UFDouble
 	 */
 	public void setArriveweight (UFDouble newArriveweight ) {
@@ -788,7 +808,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性arrivelength的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getArrivelength () {
@@ -796,7 +816,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性arrivelength的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newArrivelength String
 	 */
 	public void setArrivelength (String newArrivelength ) {
@@ -804,7 +824,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef13的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef13 () {
@@ -812,7 +832,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef13的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef13 String
 	 */
 	public void setVdef13 (String newVdef13 ) {
@@ -820,7 +840,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性ordernumber的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getOrdernumber () {
@@ -828,7 +848,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性ordernumber的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newOrdernumber UFDouble
 	 */
 	public void setOrdernumber (UFDouble newOrdernumber ) {
@@ -836,7 +856,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性conversionrates的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getConversionrates () {
@@ -844,7 +864,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性conversionrates的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newConversionrates UFDouble
 	 */
 	public void setConversionrates (UFDouble newConversionrates ) {
@@ -852,7 +872,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性booleandef4的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFBoolean
 	 */
 	public UFBoolean getBooleandef4 () {
@@ -860,7 +880,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性booleandef4的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newBooleandef4 UFBoolean
 	 */
 	public void setBooleandef4 (UFBoolean newBooleandef4 ) {
@@ -868,7 +888,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性contractthick的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getContractthick () {
@@ -876,7 +896,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性contractthick的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newContractthick String
 	 */
 	public void setContractthick (String newContractthick ) {
@@ -884,7 +904,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性sellweight的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public UFDouble getSellweight () {
@@ -892,7 +912,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性sellweight的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newSellweight UFDouble
 	 */
 	public void setSellweight (UFDouble newSellweight ) {
@@ -900,7 +920,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef11的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef11 () {
@@ -908,15 +928,31 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef11的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef11 String
 	 */
 	public void setVdef11 (String newVdef11 ) {
 	 	this.vdef11 = newVdef11;
 	} 	  
 	/**
+	 * 属性contractmeter的Getter方法.
+	 * 创建日期:2010-12-13 14:30:25
+	 * @return String
+	 */
+	public String getContractmeter () {
+		return contractmeter;
+	}   
+	/**
+	 * 属性contractmeter的Setter方法.
+	 * 创建日期:2010-12-13 14:30:25
+	 * @param newContractmeter String
+	 */
+	public void setContractmeter (String newContractmeter ) {
+	 	this.contractmeter = newContractmeter;
+	} 	  
+	/**
 	 * 属性vdef12的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef12 () {
@@ -924,7 +960,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef12的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef12 String
 	 */
 	public void setVdef12 (String newVdef12 ) {
@@ -932,7 +968,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef3的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef3 () {
@@ -940,7 +976,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef3的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef3 String
 	 */
 	public void setVdef3 (String newVdef3 ) {
@@ -948,7 +984,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性vdef6的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getVdef6 () {
@@ -956,7 +992,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性vdef6的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newVdef6 String
 	 */
 	public void setVdef6 (String newVdef6 ) {
@@ -964,7 +1000,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性createdate的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDate
 	 */
 	public UFDate getCreatedate () {
@@ -972,7 +1008,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性createdate的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newCreatedate UFDate
 	 */
 	public void setCreatedate (UFDate newCreatedate ) {
@@ -980,7 +1016,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性dr的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return UFDouble
 	 */
 	public Integer getDr () {
@@ -988,7 +1024,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性dr的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newDr UFDouble
 	 */
 	public void setDr (Integer newDr ) {
@@ -996,7 +1032,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性createoperator的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getCreateoperator () {
@@ -1004,7 +1040,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性createoperator的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newCreateoperator String
 	 */
 	public void setCreateoperator (String newCreateoperator ) {
@@ -1012,7 +1048,7 @@ public class InvDetailVO extends SuperVO {
 	} 	  
 	/**
 	 * 属性pk_invmandoc的Getter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return String
 	 */
 	public String getPk_invmandoc () {
@@ -1020,7 +1056,7 @@ public class InvDetailVO extends SuperVO {
 	}   
 	/**
 	 * 属性pk_invmandoc的Setter方法.
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @param newPk_invmandoc String
 	 */
 	public void setPk_invmandoc (String newPk_invmandoc ) {
@@ -1030,7 +1066,7 @@ public class InvDetailVO extends SuperVO {
 	/**
 	  * <p>取得父VO主键字段.
 	  * <p>
-	  * 创建日期:2010-12-12 14:29:21
+	  * 创建日期:2010-12-13 14:30:25
 	  * @return java.lang.String
 	  */
 	public java.lang.String getParentPKFieldName() {
@@ -1040,7 +1076,7 @@ public class InvDetailVO extends SuperVO {
 	/**
 	  * <p>取得表主键.
 	  * <p>
-	  * 创建日期:2010-12-12 14:29:21
+	  * 创建日期:2010-12-13 14:30:25
 	  * @return java.lang.String
 	  */
 	public java.lang.String getPKFieldName() {
@@ -1050,7 +1086,7 @@ public class InvDetailVO extends SuperVO {
 	/**
 	 * <p>返回表名称.
 	 * <p>
-	 * 创建日期:2010-12-12 14:29:21
+	 * 创建日期:2010-12-13 14:30:25
 	 * @return java.lang.String
 	 */
 	public java.lang.String getTableName() {
@@ -1060,7 +1096,7 @@ public class InvDetailVO extends SuperVO {
     /**
 	  * 按照默认方式创建构造子.
 	  *
-	  * 创建日期:2010-12-12 14:29:21
+	  * 创建日期:2010-12-13 14:30:25
 	  */
      public InvDetailVO() {
 		super();	
