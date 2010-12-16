@@ -390,7 +390,7 @@ public class MdProcessBean {
 	public LocatorVO[] builderHwVos(GeneralBillItemVO itemVO, String billType,
 			boolean sfth) throws BusinessException {
 		LocatorVO[] rsvo = null;
-		String sql = "select t2.cspaceid,t3.cscode,t3.csname,t1.cgeneralbid,t1.srkzs,t1.srkzl"
+		String sql = "select t2.cspaceid,t3.cscode,t3.csname,t1.cgeneralbid,t1.srkzs,t1.srkzl,t1.def1"
 				+ " from nc_mdcrk t1 left join nc_mdxcl_b t2 on t1.pk_mdxcl_b=t2.pk_mdxcl_b"
 				+ " left join bd_cargdoc t3 on t2.cspaceid=t3.pk_cargdoc where t1.cgeneralbid='"
 				+ itemVO.getCgeneralbid() + "' and t1.dr=0";
@@ -407,7 +407,8 @@ public class MdProcessBean {
 			vo.setCspaceid((String) voMap.get("cspaceid")); // 货位PK值
 			vo.setVspacecode((String) voMap.get("cscode")); // 货位编码
 			vo.setVspacename((String) voMap.get("csname")); // 货位名称
-			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
+			//UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
+			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("def1"));
 			UFDouble d2 = new UFDouble((BigDecimal) voMap.get("srkzs"));
 			// 入库
 			if (billType.equals("45") || billType.equals("4A")) {
