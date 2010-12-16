@@ -617,6 +617,13 @@ junjie/patches/scripts/2010-12-07[!!-~]0000091[!!-~]转库单码单处理/ic/cli
 junjie/patches/scripts/2010-12-07[!!-~]0000091[!!-~]转库单码单处理/ic/public/nc/vo/ic/md/MdcrkTempVO.class -text
 junjie/patches/scripts/2010-12-07[!!-~]0000091[!!-~]转库单码单处理/ic/public/nc/vo/ic/md/MdcrkTempVO.java -text
 junjie/patches/scripts/2010-12-07[!!-~]0000091[!!-~]转库单码单处理/ic/转库单-码单临时表建库脚本.sql -text
+junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/ic/client/nc/ui/ic/md/dialog/MDioDialog.class -text
+junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/ic/client/nc/ui/ic/md/dialog/MDioDialog.java -text
+junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/ic/client/nc/ui/ic/pub/bill/GeneralBillClientUI$1.class -text
+junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/ic/client/nc/ui/ic/pub/bill/GeneralBillClientUI.class -text
+junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/ic/client/nc/ui/ic/pub/bill/GeneralBillClientUI.java -text
+junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/入库单单据模板修改.txt -text
+junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/码单模板修改脚本.sql -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
