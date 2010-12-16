@@ -2252,13 +2252,17 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用修改方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_BILL_EDIT));
+				//2010-12-13 MeiChao begin 调整
+				getBillCardPanel()
+				.setBodyValueAt(dialog.getSssl().toString(), j, "vuserdef19");//将码单实收数量写入入库单表体
 
 				getBillCardPanel()
-						.setBodyValueAt(dialog.getSssl(), j, "ninnum");
+						.setBodyValueAt(dialog.getFactoryweight().doubleValue()==0.0?dialog.getSssl():dialog.getFactoryweight(), j, "ninnum");//将码单钢厂重量写入入库单表体实收数量字段
 				BillEditEvent e = new BillEditEvent(getBillCardPanel()
 						.getBodyItem("ninnum").getComponent(),
 						getBillCardPanel().getBodyValueAt(j, "ninnum"),
 						"ninnum", j, BillItem.BODY);
+				//2010-12-13 MeiChao end
 				// 编辑后事件 数量
 				afterEdit(e);
 
