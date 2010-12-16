@@ -573,6 +573,46 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			mdvos = MDUtils.mdBJ(mdvos, num);
 			this.setNprice(this.getStuffprice());// 正材单价stuffprice
 		}
+		//获取表体选中行VO
+		GeneralBillItemVO selectedBody=(GeneralBillItemVO)this.ui.getBillCardPanel().getBillModel("table").getBodyValueRowVO(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), GeneralBillItemVO.class.getName());
+		if(selectedBody.getCsourcetype()!=null&&selectedBody.getCsourcetype().equals("21")){//如果上游单据为采购订单
+			//平摊维护码单前的实收数量到码单钢厂重量
+			//表体钢厂总重量
+			UFDouble factoryWeight=new UFDouble(this.getBillCardPanel().getHeadItem("realWeight").getValue());
+			//分配基数
+			UFDouble total=new UFDouble(0);
+			if(mdvos[0].getMd_meter()!=null){//如果任意1行中米数不为空,那么表示以米数和支数来计数
+				//码单米数*支数的总和
+				for(int i=0;i<mdvos.length;i++){
+					total.add(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()));
+				}
+				//已分配重量
+				UFDouble givedNum=new UFDouble(0);
+				for(int i=0;i<mdvos.length;i++){
+					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()).div(total)));
+					if(i==mdvos.length-1){
+						mdvos[i].setDef1(factoryWeight.sub(givedNum));
+					}else{
+						givedNum.add(mdvos[i].getDef1());
+					}
+				}
+			}else{//否则,按宽*长*支数 来计数
+			    //码单宽*长*支数的总和
+				for(int i=0;i<mdvos.length;i++){
+					total.add(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()));
+				}
+				//已分配重量
+				UFDouble givedNum=new UFDouble(0);
+				for(int i=0;i<mdvos.length;i++){
+					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()).div(total)));
+					if(i==mdvos.length-1){
+						mdvos[i].setDef1(factoryWeight.sub(givedNum));
+					}else{
+						givedNum.add(mdvos[i].getDef1());
+					}
+				}
+			}
+		}
 		getBillCardPanel().getBillData().setBodyValueVO(mdvos);
 		getBillCardPanel().getBillModel().execLoadFormula();
 		// setMessage("计算成功...");
@@ -859,10 +899,16 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "md_length");
 			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "def7");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "def8");
+			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "srkzl");
 		} else if (key.equals("md_width") || key.equals("md_length")) {
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "md_meter");
+			getBillCardPanel().getBillModel().setValueAt(null,
+					editEvent.getRow(), "def9");
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "srkzl");
 		} else if (key.equals("srkzs")) {
@@ -939,27 +985,27 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			boolean fsjboolean = getBillCardPanel().getHeadItem("fjs")
 					.getValue().equals("true");
 			// 如果是非计算
-			if (fsjboolean) {
-				if (isNumber(defStr))
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(defStr), editEvent.getRow(),
-							"md_length");
-				else
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(0), editEvent.getRow(), "md_length");
-			} else {
-				if (isNumber(defStr))
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(defStr), editEvent.getRow(),
-							"md_length");
-				else {
-					getBillCardPanel().getBillModel().setValueAt(null,
-							editEvent.getRow(), "def7");
-					getBillCardPanel().getBillModel().setValueAt(null,
-							editEvent.getRow(), "md_length");
-					MessageDialog.showWarningDlg(this, "提示", "长度必须是数字");
-				}
-			}
+//			if (fsjboolean) {
+//				if (isNumber(defStr))
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(defStr), editEvent.getRow(),
+//							"md_length");
+//				else
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(0), editEvent.getRow(), "md_length");
+//			} else {
+//				if (isNumber(defStr))
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(defStr), editEvent.getRow(),
+//							"md_length");
+//				else {
+//					getBillCardPanel().getBillModel().setValueAt(null,
+//							editEvent.getRow(), "def7");
+//					getBillCardPanel().getBillModel().setValueAt(null,
+//							editEvent.getRow(), "md_length");
+//					MessageDialog.showWarningDlg(this, "提示", "长度必须是数字");
+//				}
+//			}
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "def9");
 			getBillCardPanel().getBillModel().setValueAt(null,
@@ -974,27 +1020,27 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			boolean fsjboolean = getBillCardPanel().getHeadItem("fjs")
 					.getValue().equals("true");
 			// 如果是非计算
-			if (fsjboolean) {
-				if (isNumber(defStr))
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(defStr), editEvent.getRow(),
-							"md_width");
-				else
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(0), editEvent.getRow(), "md_width");
-			} else {
-				if (isNumber(defStr))
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(defStr), editEvent.getRow(),
-							"md_width");
-				else {
-					getBillCardPanel().getBillModel().setValueAt(null,
-							editEvent.getRow(), "def8");
-					getBillCardPanel().getBillModel().setValueAt(null,
-							editEvent.getRow(), "md_width");
-					MessageDialog.showWarningDlg(this, "提示", "宽度必须是数字");
-				}
-			}
+//			if (fsjboolean) {
+//				if (isNumber(defStr))
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(defStr), editEvent.getRow(),
+//							"md_width");
+//				else
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(0), editEvent.getRow(), "md_width");
+//			} else {
+//				if (isNumber(defStr))
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(defStr), editEvent.getRow(),
+//							"md_width");
+//				else {
+//					getBillCardPanel().getBillModel().setValueAt(null,
+//							editEvent.getRow(), "def8");
+//					getBillCardPanel().getBillModel().setValueAt(null,
+//							editEvent.getRow(), "md_width");
+//					MessageDialog.showWarningDlg(this, "提示", "宽度必须是数字");
+//				}
+//			}
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "def9");
 			getBillCardPanel().getBillModel().setValueAt(null,
@@ -1009,27 +1055,27 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			boolean fsjboolean = getBillCardPanel().getHeadItem("fjs")
 					.getValue().equals("true");
 			// 如果是非计算
-			if (fsjboolean) {
-				if (isNumber(defStr))
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(defStr), editEvent.getRow(),
-							"md_meter");
-				else
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(0), editEvent.getRow(), "md_meter");
-			} else {
-				if (isNumber(defStr))
-					getBillCardPanel().getBillModel().setValueAt(
-							new UFDouble(defStr), editEvent.getRow(),
-							"md_meter");
-				else {
-					getBillCardPanel().getBillModel().setValueAt(null,
-							editEvent.getRow(), "def9");
-					getBillCardPanel().getBillModel().setValueAt(null,
-							editEvent.getRow(), "md_meter");
-					MessageDialog.showWarningDlg(this, "提示", "米数必须是数字");
-				}
-			}
+//			if (fsjboolean) {
+//				if (isNumber(defStr))
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(defStr), editEvent.getRow(),
+//							"md_meter");
+//				else
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(0), editEvent.getRow(), "md_meter");
+//			} else {
+//				if (isNumber(defStr))
+//					getBillCardPanel().getBillModel().setValueAt(
+//							new UFDouble(defStr), editEvent.getRow(),
+//							"md_meter");
+//				else {
+//					getBillCardPanel().getBillModel().setValueAt(null,
+//							editEvent.getRow(), "def9");
+//					getBillCardPanel().getBillModel().setValueAt(null,
+//							editEvent.getRow(), "md_meter");
+//					MessageDialog.showWarningDlg(this, "提示", "米数必须是数字");
+//				}
+//			}
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "def7");
 			getBillCardPanel().getBillModel().setValueAt(null,
