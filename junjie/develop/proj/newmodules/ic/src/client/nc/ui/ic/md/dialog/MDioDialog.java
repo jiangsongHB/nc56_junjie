@@ -62,6 +62,17 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	boolean canloaddata = false;
 
 	boolean edited = false;
+	//2010-12-13 MeiChao  begin 添加 钢厂重量 
+	public UFDouble factoryweight= new UFDouble(0);
+
+	public UFDouble getFactoryweight() {
+		return factoryweight;
+	}
+
+	public void setFactoryweight(UFDouble factoryweight) {
+		this.factoryweight = factoryweight;
+	}
+	//2010-12-13 MeiChao end 添加 钢厂重量
 
 	public UFDouble ssfsl = new UFDouble(0);// 实收辅数量
 
@@ -622,14 +633,18 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			tools.saveMDrk(mdvos, mdxclvo, (String) getGeneralBillVO()
 					.getItemValue(getGenSelectRowID(), "cgeneralbid"));
 			UFDouble sum_sssl = new UFDouble(0);
+			UFDouble sum_factoryWeight=new UFDouble(0);
 			for (int i = 0; i < mdvos.length; i++) {
 				sum_sssl = sum_sssl.add(mdvos[i].getSrkzl());
+				sum_factoryWeight=sum_factoryWeight.add(mdvos[i].getDef1()==null?new UFDouble(0):mdvos[i].getDef1());//MeiChao 2010-12-13
 			}
 			// 是否删除码单
 			if (sum_sssl.doubleValue() == 0)
 				this.setSfsqmd(new UFBoolean(true));
 			// 设置实收数量
 			this.setSssl(sum_sssl);
+			//设置钢厂重量--MeiChao 2010-12-13
+			this.setFactoryweight(sum_factoryWeight);
 			setMessage("保存成功...");
 			setStatus(MDUtils.INIT_CANEDIT);
 			initBodyData();
