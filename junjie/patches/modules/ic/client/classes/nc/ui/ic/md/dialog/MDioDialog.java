@@ -584,7 +584,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			if(mdvos[0].getMd_meter()!=null){//如果任意1行中米数不为空,那么表示以米数和支数来计数
 				//码单米数*支数的总和
 				for(int i=0;i<mdvos.length;i++){
-					total.add(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()));
+					total=total.add(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()));
 				}
 				//已分配重量
 				UFDouble givedNum=new UFDouble(0);
@@ -593,13 +593,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					if(i==mdvos.length-1){
 						mdvos[i].setDef1(factoryWeight.sub(givedNum));
 					}else{
-						givedNum.add(mdvos[i].getDef1());
+						givedNum=givedNum.add(mdvos[i].getDef1());
 					}
 				}
 			}else{//否则,按宽*长*支数 来计数
 			    //码单宽*长*支数的总和
 				for(int i=0;i<mdvos.length;i++){
-					total.add(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()));
+					total=total.add(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()));
 				}
 				//已分配重量
 				UFDouble givedNum=new UFDouble(0);
@@ -608,7 +608,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					if(i==mdvos.length-1){
 						mdvos[i].setDef1(factoryWeight.sub(givedNum));
 					}else{
-						givedNum.add(mdvos[i].getDef1());
+						givedNum=givedNum.add(mdvos[i].getDef1());
 					}
 				}
 			}
