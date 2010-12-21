@@ -628,6 +628,18 @@ junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的�
 junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/ic/client/nc/ui/ic/pub/bill/GeneralBillClientUI.java -text
 junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/入库单单据模板修改.txt -text
 junjie/patches/scripts/2010-12-16[!!-~]0000097[!!-~]有关钢板重量[!!-~]的单据表现深度开发/方案第2部分.明细参照及码单调整/码单模板修改脚本.sql -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/META-INF/nc/bs/pu/mm/AdapterPuToMm.class -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/META-INF/nc/bs/pu/mm/AdapterPuToMm.java -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/client/nc/ui/pu/jjpanel/InvDetailDialog.class -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/client/nc/ui/rc/receive/ArriveUI$IBillRelaSortListener2Body.class -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/client/nc/ui/rc/receive/ArriveUI$IMenuItemListener.class -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/client/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/client/nc/ui/rc/receive/ArriveUI.class -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/client/nc/ui/rc/receive/ArriveUI.java -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/pub/nc/itf/pu/mm/ISrvPUToMM.class -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/pub/nc/itf/pu/mm/ISrvPUToMM.java -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/到货单单据模板修改.sql -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/存货明细模板.sql -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
