@@ -639,6 +639,7 @@ junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/client/nc/
 junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/pub/nc/itf/pu/mm/ISrvPUToMM.class -text
 junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/pu/pub/nc/itf/pu/mm/ISrvPUToMM.java -text
 junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/到货单单据模板修改.sql -text
+junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/存货明细建库脚本.sql -text
 junjie/patches/scripts/2010-12-20[!!-~]到货单存货明细维护/存货明细模板.sql -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
