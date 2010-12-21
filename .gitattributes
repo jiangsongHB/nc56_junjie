@@ -410,6 +410,8 @@ junjie/patches/modules/pu/classes/nc/ui/pf/changedir/CHGF1TO25.class -text
 junjie/patches/modules/pu/classes/nc/ui/pf/changedir/CHGF1TO25.java -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVO.class -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVOMeta.class -text
+junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InvDetailVO.class -text
+junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InvDetailVO.java -text
 junjie/patches/modules/pu/classes/ui/pu/jjpanel/InfoCostPanel.class -text
 junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVO.class -text
 junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVO.java -text
