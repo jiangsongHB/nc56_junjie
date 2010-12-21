@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import nc.vo.pr.pray.PraybillVO;
+import nc.vo.pu.jjvo.InvDetailVO;
 import nc.vo.pu.pr.PrayExecVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFDate;
@@ -339,6 +340,25 @@ public interface ISrvPUToMM {
 	 */
 	public abstract int updateSourceNegativeNumToAP(Map bodyPKAndArriveNum) throws Exception;
 	
+	/**
+	 * 在存货明细窗口点击确定之后,将新增的存货明细插入到数据库中.
+	 * @author MeiChao
+	 * @return String[] 成功插入的行PK数组
+	 * @param InvDetailVO[] 存货明细数组
+	 * @since 2010-12-14
+	 * @throws BusinessException 一般情况下都是数据库操作异常(网络问题,数据库问题等.)
+	 */
+	public abstract String[] insertInvDetail(InvDetailVO[] invDetailVOs) throws BusinessException;
+	/**
+	 * 在存货明细窗口点击确定之后,将修改的存货明细持久化到数据库中.
+	 * @author MeiChao
+	 * @return int 成功持久化的行数
+	 * @param InvDetailVO[] 存货明细数组
+	 * @since 2010-12-18
+	 * @throws BusinessException 一般情况下都是数据库操作异常(网络问题,数据库问题等.)
+	 */
+	public abstract int updateInvDetail(InvDetailVO[] invDetailVOs) throws BusinessException;
+
 	
 	
 }

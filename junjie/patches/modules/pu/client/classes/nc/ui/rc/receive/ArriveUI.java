@@ -22,6 +22,7 @@ import javax.swing.event.ListSelectionListener;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
 import nc.itf.po.outer.IQueryForIc;
+import nc.itf.pu.mm.ISrvPUToMM;
 import nc.itf.rc.receive.IArriveorder;
 import nc.itf.rc.receive.IQueryForInitUI;
 import nc.itf.uap.IUAPQueryBS;
@@ -30,6 +31,7 @@ import nc.itf.uap.pf.IPFWorkflowQry;
 import nc.itf.uap.rbac.IUserManageQuery;
 import nc.itf.uap.sf.ICreateCorpQueryService;
 import nc.itf.uap.workshop.plugins.formdev.IUAPBillService;
+import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.jdbc.framework.processor.MapProcessor;
 import nc.jdbc.framework.processor.ResultSetProcessor;
@@ -44,6 +46,7 @@ import nc.ui.po.ref.OtherRefModel;
 import nc.ui.pr.pray.IButtonConstPr;
 import nc.ui.pu.jj.JJPuScmPubHelper;
 import nc.ui.pu.jjpanel.InfoCostPanel;
+import nc.ui.pu.jjpanel.InvDetailDialog;
 import nc.ui.pu.pub.ATPForOneInvMulCorpUI;
 import nc.ui.pu.pub.CheckISSellProxyHelper;
 import nc.ui.pu.pub.PuGetUIValueTool;
@@ -145,6 +148,7 @@ import nc.vo.scm.constant.ScmConst;
 import nc.vo.scm.datapower.BtnPowerVO;
 import nc.vo.scm.ic.bill.FreeVO;
 import nc.vo.pu.jjvo.InformationCostVO;
+import nc.vo.pu.jjvo.InvDetailVO;
 import nc.vo.scm.pu.BillStatus;
 import nc.vo.scm.pu.BillTypeConst;
 import nc.vo.scm.pu.PuPubVO;
@@ -171,6 +175,14 @@ public class ArriveUI
   {
 	private InformationCostVO[] vos = null;
 	private ButtonObject boInfoCost ;//费用录入按钮  add by QuSida 2010-8-28 (佛山骏杰)
+	private ButtonObject boInvDetail;//存货明细按钮 add by MeiChao 2010-12-14 
+	private InvDetailVO[] invDetailVOs;//表体存货明细.及相应的get,set方法 add by MeiChao 2010-12-14 
+	public InvDetailVO[] getInvDetailVOs() {
+		return invDetailVOs;
+	}
+	public void setInvDetailVOs(InvDetailVO[] invDetailVOs) {
+		this.invDetailVOs = invDetailVOs;
+	}
 	private ButtonObject[] extendBtns ; //二次开发按钮数组  add by QuSida 2010-8-28 (佛山骏杰)
 	private UFDouble arrnumber ;//实际到货数量
 	private UFDouble plannum ;//计划到货数量
@@ -3001,6 +3013,8 @@ private void initButtons() {
   retInitBusiAddBtns();
   // 加载扩展按钮
   addExtendBtns();
+  this.m_btnTree.addMenu(this.getBoInfoCost());//2010-12-14 MeiChao 将费用录入按钮调整到根级菜单中显示.
+  this.m_btnTree.addMenu(this.getBoInvDetail());//2010-12-14 MeiChao 将存货明细按钮添加到ButtonTree中.
 
   // 加载卡片按钮
   setButtons(m_btnTree.getButtonArray());
@@ -3601,26 +3615,25 @@ private void loadBDData() {
 public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
   if (e.getPos() == BillItem.HEAD) {
     if (getStateStr().equals("转入列表")) {
-    	InformationCostVO[] vos = null;
+    	InformationCostVO[] vos = null; //2010-12-15 MeiChao 增加注释: 双击某行转入卡片中时,将列表对应下的费用放入卡片表体 (原版没有注释)
     	vos = (InformationCostVO[])getBillListPanel().getBodyBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
-      setM_strState("转入修改");
+    	setM_strState("转入修改");
       onCardNew();
-//  	String pk =	getBillCardPanel().getHeadItem("carriveorderid").getValue();
-//	String sql = "cbillid = '"+pk+"' and dr = 0";
-//	
-//try {
-//	 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
-//} catch (Exception e1) {
-//	// TODO Auto-generated catch block
-//	e1.printStackTrace();
-//}
-if(vos!=null&&vos.length!=0){
-	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
-	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-}else{
-	//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
-	getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
-}
+    //双击时把费用放到卡片下.
+	if(vos!=null&&vos.length!=0){
+		getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
+		getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+	}else{
+		//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
+		getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
+	}
+	//双击时把存货明细放到卡片下 MeiChao 2010-12-15 
+	if(this.invDetailVOs!=null&&this.invDetailVOs.length>0){
+		getBillCardPanel().getBillModel("invdetail").setBodyDataVO(invDetailVOs);
+		getBillCardPanel().getBillModel("invdetail").execLoadFormula();
+	}else{
+		getBillCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+	}
     } else {
       //如果没有单据体，则认为并发并返回
       ArriveorderItemVO[] items =
@@ -3632,6 +3645,13 @@ if(vos!=null&&vos.length!=0){
       isFrmList = true;
       setM_strState("到货浏览");
       onCard();
+    //双击时把存货明细放到卡片下 MeiChao 2010-12-15 
+  	if(this.invDetailVOs!=null&&this.invDetailVOs.length>0){
+  		getBillCardPanel().getBillModel("invdetail").setBodyDataVO(invDetailVOs);
+  		getBillCardPanel().getBillModel("invdetail").execLoadFormula();
+  	}else{
+  		getBillCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+  	}
     }
   }
 }
@@ -3711,6 +3731,14 @@ private void onAudit(ButtonObject bo) {
       			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
       			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
       		 }
+    	//2010-12-18 MeiChao 审批成功后刷新明细.
+    	if(this.invDetailVOs!=null&&this.invDetailVOs.length>0){
+    		getBillCardPanel().getBillModel("invdetail").setBodyDataVO(this.invDetailVOs);
+     		getBillCardPanel().getBillModel("invdetail").execLoadFormula();
+    	}else{
+    		getBillCardPanel().getBillModel("invdetail").setBodyDataVO(null); 
+    	}
+    	
     } catch (Exception e) {
       showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000120")/*@res "审批成功,但加载单据时出现异常,请刷新界面再进行其它操作"*/);
     }
@@ -4226,7 +4254,11 @@ private void onButtonClickedCard(ButtonObject bo){
 	  onDeleteCard();
 //  } else if (bo == m_btnSerialNO){
 //	  onSNAssign();
-  }
+  }else if(bo==this.getBoInvDetail()){//2010-12-14 MeiChao 添加存货明细按钮事件响应
+		onBoInvDetail();
+	}else if(bo==this.getBoInfoCost()){
+		this.onBoInfoCost();
+	}
   //支持产业链功能扩展
   else{
     onExtendBtnsClick(bo);
@@ -4273,6 +4305,14 @@ private void onButtonClickedList(ButtonObject bo){
 			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
 			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
 		 }
+      //2010-12-17 MeiChao 将存货明细放入页签
+      if (this.invDetailVOs != null && this.invDetailVOs.length > 0) {
+			getBillCardPanel().getBillModel("invdetail").setBodyDataVO(
+					invDetailVOs);
+			getBillCardPanel().getBillModel("invdetail").execLoadFormula();
+		}else {
+			getBillCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+		}
     } else {
       onModifyList();
       if(vos!=null&&vos.length!=0){
@@ -4282,6 +4322,14 @@ private void onButtonClickedList(ButtonObject bo){
 			 //20101014-11:51 MeiChao 如果费用信息为空,则清除费用信息页签历史数据.
 			getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
 		 }
+      //2010-12-17 MeiChao 将存货明细放入页签
+      if (this.invDetailVOs != null && this.invDetailVOs.length > 0) {
+			getBillCardPanel().getBillModel("invdetail").setBodyDataVO(
+					invDetailVOs);
+			getBillCardPanel().getBillModel("invdetail").execLoadFormula();
+		}else {
+			getBillCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+		}
     }
     //置光标到表头第一个可编辑项目
     getBillCardPanel().transferFocusTo(BillCardPanel.HEAD);
@@ -4766,6 +4814,39 @@ if(vos!=null&&vos.length!=0){
 		getBillCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null); 
 	 }
 //add by QuSida 2010-9-11 (佛山骏杰) --- end
+//2010-12-15 MeiChao begin 查询出到货单对应的存货明细,并放入invdetail页签中
+		if (this.invDetailVOs == null || this.invDetailVOs.length < 0) {
+			IUAPQueryBS iService = (IUAPQueryBS) NCLocator.getInstance()
+					.lookup(IUAPQueryBS.class.getName());
+			String queryInvDetailSql = "select * from scm_invdetail t where t.carriveorder_bid in (select carriveorder_bid from po_arriveorder_b where carriveorderid='"
+					+ pk + "') and t.dr=0 order by t.pk_invbasdoc";
+			List<InvDetailVO> invDetailVOList = null;
+			try {
+				invDetailVOList = (List<InvDetailVO>) iService.executeQuery(
+						queryInvDetailSql, new BeanListProcessor(
+								InvDetailVO.class));
+			} catch (BusinessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (invDetailVOList != null && invDetailVOList.size() > 0) {
+				this.invDetailVOs = new InvDetailVO[invDetailVOList.size()];
+				for (int i = 0; i < invDetailVOList.size(); i++) {
+					invDetailVOs[i] = invDetailVOList.get(i);
+				}
+				getBillCardPanel().getBillModel("invdetail").setBodyDataVO(
+						invDetailVOs);
+				getBillCardPanel().getBillModel("invdetail").execLoadFormula();
+			}else {
+				getBillCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+			}
+		} else {
+			getBillCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+		}
+//2010-12-15 MeiChao end 查询出到货单对应的存货明细,并放入invdetail页签中
+
+
+
   showHintMessage(m_lanResTool.getStrByID("common","UCH021")/*@res "卡片显示"*/);
 }
 
@@ -8212,6 +8293,29 @@ if(vos!=null&&vos.length!=0){
 	getBillListPanel().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null);
 }
 //add by QuSida 2010-9-11 (佛山骏杰)  --- end
+	//2010-12-15 MeiChao begin 查询出到货单对应的存货明细,并放入invdetail页签中
+	IUAPQueryBS iService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+	String queryInvDetailSql="select * from scm_invdetail t where t.carriveorder_bid in (select carriveorder_bid from po_arriveorder_b where carriveorderid='"+pk+"') and t.dr=0 order by t.pk_invbasdoc";
+	List<InvDetailVO> invDetailVOList=null;
+	try {
+		invDetailVOList=(List<InvDetailVO>)iService.executeQuery(queryInvDetailSql, new BeanListProcessor(InvDetailVO.class));
+	} catch (BusinessException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	if(invDetailVOList!=null&&invDetailVOList.size()>0){
+		this.invDetailVOs=new InvDetailVO[invDetailVOList.size()];
+		for(int i=0;i<invDetailVOList.size();i++){
+			invDetailVOs[i]=invDetailVOList.get(i);
+		}
+		getBillListPanel().getBodyBillModel("invdetail").setBodyDataVO(invDetailVOs);
+	}else{
+		getBillListPanel().getBodyBillModel("invdetail").setBodyDataVO(null);
+	}
+	//2010-12-15 MeiChao end 查询出到货单对应的存货明细,并放入invdetail页签中
+
+
+
   return isErr;
 }
 
@@ -8883,8 +8987,8 @@ public ButtonObject[] getExtendBtns() {
 	if(extendBtns == null || extendBtns.length == 0){
 		//加入费用录入按钮 add by QuSida 2010-8-10  （佛山骏杰）
 		extendBtns = new ButtonObject[]{getBoInfoCost()};
-	return extendBtns;}
-	else return extendBtns;
+	return null;}
+	else return null;
 }
 
 /**
@@ -10361,6 +10465,10 @@ private ButtonObject getBoInfoCost(){
 	}
 	else return boInfoCost;
 }
+
+
+
+
 /**
  * @function 费用信息录入功能
  *
@@ -10374,9 +10482,7 @@ private void onBoInfoCost() {
 	InformationCostVO[] ivos = (InformationCostVO[] )getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
 	ArrayList voList = new ArrayList();
 	for (int i = 0; i < ivos.length; i++) {
-		//modify by 付世超 2010-10-12 原判断条件错误  
 		if(ivos[i] != null){
-//		if(ivos[i].getPrimaryKey() == null||ivos[i].getPrimaryKey().length() == 0){
 			voList.add(ivos[i]);
 		}
 	}
@@ -10404,14 +10510,8 @@ private void onBoInfoCost() {
 			if(infoCostVOs.length!=0&&infoCostVOs!=null){
 				
 				   int temp = getBillCardPanel().getBillModel("table").getRowCount();
-//				   UFDouble arrmny = null;//累计金额废弃不用 by 付世超 2010-10-19
 				   UFDouble mny = null;
-//				    arrnumber = new UFDouble(0.0);
-//				    plannum = new UFDouble(0.0);
 			    for (int i = 0; i < temp; i++) {
-//			    	arrnumber = arrnumber.add(new UFDouble(getBillCardPanel().getBillModel("table").getValueAt(i,"narrvnum").toString()));    			    	  
-			    	//add by 付世超 2010-10-14 
-//			    	plannum = plannum.add(new UFDouble((getBillCardPanel().getBodyValueAt(i,"nplanarrvnum")==null?0:getBillCardPanel().getBodyValueAt(i,"nplanarrvnum")).toString()));//应到数量
 			    }
 
 			    
@@ -10434,29 +10534,12 @@ private void onBoInfoCost() {
 					if(ismny == null || !ismny.booleanValue()){
 
 			    	mny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber);
-			    	//infoCostVOs[i].setAttributeValue("noriginalcurmny", mny); 2010-11-01 MeiChao 取消对费用行金额的重新赋值.
-//			    	arrmny  = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurprice").toString()).multiply(arrnumber.add(arrnum));
-//			    	taxmny = new UFDouble(infoCostVOs[i].getAttributeValue("noriginalcurtaxprice").toString()).multiply(arrnumber);
 					}else{
 			    		mny = pmny.multiply(arrnumber).div(plannum);//修改 付世超 2010-10-18 算法修改
 			    		//infoCostVOs[i].setAttributeValue("noriginalcurmny", mny); 2010-11-01 MeiChao 取消对费用行金额的重新赋值.
 					}
 				}
-				// by 付世超 2010-10-12 注释掉代码	
-//				InformationCostVO[] newVOs = new InformationCostVO[vos.length+infoCostVOs.length];
-//				if(vos.length != 0 && vos != null){
-//					//int temp = vos.length>infoCostVOs.length?vos.length:infoCostVOs.length;
-//					
-//					System.arraycopy(vos, 0, newVOs, 0, vos.length);
-//					
-//					System.arraycopy(infoCostVOs, 0, newVOs, vos.length, infoCostVOs.length);
-//					
-//					
-//						getBillCardPanel().getBillData().setBodyValueVO(
-//								"jj_scm_informationcost", newVOs);
-//					//	getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-//				}
-//				else 
+
 				getBillCardPanel().getBillData().setBodyValueVO(
 						"jj_scm_informationcost", infoCostVOs);
 				getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
@@ -10468,41 +10551,7 @@ private void onBoInfoCost() {
 	//2010-10-18 18:49 MeiChao 当费用录入处理结束时,将当前显示页签顺序重置.
 	
 }
-private void costInfoDistribute(InformationCostVO[] infoCostVOs,OrderVO orderVO){
-//	if(infoCostVOs==null||infoCostVOs.length==0||orderVO==null){
-//		SCMEnv.out("Warning:Params is null!");
-//		return;
-//	}
-//	UFDouble number = new UFDouble(0.0);
-//	UFDouble laborSummy = new UFDouble(0.0);
-//	for (int i = 0; i < infoCostVOs.length; i++) {
-//		if(infoCostVOs[i].getNoriginalcursummny()!=null)
-//		laborSummy = laborSummy.add(infoCostVOs[i].getNoriginalcursummny());
-//	}
-//	OrderItemVO[] childVOs = (OrderItemVO[])orderVO.getChildrenVO();
-//	if(childVOs.length == 0||childVOs == null){
-//		SCMEnv.out("Warning:OrderItemVO[] is null!");
-//		return ;
-//	}
-//	for (int i = 0; i < childVOs.length; i++) {
-//          if(childVOs[i].getNordernum()!=null)
-//        	  number = number.add(childVOs[i].getNordernum());
-//	}
-//	UFDouble templaborSummy = new UFDouble(0.0);
-//	for (int i = 0; i < childVOs.length; i++) {
-//		  if(i!=childVOs.length-1){
-//		UFDouble param1 = childVOs[i].getNordernum().div(
-//				number).multiply(laborSummy);        
-//        	childVOs[i].setNoriginaltaxpricemny(childVOs[i].getNoriginaltaxpricemny().add(param1));
-//        	childVOs[i].setNorgtaxprice(childVOs[i].getNoriginaltaxpricemny().div(childVOs[i].getNordernum()));
-//        	templaborSummy = templaborSummy.add(param1);
-//		  }else {
-//				UFDouble param1 = laborSummy.sub(templaborSummy); 
-//				childVOs[i].setNoriginaltaxpricemny(childVOs[i].getNoriginaltaxpricemny().add(param1));
-//            	childVOs[i].setNorgtaxprice(childVOs[i].getNoriginaltaxpricemny().div(childVOs[i].getNordernum()));
-//		  }
-//	}
-}
+
 	public ArrayList getLmny() {
 		if(lmny == null){
 			lmny = new ArrayList();
@@ -10520,5 +10569,115 @@ private void costInfoDistribute(InformationCostVO[] infoCostVOs,OrderVO orderVO)
 		   this.getBillListPanel().getBodyTabbedPane().setSelectedIndex(0);
 	   }
    }
+   /**
+    * 获得"存货明细"按钮
+    * @author MeiChao
+    * @date 2010-12-14
+    * @return ButtonObject
+    */
+   private ButtonObject getBoInvDetail(){
+   	if(this.boInvDetail==null){
+   		this.boInvDetail= new ButtonObject("存货明细","维护存货明细","存货明细");
+   		return this.boInvDetail;
+   	}
+   	return this.boInvDetail;
+   }
+
+   /**
+    * 存货明细 按钮响应事件
+    * @author MeiChao
+    * @date 2010-12-14
+    */
+     private void onBoInvDetail(){
+    	 if(this.isFrmList){//||!this.m_strState.equals("到货浏览")
+    		 MessageDialog.showHintDlg(this,"提示","必须在卡片浏览状态下才可维护存货明细");
+    		 return;
+    	 }
+    	 
+    	 if(this.getBillCardPanel().getBillTable("table").getSelectedRow()==-1){
+    		 MessageDialog.showHintDlg(this,"提示","请选择一个表体行后再维护存货明细!");
+    		 return;
+    	 }
+    	 //选中行号
+    	 Integer selectedRowNum=this.getBillCardPanel().getBillTable("table").getSelectedRow();
+    	 //选中行VO
+    	 ArriveorderItemVO selectedArriveBody=(ArriveorderItemVO)this.getBillCardPanel().getBillModel().getBodyValueRowVO(selectedRowNum, ArriveorderItemVO.class.getName());
+    	 //选中存货
+    	 String selectedInv=selectedArriveBody.getCbaseid();
+    	 //选中存货对应的明细
+    	 ArrayList<InvDetailVO> selectedDetailList=new ArrayList<InvDetailVO>();
+    	 if(this.invDetailVOs!=null&&this.invDetailVOs.length>0){
+    	 for(int i=0;i<this.invDetailVOs.length;i++){
+    		 if(selectedInv.equals(this.invDetailVOs[i].getPk_invbasdoc())){//如
+    			 selectedDetailList.add((InvDetailVO)this.invDetailVOs[i].clone());
+    		 }
+    	 }
+    	 }
+    	 InvDetailDialog invDetailDlg=null;
+    	 if(selectedDetailList!=null&&selectedDetailList.size()>0){
+    		 invDetailDlg=new InvDetailDialog(this,(InvDetailVO[])selectedDetailList.toArray(new InvDetailVO[selectedDetailList.size()]),selectedArriveBody);
+    	 }else{
+    		 invDetailDlg=new InvDetailDialog(this,null,selectedArriveBody);
+    	 }
+   	  invDetailDlg.showModal();
+   	  //更新表体的存货明细页签等后续操作.
+   	  if(invDetailDlg.isCloseOK()){
+   		  //从Dialog中取出维护后的存货明细数组(此时取出的VO数组包含新增,修改,已删除 3种状态的VO,已删除看作是修改)
+   		  InvDetailVO[] newInvDetails=invDetailDlg.getinvDetailVOs();
+   		  //开始分拣维护后的存货明细VO
+   		  //新增的
+   		  ArrayList<InvDetailVO> newVOs=new ArrayList<InvDetailVO>();
+   		  //修改的
+   		  ArrayList<InvDetailVO> changeVOs=new ArrayList<InvDetailVO>();
+   		  for(int i=0;i<newInvDetails.length;i++){
+   			  if(newInvDetails[i].getStatus()==VOStatus.NEW&&newInvDetails[i].getPk_invdetail()==null){
+   				newVOs.add(newInvDetails[i]);//VO状态为新增  且没有主键的记录
+   			  }else if(newInvDetails[i].getStatus()==VOStatus.UPDATED&&newInvDetails[i].getPk_invdetail()!=null){
+   				changeVOs.add(newInvDetails[i]);//VO状态为修改,且有主键的记录
+   			  }
+   		  }
+   		  ISrvPUToMM iService=(ISrvPUToMM)NCLocator.getInstance().lookup(ISrvPUToMM.class.getName());
+   		  try {
+			iService.insertInvDetail(newVOs.toArray(new InvDetailVO[newVOs.size()]));
+			iService.updateInvDetail(changeVOs.toArray(new InvDetailVO[changeVOs.size()]));
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+   		  
+   	  }
+   	  //保存成功后需要更新当前页面的数据.
+		String pk = getBillCardPanel().getHeadItem("carriveorderid").getValue();
+		IUAPQueryBS iService = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		String queryInvDetailSql = "select * from scm_invdetail t where t.carriveorder_bid in (select carriveorder_bid from po_arriveorder_b where carriveorderid='"
+				+ pk + "') and t.dr=0 order by t.pk_invbasdoc";
+		List<InvDetailVO> invDetailVOList = null;
+		try {
+			invDetailVOList = (List<InvDetailVO>) iService
+					.executeQuery(queryInvDetailSql, new BeanListProcessor(
+							InvDetailVO.class));
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (invDetailVOList != null && invDetailVOList.size() > 0) {
+			this.invDetailVOs = new InvDetailVO[invDetailVOList.size()];
+			for (int i = 0; i < invDetailVOList.size(); i++) {
+				invDetailVOs[i] = invDetailVOList.get(i);
+			}
+			getBillCardPanel().getBillModel("invdetail").setBodyDataVO(
+					invDetailVOs);
+			getBillListPanel().getBodyBillModel("invdetail").setBodyDataVO(invDetailVOs);
+			getBillCardPanel().getBillModel("invdetail").execLoadFormula();
+			getBillListPanel().getBodyBillModel("invdetail").execLoadFormula();
+		} else {
+			getBillCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+			getBillListPanel().getBodyBillModel("invdetail").setBodyDataVO(null);
+		}
+   	  
+     }
+
+   
 
 }
