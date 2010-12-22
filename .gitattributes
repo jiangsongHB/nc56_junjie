@@ -199,6 +199,7 @@ junjie/develop/proj/newmodules/ic/src/public/nc/ui/ic/md/dialog/MDUtils.java -te
 junjie/develop/proj/newmodules/ic/src/public/nc/vo/ic/jjvo/InformationCostVO.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/vo/ic/jjvo/InformationCostVOMeta.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/vo/ic/jjvo/InvDetailCVO.java -text
+junjie/develop/proj/newmodules/ic/src/public/nc/vo/ic/jjvo/InvDetailVO.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/vo/ic/md/CargInfVO.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/vo/ic/md/MdcrkTempVO.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/vo/ic/md/MdcrkVO.java -text
