@@ -5,7 +5,12 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import nc.bs.framework.common.NCLocator;
+import nc.bs.logging.Logger;
 import nc.itf.ic.md.IMDTools;
 import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ArrayProcessor;
@@ -26,12 +31,14 @@ import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.trade.business.HYPubBO_Client;
 import nc.uif.pub.exception.UifException;
+import nc.vo.ic.jjvo.InvDetailCVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
 import nc.vo.ic.xcl.MdxclVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFBoolean;
+import nc.vo.pub.lang.UFDateTime;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.constant.ic.BillMode;
 import nc.vo.scm.constant.ic.InOutFlag;
@@ -73,7 +80,15 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		this.factoryweight = factoryweight;
 	}
 	//2010-12-13 MeiChao end 添加 钢厂重量
-
+	//2010-12-22 MeiChao begin add 存货明细子表List,用于储存码单与存货明细的对照关系.
+	public List<InvDetailCVO> invDetailvsMD=new ArrayList<InvDetailCVO>();
+	public List<InvDetailCVO> getInvDetailvsMD() {
+		return invDetailvsMD;
+	}
+	public void setInvDetailvsMD(List<InvDetailCVO> invDetailvsMD) {
+		this.invDetailvsMD = invDetailvsMD;
+	}
+	//2010-12-22 MeiChao end add 存货明细子表List
 	public UFDouble ssfsl = new UFDouble(0);// 实收辅数量
 
 	public UFDouble sssl = new UFDouble(0);// 实收数量
@@ -111,6 +126,21 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		this.setSize(1024, 700);
 		this.sfth = sfth;
 		init();
+		//2010-12-20 初始化之后,根据当前入库单的来源单据是否为到货单,设置存货参照字段是否显示
+		if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
+			this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").setEnabled(true);
+			this.getBillCardPanel().getBillModel().getItemByKey("md_width").setEnabled(false);
+			this.getBillCardPanel().getBillModel().getItemByKey("md_length").setEnabled(false);
+			this.getBillCardPanel().getBillModel().getItemByKey("md_meter").setEnabled(false);
+			
+		}else{//如果来源单据不是到货单,那么隐藏存货参照字段.
+			BillItem width=this.getBillCardPanel().getBillModel().getItemByKey("invdetailref");
+			this.getBillCardPanel().hideBodyTableCol("invdetailref");
+			this.getBillCardPanel().getBillModel().getItemByKey("md_width").setEnabled(true);
+			this.getBillCardPanel().getBillModel().getItemByKey("md_length").setEnabled(true);
+			this.getBillCardPanel().getBillModel().getItemByKey("md_meter").setEnabled(true);
+			this.getBillCardPanel().getBillModel().getItemByKey("def1").setEnabled(true);
+		}
 	}
 
 	GeneralBillVO getGeneralBillVO() {
@@ -310,8 +340,32 @@ public class MDioDialog extends UIDialog implements ActionListener,
 										getGenSelectRowID(), "cgeneralbid")
 								+ "'");
 				if (vos != null && vos.length > 0) {
+					
 					getBillCardPanel().getBillModel().setBodyDataVO(vos);
 					getBillCardPanel().getBillModel().execLoadFormula();
+					//2010-12-22 MeiChao add begin
+				 if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
+					//获取当前码单对应的存货明细子表VO
+					InvDetailCVO[] invDetailCVOs=(InvDetailCVO[])HYPubBO_Client.queryByCondition(
+							InvDetailCVO.class, " isnull(dr,0)=0 and pk_mdcrk in (select pk_mdcrk from nc_mdcrk where isnull(dr,0)=0 and cgeneralbid='"
+							+ getGeneralBillVO().getItemValue(
+									getGenSelectRowID(), "cgeneralbid")
+							+ "')");
+					Logger.debug("MDioDialog:码单VO长:"+vos.length+"明细VO长:"+invDetailCVOs.length);
+					for(int i=0;i<invDetailCVOs.length;i++){//组织成List集合
+						this.invDetailvsMD.add((InvDetailCVO)invDetailCVOs[i].clone());
+						if(this.getBillCardPanel().getBillModel().getValueAt(i,"pk_mdcrk").equals(invDetailCVOs[i].getPk_mdcrk())){
+							this.getBillCardPanel().getBillModel().setValueAt(invDetailCVOs[i].getPk_invdetail(), i, "pk_invdetail");
+						}else{
+							for(int j=0;j<invDetailCVOs.length;j++){
+								if(invDetailCVOs[j].getPk_mdcrk().equals(this.getBillCardPanel().getBillModel().getValueAt(j,"pk_mdcrk"))){
+									this.getBillCardPanel().getBillModel().setValueAt(invDetailCVOs[j].getPk_invdetail(), j, "pk_invdetail");
+								}
+							}
+						}
+					}
+				 }
+					//2010-12-22 MeiChao add end
 				}else{//2010-12-01 MeiChao begin添加此else判断,当前无已存在码单信息时.
 					//尝试去寻找相同上游单据的对应其他出库单对应的表体存货下的码单信息.(有点绕)
 					vos = (MdcrkVO[]) HYPubBO_Client.queryByCondition(
@@ -535,6 +589,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		String ispj = (String) getBillCardPanel().getHeadItem("ispj")
 				.getValueObject();
 		MdcrkVO[] mdvos = getBodyVOs();
+		//2010-12-22 MeiChao 计算前先保存存货明细参照
+		InvDetailCVO[] invDetailCVOsTemp=this.getInvDetailVOs();
+		
 		if (mdvos.length < 1)
 			throw new BusinessException("码单表体没有数据！");
 		// 较验数据
@@ -584,7 +641,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			if(mdvos[0].getMd_meter()!=null){//如果任意1行中米数不为空,那么表示以米数和支数来计数
 				//码单米数*支数的总和
 				for(int i=0;i<mdvos.length;i++){
-					total.add(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()));
+					total=total.add(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()));
 				}
 				//已分配重量
 				UFDouble givedNum=new UFDouble(0);
@@ -593,13 +650,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					if(i==mdvos.length-1){
 						mdvos[i].setDef1(factoryWeight.sub(givedNum));
 					}else{
-						givedNum.add(mdvos[i].getDef1());
+						givedNum=givedNum.add(mdvos[i].getDef1());
 					}
 				}
 			}else{//否则,按宽*长*支数 来计数
 			    //码单宽*长*支数的总和
 				for(int i=0;i<mdvos.length;i++){
-					total.add(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()));
+					total=total.add(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()));
 				}
 				//已分配重量
 				UFDouble givedNum=new UFDouble(0);
@@ -608,13 +665,16 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					if(i==mdvos.length-1){
 						mdvos[i].setDef1(factoryWeight.sub(givedNum));
 					}else{
-						givedNum.add(mdvos[i].getDef1());
+						givedNum=givedNum.add(mdvos[i].getDef1());
 					}
 				}
 			}
 		}
 		getBillCardPanel().getBillData().setBodyValueVO(mdvos);
 		getBillCardPanel().getBillModel().execLoadFormula();
+		for(int i=0;i<invDetailCVOsTemp.length;i++){
+			this.getBillCardPanel().setBodyValueAt(invDetailCVOsTemp[i].getPk_invdetail(), i, "pk_invdetail");
+		}
 		// setMessage("计算成功...");
 		edited = true;
 		MessageDialog.showWarningDlg(this, "提示", "计算成功!");
@@ -650,7 +710,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		getBillCardPanel().dataNotNullValidate();
 		if (edited) {
 			MdcrkVO[] mdvos = getBodyVOs();
-
+			InvDetailCVO[] InvDetailCVOs=this.getInvDetailVOs();//获取页面上的存货明细子表信息
 			// 是否非计算
 			String fjs = (String) getBillCardPanel().getHeadItem("fjs")
 					.getValueObject();
@@ -670,8 +730,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			}
 
 			IMDTools tools = NCLocator.getInstance().lookup(IMDTools.class);
-			tools.saveMDrk(mdvos, mdxclvo, (String) getGeneralBillVO()
-					.getItemValue(getGenSelectRowID(), "cgeneralbid"));
+			//根据来源单据类型是否为到货单(23)以及存货明细子表数组是否成功组织,决定是否传入存货明细子表进入保存接口
+			if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())&&InvDetailCVOs!=null&&InvDetailCVOs.length>0){
+				tools.saveMDrk(mdvos, mdxclvo, (String) getGeneralBillVO()
+						.getItemValue(getGenSelectRowID(), "cgeneralbid"),InvDetailCVOs);
+			}else{
+				tools.saveMDrk(mdvos, mdxclvo, (String) getGeneralBillVO()
+						.getItemValue(getGenSelectRowID(), "cgeneralbid"),null);
+			}
 			UFDouble sum_sssl = new UFDouble(0);
 			UFDouble sum_factoryWeight=new UFDouble(0);
 			for (int i = 0; i < mdvos.length; i++) {
@@ -914,6 +980,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		} else if (key.equals("srkzs")) {
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "srkzl");
+			//2010-12-21 MeiChao add begin 在修改码单入库支数的同时,查询对应的明细PK,并计算出新的钢厂重量;
+			
+			
+			
+//			contractnumber->getColValue(scm_invdetail,contractnumber ,pk_invdetail ,pk_invdetail );
+//			contractweight->getColValue(scm_invdetail,contractweight ,pk_invdetail ,pk_invdetail );
+	
+			//2010-12-21 MeiChao add end
 		} else if (key.equals("grossprice")) {
 			MdcrkVO[] vos = (MdcrkVO[]) getBillCardPanel().getBillData()
 					.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
@@ -1092,7 +1166,23 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			getBillCardPanel().getBillModel().execLoadFormula();
 		}
 		//2010-11-25 MeiChao add end
-
+		//2010-12-21 MeiChao add begin 
+		else if(key.equals("invdetailref")){//如果修改了存货明细参照 那么根据参照所选PK,获取存货明细数据
+			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBodyItem("invdetailref").getComponent();
+			String invdetailpk=invdetailref.getRefPK();
+			String[] formulas={"md_width->getColValue(scm_invdetail,contractwidth,pk_invdetail,\""+invdetailpk+"\")",
+							   "md_length->getColValue(scm_invdetail,contractlength,pk_invdetail,\""+invdetailpk+"\")",
+							   "md_meter->getColValue(scm_invdetail,contractmeter,pk_invdetail,\""+invdetailpk+"\")",
+							   "def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk+"\")",
+							   "def8->getColValue(scm_invdetail,arrivewidth,pk_invdetail,\""+invdetailpk+"\")",
+							   "def7->getColValue(scm_invdetail,arrivelength,pk_invdetail,\""+invdetailpk+"\")",
+							   "def9->getColValue(scm_invdetail,arrivemeter,pk_invdetail,\""+invdetailpk+"\")",
+							   "srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk+"\")",
+							   "srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk+"\")",
+							   "pk_invdetail->\""+invdetailpk+"\"",};
+			this.getBillCardPanel().execBodyFormulas(editEvent.getRow(), formulas);
+		}
+		//2010-12-21 MeiCha add end
 		edited = true;
 		// md_width
 		// md_length
@@ -1115,6 +1205,12 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	public boolean beforeEdit(BillEditEvent billeditevent) {
+		//2010-12-20 MeiChao 在采购入库单存在来源单据类型并且为到货单事,增设"钢厂数据"参照的查询条件
+		if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
+			String arriveOrderBid=this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcebillbid();
+			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
+			invdetailref.setWhereString("carriveorder_bid='"+arriveOrderBid+"' and unstoragenumber>0 and unstorageweight>0");
+		}
 		return true;
 	}
 
@@ -1303,6 +1399,24 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	public void setVfree1(String vfree1) {
 		this.vfree1 = vfree1;
+	}
+	/**
+	 * 组织码单页面上的存货明细子表信息 
+	 * @author MeiChao
+	 * @return InvDetailCVO[]<来源为到货单>  null<来源单据不为到货单>
+	 */
+	public InvDetailCVO[] getInvDetailVOs(){
+		int rownumber=this.getBillCardPanel().getRowCount();
+		InvDetailCVO[] invDetailCVOs=new InvDetailCVO[rownumber];
+		for(int i=0;i<rownumber;i++){
+			InvDetailCVO invDetailCVO=new InvDetailCVO();
+			invDetailCVO.setCgeneralbid(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCgeneralbid());
+			invDetailCVO.setPk_invdetail(this.getBillCardPanel().getBillModel().getValueAt(i,"pk_invdetail")==null?null:this.getBillCardPanel().getBillModel().getValueAt(i,"pk_invdetail").toString());
+			invDetailCVO.setTs(new UFDateTime(new Date()));
+			invDetailCVO.setDr(0);
+			invDetailCVOs[i]=invDetailCVO;
+		}
+		return "23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())?invDetailCVOs:null;
 	}
 
 }
