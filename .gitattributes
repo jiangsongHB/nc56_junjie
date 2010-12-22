@@ -176,6 +176,7 @@ junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/MdDetailDialog.java 
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/MdDetailVO.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/jj/JJIcScmPubHelper.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/jjpanel/InfoCostPanel.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/jjpanel/InvDetailRef.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/md/MDPlugin.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/md/SCMBasePlugin.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/md/dialog/MDioDialog.java -text
