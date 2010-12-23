@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import nc.bs.dao.BaseDAO;
+import nc.bs.logging.Logger;
 import nc.itf.ic.md.IMDTools;
 import nc.jdbc.framework.SQLParameter;
 import nc.jdbc.framework.processor.ColumnListProcessor;
@@ -17,6 +18,8 @@ import nc.vo.ic.xcl.MdxclVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.VOStatus;
 import nc.vo.pub.lang.UFDouble;
+import nc.vo.ic.jjvo.InvDetailCVO;
+import nc.vo.logging.Debug;
 
 public class MDToolsImpl implements IMDTools {
 
@@ -70,11 +73,20 @@ public class MDToolsImpl implements IMDTools {
 		return false;
 	}
 
-	public boolean saveMDrk(MdcrkVO[] mdvos, MdxclVO xclvo, String cgeneralbid)
+	/**
+	 * 2010-12-22 MeiChao 修改: 如果码单维护了对应的存货明细子表信息,那么删除原有的存货明细子表,再重新插入
+	 */
+	public boolean saveMDrk(MdcrkVO[] mdvos, MdxclVO xclvo, String cgeneralbid,InvDetailCVO[] invDetailCVOs)
 			throws BusinessException {
 
 		checkJBH(mdvos);
 		boolean delete_date = deleteMDrk(cgeneralbid);
+		if(delete_date){//如果成功删除了原有的码单信息.那么将原有的码单信息对应存货明细子表信息也删除.
+			//对应的入库单表体pk
+			String deleteScm_invdetail_c="update scm_invdetail_c t set t.dr=1 where t.cgeneralbid='"+cgeneralbid+"' and t.dr=0";
+			int deleterowcount=this.getDAO().executeUpdate(deleteScm_invdetail_c);
+			Logger.debug("新码单保存时,删除了"+deleterowcount+"条存货明细子表记录!");
+		}
 		/**
 		 * 现存量表没有被其他单据引用: 1,删除现存量记录. 2,删除原有码单信息. 3,重新生成现存量记录. 4,重新生成码单记录
 		 */
@@ -100,6 +112,7 @@ public class MDToolsImpl implements IMDTools {
 		/**
 		 * 重新生成码单信息. 先生成现存量,在生成码单信息.
 		 */
+		int i=0;//循环游标
 		for (MdcrkVO mdcrkVO : mdvos) {
 			MdxclBVO bvo = new MdxclBVO();
 			bvo.setCspaceid(mdcrkVO.getCspaceid());
@@ -137,13 +150,20 @@ public class MDToolsImpl implements IMDTools {
 			mdcrkVO.setDr(0);
 			mdcrkVO.setStatus(VOStatus.NEW);
 			mdcrkVO.setPk_mdxcl_b(xcl_b);
-			getDAO().insertVO(mdcrkVO);
-
+			String thisMDPK=getDAO().insertVO(mdcrkVO);
+			//2010-12-22 MeiChao 在码单保存时,将对应的存货明细记录保存起来.
+			if(invDetailCVOs!=null
+					&&invDetailCVOs.length==mdvos.length
+					&&invDetailCVOs.length>i
+					&&invDetailCVOs[i]!=null){
+				invDetailCVOs[i].setPk_mdcrk(thisMDPK);//将刚才保存的码单PK,存入对应的明细子表VO中
+				getDAO().insertVO(invDetailCVOs[i]);
+			}
+			i++;//累加游标
 			zl = zl.add(mdcrkVO.getSrkzl());
 			zs = zs.add(mdcrkVO.getSrkzs());
-			
 		}
-
+		Logger.debug("保存码单时,成功保存"+i+"条存货明细子表记录.");
 		/*
 		if (mdvos != null && mdvos.length > 0) {
 			String updateZL = " update ic_general_b set ninnum = '"
