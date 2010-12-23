@@ -2,16 +2,22 @@ package nc.ui.ic.jjpanel;
 
 import nc.ui.bd.ref.AbstractRefModel;
 
+/**
+ * ¥Êªı√˜œ∏≤Œ’’
+ * @author MeiChao
+ *
+ */
 public class InvDetailRef extends AbstractRefModel {
 
 	public InvDetailRef() {
+		super.reloadData();
 	}
 
 	public String getTableName() {
 		String table = "(select t.*," +
 				" f.graphid as invname," +
 				" t.arrivenumber - nvl(m.storagenumber, 0) as unstoragenumber," +
-				" t.arriveweight - nvl(m.storageweight, 0) as unstorageweight" +
+				" t.contractweight - nvl(m.storageweight, 0) as unstorageweight" +
 				" from scm_invdetail t left join (select sum(t.def1) as storageweight," +
 				" sum(t.srkzs) as storagenumber," +
 				" m.pk_invdetail" +
