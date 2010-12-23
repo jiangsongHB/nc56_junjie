@@ -14,6 +14,7 @@ import nc.bs.logging.Logger;
 import nc.itf.ic.md.IMDTools;
 import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ArrayProcessor;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.mdck.MDConstants;
 import nc.ui.ic.pub.bill.Environment;
 import nc.ui.ic.pub.bill.GeneralBillClientUI;
@@ -69,6 +70,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	boolean canloaddata = false;
 
 	boolean edited = false;
+	//2010-12-22 MeiChao 修改钢厂重量时的重量临时重量
+	public UFDouble oneMDfactoryweighttemp=new UFDouble(0);
+	
 	//2010-12-13 MeiChao  begin 添加 钢厂重量 
 	public UFDouble factoryweight= new UFDouble(0);
 
@@ -980,10 +984,25 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		} else if (key.equals("srkzs")) {
 			getBillCardPanel().getBillModel().setValueAt(null,
 					editEvent.getRow(), "srkzl");
-			//2010-12-21 MeiChao add begin 在修改码单入库支数的同时,查询对应的明细PK,并计算出新的钢厂重量;
-			
-			
-			
+			//2010-12-21 MeiChao add begin 在修改码单入库支数的同时,根据对应的明细PK,并计算出新的钢厂重量;
+			IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+			String queryString="select unstorageweight/unstoragenumber from (select n.arriveNUMBER - nvl(m.storagenumber, 0) as unstoragenumber," +
+					" n.contractweight - nvl(m.storageweight, 0) as unstorageweight,n.pk_invdetail from scm_invdetail n left join (select sum(t.def1) as storageweight," +
+					" sum(t.srkzs) as storagenumber," +
+					" m.pk_invdetail" +
+					" from nc_mdcrk t, scm_invdetail_c m" +
+					" where t.pk_mdcrk = m.pk_mdcrk" +
+					" and t.dr = 0" +
+					" and m.dr = 0" +
+					" group by m.pk_invdetail) m on n.pk_invdetail=m.pk_invdetail ) where  pk_invdetail='"+this.getBillCardPanel().getBodyValueAt(editEvent.getRow(), "pk_invdetail")+"'";
+			UFDouble weightpernumber=null;
+			try {
+				weightpernumber=new UFDouble(queryService.executeQuery(queryString, new ColumnProcessor()).toString());
+			} catch (BusinessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			this.getBillCardPanel().setBodyValueAt(weightpernumber.multiply(new UFDouble(this.getBillCardPanel().getBodyValueAt(editEvent.getRow(), "srkzs").toString())), editEvent.getRow(), "def1");
 //			contractnumber->getColValue(scm_invdetail,contractnumber ,pk_invdetail ,pk_invdetail );
 //			contractweight->getColValue(scm_invdetail,contractweight ,pk_invdetail ,pk_invdetail );
 	
@@ -1173,14 +1192,17 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			String[] formulas={"md_width->getColValue(scm_invdetail,contractwidth,pk_invdetail,\""+invdetailpk+"\")",
 							   "md_length->getColValue(scm_invdetail,contractlength,pk_invdetail,\""+invdetailpk+"\")",
 							   "md_meter->getColValue(scm_invdetail,contractmeter,pk_invdetail,\""+invdetailpk+"\")",
-							   "def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk+"\")",
+							   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk+"\")",
 							   "def8->getColValue(scm_invdetail,arrivewidth,pk_invdetail,\""+invdetailpk+"\")",
 							   "def7->getColValue(scm_invdetail,arrivelength,pk_invdetail,\""+invdetailpk+"\")",
 							   "def9->getColValue(scm_invdetail,arrivemeter,pk_invdetail,\""+invdetailpk+"\")",
-							   "srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk+"\")",
-							   "srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk+"\")",
+							   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk+"\")",
+							   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk+"\")",
 							   "pk_invdetail->\""+invdetailpk+"\"",};
 			this.getBillCardPanel().execBodyFormulas(editEvent.getRow(), formulas);
+			this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstoragenumber"), editEvent.getRow(), "srkzs");//支数
+			this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "def1");//钢厂重量
+			this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
 		}
 		//2010-12-21 MeiCha add end
 		edited = true;
@@ -1210,6 +1232,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			String arriveOrderBid=this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcebillbid();
 			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
 			invdetailref.setWhereString("carriveorder_bid='"+arriveOrderBid+"' and unstoragenumber>0 and unstorageweight>0");
+		}
+		if(billeditevent.getKey()=="srkzs"){
+			
 		}
 		return true;
 	}
