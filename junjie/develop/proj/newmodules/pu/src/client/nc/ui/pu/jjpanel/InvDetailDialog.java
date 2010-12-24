@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import nc.bs.framework.common.NCLocator;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.bd.ref.busi.InvmandocDefaultRefModel;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
@@ -20,6 +23,7 @@ import nc.ui.pub.hotkey.HotkeyUtil;
 import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ml.IProductCode;
 import nc.vo.pu.jjvo.InvDetailVO;
+import nc.vo.pub.BusinessException;
 import nc.vo.pub.VOStatus;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDateTime;
@@ -43,6 +47,10 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	private nc.ui.pub.beans.UIButton m_btnOK = null;
 	// 取消按钮
 	private nc.ui.pub.beans.UIButton m_btnCancel = null;
+	//2010-12-24 MeiChao add 计算按钮
+	private nc.ui.pub.beans.UIButton m_btnCalculate = null;
+	//2010-12-24 MeiChao add 是否计算完毕(即分配钢厂重量)
+	private boolean isCalculate=true;
 	// 增加按钮
 	private nc.ui.pub.beans.UIButton m_btnAdd = null;
 	// 删除按钮
@@ -210,6 +218,8 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 			m_panelSouth.add(getBtnAdd(), getBtnAdd().getName());
 			// 删除
 			m_panelSouth.add(getBtnDel(), getBtnDel().getName());
+			//计算
+			m_panelSouth.add(getBtnCalculate(),getBtnCalculate().getName());
 			// 确定
 			m_panelSouth.add(getBtnOK(), getBtnOK().getName());
 			// 取消
@@ -241,6 +251,22 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 		return m_btnOK;
 	}
 
+	/**
+	 * 获取 "计算" 按钮
+	 *@author MeiChao
+	 *@date 2010-12-24 
+	 */
+	private nc.ui.pub.beans.UIButton getBtnCalculate() {
+		if (this.m_btnCalculate== null) {
+			m_btnCalculate = new nc.ui.pub.beans.UIButton();
+			m_btnCalculate.setName("计算");
+			HotkeyUtil.setHotkeyAndText(m_btnCalculate, 'C', "计算");/* @res "确定" */
+			m_btnCalculate.addActionListener(this);
+		}
+		return m_btnCalculate;
+	}
+	
+	
 	/**
 	 * @function 得到删除按钮
 	 * 
@@ -394,6 +420,12 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 		}
 		// 确定按钮动作
 		else if (e.getSource() == this.getBtnOK()) {
+			//判断是否已计算()
+			if(!this.isCalculate){
+				MessageDialog.showHintDlg(this,"提示","请先使用\"计算\"按钮分配钢厂重量!");
+				return;
+			}
+			
 			invDetailVOs = (InvDetailVO[])getBillListPanel().getHeadBillModel().getBodyValueVOs(InvDetailVO.class.getName());
 			if( invDetailVOs == null || invDetailVOs.length == 0){
 				this.m_closeMark = true;
@@ -484,15 +516,20 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 			this.getBillListPanel().getHeadBillModel().execLoadFormula();
 			//setValueAt(this.selectedArriveBody.getCmangid(), this.getBillListPanel().getHeadBillModel().getRowCount()-1, "invname");
 			getBillListPanel().getHeadBillModel().setEnabledAllItems(true);
-			//设置存货名称,钢厂厚度,验收厚宽长,验收重量,验收米数,换算率,不允许手动修改.
+			//设置存货名称,钢厂厚度,钢厂重量,验收厚宽长,验收重量,验收米数,换算率,不允许手动修改.
 			getBillListPanel().getHeadBillModel().getItemByKey("invname").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("contractthick").setEnabled(false);
+			getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivethick").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("conversionrates").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivewidth").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivelength").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivemeter").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arriveweight").setEnabled(false);
+			this.isCalculate=false;//将是否已计算按钮设定为false
+			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+			}
 		}
 		// 删除按钮动作
 		else if (e.getSource() == this.m_btnDel) {
@@ -507,24 +544,116 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 						if(oldInvDetailVOs[j].getPk_invdetail().equals(this.getBillListPanel().getHeadBillModel().getValueAt(delRows[i], "pk_invdetail"))){
 							//如果该行为普通 或 修改状态行,那么将旧明细数组中对应的VO状态设置为已删除
 							this.oldInvDetailVOs[j].setStatus(VOStatus.DELETED);
+							//2010-12-22 MeiChao 增加 :判断是否下游已引用了存货明细,如有,则不允许删除该行. begin
+							String checkPK=this.oldInvDetailVOs[j].getPk_invdetail();
+							String checkSQL="select count(t.*) from scm_invdetail_c t where t.pk_invdetail='"+checkPK+"' and t.dr=0";
+							IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+							try {
+								Object checkResult=queryService.executeQuery(checkSQL,new ColumnProcessor());
+								if(checkResult!=null){
+									MessageDialog.showErrorDlg(this,"错误","对不起,您选择的第"+(j+1)+"行记录已被引用,不允许删除.");
+									return;
+								}
+							} catch (BusinessException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							//2010-12-22 MeiChao end
 						}
 					}
 				}
 			}
 			getBillListPanel().getHeadBillModel().delLine(delRows);
+			this.isCalculate=false;//将是否已计算按钮设定为false
+			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+			}
 		}
 		// 修改按钮动作
 		else if (e.getSource() == this.m_btnMod) {
 			getBillListPanel().getHeadBillModel().setEnabledAllItems(true);
-			//设置存货名称,钢厂厚度,验收厚宽长,验收重量,验收米数,换算率,不允许手动修改.
+			//设置存货名称,钢厂厚度,钢厂重量,验收厚宽长,验收重量,验收米数,换算率,不允许手动修改.
 			getBillListPanel().getHeadBillModel().getItemByKey("invname").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("contractthick").setEnabled(false);
+			getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivethick").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("conversionrates").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivewidth").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivelength").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivemeter").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arriveweight").setEnabled(false);
+		}
+		//2010-12-24 MeiChao add 计算 按钮响应
+		else if(e.getSource() == this.m_btnCalculate){
+			/**
+			 * 首先检查明细是否已维护完毕: 明细支数=所选行到货件数
+			 */
+			//获取明细VO数组
+			invDetailVOs = (InvDetailVO[])getBillListPanel().getHeadBillModel().getBodyValueVOs(InvDetailVO.class.getName());
+			//明细件数总和
+			UFDouble detailSum=new UFDouble(0);
+			for(int i=0;i<invDetailVOs.length;i++){
+				detailSum=detailSum.add(invDetailVOs[i].getArrivenumber());
+			}
+			//明细总和,与表体件数之差
+			UFDouble diffNum=detailSum.sub(this.selectedArriveBody.getNassistnum());
+			if(diffNum.doubleValue()>0){
+				MessageDialog.showHintDlg(this,"警告","存货明细支数总和超出表体到货件数,\n表体件数为:"+this.selectedArriveBody.getNassistnum()+"\n 当前明细件数为:"+detailSum.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+				return;
+			}else if(diffNum.doubleValue()<0){
+				MessageDialog.showHintDlg(this,"警告","存货明细支数总和小于表体到货件数,\n表体件数为:"+this.selectedArriveBody.getNassistnum()+"\n 当前明细件数为:"+detailSum.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+				return;
+			}
+			/**
+			 * 如果通过明细件数总数与表体件数的检查,那么开始分配钢厂重量
+			 */
+			//宽*长*件数总和 或 米数*件数的总和
+			UFDouble invTotal=new UFDouble(0);
+			try {
+				for(int i=0;i<invDetailVOs.length;i++){
+					if(invDetailVOs[0].getContractmeter()!=null){//只判断第一行记录,以确定是按厚宽长计算还是米数计算.认为当前存货所有明细都是一样的计数方式.
+						invTotal=invTotal.add(new UFDouble(invDetailVOs[i].getContractmeter()).multiply(invDetailVOs[i].getArrivenumber()));
+					}else{
+						invTotal=invTotal.add(new UFDouble(invDetailVOs[i].getContractwidth()).multiply(new UFDouble(invDetailVOs[i].getContractlength())).multiply(invDetailVOs[i].getArrivenumber()));
+					}
+				}
+			} catch (NumberFormatException e1) {
+				MessageDialog.showErrorDlg(this,"提示","请输入正确的数据!");
+				e1.printStackTrace();
+				return;
+			}
+			//第二次遍历,根据总和作为基础值,按照比例分配钢厂重量,这一次遍历不需要try/catch.
+			//当前所选择存货的钢厂总重量 ,即 到货数量
+			UFDouble contractWeight=this.selectedArriveBody.getNarrvnum();
+			//已分配重量,要保证分配后总重量与表体相符,故将要在最后1行进行一个总重量-已分配重量 的剩余重量的重新分配
+			UFDouble isCalculatedWeight=new UFDouble(0);
+			for(int i=0;i<invDetailVOs.length;i++){
+				if(invDetailVOs[0].getContractmeter()!=null){//依旧只判断第一行记录,以确定是按厚宽长计算还是米数计算.认为当前存货所有明细都是一样的计数方式.
+					this.getBillListPanel().getHeadBillModel()
+							.setValueAt(
+									((new UFDouble(invDetailVOs[i]
+											.getContractmeter())
+											.multiply(invDetailVOs[i]
+													.getArrivenumber())
+											.multiply(contractWeight))
+											.div(invTotal)), i,
+									"contractweight");
+				}else{
+					this.getBillListPanel().getHeadBillModel()
+							.setValueAt(
+									(new UFDouble(invDetailVOs[i]
+											.getContractwidth()).multiply(
+											new UFDouble(invDetailVOs[i]
+													.getContractlength()))
+											.multiply(
+													invDetailVOs[i]
+															.getArrivenumber())
+											.multiply(contractWeight)
+											.div(invTotal)), i,
+									"contractweight");
+				}
+			}
+			this.isCalculate=true;
 		}
 
 	}
@@ -595,7 +724,10 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 		}
 		   
 		}
-		
+		this.isCalculate=false;//将是否已计算按钮设定为false
+		for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+			this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+		}
 	}
 
 	
