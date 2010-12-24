@@ -1202,7 +1202,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			this.getBillCardPanel().execBodyFormulas(editEvent.getRow(), formulas);
 			this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstoragenumber"), editEvent.getRow(), "srkzs");//支数
 			this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "def1");//钢厂重量
-			this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
+			//this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
 		}
 		//2010-12-21 MeiCha add end
 		edited = true;
