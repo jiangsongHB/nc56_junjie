@@ -238,6 +238,7 @@ junjie/develop/proj/newmodules/pu/src/public/nc/itf/ps/estimate/IEstimate.java -
 junjie/develop/proj/newmodules/pu/src/public/nc/itf/pu/mm/ISrvPUToMM.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/pu/jjvo/InformationCostVO.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/pu/jjvo/InformationCostVOMeta.java -text
+junjie/develop/proj/newmodules/pu/src/public/nc/vo/pu/jjvo/InvDetailVO.java -text
 junjie/develop/proj/newmodules/scmpub/.classpath -text
 junjie/develop/proj/newmodules/scmpub/.module_prj -text
 junjie/develop/proj/newmodules/scmpub/.project -text
