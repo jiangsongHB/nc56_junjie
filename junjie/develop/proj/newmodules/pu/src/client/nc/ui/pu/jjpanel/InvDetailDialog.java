@@ -108,7 +108,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 传入父容器,公司,操作员的构造函数
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @date 2010-8-20 上午10:02:36
 	 * 
@@ -153,7 +153,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 初始化对话框
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return void
 	 * 
@@ -179,7 +179,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 得到显示内容面板
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return javax.swing.JPanel
 	 * 
@@ -204,7 +204,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 获得按钮面板
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return nc.ui.pub.beans.UIPanel
 	 * 
@@ -233,7 +233,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 得到确定按钮
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return nc.ui.pub.beans.UIButton
 	 * 
@@ -270,7 +270,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 得到删除按钮
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return nc.ui.pub.beans.UIButton
 	 * 
@@ -290,7 +290,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 得到增加按钮
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return nc.ui.pub.beans.UIButton
 	 * 
@@ -309,7 +309,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 得到修改按钮
 	 *
-	 * @author QuSida
+	 * @author MeiChao
 	 *
 	 * @return nc.ui.pub.beans.UIButton
 	 *
@@ -329,7 +329,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 得到取消按钮
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return nc.ui.pub.beans.UIButton
 	 * 
@@ -350,7 +350,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 得到用于填充界面的东面版
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return nc.ui.pub.beans.UIPanel
 	 * 
@@ -368,7 +368,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 得到用于填充界面的西面板
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @return nc.ui.pub.beans.UIPanel
 	 * 
@@ -406,7 +406,7 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	/**
 	 * @function 按钮动作处理
 	 * 
-	 * @author QuSida
+	 * @author MeiChao
 	 * 
 	 * @param e
 	 * 
