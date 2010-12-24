@@ -14,6 +14,7 @@ import nc.bs.pub.SystemException;
 import nc.bs.scm.pub.ScmPubDMO;
 import nc.itf.pu.mm.ISrvPUToMM;
 import nc.vo.pr.pray.PraybillVO;
+import nc.vo.pu.jjvo.InvDetailVO;
 import nc.vo.pu.pr.PrayExecVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFDate;
@@ -355,4 +356,29 @@ public class AdapterPuToMm implements ISrvPUToMM{
 		return changeNum;
 		
 	}
+
+	
+	/**
+	 * 在存货明细窗口点击确定之后,将新增的存货明细插入到数据库中.
+	 * @author MeiChao
+	 * @return int 成功插入的行数
+	 * @param InvDetailVO[] 存货明细数组
+	 * @since 2010-12-14
+	 * @throws BusinessException 一般情况下都是数据库操作异常(网络问题,数据库问题等.)
+	 */
+	public String[] insertInvDetail(InvDetailVO[] invDetailVOs)
+			throws BusinessException {
+		BaseDAO dao=new BaseDAO();
+		
+		return dao.insertVOArray(invDetailVOs);
+	}
+
+	public int updateInvDetail(InvDetailVO[] invDetailVOs)
+			throws BusinessException {
+		BaseDAO dao=new BaseDAO();
+		
+		return dao.updateVOArray(invDetailVOs);
+	}
+	
+	
 }
