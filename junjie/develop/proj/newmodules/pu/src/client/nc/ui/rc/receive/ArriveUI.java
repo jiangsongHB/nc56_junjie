@@ -35,6 +35,7 @@ import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.jdbc.framework.processor.MapProcessor;
 import nc.jdbc.framework.processor.ResultSetProcessor;
+import nc.md.data.criterion.db.ListMapProcessor;
 import nc.ui.bd.ref.IBusiType;
 import nc.ui.ic.pub.lot.LotNumbRefPane;
 import nc.ui.ml.NCLangRes;
@@ -1292,6 +1293,21 @@ public boolean beforeEdit(nc.ui.pub.bill.BillEditEvent e) {
     	  //非固定换算率才可以编辑
     	  return !PuTool.isFixedConvertRate(sBaseID, sCassId) 
     	  	&& getBillCardPanel().getBodyItem("convertrate").isEdit();
+    }else if(e.getKey().equals("nassistnum")){
+      //2010-12-22 MeiChao add 添加在试图修改到货辅数量的时候,检查此行是否已维护了存货明细,如有,则不允许修改到货辅数量
+  	  ArriveorderVO testVO = (ArriveorderVO) getCacheVOs()[getDispIndex()];
+  	  String querySQL="select t.pk_invdetail from scm_invdetail t where t.carriveorder_bid ='"+testVO.getBodyVo()[e.getRow()].getCarriveorder_bid()+"'";
+  	  IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+  	  try {
+  		  Object checkResult=queryService.executeQuery(querySQL, new ColumnProcessor());
+  		  if(checkResult!=null){
+  			  MessageDialog.showErrorDlg(this,"警告","当前存货已维护了存货明细,不允许修改辅数量!");
+  			  return false;
+  		  }
+  		} catch (BusinessException e1) {
+  			// TODO Auto-generated catch block
+  			e1.printStackTrace();
+  		}
     }
   return true;
 }
@@ -3661,7 +3677,36 @@ public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
  */
 private void onAudit(ButtonObject bo) {
   showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000118")/*@res "正在审批..."*/);
-  ArriveorderVO vo = getCacheVOs()[getDispIndex()];  
+  ArriveorderVO vo = getCacheVOs()[getDispIndex()]; 
+  /**
+   * 2010-12-24 MeiChao 检查当前到货单是否已将存货明细维护完全,如是.则允许审核,如果有差错,则不允许审核
+   */
+  String checkSQL="select * from (select nvl(t.narrvnum,0) - nvl(m.sumweight,0) isover" +
+  		" from (select t.narrvnum, t.carriveorder_bid" +
+  		" from po_arriveorder_b t" +
+  		" where t.carriveorderid = '"+vo.getHeadVO().getPrimaryKey()+"') t" +
+  		" left join (select sum(t.contractweight) sumweight, t.carriveorder_bid" +
+  		" from scm_invdetail t" +
+  		" where t.carriveorder_bid in" +
+  		" (select m.carriveorder_bid" +
+  		" from po_arriveorder_b m" +
+  		" where m.carriveorderid = '"+vo.getHeadVO().getPrimaryKey()+"')" +
+  		" group by t.carriveorder_bid) m" +
+  		" on t.carriveorder_bid = m.carriveorder_bid" +
+  		" ) n where n.isover<>0 ";
+  IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+  try {
+	Object checkResult=queryService.executeQuery(checkSQL, new MapProcessor());
+	if(checkResult!=null){
+		MessageDialog.showHintDlg(this,"提示","当前到货单的存货明细没有维护完整,请补完后再进行审核操作!");
+		return;
+	}
+  	} catch (BusinessException e1) {
+	// TODO Auto-generated catch block
+	e1.printStackTrace();
+  	}
+  //2010-12-24 MeiChao add 检查明细完整性 end
+  	
   //回退审批人及审批日期哈希表，审批失败时用到
   String strPsnOld = vo.getHeadVO().getCauditpsn();
   UFDate dateAuditOld = vo.getHeadVO().getDauditdate();
@@ -10083,6 +10128,29 @@ private void onCreateCard() {
  * @time 2008-5-21 下午02:29:42
  */
 private void onDeleteCard() {
+	/**
+	   * 2010-12-22 MeiChao 在删除前,如果当前到货单维护了存货明细则不允许直接删除到货单.
+	   */
+	  ArriveorderVO testVO = (ArriveorderVO) getCacheVOs()[getDispIndex()];
+	  String arrivePK=testVO.getHeadVO().getPrimaryKey();
+	  String querySQL="select t.pk_invdetail from scm_invdetail t where t.carriveorder_bid in " +
+	  		"(select t.carriveorder_bid from po_arriveorder_b t " +
+	  		"where t.carriveorderid='"+arrivePK+"')";
+	  IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+	  try {
+		  Object checkResult=queryService.executeQuery(querySQL, new ColumnProcessor());
+		  if(checkResult!=null){
+			  MessageDialog.showErrorDlg(this,"警告","当前到货单已维护了存货明细,不允许直接删除!");
+			  return;
+		  }
+		} catch (BusinessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	
+	
+	
+	
   try {
 
     int iSize = getBillCardPanel().getRowCount();
