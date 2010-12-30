@@ -12,6 +12,7 @@ import nc.itf.uap.pub.jj.IJJUAPService;
 import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.mdck.MDConstants;
+import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
 import nc.vo.ic.md.MdcrkVO;
@@ -377,12 +378,13 @@ public class MDUtils {
 			throws BusinessException {
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
-		String sql = "select def18 from bd_invbasdoc where pk_invbasdoc='"
-				+ cinvbasid + "'";
+		String sql = "select def18 from bd_invmandoc where pk_invbasdoc='"
+				+ cinvbasid + "' and pk_corp='"+ClientEnvironment.getInstance().getCorporation()
+				.getPrimaryKey()+"'"; //2010-12-27 MeiChao 是否附加值,改为从存货管理档案中判断.
 		Object[] objs = (Object[]) iUAPQueryBS.executeQuery(sql,
 				new ArrayProcessor());
 		if (objs == null || objs.length == 0)
-			throw new BusinessException("当前存货异常，在存货基本档案中不存在！");
+			throw new BusinessException("当前存货异常，在存货管理档案中不存在！");
 		if (objs[0] == null)
 			return false;
 		else {
