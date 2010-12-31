@@ -4473,7 +4473,48 @@ private void onAuditList(ButtonObject bo) {
     //arrivevos = ArriveorderBO_Client.getAllWithBody(heads);
     arrivevos = RcTool.getRefreshedVOs(arrivevos);
     //
-
+    /**
+     * 2010-12-28 MeiChao 检查当前到货单是否已将存货明细维护完全,如是.则允许审核,如果有差错,则不允许审核
+     */
+    int checkPoint = 0;
+		for (ArriveorderVO vo : arrivevos) {
+			String checkSQL = "select * from (select nvl(t.narrvnum,0) - nvl(m.sumweight,0) isover"
+					+ " from (select t.narrvnum, t.carriveorder_bid"
+					+ " from po_arriveorder_b t"
+					+ " where t.carriveorderid = '"
+					+ vo.getHeadVO().getPrimaryKey()
+					+ "') t"
+					+ " left join (select sum(t.contractweight) sumweight, t.carriveorder_bid"
+					+ " from scm_invdetail t"
+					+ " where t.carriveorder_bid in"
+					+ " (select m.carriveorder_bid"
+					+ " from po_arriveorder_b m"
+					+ " where m.carriveorderid = '"
+					+ vo.getHeadVO().getPrimaryKey()
+					+ "')"
+					+ " group by t.carriveorder_bid) m"
+					+ " on t.carriveorder_bid = m.carriveorder_bid"
+					+ " ) n where n.isover<>0 ";
+			IUAPQueryBS queryService = (IUAPQueryBS) NCLocator
+					.getInstance().lookup(IUAPQueryBS.class.getName());
+			try {
+				Object checkResult = queryService.executeQuery(checkSQL,
+						new MapProcessor());
+				if (checkResult != null) {
+					MessageDialog.showHintDlg(this, "提示", "当前所选第"
+							+ (checkPoint + 1)
+							+ "个到货单的存货明细没有维护完整,请补完后再进行审核操作!");
+					this.onRefresh();
+					return;
+				}
+			} catch (BusinessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			checkPoint++;
+		}
+    //2010-12-28 MeiChao add 检查明细完整性 end
+    
     PfUtilClient.processBatchFlow(
         this,
         "APPROVE",
