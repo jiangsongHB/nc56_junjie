@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
@@ -51,6 +52,8 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 	private nc.ui.pub.beans.UIButton m_btnCalculate = null;
 	//2010-12-24 MeiChao add 是否计算完毕(即分配钢厂重量)
 	private boolean isCalculate=true;
+	//2010-12-27 MeiChao add 长度是否全为数字
+	private boolean isLengthAllNumber=true;
 	// 增加按钮
 	private nc.ui.pub.beans.UIButton m_btnAdd = null;
 	// 删除按钮
@@ -140,6 +143,11 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 				this.getBillListPanel().getHeadBillModel().setRowState(i,
 						BillModel.NORMAL);
 				this.oldInvDetailVOs[i].setStatus(VOStatus.UNCHANGED);
+				if(this.isLengthAllNumber){//如果当前的长度是否数字标识为true ,那么遍历检查一遍
+					if(!this.isDoueric(vos[i].getContractlength())){
+						this.isLengthAllNumber=false;//一旦存在非数字长度,那么将长度数字标识修改为false
+					}
+				}
 			}
 		}
 		this.setSelectedArriveBody(selectedArriveBodyRow);
@@ -422,10 +430,14 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 		else if (e.getSource() == this.getBtnOK()) {
 			//判断是否已计算()
 			if(!this.isCalculate){
-				MessageDialog.showHintDlg(this,"提示","请先使用\"计算\"按钮分配钢厂重量!");
-				return;
+				if(!this.isLengthAllNumber){
+					MessageDialog.showErrorDlg(this,"提示","请手动输入钢厂重量.");
+					return;
+				}else{
+					MessageDialog.showHintDlg(this,"提示","请先使用\"计算\"按钮分配钢厂重量!");
+					return;
+				}
 			}
-			
 			invDetailVOs = (InvDetailVO[])getBillListPanel().getHeadBillModel().getBodyValueVOs(InvDetailVO.class.getName());
 			if( invDetailVOs == null || invDetailVOs.length == 0){
 				this.m_closeMark = true;
@@ -436,7 +448,40 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 				MessageDialog.showHintDlg(this, "提示",message);
 				return;
 			}
-			
+			if(!this.isLengthAllNumber){
+				/**
+				 * 首先检查明细是否已维护完毕: 明细支数=所选行到货件数
+				 */
+				//获取明细VO数组
+				//invDetailVOs = (InvDetailVO[])getBillListPanel().getHeadBillModel().getBodyValueVOs(InvDetailVO.class.getName());
+				//明细件数件数总和
+				UFDouble detailSumnumber=new UFDouble(0);
+				//明细钢厂重量总和
+				UFDouble detailSumweight=new UFDouble(0);
+				for(int i=0;i<invDetailVOs.length;i++){
+					detailSumnumber=detailSumnumber.add(invDetailVOs[i].getArrivenumber());
+					detailSumweight=detailSumweight.add(invDetailVOs[i].getContractweight());
+				}
+				//明细件数总和,与表体件数之差
+				UFDouble diffNuma=detailSumnumber.sub(this.selectedArriveBody.getNassistnum());
+				//明细钢厂重量总和,与表体钢厂重量之差
+				UFDouble diffNumb=detailSumweight.sub(this.selectedArriveBody.getNarrvnum());
+				if(diffNuma.doubleValue()>0){
+					MessageDialog.showHintDlg(this,"警告","存货明细支数总和超出表体到货件数,\n表体件数为:"+this.selectedArriveBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+					return;
+				}else if(diffNuma.doubleValue()<0){
+					MessageDialog.showHintDlg(this,"警告","存货明细支数总和小于表体到货件数,\n表体件数为:"+this.selectedArriveBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+					return;
+				}
+				//2010-12-27 MeiChao 如果 长度中含有字母,那么需要检查钢厂总重量是否与到货表体重量相等.
+				if(diffNumb.doubleValue()>0){
+					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和超出表体到货重量,\n表体重量为:"+this.selectedArriveBody.getNarrvnum()+"\n 当前明细总重量为:"+detailSumweight.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+					return;
+				}else if(diffNumb.doubleValue()<0){
+					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和小于表体到货重量,\n表体重量为:"+this.selectedArriveBody.getNarrvnum()+"\n 当前明细总重量为:"+detailSumweight.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+					return;
+				}
+			}
 			int invDetailNum=this.getBillListPanel().getHeadBillModel().getRowCount();
 			//明细件数总和
 			UFDouble detailSum=new UFDouble(0);
@@ -501,7 +546,6 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 			//如果通过明细件数总数与表体件数的检查那么将集合中的所有记录转化成数组赋值给invDetailVos用于返回
 			this.invDetailVOs=new InvDetailVO[allInvDetailList.size()];
 			this.invDetailVOs=allInvDetailList.toArray(this.invDetailVOs);
-			
 			this.m_closeMark = true;
 			this.closeOK();
 		}
@@ -582,6 +626,9 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivelength").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivemeter").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arriveweight").setEnabled(false);
+			if(!this.isLengthAllNumber){//如果长度不为全数字
+				this.getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(true);//将钢厂重量设置为允许输入
+			}
 		}
 		//2010-12-24 MeiChao add 计算 按钮响应
 		else if(e.getSource() == this.m_btnCalculate){
@@ -607,6 +654,14 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 			/**
 			 * 如果通过明细件数总数与表体件数的检查,那么开始分配钢厂重量
 			 */
+			//2010-12-27 MeiChao分配前还需要检查一下钢厂长度字段是否存在字母
+			//for(int i=0;i<invDetailVOs.length;i++){
+				//if(invDetailVOs[i].getContractlength()!=null&&!this.isDoueric(invDetailVOs[i].getContractlength())){
+				if(!this.isLengthAllNumber){
+					MessageDialog.showErrorDlg(this,"错误", "\"长度\"字段存在非数值型数据,不支持自动分摊重量,请手工输入钢厂重量!");
+					return;
+				}
+			//}
 			//宽*长*件数总和 或 米数*件数的总和
 			UFDouble invTotal=new UFDouble(0);
 			try {
@@ -704,30 +759,68 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 				}
 			}
 		}
-		//测试代码↓
-		int rowcount=this.getBillListPanel().getHeadBillModel().getRowCount();
-		for(int i=0;i<rowcount;i++){
-			System.out.println(this.getBillListPanel().getHeadBillModel().getRowState(i));
-		}
-		
-		
-		
 		if(e.getKey().equals("ismny")){
-		if(	(Boolean)e.getValue()){
-		   getBillListPanel().getHeadItem("noriginalcurprice").setValue(null);
-		   getBillListPanel().getHeadItem("noriginalcurprice").setEdit(false);
-		   getBillListPanel().getHeadItem("noriginalcurmny").setEdit(true);
+			if(	(Boolean)e.getValue()){
+			   getBillListPanel().getHeadItem("noriginalcurprice").setValue(null);
+			   getBillListPanel().getHeadItem("noriginalcurprice").setEdit(false);
+			   getBillListPanel().getHeadItem("noriginalcurmny").setEdit(true);
+			}else{
+				   getBillListPanel().getHeadItem("noriginalcurmny").setValue(null);
+				   getBillListPanel().getHeadItem("noriginalcurmny").setEdit(false);
+				   getBillListPanel().getHeadItem("noriginalcurprice").setEdit(true);
+				}
+			this.isCalculate=false;//任何修改后,将是否已计算按钮设定为false
+			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+			}
+		}
+		else if(e.getKey().equals("contractlength")){//2010-12-28 MeiChao
+			String curcontractlength=this.getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "contractlength").toString();	
+			if(!this.isDoueric(curcontractlength)){
+				if(this.isLengthAllNumber){
+					MessageDialog.showHintDlg(this,"提示","您输入了非纯数字类型的存货长度,存货重量自动计算将不可用,请手动输入!");
+					this.isLengthAllNumber=false;
+					this.getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(true);//将钢厂重量设置为允许输入
+				}
+			}	
+			if(!this.isLengthAllNumber){//如果this.isLengthAllNumber标记为false,遍历判断是否所有存货长度均为数字.
+				for(int i=0;i<this.getBillListPanel().getHeadBillModel().getRowCount();i++){
+					curcontractlength=this.getBillListPanel().getHeadBillModel().getValueAt(i, "contractlength").toString();
+					if(!this.isDoueric(curcontractlength)){
+						break;
+					}else if(i==this.getBillListPanel().getHeadBillModel().getRowCount()-1){
+						this.isLengthAllNumber=true;
+						this.getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(false);//将钢厂重量设置为不允许输入
+						MessageDialog.showHintDlg(this,"提示","可以自动计算钢厂重量.");
+					}
+				}
+			}
+			this.isCalculate=false;//任何修改后,将是否已计算按钮设定为false
+			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+			}
+		}else if(e.getKey().equals("contractweight")){//修改了钢厂重量
+			String curcontractweight=this.getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "contractweight").toString();
+			if(!this.isDoueric(curcontractweight)){
+				MessageDialog.showHintDlg(this, "提示", "钢厂重量不允许输入非数字!");
+				this.getBillListPanel().getHeadBillModel().setValueAt(null, e.getRow(),"contractweight");
+				return;
+			}
+			for(int i=0;i<this.getBillListPanel().getHeadBillModel().getRowCount();i++){
+				curcontractweight=this.getBillListPanel().getHeadBillModel().getValueAt(i, "contractweight").toString();
+				if(!this.isDoueric(curcontractweight)){
+					break;
+				}else if(i==this.getBillListPanel().getHeadBillModel().getRowCount()-1){
+					this.isCalculate=true;
+				}
+			}
 		}else{
-			 getBillListPanel().getHeadItem("noriginalcurmny").setValue(null);
-			   getBillListPanel().getHeadItem("noriginalcurmny").setEdit(false);
-			   getBillListPanel().getHeadItem("noriginalcurprice").setEdit(true);
+			this.isCalculate=false;//任何其他的修改后,将是否已计算按钮设定为false
+			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+			}
 		}
-		   
-		}
-		this.isCalculate=false;//将是否已计算按钮设定为false
-		for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
-			this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
-		}
+		
 	}
 
 	
@@ -736,5 +829,33 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 		// TODO Auto-generated method stub
 		
 	}
+	
+	/**
+	 * 判断参数组成是否为全数字(Double).  
+	 * MeiChao
+	 */
+	public static boolean isDoueric(String str) {
+    
+	Pattern pattern = Pattern.compile("^[-+]?(\\d+(\\.\\d*)?|\\.\\d+)([eE]([-+]?([012]?\\d{1,2}|30[0-7])|-3([01]?[4-9]|[012]?[0-3])))?[dD]?$");
+	if(str==null)
+		return false;
+	else
+		return pattern.matcher(str).matches();
+
+	}
+	
+	/**
+	 * 判断存货/客商编码组成是否为全数字.  
+	 * 
+	 */
+	public static boolean isNumeric(String str) {
+    
+	Pattern pattern = Pattern.compile("[0-9]*");
+
+	return pattern.matcher(str).matches();
+
+	}
+	
+	
 
 }
