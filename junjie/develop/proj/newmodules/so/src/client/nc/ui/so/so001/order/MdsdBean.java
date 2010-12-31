@@ -59,7 +59,7 @@ public class MdsdBean {
 			if (pk_mdxcl_b == null || pk_mdxcl_b.equals(""))
 				continue;
 			if (pk_mdxcl_bList.contains(pk_mdxcl_b))
-				throw new BusinessException("第" + (i + 1) + "行,表体键编号不能重复！");
+				throw new BusinessException("第" + (i + 1) + "行,表体 件编号+货位  不能重复！");
 			else
 				pk_mdxcl_bList.add(pk_mdxcl_b);
 			if (vos[i].getSxrq() == null)
