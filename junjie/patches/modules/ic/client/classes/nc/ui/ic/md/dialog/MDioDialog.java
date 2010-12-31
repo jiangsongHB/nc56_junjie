@@ -934,8 +934,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 						.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
 				if (vos != null && vos.length > 0) {
 					for (int i = 0; i < vos.length; i++) {
-						getBillCardPanel().getBillModel().setValueAt(null, i,
-								"def1");
+//						getBillCardPanel().getBillModel().setValueAt(null, i,
+//								"def1");
 						getBillCardPanel().getBillModel().setValueAt(null, i,
 								"def2");
 						getBillCardPanel().getBillModel().setValueAt(
