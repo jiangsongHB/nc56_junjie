@@ -126,9 +126,12 @@ public class MDToolsImpl implements IMDTools {
 			bvo.setMd_zyh(mdcrkVO.getMd_zyh());
 			bvo.setDef6(mdcrkVO.getDef6());
 			bvo.setRemark(mdcrkVO.getRemark());//备注
-			bvo.setZhongliang(mdcrkVO.getSrkzl());
+			bvo.setZhongliang(mdcrkVO.getSrkzl());//验收重量
 			bvo.setZhishu(mdcrkVO.getSrkzs());
 			bvo.setDr(0);
+			bvo.setDef1(mdcrkVO.getDef1());//钢厂重量
+			bvo.setDef2(mdcrkVO.getDef2());//自定义项2
+			bvo.setDef3(mdcrkVO.getDef3());//自定义项3
 			bvo.setDef4(mdcrkVO.getDef4());//非计算标识
 			bvo.setDef7(mdcrkVO.getDef7());//自定义项7
 			bvo.setDef8(mdcrkVO.getDef8());//自定义项8

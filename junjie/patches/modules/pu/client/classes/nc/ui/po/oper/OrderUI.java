@@ -17,6 +17,7 @@ import nc.ui.po.pub.PoQueryCondition;
 import nc.ui.pr.pray.PraybillHelper;
 import nc.ui.pu.jj.JJPuScmPubHelper;
 import nc.ui.pu.jjpanel.InfoCostPanel;
+import nc.ui.pu.jjpanel.InvDetailDialog;
 import nc.ui.pu.pub.POPubSetUI2;
 import nc.ui.pu.pub.PuTool;
 import nc.ui.pub.ButtonObject;
@@ -738,6 +739,7 @@ private void onMsgCenterUnAudit() {
  *
  */
 public ButtonObject[] getExtendBtns() {
+	
 	if(extendBtns == null || extendBtns.length == 0){
 		//加入费用录入按钮 add by QuSida 2010-8-10  （佛山骏杰）
 		extendBtns = new ButtonObject[]{getBoInfoCost()};
@@ -761,6 +763,9 @@ private ButtonObject getBoInfoCost(){
 	}
 	else return boInfoCost;
 }
+
+
+
 /**
  * 点击二次开发按钮后的响应处理，要求二次开发子类给出具体实现
  * 
@@ -1175,7 +1180,6 @@ private void setButtonsNull(){
 		updateButton(objs[i]);
 	}
 }
-
 
 
 

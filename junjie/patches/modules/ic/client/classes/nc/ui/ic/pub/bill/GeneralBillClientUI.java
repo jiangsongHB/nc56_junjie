@@ -1932,7 +1932,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 判断当前存货是否可以维护码单
 				if (new MdProcessBean().querySfmdwf(((GeneralBillItemVO) billvo
 						.getChildrenVO()[j]).getCinvbasid()) == false)
-					throw new BusinessException("当前存货不可以维护码单，请检查存货基本档案配置！");
+					throw new BusinessException("当前存货不可以维护码单，请检查存货管理档案配置！");
 				// =========================退货==========================
 				GeneralBillItemVO bvo = (GeneralBillItemVO) billvo
 						.getChildrenVO()[j];
@@ -2159,7 +2159,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 判断当前存货是否可以维护码单
 				if (new MdProcessBean().querySfmdwf(((GeneralBillItemVO) billvo
 						.getChildrenVO()[j]).getCinvbasid()) == false)
-					throw new BusinessException("当前存货不可以维护码单，请检查存货基本档案配置！");
+					throw new BusinessException("当前存货不可以维护码单，请检查存货管理档案配置！");
 
 				// ==============================退货==============================
 				GeneralBillItemVO bvo = (GeneralBillItemVO) billvo

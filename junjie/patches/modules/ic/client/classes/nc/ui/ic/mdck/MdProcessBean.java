@@ -15,6 +15,7 @@ import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.jdbc.framework.processor.MapListProcessor;
 import nc.jdbc.framework.processor.MapProcessor;
+import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.vo.ic.md.CargInfVO;
 import nc.vo.ic.md.MdcrkTempVO;
@@ -76,8 +77,9 @@ public class MdProcessBean {
 			vos[i].setCrkfx(1);// 出入库方向
 			vos[i].setDjfx(0);// 单据方向
 			vos[i].setCgeneralbid(infoVO.getCgeneralbid());// 出入库单表体PK
-			vos[i].setDef1(null);
+			//vos[i].setDef1(null);def1定义为钢厂重量,把原先的置空代码注释掉 2010-12-30 MeiChao
 			vos[i].setDef2(null);
+			vos[i].setDef3(null);
 			vos[i].setSfbj(infoVO.getSfbj());
 			vos[i].setDef4(new UFBoolean(b_fjs));// 非计算
 			sumCkzs = sumCkzs.add(vos[i].getSrkzs());// 实出库支数
@@ -117,13 +119,18 @@ public class MdProcessBean {
 			// 出库后的支数
 			xclbvos[j].setZhishu(xclbvos[j].getZhishu().sub(crkvo.getSrkzs(),
 					MDConstants.ZS_XSW));
-			if (crkvo.getSrkzl() == null || crkvo.getSrkzl().doubleValue() == 0)
+			if (crkvo.getSrkzl() == null || crkvo.getSrkzl().doubleValue() == 0){
 				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().sub(
 						new UFDouble(0), MDConstants.ZL_XSW));
-			else
+				xclbvos[j].setDef1(xclbvos[j].getDef1().sub(
+						new UFDouble(0), MDConstants.ZL_XSW));//2010-12-29 MeiChao 将钢厂重量也更新
+			}else{
 				// 重量
 				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().sub(
 						crkvo.getSrkzl(), MDConstants.ZL_XSW));
+				xclbvos[j].setDef1(xclbvos[j].getDef1().sub(
+						crkvo.getDef1(), MDConstants.ZL_XSW));//2010-12-29 MeiChao 将钢厂重量也更新
+			}
 		}
 		iVOPersistence.updateVOArray(xclbvos);
 	}
@@ -309,7 +316,7 @@ public class MdProcessBean {
 		String pk_mdxcl_b = evo.getPk_mdxcl_b();
 		String sql = "select ttt.* from (select t1.PK_MDXCL_B, t1.dr, t1.cspaceid, "
 				+ "t1.jbh, t1.md_width, t1.md_length, t1.md_meter, t1.md_note, t1.md_lph, t1.md_zyh,"
-				+ " t1.md_zlzsh, t1.remark, t1.zhishu, (t1.zhishu-nvl(b.sdzs,0)) as kyzs, t1.zhongliang,"
+				+ " t1.md_zlzsh, t1.remark, t1.zhishu, (t1.zhishu-nvl(b.sdzs,0)) as kyzs, t1.zhongliang,nvl((t1.def1*(t1.zhishu-nvl(b.sdzs,0))/t1.zhishu),0) as factoryweight,"//2010-12-30 MeiChao add t1.def1*(t1.zhishu-nvl(b.sdzs,0))/t1.zhishu as factoryweight,
 				+ " t2.pk_corp, t2.cwarehouseidb, t2.ccalbodyidb, t2.cinvbasid, t2.cinventoryidb, t3.invspec "
 				+ "from nc_mdxcl_b t1 left join nc_mdxcl t2 on t1.pk_mdxcl = t2.pk_mdxcl"
 				+ " left join bd_invbasdoc t3 on t2.cinvbasid = t3.pk_invbasdoc "
@@ -333,19 +340,22 @@ public class MdProcessBean {
 		UFDouble kyzs = new UFDouble((Integer) rsmap.get("kyzs")); // 可用支数
 		UFDouble kyzl = kyzs.multiply(zhongliang).div(zhishu,
 				MDConstants.ZL_XSW);// 可用重量
+		UFDouble factoryWeight=new UFDouble(rsmap.get("factoryweight").toString());// 2010-12-30 MeiChao add 钢厂重量 
 		evo.setCspaceid((String) rsmap.get("cspaceid"));// 货位
 		// 如果是理计
 		if (bsfbj.booleanValue() == false) {
 			evo.setSrkzs(kyzs);
 			evo.setSrkzl(kyzl);
-			evo.setDef1(kyzs);
+			evo.setDef3(kyzs);//2010-12-30 MeiChao add 将临时支数(后续判断不能超出用)加入到def3字段中
+			evo.setDef1(factoryWeight);//2010-12-30 MeiChao add 将钢厂重量加入到def1字段中
 			evo.setDef2(kyzl);
 		}
 		// 磅计
 		else {
 			evo.setSrkzs(kyzs);
 			evo.setSrkzl(new UFDouble(0));
-			evo.setDef1(kyzs);
+			evo.setDef3(kyzs);//2010-12-30 MeiChao add 将临时支数(后续判断不能超出用)加入到def3字段中
+			evo.setDef1(factoryWeight);//2010-12-30 MeiChao add 将钢厂重量加入到def1字段中
 			evo.setDef2(kyzl);
 		}
 		return evo;
@@ -444,12 +454,13 @@ public class MdProcessBean {
 	public boolean querySfmdwf(String cinvbasid) throws BusinessException {
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
-		String sql = "select def20 from bd_invbasdoc where pk_invbasdoc='"
-				+ cinvbasid + "'";
+		String sql = "select def20 from bd_invmandoc where pk_invbasdoc='"
+				+ cinvbasid + "' and pk_corp='"+ClientEnvironment.getInstance().getCorporation()
+				.getPrimaryKey()+"'"; //2010-12-27 MeiChao 是否码单维护,从存货管理档案中判断.
 		Object[] objs = (Object[]) iUAPQueryBS.executeQuery(sql,
 				new ArrayProcessor());
 		if (objs == null || objs.length == 0)
-			throw new BusinessException("当前存货异常，在存货基本档案中不存在！");
+			throw new BusinessException("当前存货异常，在存货管理档案中不存在！");
 		if (objs[0] == null)
 			return false;
 		else {

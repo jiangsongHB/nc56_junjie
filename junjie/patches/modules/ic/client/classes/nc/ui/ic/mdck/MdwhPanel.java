@@ -585,6 +585,8 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				vos[arg0.getRow()] = kylMdCrkVo;
 				getOPBillCardPanel().getBillModel().setBodyDataVO(vos);
 				getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+				//2010-12-30 MeiChao add 每次选择参照之后,将钢厂重量放到临时字段上去,后面修改支数时,可以计算出钢厂重量(不得已而为之)
+				getOPBillCardPanel().getBillModel().setValueAt(kylMdCrkVo.getDef1(), arg0.getRow(), "myrefweighttemp");
 				if (bsfbj.booleanValue() == true)
 					buttonState(true, true, false, true, true);
 				else
@@ -604,7 +606,10 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			if (sfbj.equals("false")) { // 理计
 				MdcrkVO evo = vos[arg0.getRow()];
 				UFDouble zl = evo.getDef2(); // 重量
-				UFDouble zs = evo.getDef1();// 支数
+				UFDouble zs = evo.getDef3();// 支数
+				//2010-12-30 MeiChao 钢厂可用总重量
+				UFDouble myrefweighttemp=new UFDouble(getOPBillCardPanel().getBillModel().getValueAt(arg0.getRow(), "myrefweighttemp").toString());
+				
 				if (zs == null || zl == null) {
 					MessageDialog.showWarningDlg(dlg, "提示", "请先选择码单！");
 					return;
@@ -616,12 +621,18 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 					vos[arg0.getRow()].setSrkzs(zs);
 					getOPBillCardPanel().getBillData().setBodyValueVO(vos);
 					getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+					getOPBillCardPanel().getBillModel().setValueAt(myrefweighttemp.toString(), arg0.getRow(), "myrefweighttemp");//赋值
 					return;
 				}
 				if (evo.getSrkzs().doubleValue() == zs.doubleValue()) {
 					vos[arg0.getRow()].setSrkzl(zl);
 					getOPBillCardPanel().getBillData().setBodyValueVO(vos);
 					getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+					//2010-12-30 MeiChao 开始计算
+					UFDouble newfactoryweight=myrefweighttemp.multiply(evo.getSrkzs()).div(zs);//当前重量
+					getOPBillCardPanel().getBillModel().setValueAt(newfactoryweight, arg0.getRow(), "def1");//赋值
+					getOPBillCardPanel().getBillModel().setValueAt(myrefweighttemp.toString(), arg0.getRow(), "myrefweighttemp");//赋值
+					
 					buttonState(true, true, true, true, false);
 					return;
 				}
@@ -631,11 +642,18 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				vos[arg0.getRow()].setSrkzl(ufzl);
 				getOPBillCardPanel().getBillData().setBodyValueVO(vos);
 				getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+				//2010-12-30 MeiChao 开始计算
+				UFDouble newfactoryweight=myrefweighttemp.multiply(evo.getSrkzs()).div(zs);//当前重量
+				getOPBillCardPanel().getBillModel().setValueAt(newfactoryweight, arg0.getRow(), "def1");//赋值
+				getOPBillCardPanel().getBillModel().setValueAt(myrefweighttemp.toString(), arg0.getRow(), "myrefweighttemp");//赋值
 				buttonState(true, true, true, true, false);
 			} else { // 磅计
 				buttonState(true, true, false, true, true);
 				MdcrkVO evo = vos[arg0.getRow()];
-				UFDouble zs = evo.getDef1();// 支数
+				UFDouble zs = evo.getDef3();// 支数
+				//2010-12-30 MeiChao 钢厂可用总重量
+				UFDouble myrefweighttemp=new UFDouble(getOPBillCardPanel().getBillModel().getValueAt(arg0.getRow(), "myrefweighttemp").toString());
+				
 				if (zs == null) {
 					MessageDialog.showWarningDlg(dlg, "提示", "请先选择码单！");
 					return;
@@ -643,10 +661,15 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				if (evo.getSrkzs().doubleValue() > zs.doubleValue()) {
 					MessageDialog.showWarningDlg(dlg, "提示", "码单出库支数不能大于可用量支数"
 							+ zs.doubleValue());
-					vos[arg0.getRow()].setSrkzs(evo.getDef1());
+					vos[arg0.getRow()].setSrkzs(evo.getDef3());
 					getOPBillCardPanel().getBillData().setBodyValueVO(vos);
 					getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
+					getOPBillCardPanel().getBillModel().setValueAt(myrefweighttemp.toString(), arg0.getRow(), "myrefweighttemp");//赋值
+				
 				}
+				UFDouble newfactoryweight=myrefweighttemp.multiply(evo.getSrkzs()).div(zs);//当前重量
+				getOPBillCardPanel().getBillModel().setValueAt(newfactoryweight, arg0.getRow(), "def1");//赋值
+				getOPBillCardPanel().getBillModel().setValueAt(myrefweighttemp.toString(), arg0.getRow(), "myrefweighttemp");//赋值
 			}
 
 		}
