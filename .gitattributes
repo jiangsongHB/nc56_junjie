@@ -668,6 +668,39 @@ junjie/patches/scripts/2010-12-23[!!-~]采购入库单码单维护中参照到�
 junjie/patches/scripts/2010-12-23[!!-~]采购入库单码单维护中参照到货明细/ic/public/nc/vo/ic/jjvo/InvDetailVO.java -text
 junjie/patches/scripts/2010-12-23[!!-~]采购入库单码单维护中参照到货明细/存货明细子表建表脚本.sql -text
 junjie/patches/scripts/2010-12-23[!!-~]采购入库单码单维护中参照到货明细/码单入库模板更新.sql -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/META-INF/nc/bs/ic/md/MDToolsImpl.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/META-INF/nc/bs/ic/md/MDToolsImpl.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/ic601/ClientUI.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/ic601/ClientUI.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/ic601/MdDetailDialog$1.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/ic601/MdDetailDialog$IvjEventHandler.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/ic601/MdDetailDialog.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/ic601/MdDetailDialog.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/ic601/MdDetailVO.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/ic601/MdDetailVO.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/mdck/MdProcessBean.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/mdck/MdProcessBean.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/mdck/MdwhPanel.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/mdck/MdwhPanel.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/pub/bill/GeneralBillClientUI$1.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/pub/bill/GeneralBillClientUI.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/client/nc/ui/ic/pub/bill/GeneralBillClientUI.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/public/nc/ui/ic/md/dialog/MDUtils.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/ic/public/nc/ui/ic/md/dialog/MDUtils.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/po/oper/OrderUI.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/po/oper/OrderUI.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/pu/jjpanel/InvDetailDialog.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/pu/jjpanel/InvDetailDialog.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/rc/receive/ArriveUI$IBillRelaSortListener2Body.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/rc/receive/ArriveUI$IMenuItemListener.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/rc/receive/ArriveUI.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/pu/client/nc/ui/rc/receive/ArriveUI.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/so/client/nc/ui/so/so001/order/MdsdBean.class -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/so/client/nc/ui/so/so001/order/MdsdBean.java -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/创建视图v_ic_onhandnum7.sql -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/存货分类11001下的管理档案是否码单管理标记批量修改.sql -text
+junjie/patches/scripts/2010-12-31[!!-~]补丁合集/部分脚本难以实现需手动修改内容.txt -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text

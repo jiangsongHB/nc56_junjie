@@ -1,0 +1,12 @@
+1. 现存量报表模板40083002 改动:
+ >增加了一个自定义项目currentrealnum,当前可用"结存验收重量" 
+列属性为:小数  原始公式列 currentrealnum->getColValue2(v_ic_onhandnum7 ,currentrealnum,cwarehouseid1,cwarehouseid,cinvbasid1, pk_invbasdoc)
+ 
+2. 码单明细模板 H001,在 zhongliang(现存重量) 之后 增加显示 def1 (现存钢厂重量)
+
+3. 出库码单维护模板 H002 
+        >原先隐藏的字段 def1,修改为"钢厂重量" 并显示, 属性为 小数, 精确度 2
+        >增加一个自定义项目 def3 属性为 小数  精确度 0  卡片列表均隐藏
+        >增加一个自定义项目 myrefweighttemp 属性为 字符  卡片列表均隐藏
+
+4. 费用信息模板 HJ001 数量字段 增加编辑公式:  noriginalcurmny->nnumber*noriginalcurprice
