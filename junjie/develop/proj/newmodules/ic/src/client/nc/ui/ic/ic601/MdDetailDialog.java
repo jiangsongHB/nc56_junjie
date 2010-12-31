@@ -440,6 +440,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ " t1.remark,"
 				+ " t1.zhishu,"
 				+ " t1.zhongliang,"
+				+ " t1.def1,"//2010-12-30 MeiChao add 码单现存量中的: 钢厂重量
 				+ " t1.def7,"
 				+ " t1.def8,"
 				+ " t1.def9,"
@@ -513,6 +514,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 			vo.setDef7((String) objMap.get("def7"));
 			vo.setDef8((String) objMap.get("def8"));
 			vo.setDef9((String) objMap.get("def9"));
+			vo.setDef1(new UFDouble((BigDecimal)objMap.get("def1")));//2010-12-30 MeiChao 现存钢厂重量
 			// 有效锁定支数
 			if (objMap.get("yxsdzs") != null) {
 				vo.setYxsdzs(new UFDouble(((Integer) objMap.get("yxsdzs"))
@@ -553,6 +555,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 			UFDouble sum_yxsdzl = new UFDouble(0);// 合计有效锁定重量
 			UFDouble sum_kyzs = new UFDouble(0);// 合计可用支数
 			UFDouble sum_kyzl = new UFDouble(0);// 合计可用重量
+			UFDouble sum_def1 = new UFDouble(0);//2010-12-30 MeiChao 合计可用钢厂重量
 			for (int t = 0; t < detailVos.length; t++) {
 				hjVos[t] = detailVos[t];
 				sum_zhishu = sum_zhishu.add(detailVos[t].getZhishu());
@@ -562,6 +565,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				sum_kyzs = sum_kyzs.add(detailVos[t].getKyzs());
 				sum_yxsdzl = sum_yxsdzl.add(detailVos[t].getYxsdzl());
 				sum_kyzl = sum_kyzl.add(detailVos[t].getKyzl());
+				sum_def1=sum_def1.add(detailVos[t].getDef1());
 			}
 			MdDetailVO hjvo = new MdDetailVO();
 			hjvo.setInvcode("合计");
@@ -571,6 +575,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 			hjvo.setYxsdzl(sum_yxsdzl);
 			hjvo.setKyzs(sum_kyzs);
 			hjvo.setKyzl(sum_kyzl);
+			hjvo.setDef1(sum_def1.setScale(2, UFDouble.ROUND_HALF_UP));//2010-12-30 MeiChao 合计可用钢厂重量
 			hjVos[detailVos.length] = hjvo;
 		}
 		return hjVos;

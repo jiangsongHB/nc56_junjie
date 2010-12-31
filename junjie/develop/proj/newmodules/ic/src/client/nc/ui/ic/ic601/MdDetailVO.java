@@ -48,6 +48,16 @@ public class MdDetailVO extends SuperVO {
 	private String rkrq;// 入库日期
 
 	private String cqh;// 车船号
+	
+	private UFDouble def1;//2010-12-30 MeiChao 钢厂重量
+
+	public UFDouble getDef1() {
+		return def1;
+	}
+
+	public void setDef1(UFDouble def1) {
+		this.def1 = def1;
+	}
 
 	private String def7;
 

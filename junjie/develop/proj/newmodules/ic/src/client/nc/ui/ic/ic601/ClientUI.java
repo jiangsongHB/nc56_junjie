@@ -749,7 +749,6 @@ public class ClientUI extends nc.ui.ic.pub.report.IcBaseReport implements
 				getReportBaseClass().getBillModel().clearBodyData();
 				return;
 			}
-
 			showTime(lTimes, "查询时间："); /*-=notranslate=-*/
 			// 获得查询字段展开属性
 			getField(voCons);
@@ -764,7 +763,7 @@ public class ClientUI extends nc.ui.ic.pub.report.IcBaseReport implements
 				// getReportBaseClass().setBodyDataVO(vo.getChildrenVO());
 				// 公式处理
 				setReportData(vo.getChildrenVO(), voCons);
-
+				
 			} else
 				getReportBaseClass().getBillModel().clearBodyData();
 
