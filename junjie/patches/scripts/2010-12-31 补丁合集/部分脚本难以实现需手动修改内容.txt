@@ -2,7 +2,7 @@
  >增加了一个自定义项目currentrealnum,当前可用"结存验收重量" 
 列属性为:小数  原始公式列 currentrealnum->getColValue2(v_ic_onhandnum7 ,currentrealnum,cwarehouseid1,cwarehouseid,cinvbasid1, pk_invbasdoc)
  
-2. 码单明细模板 H001,在 zhongliang(现存重量) 之后 增加显示 def1 (现存钢厂重量)
+2. 码单明细模板 H001,在 zhongliang(现存重量) 之后 增加自定义项目 def1 (现存钢厂重量) 属性 字符
 
 3. 出库码单维护模板 H002 
         >原先隐藏的字段 def1,修改为"钢厂重量" 并显示, 属性为 小数, 精确度 2
