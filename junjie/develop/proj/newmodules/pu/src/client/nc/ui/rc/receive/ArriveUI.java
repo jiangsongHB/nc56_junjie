@@ -5230,6 +5230,15 @@ private void onDiscardSelected() {
       }
       //选中的单据(缓存中)
       arrivevo = getCacheVOs()[iRealPos];
+      /**
+       * 2010-12-31 MeiChao 在删除前,将已检数量等清空,因为这是在保存时写入的,并不是做了检验.
+       */
+      	ArriveorderItemVO[] bodys=arrivevo.getBodyVo();
+	  	for(int n=0;n<bodys.length;n++){
+	  		bodys[n].setNelignum(null);
+	  		bodys[n].setNaccumchecknum(null);
+	  	}
+      
       //给出不符合作废条件的行数
       if (!arrivevo.isCanBeDiscarded() || arrivevo.isHaveCheckLine()) {
         if (!lines.trim().equals("")) {
@@ -5264,6 +5273,39 @@ private void onDiscardSelected() {
   if (v.size() > 0) {
     arrivevos = new ArriveorderVO[v.size()];
     v.copyInto(arrivevos);
+    /**
+     * 2010-12-31 MeiChao 在列表下删除到货单前,作一系列的检查
+     */
+    for(int m=0;m<arrivevos.length;m++){
+    	
+    	/**
+  	   * 2010-12-22 MeiChao 在删除前,如果当前到货单维护了存货明细则不允许直接删除到货单.
+  	   */
+  	  String arrivePK=arrivevos[m].getHeadVO().getPrimaryKey();
+  	  String querySQL="select t.pk_invdetail from scm_invdetail t where t.carriveorder_bid in " +
+  	  		"(select t.carriveorder_bid from po_arriveorder_b t " +
+  	  		"where t.carriveorderid='"+arrivePK+"') and t.dr=0 ";
+  	  IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+  	  try {
+  		  Object checkResult=queryService.executeQuery(querySQL, new ColumnProcessor());
+  		  if(checkResult!=null){
+  			  MessageDialog.showErrorDlg(this,"警告","当前到货单"+m+"已维护了存货明细,不允许直接删除!");
+  			  return;
+  		  }
+  		} catch (BusinessException e1) {
+  			// TODO Auto-generated catch block
+  			e1.printStackTrace();
+  		}
+    	
+    }
+    
+    
+    
+    
+    
+    
+    
+    
     try {
       //赋操作员
       for (int j = 0; j < arrivevos.length; j++) {
@@ -10176,7 +10218,7 @@ private void onDeleteCard() {
 	  String arrivePK=testVO.getHeadVO().getPrimaryKey();
 	  String querySQL="select t.pk_invdetail from scm_invdetail t where t.carriveorder_bid in " +
 	  		"(select t.carriveorder_bid from po_arriveorder_b t " +
-	  		"where t.carriveorderid='"+arrivePK+"')";
+	  		"where t.carriveorderid='"+arrivePK+"') and t.dr=0";
 	  IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
 	  try {
 		  Object checkResult=queryService.executeQuery(querySQL, new ColumnProcessor());
