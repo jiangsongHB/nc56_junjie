@@ -466,18 +466,18 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 				UFDouble diffNuma=detailSumnumber.sub(this.selectedArriveBody.getNassistnum());
 				//明细钢厂重量总和,与表体钢厂重量之差
 				UFDouble diffNumb=detailSumweight.sub(this.selectedArriveBody.getNarrvnum());
-				if(diffNuma.doubleValue()>0){
+				if(diffNuma.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
 					MessageDialog.showHintDlg(this,"警告","存货明细支数总和超出表体到货件数,\n表体件数为:"+this.selectedArriveBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
-				}else if(diffNuma.doubleValue()<0){
+				}else if(diffNuma.doubleValue()<0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
 					MessageDialog.showHintDlg(this,"警告","存货明细支数总和小于表体到货件数,\n表体件数为:"+this.selectedArriveBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
 				}
 				//2010-12-27 MeiChao 如果 长度中含有字母,那么需要检查钢厂总重量是否与到货表体重量相等.
-				if(diffNumb.doubleValue()>0){
+				if(diffNumb.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
 					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和超出表体到货重量,\n表体重量为:"+this.selectedArriveBody.getNarrvnum()+"\n 当前明细总重量为:"+detailSumweight.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
-				}else if(diffNumb.doubleValue()<0){
+				}else if(diffNumb.doubleValue()<0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
 					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和小于表体到货重量,\n表体重量为:"+this.selectedArriveBody.getNarrvnum()+"\n 当前明细总重量为:"+detailSumweight.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
 				}
@@ -525,21 +525,21 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 				}
 			//再遍历一次旧VO数组,将已删除的旧明细VO也加入到集合中
 			for(int j=0;j<this.oldInvDetailVOs.length;j++){
-			if(oldInvDetailVOs[j].getStatus()==VOStatus.DELETED){
-				oldInvDetailVOs[j].setDr(1);
-				oldInvDetailVOs[j].setModifyoperator(ClientEnvironment.getInstance().getUser().getPrimaryKey());
-				oldInvDetailVOs[j].setModifydate(new UFDate(new Date()));
-				oldInvDetailVOs[j].setModifytime(new UFDateTime(new Date()));
-				oldInvDetailVOs[j].setStatus(VOStatus.UPDATED);//把删除看作修改DR字段的更新,将VO标记为 已改变
-				allInvDetailList.add((InvDetailVO)oldInvDetailVOs[j].clone());//将已删除的明细添加进列表中
-			}
+				if(oldInvDetailVOs[j].getStatus()==VOStatus.DELETED){
+					oldInvDetailVOs[j].setDr(1);
+					oldInvDetailVOs[j].setModifyoperator(ClientEnvironment.getInstance().getUser().getPrimaryKey());
+					oldInvDetailVOs[j].setModifydate(new UFDate(new Date()));
+					oldInvDetailVOs[j].setModifytime(new UFDateTime(new Date()));
+					oldInvDetailVOs[j].setStatus(VOStatus.UPDATED);//把删除看作修改DR字段的更新,将VO标记为 已改变
+					allInvDetailList.add((InvDetailVO)oldInvDetailVOs[j].clone());//将已删除的明细添加进列表中
+				}
 			}
 			//明细总和,与表体件数之差
 			UFDouble diffNum=detailSum.sub(this.selectedArriveBody.getNassistnum());
-			if(diffNum.doubleValue()>0){
+			if(diffNum.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
 				MessageDialog.showHintDlg(this,"警告","存货明细支数总和超出表体到货件数,\n表体件数为:"+this.selectedArriveBody.getNassistnum()+"\n 当前明细件数为:"+detailSum.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 				return;
-			}else if(diffNum.doubleValue()<0){
+			}else if(diffNum.doubleValue()<0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
 				MessageDialog.showHintDlg(this,"警告","存货明细支数总和小于表体到货件数,\n表体件数为:"+this.selectedArriveBody.getNassistnum()+"\n 当前明细件数为:"+detailSum.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 				return;
 			}
@@ -612,6 +612,11 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
 				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
 			}
+			if(this.getBillListPanel().getHeadBillModel().getRowCount()==0){//如果清空了所有明细.
+				this.isCalculate=true;
+				this.isLengthAllNumber=true;
+			}
+			
 		}
 		// 修改按钮动作
 		else if (e.getSource() == this.m_btnMod) {
