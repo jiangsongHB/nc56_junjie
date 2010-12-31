@@ -9,4 +9,4 @@
         >增加一个自定义项目 def3 属性为 小数  精确度 0  卡片列表均隐藏
         >增加一个自定义项目 myrefweighttemp 属性为 字符  卡片列表均隐藏
 
-4. 费用信息模板 HJ001 "数量" 字段 增加编辑公式:  noriginalcurmny->nnumber*noriginalcurprice
+4. 费用信息模板 HJ1001 "数量" 字段 增加编辑公式:  noriginalcurmny->nnumber*noriginalcurprice
