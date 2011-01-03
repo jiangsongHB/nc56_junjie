@@ -637,8 +637,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		}
 		//获取表体选中行VO
 		GeneralBillItemVO selectedBody=(GeneralBillItemVO)this.ui.getBillCardPanel().getBillModel("table").getBodyValueRowVO(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), GeneralBillItemVO.class.getName());
-		if(selectedBody.getCsourcetype()!=null&&selectedBody.getCsourcetype().equals("21")){//如果上游单据为采购订单
-			//平摊维护码单前的实收数量到码单钢厂重量
+		//if(selectedBody.getCsourcetype()!=null&&selectedBody.getCsourcetype().equals("21")){//如果上游单据为采购订单
+		if(true){
+		//平摊维护码单前的实收数量到码单钢厂重量
 			//表体钢厂总重量
 			UFDouble factoryWeight=new UFDouble(selectedBody.getNinnum());
 			//分配基数
