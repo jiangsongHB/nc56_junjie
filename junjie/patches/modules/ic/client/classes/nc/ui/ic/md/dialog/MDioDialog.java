@@ -631,7 +631,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			else
 				this.setNprice(this.getStuffprice());// 正材单价stuffprice
 		} else {
-			mdvos = MDUtils.mdBJ(mdvos, num);
+			//mdvos = MDUtils.mdBJ(mdvos,new UFDouble(this.ui.getBillCardPanel().getBillModel("table").getValueAt(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), "vuserdef19").toString()));
+			mdvos = MDUtils.mdBJ(mdvos,num);
 			this.setNprice(this.getStuffprice());// 正材单价stuffprice
 		}
 		//获取表体选中行VO
@@ -639,7 +640,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		if(selectedBody.getCsourcetype()!=null&&selectedBody.getCsourcetype().equals("21")){//如果上游单据为采购订单
 			//平摊维护码单前的实收数量到码单钢厂重量
 			//表体钢厂总重量
-			UFDouble factoryWeight=new UFDouble(this.getBillCardPanel().getHeadItem("realWeight").getValue());
+			UFDouble factoryWeight=new UFDouble(selectedBody.getNinnum());
 			//分配基数
 			UFDouble total=new UFDouble(0);
 			if(mdvos[0].getMd_meter()!=null){//如果任意1行中米数不为空,那么表示以米数和支数来计数

@@ -229,7 +229,8 @@ public class MdProcessBean {
 			pk_ptzj = rsvos[0].getCgeneralbid();
 			zhishu = zhishu.add(rsvos[i].getSrkzs(), MDConstants.ZS_XSW);
 			zhongliang = zhongliang
-					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
+					.add(rsvos[i].getDef1(), MDConstants.ZL_XSW);//2011-01-03 MeiChao 取钢厂重量
+//					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
 		}
 		dlg.setNoutnum(zhongliang);
 		dlg.setNoutassistnum(zhishu);
@@ -315,7 +316,7 @@ public class MdProcessBean {
 			throws BusinessException {
 		String pk_mdxcl_b = evo.getPk_mdxcl_b();
 		String sql = "select ttt.* from (select t1.PK_MDXCL_B, t1.dr, t1.cspaceid, "
-				+ "t1.jbh, t1.md_width, t1.md_length, t1.md_meter, t1.md_note, t1.md_lph, t1.md_zyh,"
+				+ "t1.jbh, t1.md_width, t1.md_length, t1.md_meter, t1.md_note, t1.md_lph, t1.md_zyh,t1.def1,t1.def7,t1.def8,t1.def9,"//2011-01-03 MeiChao 加入def1 7 8 9 4个自定义字段
 				+ " t1.md_zlzsh, t1.remark, t1.zhishu, (t1.zhishu-nvl(b.sdzs,0)) as kyzs, t1.zhongliang,nvl((t1.def1*(t1.zhishu-nvl(b.sdzs,0))/t1.zhishu),0) as factoryweight,"//2010-12-30 MeiChao add t1.def1*(t1.zhishu-nvl(b.sdzs,0))/t1.zhishu as factoryweight,
 				+ " t2.pk_corp, t2.cwarehouseidb, t2.ccalbodyidb, t2.cinvbasid, t2.cinventoryidb, t3.invspec "
 				+ "from nc_mdxcl_b t1 left join nc_mdxcl t2 on t1.pk_mdxcl = t2.pk_mdxcl"
@@ -336,11 +337,12 @@ public class MdProcessBean {
 			return evo;
 		}
 		UFDouble zhishu = new UFDouble((BigDecimal) rsmap.get("zhishu"));// 现存支数
-		UFDouble zhongliang = new UFDouble((BigDecimal) rsmap.get("zhongliang"));// 现存重量
+		UFDouble zhongliang = new UFDouble((BigDecimal) rsmap.get("zhongliang"));// 现存验收重量
+		UFDouble factoryallweight=new UFDouble((BigDecimal) rsmap.get("def1"));// 现存钢厂重量
 		UFDouble kyzs = new UFDouble((Integer) rsmap.get("kyzs")); // 可用支数
 		UFDouble kyzl = kyzs.multiply(zhongliang).div(zhishu,
 				MDConstants.ZL_XSW);// 可用重量
-		UFDouble factoryWeight=new UFDouble(rsmap.get("factoryweight").toString());// 2010-12-30 MeiChao add 钢厂重量 
+		UFDouble factoryWeight=new UFDouble(rsmap.get("factoryweight").toString());// 2010-12-30 MeiChao add 可用钢厂重量 
 		evo.setCspaceid((String) rsmap.get("cspaceid"));// 货位
 		// 如果是理计
 		if (bsfbj.booleanValue() == false) {
@@ -487,7 +489,7 @@ public class MdProcessBean {
 	public LocatorVO[] builderHwVos2(SpecialBillItemVO itemVO, String billType,
 			boolean sfth) throws BusinessException {
 		LocatorVO[] rsvo = null;
-		String sql = "select t2.cspaceid,t3.cscode,t3.csname,t1.cgeneralbid,t1.srkzs,t1.srkzl"
+		String sql = "select t2.cspaceid,t3.cscode,t3.csname,t1.cgeneralbid,t1.srkzs,t1.def1"
 				+ " from nc_mdcrk_temp t1 left join nc_mdxcl_b t2 on t1.pk_mdxcl_b=t2.pk_mdxcl_b"
 				+ " left join bd_cargdoc t3 on t2.cspaceid=t3.pk_cargdoc where t1.cgeneralbid='"
 				+ itemVO.getCgeneralbid() + "' and t1.dr=0";
@@ -504,7 +506,7 @@ public class MdProcessBean {
 			vo.setCspaceid((String) voMap.get("cspaceid")); // 货位PK值
 			vo.setVspacecode((String) voMap.get("cscode")); // 货位编码
 			vo.setVspacename((String) voMap.get("csname")); // 货位名称
-			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
+			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("def1"));
 			UFDouble d2 = new UFDouble((BigDecimal) voMap.get("srkzs"));
 			// 入库
 			if (billType.equals("45") || billType.equals("4A")) {

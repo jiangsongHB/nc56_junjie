@@ -741,7 +741,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 					+ infoVO.getCcalbodyidb() + "' and cwarehouseidb='"
 					+ infoVO.getCwarehouseidb() + "' and cinvbasid='"
 					+ infoVO.getPk_invbasdoc() + "' and cinventoryidb='"
-					+ infoVO.getPk_invmandoc() + "'";
+					+ infoVO.getPk_invmandoc() + "' and kyzs>0 ";//2011-01-03 MeiChao 增加 可用支数>0 的条件
 			if (b_fjs == true)
 				sqlWhere += " and def4='Y'";
 			else
