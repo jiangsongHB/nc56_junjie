@@ -701,6 +701,17 @@ junjie/patches/scripts/2010-12-31[!!-~]补丁合集/so/client/nc/ui/so/so001/ord
 junjie/patches/scripts/2010-12-31[!!-~]补丁合集/创建视图v_ic_onhandnum7.sql -text
 junjie/patches/scripts/2010-12-31[!!-~]补丁合集/存货分类11001下的管理档案是否码单管理标记批量修改.sql -text
 junjie/patches/scripts/2010-12-31[!!-~]补丁合集/部分脚本难以实现需手动修改内容.txt -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/ic601/MdDetailDialog$1.class -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/ic601/MdDetailDialog$IvjEventHandler.class -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/ic601/MdDetailDialog.class -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/ic601/MdDetailDialog.java -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/md/dialog/MDioDialog.class -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/md/dialog/MDioDialog.java -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/mdck/MdProcessBean.class -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/mdck/MdProcessBean.java -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/mdck/MdwhPanel.class -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/ic/nc/ui/ic/mdck/MdwhPanel.java -text
+junjie/patches/scripts/2011-01-03[!!-~]补丁合集/出库码单维护模板修改.sql -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
