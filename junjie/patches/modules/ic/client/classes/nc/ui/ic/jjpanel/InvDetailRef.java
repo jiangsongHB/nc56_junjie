@@ -37,11 +37,11 @@ public class InvDetailRef extends AbstractRefModel {
 	}
 
 	public String[] getFieldCode() {
-		return new String[] { "invname","contractthick","contractwidth","contractlength","contractmeter","unstoragenumber","unstorageweight" };
+		return new String[] { "invname","contractthick","contractwidth","contractlength","contractmeter","unstoragenumber","unstorageweight","vdef1" };
 	}
 
 	public String[] getFieldName() {
-		return new String[] { "存货名称","钢厂厚度","钢厂宽度","钢厂长度","钢厂米数","到货未入库件数","到货未入库重量" };
+		return new String[] { "存货名称","钢厂厚度","钢厂宽度","钢厂长度","钢厂米数","未入库件数","未入库重量","炉批号" };
 	}
 
 	public String getRefTitle() {
@@ -58,7 +58,7 @@ public class InvDetailRef extends AbstractRefModel {
 	@Override
 	public int getDefaultFieldCount() {
 		// TODO Auto-generated method stub
-		return 7;
+		return 8;
 	}
 
 	@Override
@@ -72,5 +72,7 @@ public class InvDetailRef extends AbstractRefModel {
 
 		return super.getWherePart();
 	}
+	
+	
 	
 }
