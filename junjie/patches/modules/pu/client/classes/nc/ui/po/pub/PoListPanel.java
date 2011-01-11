@@ -4,6 +4,7 @@ package nc.ui.po.pub;
 import java.awt.Container;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 
 import javax.swing.ListSelectionModel;
@@ -11,6 +12,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import nc.bs.bd.b21.BusinessCurrencyRateUtil;
+import nc.bs.framework.common.NCLocator;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.ui.po.oper.PoToftPanel;
 import nc.ui.pu.jj.JJPuScmPubHelper;
 import nc.ui.pu.pub.POPubSetUI;
@@ -28,10 +32,12 @@ import nc.ui.pub.bill.IBillModelSortPrepareListener;
 import nc.vo.po.OrderHeaderVO;
 import nc.vo.po.OrderItemVO;
 import nc.vo.po.OrderVO;
+import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.constant.ScmConst;
 import nc.vo.pu.jjvo.InformationCostVO;
+import nc.vo.pu.jjvo.InvDetailVO;
 import nc.vo.scm.pu.BillTypeConst;
 import nc.vo.scm.pu.PuPubVO;
 import nc.vo.scm.pu.Timer;
@@ -43,7 +49,17 @@ implements	ListSelectionListener,
 		IBillModelSortPrepareListener 
 		//since v55, 赠品不计合计(与销售订单做成一致)
 		,BillTotalListener
-		{	
+		{
+	
+	private InvDetailVO[] invDetailVOs;//表体存货明细.及相应的get,set方法 add by MeiChao 2010-12-14 
+	public InvDetailVO[] getInvDetailVOs() {
+		return invDetailVOs;
+	}
+	public void setInvDetailVOs(InvDetailVO[] invDetailVOs) {
+		this.invDetailVOs = invDetailVOs;
+	}
+	
+	
 	//调用者，该调用者需实现接口nc.ui.po.pub.PoListPanelInterface
 	private	Container	m_conInvoker = null ;
 	//模板ID
@@ -269,8 +285,16 @@ public void displayCurVOBody(int		iUIPos) {
 	if(vos!=null&&vos.length!=0){
 		 getBillListData().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(vos);
 		 getBillListData().getBodyBillModel("jj_scm_informationcost").execLoadFormula();
+	}else{
+		//20101010-22-20  MeiChao 费用为空时,清空历史费用信息.
+		getBillListData().getBodyBillModel("jj_scm_informationcost").setBodyDataVO(null);
 	}
 	 //add by QuSida 2010-9-11 (佛山骏杰) --- end
+	//2011-01-06 MeiChao begin 将存货明细信息存入存货明细页签
+		//防止订单切换时存货明细不为空导致明细不变的情况,先将全局存货明细数组清空
+	this.invDetailVOs=null;
+	this.updateInvdetailToList(pk, true);
+	//2011-01-06 MeiChao end 将存货明细信息存入存货明细页签
 	} catch (Exception ex) {
 		PuTool.outException(this,ex) ;
 	}
@@ -862,10 +886,45 @@ public UFDouble calcurateTotal(String key) {
 //	getBillModel().setNeedCalculate(doCalculate)
 	return total;
 }
-public BillModel getBillModel(){
-  if(m_billmodel == null){
-    m_billmodel = getBodyBillModel();
-  }
-  return m_billmodel;
-}
+	public BillModel getBillModel(){
+	  if(m_billmodel == null){
+	    m_billmodel = getBodyBillModel();
+	  }
+	  return m_billmodel;
+	}
+	
+	private void updateInvdetailToList(String currOrderPK,boolean isOrderChanged){
+		//2010-12-15 MeiChao begin 查询出到货单对应的存货明细,并放入invdetail页签中
+		if (this.invDetailVOs == null || this.invDetailVOs.length < 0) {
+			IUAPQueryBS iService = (IUAPQueryBS) NCLocator.getInstance()
+					.lookup(IUAPQueryBS.class.getName());
+			String queryInvDetailSql = "select * from scm_invdetail t where t.corder_bid in (select t.corder_bid from po_order_b t where t.corderid='"
+					+ currOrderPK + "') and t.dr=0 order by t.pk_invbasdoc";
+			List<InvDetailVO> invDetailVOList = null;
+			try {
+				invDetailVOList = (List<InvDetailVO>) iService.executeQuery(
+						queryInvDetailSql, new BeanListProcessor(
+								InvDetailVO.class));
+			} catch (BusinessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (invDetailVOList != null && invDetailVOList.size() > 0) {
+				this.invDetailVOs = new InvDetailVO[invDetailVOList.size()];
+				for (int i = 0; i < invDetailVOList.size(); i++) {
+					invDetailVOs[i] = invDetailVOList.get(i);
+				}
+				this.getBodyBillModel("invdetail").setBodyDataVO(
+						invDetailVOs);
+				this.getBodyBillModel("invdetail").execLoadFormula();
+			}else {
+				this.getBodyBillModel("invdetail").setBodyDataVO(null);
+			}
+			} else {
+				this.getBodyBillModel("invdetail").setBodyDataVO(null);
+			}
+		//2011-01-06 MeiChao end 查询出到货单对应的存货明细,并放入invdetail页签中
+
+	}
+	
 }

@@ -16,6 +16,9 @@ import nc.itf.arap.pub.IArapBillMapQureyPublic;
 import nc.itf.po.IOrder;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.rbac.IUserManageQuery;
+import nc.jdbc.framework.processor.BeanListProcessor;
+import nc.jdbc.framework.processor.ColumnProcessor;
+import nc.jdbc.framework.processor.MapProcessor;
 import nc.ui.bd.b21.CurrParamQuery;
 import nc.ui.ic.pub.RefMsg;
 import nc.ui.ml.NCLangRes;
@@ -98,9 +101,11 @@ import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDateTime;
 import nc.vo.pub.lang.UFDouble;
+import nc.vo.rc.receive.ArriveorderVO;
 import nc.vo.scm.constant.ScmConst;
 import nc.vo.scm.datapower.BtnPowerVO;
 import nc.vo.pu.jjvo.InformationCostVO;
+import nc.vo.pu.jjvo.InvDetailVO;
 import nc.vo.scm.pu.BillTypeConst;
 import nc.vo.scm.pu.PuPubVO;
 import nc.vo.scm.pu.Timer;
@@ -115,6 +120,13 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 		// 列表打印
 		ISetBillVO ,IPOVOChangeListener{
 	
+	private InvDetailVO[] invDetailVOs;//表体存货明细.及相应的get,set方法 add by MeiChao 2010-12-14 
+	public InvDetailVO[] getInvDetailVOs() {
+		return invDetailVOs;
+	}
+	public void setInvDetailVOs(InvDetailVO[] invDetailVOs) {
+		this.invDetailVOs = invDetailVOs;
+	}
 	// 单据Panel
 	private PoCardPanel m_cpBill = null;
 
@@ -263,7 +275,7 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 
 	// 当前操作状态
 	// 单据操作类型 0原始 1增加 2修改 3作废 4列表 5毛利预估
-	private int m_nCurOperState = 0;
+	protected int m_nCurOperState = 0;
 
 	// 编辑时进行毛利预估、可用量查询时保存操作类型
 	private int m_nflagSave = 0;
@@ -757,6 +769,7 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 				setButtonsStateBrowse();
 				showHintMessage(NCLangRes.getInstance().getStrByID(
 						"4004020201", "UPP4004020201-000042")/* @res "浏览订单" */);
+				
 				String pk =	getPoCardPanel().getHeadItem("corderid").getValue();
 				String sql = "cbillid = '"+pk+"'";
 				InformationCostVO[] vos = null;
@@ -774,7 +787,9 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 				//20101010-22-20  MeiChao 费用为空时,清空历史费用信息.
 				getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 			}
-			
+			//2011-01-06 MeiChao begin 双击时将存货明细植入卡片下存货明细页签
+				this.updateInvdetailToPanel(pk, true);
+			//2011-01-06 MeiChao end 双击时将存货明细植入卡片下存货明细页签
 			}
 		}
 	}
@@ -996,7 +1011,10 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 
 		showHintMessage(NCLangRes.getInstance().getStrByID(
 				"4004020201", "UPP4004020201-000046")/* @res "删除订单行" */);
-
+		/**
+		 * 2011-01-08 MeiChao 删行时检查当前行是否已维护存货明细--待续
+		 */
+		
 		getPoCardPanel().onActionDeleteLine();
     
     /*del , since 2008-10-24, 删除，行数为零也不必重新设置表头业务类型参照。
@@ -1026,6 +1044,24 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 			showErrorMessage(e.getMessage());
 			return;
 		}
+	    	/**
+	  	   * 2011-01-08 MeiChao 在删除前,如果当前订单维护了存货明细则不允许直接删除.
+	  	   */
+	  	  String orderPK=voCanceled.getHeadVO().getPrimaryKey();
+	  	  String querySQL="select t.pk_invdetail from scm_invdetail t where t.corder_bid in " +
+	  	  		"(select t.corder_bid from po_order_b t " +
+	  	  		"where t.corderid='"+orderPK+"' and t.dr=0) and t.dr=0 ";
+	  	  IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+	  	  try {
+	  		  Object checkResult=queryService.executeQuery(querySQL, new ColumnProcessor());
+	  		  if(checkResult!=null){
+	  			  MessageDialog.showErrorDlg(this,"警告","当前订单已维护了存货明细,不允许直接删除!");
+	  			  return;
+	  		  }
+	  		} catch (BusinessException e1) {
+	  			// TODO Auto-generated catch block
+	  			e1.printStackTrace();
+	  		}
 		// 作废
 		boolean bSuccessed = onDiscard(this, new OrderVO[] { voCanceled });
 		if (!bSuccessed) {
@@ -1814,7 +1850,16 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 		//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
 		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 	}
-
+	//2011-01-06 MeiChao begin 修改时,将存货明细重新植入页签
+		//防止在列表下直接点修改
+		if(this.bBillList){
+			this.invDetailVOs=null;
+		}
+		getPoCardPanel().setBodyMenuShow("invdetail", false);
+		this.updateInvdetailToPanel(pk, false);
+	//2010-01-06 MeiChao end
+	
+	
 	}
 
 	/**
@@ -2393,19 +2438,24 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 	String pk =	getPoCardPanel().getHeadItem("corderid").getValue();
 	String sql = "cbillid = '"+pk+"' and dr = 0 " ;
 	InformationCostVO[] vos = null;
-try {
-	 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
-} catch (Exception e) {
-	// TODO Auto-generated catch block
-	e.printStackTrace();
-}
-if(vos!=null&&vos.length!=0){
-	getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
-	getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
-}else{
-	//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
-	getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
-}
+	try {
+		 vos = (InformationCostVO[])JJPuScmPubHelper.querySmartVOs(InformationCostVO.class, null, sql);
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	if(vos!=null&&vos.length!=0){
+		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(vos);
+		getPoCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+	}else{
+		//20101013-11-48  MeiChao 费用为空时,清空历史费用信息.
+		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
+	}
+	//2011-01-06 MeiChao begin 将存货明细插入存货明细页签
+	//防止多次查询出错,执行前将全局存货明细vo数组清空一次
+	this.invDetailVOs=null;
+	this.updateInvdetailToPanel(pk, false);
+	//2010-01-06 MeiChao end
 		showHintMessage(NCLangRes.getInstance().getStrByID("common",
 				"UCH009")/* @res "查询完成" */);
 	}
@@ -3017,6 +3067,45 @@ if(vos!=null&&vos.length!=0){
   			OrderVO voOrder = getOrderDataVOAt(getBufferVOManager().getVOPos());
   			// 支持天音送审后置为正在审批状态需求2005-01-29
   			ArrayList userObj = new ArrayList();
+  			/**
+  			 * 2011-01-08 MeiChao begin 审核前检查存货明细完整性 
+  			 */
+  			if(voOrder.getHeadVO().getVdef20()!=null&&"Y".equals(voOrder.getHeadVO().getVdef20())){
+				//直调采购订单不检查存货明细维护起概况,不作任何操作.
+			}else {
+				String checkSQL = "select * from (select nvl(t.nordernum,0) - nvl(m.sumweight,0) isover"
+						+ " from (select t.nordernum, t.corder_bid"
+						+ " from po_order_b t"
+						+ " where t.corderid = '"
+						+ voOrder.getHeadVO().getPrimaryKey()
+						+ "' and t.dr=0) t"
+						+ " left join (select sum(t.contractweight) sumweight, t.corder_bid"
+						+ " from scm_invdetail t"
+						+ " where t.corder_bid in"
+						+ " (select m.corder_bid"
+						+ " from po_order_b m"
+						+ " where m.corderid = '"
+						+ voOrder.getHeadVO().getPrimaryKey()
+						+ "' and m.dr=0) and t.dr=0 "
+						+ " group by t.corder_bid) m"
+						+ " on t.corder_bid = m.corder_bid"
+						+ " ) n where n.isover<>0 ";
+				IUAPQueryBS queryService = (IUAPQueryBS) NCLocator
+						.getInstance().lookup(IUAPQueryBS.class.getName());
+				try {
+					Object checkResult = queryService.executeQuery(checkSQL,
+							new MapProcessor());
+					if (checkResult != null) {
+						MessageDialog.showHintDlg(this, "提示", "当前订单的存货明细没有维护完整,请补完后再进行审核操作!");
+						updateUI();//刷新UI
+						return;
+					}
+				} catch (BusinessException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			//2011-01-08 MeiChao end 审核前检查存货明细完整性
   			userObj.add(PoPublicUIClass.getLoginUser());
   			userObj.add(PoPublicUIClass.getLoginDate());
   			try {
@@ -4214,6 +4303,53 @@ if(vos!=null&&vos.length!=0){
 		if (voaSelected == null) {
 			return;
 		}
+	    /**
+	     * 2011-01-06 MeiChao 检查当前订单是否已将存货明细维护完全,如是.则允许审核,如果有差错,则不允许审核
+	     */
+	    int checkPoint = 0;
+			for (OrderVO vo : voaSelected) {
+				if(vo.getHeadVO().getVdef20()!=null&&"Y".equals(vo.getHeadVO().getVdef20())){
+					//直调采购订单不检查存货明细维护起概况,不作任何操作.
+				}else {
+					String checkSQL = "select * from (select nvl(t.nordernum,0) - nvl(m.sumweight,0) isover"
+							+ " from (select t.nordernum, t.corder_bid"
+							+ " from po_order_b t"
+							+ " where t.corderid = '"
+							+ vo.getHeadVO().getPrimaryKey()
+							+ "' and t.dr=0) t"
+							+ " left join (select sum(t.contractweight) sumweight, t.corder_bid"
+							+ " from scm_invdetail t"
+							+ " where t.corder_bid in"
+							+ " (select m.corder_bid"
+							+ " from po_order_b m"
+							+ " where m.corderid = '"
+							+ vo.getHeadVO().getPrimaryKey()
+							+ "' and m.dr=0) and t.dr=0 "
+							+ " group by t.corder_bid) m"
+							+ " on t.corder_bid = m.corder_bid"
+							+ " ) n where n.isover<>0 ";
+					IUAPQueryBS queryService = (IUAPQueryBS) NCLocator
+							.getInstance().lookup(IUAPQueryBS.class.getName());
+					try {
+						Object checkResult = queryService.executeQuery(checkSQL,
+								new MapProcessor());
+						if (checkResult != null) {
+							MessageDialog.showHintDlg(this, "提示", "当前所选第"
+									+ (checkPoint + 1)
+									+ "个订单的存货明细没有维护完整,请补完后再进行审核操作!");
+							updateUI();//刷新UI
+							return;
+						}
+					} catch (BusinessException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+				checkPoint++;
+			}
+	    //2011-01-06 MeiChao add 检查明细完整性 end
+		
+		
 		timeDebug.addExecutePhase("获得VO数组");/*-=notranslate=-*/
 
 		// 回退审批人及审批日期哈希表，操作失败时用到
@@ -4625,6 +4761,9 @@ if(vos!=null&&vos.length!=0){
 		getPoCardPanel().getBillModel("jj_scm_informationcost").setBodyDataVO(null);
 	}
 		
+	//2011-01-06 MeiChao begin 列表下切换至卡片时将相应的存货明细放置卡片下
+		this.updateInvdetailToPanel(pk, true);
+	//2011-01-06 MeiChao end
 		showHintMessage(NCLangRes.getInstance().getStrByID("common",
 				"UCH021")/* @res "卡片显示" */);
 	}
@@ -4684,6 +4823,29 @@ if(vos!=null&&vos.length!=0){
 			showErrorMessage(e.getMessage());
 			return;
 		}
+	    /**
+	     * 2011-01-08 MeiChao 在列表下删除订单前,作一系列的检查
+	     */
+	    for(int m=0;m<voaCanceled.length;m++){
+	    	/**
+	  	   * 2011-01-08 MeiChao 在删除前,如果当前订单维护了存货明细则不允许直接删除.
+	  	   */
+	  	  String arrivePK=voaCanceled[m].getHeadVO().getPrimaryKey();
+	  	  String querySQL="select t.pk_invdetail from scm_invdetail t where t.corder_bid in " +
+	  	  		"(select t.corder_bid from po_order_b t " +
+	  	  		"where t.corderid='"+arrivePK+"' and t.dr=0) and t.dr=0 ";
+	  	  IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+	  	  try {
+	  		  Object checkResult=queryService.executeQuery(querySQL, new ColumnProcessor());
+	  		  if(checkResult!=null){
+	  			  MessageDialog.showErrorDlg(this,"警告","当前订单"+m+"已维护了存货明细,不允许直接删除!");
+	  			  return;
+	  		  }
+	  		} catch (BusinessException e1) {
+	  			// TODO Auto-generated catch block
+	  			e1.printStackTrace();
+	  		}
+	    }
 		// 作废
 		boolean bSuccessed = onDiscard(this, voaCanceled);
 		if (!bSuccessed) {
@@ -6138,6 +6300,29 @@ if(vos!=null&&vos.length!=0){
 				return false;
 			}
 
+			/**
+		     * 2011-01-06 MeiChao 在列表下删除到货单前,作一系列的检查
+		     */
+		    	
+		    	/**
+		  	   * 2011-01-06 MeiChao 在删除前,如果当前订单维护了存货明细则不允许直接删除.
+		  	   */
+		  	  String orderPK=voaDelete[i].getHeadVO().getPrimaryKey();
+		  	  String querySQL="select t.pk_invdetail from scm_invdetail t where t.corder_bid in " +
+		  	  		"(select t.corder_bid from po_order_b t " +
+		  	  		"where t.corderid='"+orderPK+"' and t.dr=0) and t.dr=0 ";
+		  	  IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+		  	  try {
+		  		  Object checkResult=queryService.executeQuery(querySQL, new ColumnProcessor());
+		  		  if(checkResult!=null){
+		  			  MessageDialog.showErrorDlg(pnlToft,"警告","当前订单"+i+"已维护了存货明细,不允许直接删除!");
+		  			  return false;
+		  		  }
+		  		} catch (BusinessException e1) {
+		  			// TODO Auto-generated catch block
+		  			e1.printStackTrace();
+		  		}
+		    	
 			// 作废前处理
 			voaDelete[i].setStatus(VOStatus.DELETED);
 
@@ -6969,4 +7154,41 @@ if(vos!=null&&vos.length!=0){
 //			  }
 //		}
 	}
+	
+	
+	private void updateInvdetailToPanel(String currOrderPK,boolean isOrderChanged){
+		//2010-12-15 MeiChao begin 查询出到货单对应的存货明细,并放入invdetail页签中
+		if (this.invDetailVOs == null || this.invDetailVOs.length < 0) {
+			IUAPQueryBS iService = (IUAPQueryBS) NCLocator.getInstance()
+					.lookup(IUAPQueryBS.class.getName());
+			String queryInvDetailSql = "select * from scm_invdetail t where t.corder_bid in (select t.corder_bid from po_order_b t where t.corderid='"
+					+ currOrderPK + "' and t.dr=0) and t.dr=0 order by t.pk_invbasdoc";
+			List<InvDetailVO> invDetailVOList = null;
+			try {
+				invDetailVOList = (List<InvDetailVO>) iService.executeQuery(
+						queryInvDetailSql, new BeanListProcessor(
+								InvDetailVO.class));
+			} catch (BusinessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (invDetailVOList != null && invDetailVOList.size() > 0) {
+				this.invDetailVOs = new InvDetailVO[invDetailVOList.size()];
+				for (int i = 0; i < invDetailVOList.size(); i++) {
+					invDetailVOs[i] = invDetailVOList.get(i);
+				}
+				getPoCardPanel().getBillModel("invdetail").setBodyDataVO(
+						invDetailVOs);
+				getPoCardPanel().getBillModel("invdetail").execLoadFormula();
+			}else {
+				getPoCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+			}
+			} else {
+				getPoCardPanel().getBillModel("invdetail").setBodyDataVO(invDetailVOs);
+			}
+		//2011-01-06 MeiChao end 查询出到货单对应的存货明细,并放入invdetail页签中
+
+	}
+	
+	
 }

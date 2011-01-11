@@ -4,8 +4,14 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
+import nc.bs.framework.common.NCLocator;
+import nc.itf.pu.mm.ISrvPUToMM;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.BeanListProcessor;
+import nc.jdbc.framework.processor.MapProcessor;
 import nc.ui.ml.NCLangRes;
 import nc.ui.po.OrderHelper;
 import nc.ui.po.pub.ContractClassParse;
@@ -18,6 +24,7 @@ import nc.ui.pr.pray.PraybillHelper;
 import nc.ui.pu.jj.JJPuScmPubHelper;
 import nc.ui.pu.jjpanel.InfoCostPanel;
 import nc.ui.pu.jjpanel.InvDetailDialog;
+import nc.ui.pu.jjpanel.InvDetailDialog421;
 import nc.ui.pu.pub.POPubSetUI2;
 import nc.ui.pu.pub.PuTool;
 import nc.ui.pub.ButtonObject;
@@ -45,16 +52,20 @@ import nc.ui.uap.sf.SFClientUtil;
 import nc.vo.pf.change.PfUtilBaseTools;
 import nc.vo.pi.NormalCondVO;
 import nc.vo.po.OrderHeaderVO;
+import nc.vo.po.OrderItemVO;
 import nc.vo.po.OrderVO;
 import nc.vo.po.pub.OrderPubVO;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.VOStatus;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.pub.query.ConditionVO;
+import nc.vo.rc.receive.ArriveorderItemVO;
 import nc.vo.scm.constant.ScmConst;
 import nc.vo.pu.jjvo.InformationCostVO;
+import nc.vo.pu.jjvo.InvDetailVO;
 import nc.vo.scm.pu.BillStatus;
 import nc.vo.scm.pu.BillTypeConst;
 import nc.vo.scm.pu.PUMessageVO;
@@ -72,7 +83,20 @@ public class OrderUI	extends PoToftPanel
 		ILinkQuery//逐级联查
 		{
 	
-	
+	private ButtonObject boInvDetail;//存货明细按钮 add by MeiChao 2010-12-14 
+	public ButtonObject getBoInvDetail() {
+		if(boInvDetail==null){
+			boInvDetail=new ButtonObject("存货明细","存货明细","存货明细");
+		}
+		return boInvDetail;
+	}
+	private InvDetailVO[] invDetailVOs;//表体存货明细.及相应的get,set方法 add by MeiChao 2010-12-14 
+	public InvDetailVO[] getInvDetailVOs() {
+		return invDetailVOs;
+	}
+	public void setInvDetailVOs(InvDetailVO[] invDetailVOs) {
+		this.invDetailVOs = invDetailVOs;
+	}
 	private ButtonObject boInfoCost ;//费用录入按钮  add by QuSida 2010-8-13 (佛山骏杰)
 	private ButtonObject[] extendBtns ; //二次开发按钮数组  add by QuSida 2010-8-13 (佛山骏杰)
 	private  UFDouble number ;//数量  add by QuSida 2010-9-7 (佛山骏杰)
@@ -506,6 +530,48 @@ private void onMsgRevise(){
 private void onMsgCenterAudit() {
 
 	OrderVO vo = getOrderViewVOAt(getBufferVOManager().getVOPos());
+	/**
+		 * 2011-01-08 MeiChao begin 审核前检查存货明细完整性 
+		 */
+		if(vo.getHeadVO().getVdef20()!=null&&"Y".equals(vo.getHeadVO().getVdef20())){
+		//直调采购订单不检查存货明细维护起概况,不作任何操作.
+		}else {
+		String checkSQL = "select * from (select nvl(t.nordernum,0) - nvl(m.sumweight,0) isover"
+				+ " from (select t.nordernum, t.corder_bid"
+				+ " from po_order_b t"
+				+ " where t.corderid = '"
+				+ vo.getHeadVO().getPrimaryKey()
+				+ "' and t.dr=0) t"
+				+ " left join (select sum(t.contractweight) sumweight, t.corder_bid"
+				+ " from scm_invdetail t"
+				+ " where t.corder_bid in"
+				+ " (select m.corder_bid"
+				+ " from po_order_b m"
+				+ " where m.corderid = '"
+				+ vo.getHeadVO().getPrimaryKey()
+				+ "' and m.dr=0) and t.dr=0 "
+				+ " group by t.corder_bid) m"
+				+ " on t.corder_bid = m.corder_bid"
+				+ " ) n where n.isover<>0 ";
+		IUAPQueryBS queryService = (IUAPQueryBS) NCLocator
+				.getInstance().lookup(IUAPQueryBS.class.getName());
+		try {
+			Object checkResult = queryService.executeQuery(checkSQL,
+					new MapProcessor());
+			if (checkResult != null) {
+				MessageDialog.showHintDlg(this, "提示", "当前订单的存货明细没有维护完整,请补完后再进行审核操作!");
+				updateUI();//刷新UI
+				return;
+			}
+		} catch (BusinessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+	//2011-01-08 MeiChao end 审核前检查存货明细完整性
+	
+	
+	
 	PoPublicUIClass.setCuserId(new	OrderVO[]{vo}) ;
 
 	OrderVO VOs[] = new OrderVO[1];
@@ -742,7 +808,7 @@ public ButtonObject[] getExtendBtns() {
 	
 	if(extendBtns == null || extendBtns.length == 0){
 		//加入费用录入按钮 add by QuSida 2010-8-10  （佛山骏杰）
-		extendBtns = new ButtonObject[]{getBoInfoCost()};
+		extendBtns = new ButtonObject[]{getBoInfoCost(),this.getBoInvDetail()};
 	return extendBtns;}
 	else return extendBtns;
 }
@@ -776,6 +842,8 @@ public void onExtendBtnsClick(ButtonObject bo) {
 	//加入费用录入按钮的动作 add by QuSida 2010-8-10  （佛山骏杰）
 	 if(bo == getBoInfoCost()){
     	this.onBoInfoCost();
+    }else if(bo == getBoInvDetail()){
+    	this.onBoInvDetail();
     }
 	
 }
@@ -1181,6 +1249,110 @@ private void setButtonsNull(){
 	}
 }
 
+/**
+ * 存货明细 按钮响应事件
+ * @author MeiChao
+ * @date 2011-01-05
+ */
+  private void onBoInvDetail(){
+// 	 if(this.bBillList){//||!this.m_strState.equals("到货浏览")
+// 		 MessageDialog.showHintDlg(this,"提示","必须在卡片浏览状态下才可维护存货明细");
+// 		 return;
+// 	 }
+  	if(this.m_nCurOperState!=0){//||!this.m_strState.equals("到货浏览")
+		 MessageDialog.showHintDlg(this,"提示","必须在卡片浏览状态下才可维护存货明细");
+		 return;
+	 }
+ 	 if(m_nCurOperState==1||m_nCurOperState==2||m_nCurOperState==3){//单据处于新增,修改,作废状态下.
+ 		 MessageDialog.showHintDlg(this,"提示","必须在卡片浏览状态下才可维护存货明细");
+		 return;
+ 	 }
+ 	 if(this.getPoCardPanel().getHeadItem("vdef20")!=null&&"Y".equals(this.getPoCardPanel().getHeadItem("vdef20").toString())){
+ 		 MessageDialog.showHintDlg(this,"提示","直调订单无需维护存货明细!");
+ 		 return;
+ 	 }
+ 	 if(this.getPoCardPanel().getBillTable("table").getSelectedRow()==-1){
+ 		 MessageDialog.showHintDlg(this,"提示","请选择一个表体存货行后再维护存货明细!");
+ 		 return;
+ 	 }
+ 	 //选中行号
+ 	 Integer selectedRowNum=this.getPoCardPanel().getBillTable("table").getSelectedRow();
+ 	 //选中行VO
+ 	 OrderItemVO selectedArriveBody=(OrderItemVO)this.getPoCardPanel().getBillModel().getBodyValueRowVO(selectedRowNum, OrderItemVO.class.getName());
+ 	 //选中存货
+ 	 String selectedInv=selectedArriveBody.getCbaseid();
+ 	 //选中存货对应的明细
+ 	 ArrayList<InvDetailVO> selectedDetailList=new ArrayList<InvDetailVO>();
+ 	 if(this.invDetailVOs!=null&&this.invDetailVOs.length>0){
+ 	 for(int i=0;i<this.invDetailVOs.length;i++){
+ 		 if(selectedInv.equals(this.invDetailVOs[i].getPk_invbasdoc())){//如
+ 			 selectedDetailList.add((InvDetailVO)this.invDetailVOs[i].clone());
+ 		 }
+ 	 }
+ 	 }
+ 	 InvDetailDialog421 invDetailDlg=null;
+ 	 if(selectedDetailList!=null&&selectedDetailList.size()>0){
+ 		 invDetailDlg=new InvDetailDialog421(this,(InvDetailVO[])selectedDetailList.toArray(new InvDetailVO[selectedDetailList.size()]),selectedArriveBody);
+ 	 }else{
+ 		 invDetailDlg=new InvDetailDialog421(this,null,selectedArriveBody);
+ 	 }
+	  invDetailDlg.showModal();
+	  //更新表体的存货明细页签等后续操作.
+	  if(invDetailDlg.isCloseOK()){
+		  //从Dialog中取出维护后的存货明细数组(此时取出的VO数组包含新增,修改,已删除 3种状态的VO,已删除看作是修改)
+		  InvDetailVO[] newInvDetails=invDetailDlg.getinvDetailVOs();
+		  //开始分拣维护后的存货明细VO
+		  //新增的
+		  ArrayList<InvDetailVO> newVOs=new ArrayList<InvDetailVO>();
+		  //修改的
+		  ArrayList<InvDetailVO> changeVOs=new ArrayList<InvDetailVO>();
+		  for(int i=0;i<newInvDetails.length;i++){
+			  if(newInvDetails[i].getStatus()==VOStatus.NEW&&newInvDetails[i].getPk_invdetail()==null){
+				newVOs.add(newInvDetails[i]);//VO状态为新增  且没有主键的记录
+			  }else if(newInvDetails[i].getStatus()==VOStatus.UPDATED&&newInvDetails[i].getPk_invdetail()!=null){
+				changeVOs.add(newInvDetails[i]);//VO状态为修改,且有主键的记录
+			  }
+		  }
+		  ISrvPUToMM iService=(ISrvPUToMM)NCLocator.getInstance().lookup(ISrvPUToMM.class.getName());
+		  try {
+			iService.insertInvDetail(newVOs.toArray(new InvDetailVO[newVOs.size()]));
+			iService.updateInvDetail(changeVOs.toArray(new InvDetailVO[changeVOs.size()]));
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  
+	  }
+	  //保存成功后需要更新当前页面的数据.
+		String pk = getPoCardPanel().getHeadItem("corderid").getValue();
+		IUAPQueryBS iService = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		String queryInvDetailSql = "select * from scm_invdetail t where t.corder_bid in (select corder_bid from po_order_b where corderid='"
+				+ pk + "') and t.dr=0 order by t.pk_invbasdoc";
+		List<InvDetailVO> invDetailVOList = null;
+		try {
+			invDetailVOList = (List<InvDetailVO>) iService
+					.executeQuery(queryInvDetailSql, new BeanListProcessor(
+							InvDetailVO.class));
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (invDetailVOList != null && invDetailVOList.size() > 0) {
+			this.invDetailVOs = new InvDetailVO[invDetailVOList.size()];
+			for (int i = 0; i < invDetailVOList.size(); i++) {
+				invDetailVOs[i] = invDetailVOList.get(i);
+			}
+			getPoCardPanel().getBillModel("invdetail").setBodyDataVO(
+					invDetailVOs);
+			getPoListPanel().getBodyBillModel("invdetail").setBodyDataVO(invDetailVOs);
+			getPoCardPanel().getBillModel("invdetail").execLoadFormula();
+			getPoListPanel().getBodyBillModel("invdetail").execLoadFormula();
+		} else {
+			getPoCardPanel().getBillModel("invdetail").setBodyDataVO(null);
+			getPoListPanel().getBodyBillModel("invdetail").setBodyDataVO(null);
+		}
+  }
 
 
 

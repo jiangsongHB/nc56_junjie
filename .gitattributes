@@ -451,6 +451,8 @@ junjie/patches/modules/pu/client/classes/nc/ui/pu/jj/JJPuScmPubHelper.class -tex
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InfoCostPanel.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog.java -text
+junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog421.class -text
+junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog421.java -text
 junjie/patches/modules/pu/client/classes/nc/ui/pub/pf/PfUtilClient$1.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pub/pf/PfUtilClient.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IBillRelaSortListener2Body.class -text
