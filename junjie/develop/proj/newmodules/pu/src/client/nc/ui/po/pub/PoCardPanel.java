@@ -4659,8 +4659,8 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
     addActionListener("table_arr", this);
     addActionListener("table_pol", this);
     addActionListener("table_exe", this);
-    addActionListener("jj_scm_informationcost", this);
-    
+    //addActionListener("jj_scm_informationcost", this);
+    //addActionListener("invdetail", this);//2011-01-06 MeiChao add
     /** ******************************** */
   }
 
