@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Vector;
 
 import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
@@ -133,6 +134,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		//2010-12-20 初始化之后,根据当前入库单的来源单据是否为到货单,设置存货参照字段是否显示
 		if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
 			this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").setEnabled(true);
+			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
+			invdetailref.setMultiSelectedEnabled(true);//设置参照多选
 			this.getBillCardPanel().getBillModel().getItemByKey("md_width").setEnabled(false);
 			this.getBillCardPanel().getBillModel().getItemByKey("md_length").setEnabled(false);
 			this.getBillCardPanel().getBillModel().getItemByKey("md_meter").setEnabled(false);
@@ -1190,21 +1193,30 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		//2010-12-21 MeiChao add begin 
 		else if(key.equals("invdetailref")){//如果修改了存货明细参照 那么根据参照所选PK,获取存货明细数据
 			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBodyItem("invdetailref").getComponent();
-			String invdetailpk=invdetailref.getRefPK();
-			String[] formulas={"md_width->getColValue(scm_invdetail,contractwidth,pk_invdetail,\""+invdetailpk+"\")",
-							   "md_length->getColValue(scm_invdetail,contractlength,pk_invdetail,\""+invdetailpk+"\")",
-							   "md_meter->getColValue(scm_invdetail,contractmeter,pk_invdetail,\""+invdetailpk+"\")",
-							   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk+"\")",
-							   "def8->getColValue(scm_invdetail,arrivewidth,pk_invdetail,\""+invdetailpk+"\")",
-							   "def7->getColValue(scm_invdetail,arrivelength,pk_invdetail,\""+invdetailpk+"\")",
-							   "def9->getColValue(scm_invdetail,arrivemeter,pk_invdetail,\""+invdetailpk+"\")",
-							   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk+"\")",
-							   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk+"\")",
-							   "pk_invdetail->\""+invdetailpk+"\"",};
-			this.getBillCardPanel().execBodyFormulas(editEvent.getRow(), formulas);
-			this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstoragenumber"), editEvent.getRow(), "srkzs");//支数
-			this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "def1");//钢厂重量
+			String[] invdetailpk=invdetailref.getRefPKs();
+			//String[] invdetailname=invdetailref.getRefNames();
+			//Vector datas=invdetailref.getSelectedData();
+			for(int i=0;i<invdetailpk.length;i++){
+			if(i>0){//i>0的时候增行操作
+				ActionEvent e =new ActionEvent(getUIButton(MDUtils.ADDLINE_BUTTON),1001,MDUtils.ADDLINE_BUTTON);
+				this.actionPerformed(e);
+			}
+			String[] formulas={"md_width->getColValue(scm_invdetail,contractwidth,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   "md_length->getColValue(scm_invdetail,contractlength,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   "md_meter->getColValue(scm_invdetail,contractmeter,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   "def8->getColValue(scm_invdetail,arrivewidth,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   "def7->getColValue(scm_invdetail,arrivelength,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   "def9->getColValue(scm_invdetail,arrivemeter,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk[i]+"\")",
+							   "pk_invdetail->\""+invdetailpk[i]+"\"",};
+			this.getBillCardPanel().execBodyFormulas(i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, formulas);
+			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstoragenumber"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "srkzs");//支数
+			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstorageweight"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "def1");//钢厂重量
+			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("vdef1"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "md_lph");//炉批号
 			//this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
+			}
 		}
 		//2010-12-21 MeiCha add end
 		edited = true;
@@ -1231,9 +1243,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	public boolean beforeEdit(BillEditEvent billeditevent) {
 		//2010-12-20 MeiChao 在采购入库单存在来源单据类型并且为到货单事,增设"钢厂数据"参照的查询条件
 		if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
-			String arriveOrderBid=this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcebillbid();
+			String orderBid=this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCfirstbillbid();
 			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
-			invdetailref.setWhereString("carriveorder_bid='"+arriveOrderBid+"' and unstoragenumber>0 and unstorageweight>0");
+			invdetailref.setWhereString("corder_bid='"+orderBid+"' and unstoragenumber>0 and unstorageweight>0");
 		}
 		if(billeditevent.getKey()=="srkzs"){
 			
