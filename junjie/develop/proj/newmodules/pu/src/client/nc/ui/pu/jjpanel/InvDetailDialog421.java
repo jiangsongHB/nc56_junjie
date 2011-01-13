@@ -23,6 +23,7 @@ import bsh.This;
 
 import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.bd.ref.busi.InvmandocDefaultRefModel;
 import nc.ui.pub.ClientEnvironment;
@@ -804,6 +805,24 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 				System.out.println(file.getPath());
 				if (file.getPath().endsWith(".xls")) {//是否excel文件
 					List factoryDetailList=new ArrayList();
+					//订单所选行存货,名称,厚度,材质,产地
+					String invbasid=this.selectedBody.getCbaseid();
+					String getInvCheckInfo="select graphid,invspec,invtype,invname from bd_invbasdoc where pk_invbasdoc='"+invbasid+"'";
+					IUAPQueryBS queryService=(IUAPQueryBS)NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+					String invname=null;
+					String invspec=null;
+					String invtype=null;
+					String invplace=null;
+					try {
+						Object[] invInfo=(Object[])queryService.executeQuery(getInvCheckInfo, new ArrayProcessor());
+						invname=invInfo[0].toString();
+						invspec=invInfo[1].toString();
+						invtype=invInfo[2].toString();
+						invplace=invInfo[3].toString();
+					} catch (BusinessException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 					/**
 					 * 解析所选文件
 					 */
@@ -823,31 +842,57 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 							int columnsnumber = rs.getColumns();// 列长
 							int rowsnumber = rs.getRows();// 行宽
 							// 一旦得到了Sheet，我们就可以通过它来访问Excel Cell(术语：单元格)。参考下面的代码片段：
-							for (int row = 1; row < rowsnumber; row++) {
+							for (int row = 1; row < rowsnumber; row++) {//下标从1开始,过滤掉第1行表头
 								Map oneRowDetail=new HashMap();
+								boolean iswronginv=false;//当前行是否不符合要求的存货
 								for (int col = 0; col < columnsnumber; col++) {
 									// 获取第row行，第col列的值
 									Cell c = ((jxl.Sheet) rs).getCell(col, row);
-									String strc = c.getContents();
+									String strc = this.toDBC(c.getContents());//实行全角转半角操作
 									switch(col){
 										case 0 :
+											if(strc==null||!strc.equals(invname)){
+												iswronginv=true;
+												break;
+											}
 											oneRowDetail.put("invname", strc);
+											break;
 										case 1 :
+											if(strc==null||!strc.equals(invspec)){
+												iswronginv=true;
+												break;
+											}
 											oneRowDetail.put("thick", strc);
+											break;
 										case 2 :
+											if(strc==null||!strc.equals(invtype)){
+												iswronginv=true;
+												break;
+											}
 											oneRowDetail.put("material", strc);
+											break;
 										case 3 :
-											oneRowDetail.put("contractwidth", strc);
+											if(strc==null||!strc.equals(invplace)){
+												iswronginv=true;
+												break;
+											}
+											oneRowDetail.put("invplace", strc);
+											break;
 										case 4 :
-											oneRowDetail.put("contractlength", strc);
+											oneRowDetail.put("contractwidth", strc);
+											break;
 										case 5 :
-											oneRowDetail.put("contractmeter", strc);
+											oneRowDetail.put("contractlength", strc);
+											break;
 										case 6 :
-											oneRowDetail.put("vdef1", strc);
+											oneRowDetail.put("contractmeter", strc);
+											break;
 										case 7 :
-											oneRowDetail.put("arrivenumber", strc);
+											oneRowDetail.put("vdef1", strc);
+											break;
 										case 8 :
-											;
+											oneRowDetail.put("arrivenumber", strc);
+											break;
 										case 9 :
 											;
 										case 10 :
@@ -859,9 +904,14 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 										case 13 :
 											;
 									}
+									if(iswronginv){
+										break;
+									}
 									System.out.print(strc + " ");
 								}
+								if(!iswronginv){
 								factoryDetailList.add(oneRowDetail);
+								}
 								System.out.println();
 							}
 						}
@@ -1075,6 +1125,26 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 
 	}
 	
+	/**  
+	  * 全角转半角  
+	  * @date 2011-01-13
+	  * @param input 
+	  * @return  
+	  */  
+	 public static String toDBC(String input) {   
+	  char[] c = input.toCharArray();   
+	  for (int i = 0; i < c.length; i++) {   
+	   if (c[i] == 12288) {   
+	    c[i] = (char) 32;   
+	    continue;   
+	   }   
+	   if (c[i] > 65280 && c[i] < 65375)   
+	    c[i] = (char) (c[i] - 65248);   
+	  }   
+	  return new String(c);   
+	 }   
+	  
+
 	
 
 }
