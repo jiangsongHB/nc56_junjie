@@ -3678,6 +3678,18 @@ public void mouse_doubleclick(nc.ui.pub.bill.BillMouseEnent e) {
 private void onAudit(ButtonObject bo) {
   showHintMessage(m_lanResTool.getStrByID("40040301","UPP40040301-000118")/*@res "正在审批..."*/);
   ArriveorderVO vo = getCacheVOs()[getDispIndex()]; 
+  /**
+   * 2011-01-11 检查表体是否选择了仓库
+   */
+  ArriveorderItemVO[] body=vo.getBodyVo();
+  for(int i=0;i<body.length;i++){
+	  if(body[i].getCwarehouseid()==null){
+		  MessageDialog.showHintDlg(this,"提示","当前到货单的表体存货到货仓库没有维护完整,请补完后再进行审核操作!");
+		  return;
+	  }
+  }
+  //2011-01-11 检查表体是否选择了仓库
+  
 //  /**
 //   * 2010-12-24 MeiChao 检查当前到货单是否已将存货明细维护完全,如是.则允许审核,如果有差错,则不允许审核
 //   */
@@ -4480,6 +4492,23 @@ private void onAuditList(ButtonObject bo) {
     //加载未浏览过的单据体
     //arrivevos = ArriveorderBO_Client.getAllWithBody(heads);
     arrivevos = RcTool.getRefreshedVOs(arrivevos);
+    
+    /**
+     * 2011-01-11 检查表体是否选择了仓库
+     */
+    int checkwarhouseid=0;
+    for(ArriveorderVO vo : arrivevos){
+	    ArriveorderItemVO[] body=vo.getBodyVo();
+	    for(int i=0;i<body.length;i++){
+	  	  if(body[i].getCwarehouseid()==null){
+	  		  MessageDialog.showHintDlg(this,"提示","当前所选第"+checkwarhouseid+"个到货单的表体存货到货仓库没有维护完整,请补完后再进行审核操作!");
+	  		  return;
+	  	  }
+	    }
+	    checkwarhouseid++;
+    }
+    //2011-01-11 检查表体是否选择了仓库
+    
     //
 //    /**
 //     * 2010-12-28 MeiChao 检查当前到货单是否已将存货明细维护完全,如是.则允许审核,如果有差错,则不允许审核
