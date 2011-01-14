@@ -75,6 +75,8 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 	private boolean isLengthAllNumber=true;
 	//2011-01-06 MeiChao  add 是否锁定(不允许增行,计算,删除,修改.)
 	private boolean isCLocked=true;
+	//2011-01-14 MeiChao add 导入时返回的错误信息字符串;
+	private String checkErrorInfo="";
 	// 增加按钮
 	private nc.ui.pub.beans.UIButton m_btnAdd = null;
 	// 删除按钮
@@ -505,18 +507,18 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 				//明细钢厂重量总和,与表体钢厂重量之差
 				UFDouble diffNumb=detailSumweight.sub(this.selectedBody.getNordernum());
 				if(diffNuma.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
-					MessageDialog.showHintDlg(this,"警告","存货明细支数总和超出表体件数,\n表体件数为:"+this.selectedBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+					MessageDialog.showHintDlg(this,"警告","存货明细支数总和超出表体件数,\n表体件数为:"+this.selectedBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
 				}else if(diffNuma.doubleValue()<0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
-					MessageDialog.showHintDlg(this,"警告","存货明细支数总和小于表体件数,\n表体件数为:"+this.selectedBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+					MessageDialog.showHintDlg(this,"警告","存货明细支数总和小于表体件数,\n表体件数为:"+this.selectedBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
 				}
 				//2010-12-27 MeiChao 如果 长度中含有字母,那么需要检查钢厂总重量是否与到货表体重量相等.
 				if(diffNumb.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
-					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和超出表体重量,\n表体重量为:"+this.selectedBody.getNordernum()+"\n 当前明细总重量为:"+detailSumweight.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和超出表体重量,\n表体重量为:"+this.selectedBody.getNordernum()+"\n 当前明细总重量为:"+detailSumweight.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
 				}else if(diffNumb.doubleValue()<0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
-					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和小于表体重量,\n表体重量为:"+this.selectedBody.getNordernum()+"\n 当前明细总重量为:"+detailSumweight.setScale(2,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和小于表体重量,\n表体重量为:"+this.selectedBody.getNordernum()+"\n 当前明细总重量为:"+detailSumweight.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
 				}
 			}
@@ -826,6 +828,8 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 					/**
 					 * 解析所选文件
 					 */
+					int rownumber=0;//行数,用于try...catch之后的代码
+					checkErrorInfo="";//初始化校验后返回的错误信息
 					try {
 						// 构建Workbook对象, 只读Workbook对象
 						// 直接从本地文件创建Workbook
@@ -841,6 +845,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 							// 要注意的一点是下标从0开始，就像数组一样。
 							int columnsnumber = rs.getColumns();// 列长
 							int rowsnumber = rs.getRows();// 行宽
+							rownumber=rowsnumber;
 							// 一旦得到了Sheet，我们就可以通过它来访问Excel Cell(术语：单元格)。参考下面的代码片段：
 							for (int row = 1; row < rowsnumber; row++) {//下标从1开始,过滤掉第1行表头
 								Map oneRowDetail=new HashMap();
@@ -879,18 +884,50 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 											oneRowDetail.put("invplace", strc);
 											break;
 										case 4 :
+											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
+											if(!this.checkString(strc, row, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
 											oneRowDetail.put("contractwidth", strc);
 											break;
 										case 5 :
+											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
 											oneRowDetail.put("contractlength", strc);
 											break;
 										case 6 :
+											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
+											if(!this.checkString(strc, row, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
 											oneRowDetail.put("contractmeter", strc);
 											break;
 										case 7 :
+											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
 											oneRowDetail.put("vdef1", strc);
 											break;
 										case 8 :
+											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
+											if(!this.checkString(strc, row, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
 											oneRowDetail.put("arrivenumber", strc);
 											break;
 										case 9 :
@@ -922,7 +959,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 					/**
 					 * 解析成功后,供用户选择.,是 则写入页面,否 则不做操作
 					 */
-					int isagree=MessageDialog.showOkCancelDlg(this, "提示","成功读取"+factoryDetailList.size()+"行数据,是否写入(将覆盖原有)?");
+					int isagree=MessageDialog.showOkCancelDlg(this, "提示","成功读取"+factoryDetailList.size()+"行数据,不符合"+(rownumber-factoryDetailList.size()-1)+"行,"+(checkErrorInfo.equals("")?"":("其中"+checkErrorInfo))+"是否写入(将覆盖原有数据)?");
 					if(isagree==MessageDialog.OK_CANCEL_OPTION){
 						//移除已有行
 						for(int m=0;m<this.getBillListPanel().getHeadBillModel().getRowCount();m++){
@@ -1143,8 +1180,34 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 	  }   
 	  return new String(c);   
 	 }   
-	  
-
-	
+	 /**
+	  * 判断数据准确性,首先判断是否存在空格
+	  */
+	 public boolean checkStringSpace(String checkstring,int row,String returnString) {
+		 if(checkstring==null){
+			return true; 
+		 }
+		  char[] c = checkstring.toCharArray();   
+		  for (int i = 0; i < c.length; i++) {   
+		   if (c[i] == 32) {  
+			   this.checkErrorInfo=returnString+"\n第"+row+"行存在空格\n";
+		    return false;  
+		   	} 
+		  }
+		  return true;   
+	 }
+	 /**
+	  * 判断数据准确性,首先判断是全数字
+	  */
+	 public boolean checkString(String checkstring,int row,String returnString) {
+		 if(checkstring==null){
+				return true; 
+			 }
+		   if (!isNumeric(checkstring)) {  
+			   this.checkErrorInfo=returnString+"\n第"+row+"行存在非数字项\n";
+		    return false;  
+		  }
+		  return true;   
+	 }
 
 }
