@@ -752,6 +752,14 @@ junjie/patches/scripts/2011-01-13[!!-~]补丁合集/pu/nc/ui/rc/receive/ArriveUI
 junjie/patches/scripts/2011-01-13[!!-~]补丁合集/pu/nc/ui/rc/receive/ArriveUI.class -text
 junjie/patches/scripts/2011-01-13[!!-~]补丁合集/pu/nc/ui/rc/receive/ArriveUI.java -text
 junjie/patches/scripts/2011-01-13[!!-~]补丁合集/存货明细导入模板v1.2.xls -text
+junjie/patches/scripts/2011-01-19[!!-~]补丁合集/ic/nc/ui/ic/pub/bill/GeneralButtonManager$1IBillReferQueryProxyExt.class -text
+junjie/patches/scripts/2011-01-19[!!-~]补丁合集/ic/nc/ui/ic/pub/bill/GeneralButtonManager$FreshTsListener.class -text
+junjie/patches/scripts/2011-01-19[!!-~]补丁合集/ic/nc/ui/ic/pub/bill/GeneralButtonManager.class -text
+junjie/patches/scripts/2011-01-19[!!-~]补丁合集/ic/nc/ui/ic/pub/bill/GeneralButtonManager.java -text
+junjie/patches/scripts/2011-01-19[!!-~]补丁合集/pu/nc/ui/pu/jjpanel/InvDetailDialog421.class -text
+junjie/patches/scripts/2011-01-19[!!-~]补丁合集/pu/nc/ui/pu/jjpanel/InvDetailDialog421.java -text
+junjie/patches/scripts/2011-01-19[!!-~]补丁合集/模板说明.txt -text svneol=unset#application/octet-stream
+junjie/patches/scripts/2011-01-19[!!-~]补丁合集/采购订单导入模板v1.3.xls -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate$LRUMap.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDate.class -text
 junjie/patches/scripts/56修改档案报其他人正在操作的补丁/nc/vo/pub/lang/UFDateTime.class -text
