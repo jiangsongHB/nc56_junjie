@@ -65,12 +65,21 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 	private nc.ui.pub.beans.UIButton m_btnOK = null;
 	// 取消按钮
 	private nc.ui.pub.beans.UIButton m_btnCancel = null;
-	//2010-12-24 MeiChao add 计算按钮
+	//2010-12-24 MeiChao add 计算按钮 2011年1月18日 计算全部取消,即不分配钢厂重量(此处不注释,只在按钮注册处取消注册)
 	private nc.ui.pub.beans.UIButton m_btnCalculate = null;
 	//2011-01-06 MeiChao add 导入按钮
 	private nc.ui.pub.beans.UIButton m_btnInput = null;
-	//2010-12-24 MeiChao add 是否计算完毕(即分配钢厂重量)
+	//2010-12-24 MeiChao add 是否计算完毕(即分配钢厂重量) 2011年1月18日 计算全部取消,即不分配钢厂重量
 	private boolean isCalculate=true;
+	//明细钢厂重量总和  2011-01-18 MeiChao add
+	private UFDouble invdetailWeightSum=new UFDouble(0);
+	public UFDouble getInvdetailWeightSum() {
+		return invdetailWeightSum;
+	}
+
+	public void setInvdetailWeightSum(UFDouble invdetailWeightSum) {
+		this.invdetailWeightSum = invdetailWeightSum;
+	}
 	//2010-12-27 MeiChao add 长度是否全为数字
 	private boolean isLengthAllNumber=true;
 	//2011-01-06 MeiChao  add 是否锁定(不允许增行,计算,删除,修改.)
@@ -249,8 +258,8 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			m_panelSouth.add(getBtnAdd(), getBtnAdd().getName());
 			// 删除
 			m_panelSouth.add(getBtnDel(), getBtnDel().getName());
-			//计算
-			m_panelSouth.add(getBtnCalculate(),getBtnCalculate().getName());
+			//计算 2011年1月18日 计算全部取消,即不分配钢厂重量 隐藏该按钮
+			//m_panelSouth.add(getBtnCalculate(),getBtnCalculate().getName());
 			// 确定
 			m_panelSouth.add(getBtnOK(), getBtnOK().getName());
 			// 取消
@@ -468,16 +477,16 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 		}
 		// 确定按钮动作
 		else if (e.getSource() == this.getBtnOK()) {
-			//判断是否已计算()
-			if(!this.isCalculate){
-				if(!this.isLengthAllNumber){
-					MessageDialog.showErrorDlg(this,"提示","请手动输入钢厂重量.");
-					return;
-				}else{
-					MessageDialog.showHintDlg(this,"提示","请先使用\"计算\"按钮分配钢厂重量!");
-					return;
-				}
-			}
+			//判断是否已计算() 2011年1月18日 计算全部取消,即不分配钢厂重量 注释掉此判断
+//			if(!this.isCalculate){
+//				if(!this.isLengthAllNumber){
+//					MessageDialog.showErrorDlg(this,"提示","请手动输入钢厂重量.");
+//					return;
+//				}else{
+//					MessageDialog.showHintDlg(this,"提示","请先使用\"计算\"按钮分配钢厂重量!");
+//					return;
+//				}
+//			}
 			invDetailVOs = (InvDetailVO[])getBillListPanel().getHeadBillModel().getBodyValueVOs(InvDetailVO.class.getName());
 			if( invDetailVOs == null || invDetailVOs.length == 0){
 				this.m_closeMark = true;
@@ -506,6 +515,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 				UFDouble diffNuma=detailSumnumber.sub(this.selectedBody.getNassistnum());
 				//明细钢厂重量总和,与表体钢厂重量之差
 				UFDouble diffNumb=detailSumweight.sub(this.selectedBody.getNordernum());
+				this.setInvdetailWeightSum(detailSumweight);
 				if(diffNuma.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
 					MessageDialog.showHintDlg(this,"警告","存货明细支数总和超出表体件数,\n表体件数为:"+this.selectedBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
@@ -514,13 +524,13 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 					return;
 				}
 				//2010-12-27 MeiChao 如果 长度中含有字母,那么需要检查钢厂总重量是否与到货表体重量相等.
-				if(diffNumb.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
-					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和超出表体重量,\n表体重量为:"+this.selectedBody.getNordernum()+"\n 当前明细总重量为:"+detailSumweight.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
-					return;
-				}else if(diffNumb.doubleValue()<0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
-					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和小于表体重量,\n表体重量为:"+this.selectedBody.getNordernum()+"\n 当前明细总重量为:"+detailSumweight.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
-					return;
-				}
+//				if(diffNumb.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
+//					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和超出表体重量,\n表体重量为:"+this.selectedBody.getNordernum()+"\n 当前明细总重量为:"+detailSumweight.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+//					return;
+//				}else if(diffNumb.doubleValue()<0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
+//					MessageDialog.showHintDlg(this,"警告","存货明细钢厂重量总和小于表体重量,\n表体重量为:"+this.selectedBody.getNordernum()+"\n 当前明细总重量为:"+detailSumweight.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
+//					return;
+//				}
 			}
 			int invDetailNum=this.getBillListPanel().getHeadBillModel().getRowCount();
 			//明细件数总和
@@ -604,7 +614,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			//设置存货名称,钢厂厚度,钢厂重量,验收厚宽长,验收重量,验收米数,换算率,不允许手动修改.
 			getBillListPanel().getHeadBillModel().getItemByKey("invname").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("contractthick").setEnabled(false);
-			getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(false);
+			//getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(false);//2011-01-18 取消钢厂重量的限制
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivethick").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("conversionrates").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivewidth").setEnabled(false);
@@ -612,9 +622,9 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivemeter").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arriveweight").setEnabled(false);
 			this.isCalculate=false;//将是否已计算按钮设定为false
-			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
-				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
-			}
+//			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+//				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空-2011-01-18已不需要分配钢厂重量,所以取消置空
+//			}
 		}
 		// 删除按钮动作
 		else if (e.getSource() == this.m_btnDel) {
@@ -650,9 +660,9 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			}
 			getBillListPanel().getHeadBillModel().delLine(delRows);
 			this.isCalculate=false;//将是否已计算按钮设定为false
-			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
-				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
-			}
+//			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+//				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+//			}
 			if(this.getBillListPanel().getHeadBillModel().getRowCount()==0){//如果清空了所有明细.
 				this.isCalculate=true;
 				this.isLengthAllNumber=true;
@@ -672,16 +682,16 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			//设置存货名称,钢厂厚度,钢厂重量,验收厚宽长,验收重量,验收米数,换算率,不允许手动修改.
 			getBillListPanel().getHeadBillModel().getItemByKey("invname").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("contractthick").setEnabled(false);
-			getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(false);
+			//getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivethick").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("conversionrates").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivewidth").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivelength").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arrivemeter").setEnabled(false);
 			getBillListPanel().getHeadBillModel().getItemByKey("arriveweight").setEnabled(false);
-			if(!this.isLengthAllNumber){//如果长度不为全数字
-				this.getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(true);//将钢厂重量设置为允许输入
-			}
+//			if(!this.isLengthAllNumber){//如果长度不为全数字
+//				this.getBillListPanel().getHeadBillModel().getItemByKey("contractweight").setEnabled(true);//将钢厂重量设置为允许输入
+//			}
 		}
 		//2010-12-24 MeiChao add 计算 按钮响应
 		else if(e.getSource() == this.m_btnCalculate){
@@ -863,11 +873,30 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 											oneRowDetail.put("invname", strc);
 											break;
 										case 1 :
-											if(strc==null||!strc.equals(invspec)){
+											String[] newstrc=strc.split("\\*");
+											if(newstrc[0]==null||!newstrc[0].equals(invspec)){
 												iswronginv=true;
 												break;
 											}
-											oneRowDetail.put("thick", strc);
+											oneRowDetail.put("thick", newstrc[0]);
+											if(!this.checkStringSpace(newstrc[1], row,col, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
+											if(!this.checkString(newstrc[1], row,col, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
+											oneRowDetail.put("contractwidth", newstrc[1]);
+											if(newstrc.length==3){
+												if(!this.checkStringSpace(newstrc[2], row,col, checkErrorInfo)){
+													iswronginv=true;
+													break;
+												}
+												oneRowDetail.put("contractlength", newstrc[2]);
+											}else{
+												oneRowDetail.put("contractlength", null);
+											}
 											break;
 										case 2 :
 											if(strc==null||!strc.equals(invtype)){
@@ -883,62 +912,54 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 											}
 											oneRowDetail.put("invplace", strc);
 											break;
+										
 										case 4 :
-											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
+											if(!this.checkStringSpace(strc, row,col, checkErrorInfo)){
 												iswronginv=true;
 												break;
 											}
-											if(!this.checkString(strc, row, checkErrorInfo)){
-												iswronginv=true;
-												break;
-											}
-											oneRowDetail.put("contractwidth", strc);
-											break;
-										case 5 :
-											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
-												iswronginv=true;
-												break;
-											}
-											oneRowDetail.put("contractlength", strc);
-											break;
-										case 6 :
-											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
-												iswronginv=true;
-												break;
-											}
-											if(!this.checkString(strc, row, checkErrorInfo)){
+											if(!this.checkString(strc, row,col, checkErrorInfo)){
 												iswronginv=true;
 												break;
 											}
 											oneRowDetail.put("contractmeter", strc);
 											break;
-										case 7 :
-											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
+										case 5 :
+											if(!this.checkStringSpace(strc, row,col, checkErrorInfo)){
 												iswronginv=true;
 												break;
 											}
 											oneRowDetail.put("vdef1", strc);
 											break;
-										case 8 :
-											if(!this.checkStringSpace(strc, row, checkErrorInfo)){
+										case 6 :
+											if(!this.checkStringSpace(strc, row,col, checkErrorInfo)){
 												iswronginv=true;
 												break;
 											}
-											if(!this.checkString(strc, row, checkErrorInfo)){
+											if(!this.checkString(strc, row,col, checkErrorInfo)){
 												iswronginv=true;
 												break;
 											}
 											oneRowDetail.put("arrivenumber", strc);
 											break;
+										case 7 :
+											if(!this.checkStringSpace(strc, row,col, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
+											if(!this.checkString(strc, row,col, checkErrorInfo)){
+												iswronginv=true;
+												break;
+											}
+											oneRowDetail.put("contractweight", strc);
+											break;
+										case 8 :
+											;
 										case 9 :
 											;
 										case 10 :
 											;
 										case 11 :
-											;
-										case 12 :
-											;
-										case 13 :
 											;
 									}
 									if(iswronginv){
@@ -979,7 +1000,8 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 										||key.toString().equals("contractlength")
 										||key.toString().equals("contractmeter")
 										||key.toString().equals("arrivenumber")
-										||key.toString().equals("vdef1")){
+										||key.toString().equals("vdef1")
+										||key.toString().equals("contractweight")){
 								this.getBillListPanel().getHeadBillModel().setValueAt(oneRowDataMap.get(key), nowRow, key.toString());
 								BillEditEvent be = new BillEditEvent(getBillListPanel()//制造表头编辑事件
 										.getHeadItem(key.toString()).getComponent(),
@@ -1076,9 +1098,9 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 				   getBillListPanel().getHeadItem("noriginalcurprice").setEdit(true);
 				}
 			this.isCalculate=false;//任何修改后,将是否已计算按钮设定为false
-			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
-				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
-			}
+//			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+//				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+//			}
 		}
 		else if(e.getKey().equals("contractlength")){//2010-12-28 MeiChao
 			String curcontractlength=this.getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "contractlength").toString();	
@@ -1102,9 +1124,9 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 				}
 			}
 			this.isCalculate=false;//任何修改后,将是否已计算按钮设定为false
-			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
-				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
-			}
+//			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+//				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+//			}
 		}else if(e.getKey().equals("contractweight")){//修改了钢厂重量
 			String curcontractweight=this.getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "contractweight").toString();
 			if(!this.isDoueric(curcontractweight)){
@@ -1113,7 +1135,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 				return;
 			}
 			for(int i=0;i<this.getBillListPanel().getHeadBillModel().getRowCount();i++){
-				curcontractweight=this.getBillListPanel().getHeadBillModel().getValueAt(i, "contractweight").toString();
+				curcontractweight=this.getBillListPanel().getHeadBillModel().getValueAt(i, "contractweight")==null?null:this.getBillListPanel().getHeadBillModel().getValueAt(i, "contractweight").toString();
 				if(!this.isDoueric(curcontractweight)){
 					break;
 				}else if(i==this.getBillListPanel().getHeadBillModel().getRowCount()-1){
@@ -1122,9 +1144,9 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			}
 		}else{
 			this.isCalculate=false;//任何其他的修改后,将是否已计算按钮设定为false
-			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
-				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
-			}
+//			for(int i=0;i<this.getBillListPanel().getHeadTable().getRowCount();i++){
+//				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
+//			}
 		}
 		
 	}
@@ -1183,14 +1205,14 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 	 /**
 	  * 判断数据准确性,首先判断是否存在空格
 	  */
-	 public boolean checkStringSpace(String checkstring,int row,String returnString) {
+	 public boolean checkStringSpace(String checkstring,int row,int col,String returnString) {
 		 if(checkstring==null){
 			return true; 
 		 }
 		  char[] c = checkstring.toCharArray();   
 		  for (int i = 0; i < c.length; i++) {   
 		   if (c[i] == 32) {  
-			   this.checkErrorInfo=returnString+"\n第"+row+"行存在空格\n";
+			   this.checkErrorInfo=returnString+"\n第"+row+"行第"+col+"列存在空格\n";
 		    return false;  
 		   	} 
 		  }
@@ -1199,12 +1221,12 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 	 /**
 	  * 判断数据准确性,首先判断是全数字
 	  */
-	 public boolean checkString(String checkstring,int row,String returnString) {
+	 public boolean checkString(String checkstring,int row,int col,String returnString) {
 		 if(checkstring==null){
 				return true; 
 			 }
 		   if (!isNumeric(checkstring)) {  
-			   this.checkErrorInfo=returnString+"\n第"+row+"行存在非数字项\n";
+			   this.checkErrorInfo=returnString+"\n第"+row+"行第"+col+"列存在非数字项\n";
 		    return false;  
 		  }
 		  return true;   
