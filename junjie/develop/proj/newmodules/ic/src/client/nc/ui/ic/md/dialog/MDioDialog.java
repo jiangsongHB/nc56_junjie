@@ -655,11 +655,11 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				//已分配重量
 				UFDouble givedNum=new UFDouble(0);
 				for(int i=0;i<mdvos.length;i++){
-					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()).div(total)));
+					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()).div(total)).setScale(3, UFDouble.ROUND_HALF_UP));
 					if(i==mdvos.length-1){
-						mdvos[i].setDef1(factoryWeight.sub(givedNum));
+						mdvos[i].setDef1(factoryWeight.sub(givedNum.setScale(3, UFDouble.ROUND_HALF_UP)));
 					}else{
-						givedNum=givedNum.add(mdvos[i].getDef1());
+						givedNum=givedNum.add(mdvos[i].getDef1()).setScale(3, UFDouble.ROUND_HALF_UP);
 					}
 				}
 			}else{//否则,按宽*长*支数 来计数
@@ -670,11 +670,11 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				//已分配重量
 				UFDouble givedNum=new UFDouble(0);
 				for(int i=0;i<mdvos.length;i++){
-					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()).div(total)));
+					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()).div(total)).setScale(3, UFDouble.ROUND_HALF_UP));
 					if(i==mdvos.length-1){
-						mdvos[i].setDef1(factoryWeight.sub(givedNum));
+						mdvos[i].setDef1(factoryWeight.sub(givedNum.setScale(3, UFDouble.ROUND_HALF_UP)));
 					}else{
-						givedNum=givedNum.add(mdvos[i].getDef1());
+						givedNum=givedNum.add(mdvos[i].getDef1()).setScale(3, UFDouble.ROUND_HALF_UP);
 					}
 				}
 			}
