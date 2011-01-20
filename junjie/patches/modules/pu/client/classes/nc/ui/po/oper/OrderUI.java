@@ -1321,7 +1321,11 @@ private void setButtonsNull(){
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		  
+		  //2011-01-18 MeiChao 更新订单表体重量. begin
+		  this.onButtonClicked(this.getBtnManager().btnBillModify);
+		  this.getPoCardPanel().getBillModel().setValueAt(invDetailDlg.getInvdetailWeightSum(), selectedRowNum,"nordernum");
+		  this.onButtonClicked(this.getBtnManager().btnBillSave);
+		  //2011-01-18 MeiChao 更新订单表体重量. end
 	  }
 	  //保存成功后需要更新当前页面的数据.
 		String pk = getPoCardPanel().getHeadItem("corderid").getValue();

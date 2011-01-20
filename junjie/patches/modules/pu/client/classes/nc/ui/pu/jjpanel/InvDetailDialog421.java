@@ -78,7 +78,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 	}
 
 	public void setInvdetailWeightSum(UFDouble invdetailWeightSum) {
-		this.invdetailWeightSum = invdetailWeightSum;
+		this.invdetailWeightSum = new UFDouble(invdetailWeightSum.doubleValue());
 	}
 	//2010-12-27 MeiChao add 长度是否全为数字
 	private boolean isLengthAllNumber=true;
@@ -511,11 +511,11 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 					detailSumnumber=detailSumnumber.add(invDetailVOs[i].getArrivenumber());
 					detailSumweight=detailSumweight.add(invDetailVOs[i].getContractweight());
 				}
+				this.setInvdetailWeightSum(detailSumweight);
 				//明细件数总和,与表体件数之差
 				UFDouble diffNuma=detailSumnumber.sub(this.selectedBody.getNassistnum());
 				//明细钢厂重量总和,与表体钢厂重量之差
 				UFDouble diffNumb=detailSumweight.sub(this.selectedBody.getNordernum());
-				this.setInvdetailWeightSum(detailSumweight);
 				if(diffNuma.doubleValue()>0&&this.getBillListPanel().getHeadBillModel().getRowCount()>0){
 					MessageDialog.showHintDlg(this,"警告","存货明细支数总和超出表体件数,\n表体件数为:"+this.selectedBody.getNassistnum()+"\n 当前明细件数为:"+detailSumnumber.setScale(3,UFDouble.ROUND_HALF_UP)+"\n请检查!");
 					return;
@@ -535,9 +535,12 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			int invDetailNum=this.getBillListPanel().getHeadBillModel().getRowCount();
 			//明细件数总和
 			UFDouble detailSum=new UFDouble(0);
+			//明细钢厂重量总和
+			UFDouble detailSumweight=new UFDouble(0);
 			//明细VO集合,其中除了已存在的明细VO外,还包含了被删除的明细VO
 			List<InvDetailVO> allInvDetailList=new ArrayList<InvDetailVO>();
 			for(int i=0;i<invDetailVOs.length;i++){//向存货明细VO中注册一些系统信息.
+				detailSumweight=detailSumweight.add(invDetailVOs[i].getContractweight());//累加钢厂重量
 				if(invDetailVOs[i].getPk_invdetail()==null){//如果明细主键为空,说明肯定是新增的记录
 				//invDetailVOs[i].setCarriveorder_bid(this.selectedBody.getCarriveorder_bid());
 				invDetailVOs[i].setCorder_bid(this.selectedBody.getCorder_bid());
@@ -574,6 +577,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 						}
 					}
 				}
+			this.setInvdetailWeightSum(detailSumweight);//将钢厂重量设置入全局变量中
 			//再遍历一次旧VO数组,将已删除的旧明细VO也加入到集合中
 			for(int j=0;j<this.oldInvDetailVOs.length;j++){
 				if(oldInvDetailVOs[j].getStatus()==VOStatus.DELETED){
