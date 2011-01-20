@@ -1562,9 +1562,10 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 		/*if (getBillCardPanel().getHeadItem(IItemKey.WAREHOUSE) != null)
 			getBillCardPanel().getHeadItem(IItemKey.WAREHOUSE)
 					.setEnabled(false);*/
-		if (getBillCardPanel().getHeadItem(IItemKey.WASTEWAREHOUSE) != null)
-			getBillCardPanel().getHeadItem(IItemKey.WASTEWAREHOUSE).setEnabled(
-					false);
+		//2011-01-14 MeiChao 修改状态仓库需要也可修改.所以把下面3行注释掉
+//		if (getBillCardPanel().getHeadItem(IItemKey.WASTEWAREHOUSE) != null)
+//			getBillCardPanel().getHeadItem(IItemKey.WASTEWAREHOUSE).setEnabled(
+//					false);
 		
 
 		// 修改状态时，库存组织不可修改。
