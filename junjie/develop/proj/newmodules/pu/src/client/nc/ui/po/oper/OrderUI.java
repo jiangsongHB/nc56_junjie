@@ -7,9 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import com.borland.dx.dataset.RowStatus;
+
 import nc.bs.framework.common.NCLocator;
 import nc.itf.pu.mm.ISrvPUToMM;
 import nc.itf.uap.IUAPQueryBS;
+import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.MapProcessor;
 import nc.ui.ml.NCLangRes;
@@ -1323,9 +1326,20 @@ private void setButtonsNull(){
 		}
 		  //2011-01-18 MeiChao 更新订单表体重量. begin
 		  this.onButtonClicked(this.getBtnManager().btnBillModify);
-		  this.getPoCardPanel().getBillModel().setValueAt(invDetailDlg.getInvdetailWeightSum(), selectedRowNum,"nordernum");
+		  BillEditEvent tempe=new BillEditEvent(this.getPoCardPanel().getBodyItem("nordernum").getComponent(),invDetailDlg.getInvdetailWeightSum(),"nordernum",selectedRowNum,BillItem.BODY);
+		  this.getPoCardPanel().beforeEdit(tempe);
+		  //出现6个8的,那么表示没有维护存货明细.
+		  this.getPoCardPanel().setBodyValueAt((invDetailDlg.getInvdetailWeightSum().doubleValue()==0?888888:invDetailDlg.getInvdetailWeightSum()), selectedRowNum,"nordernum");
+		  this.getPoCardPanel().afterEdit(tempe);
+//		  OrderVO voSaved = getPoCardPanel().getSaveVO(
+//					getOrderDataVOAt(getBufferVOManager().getVOPos()));
+//		  voSaved.getChildrenVO()[selectedRowNum].setStatus(VOStatus.UPDATED);
+		  //getBufferVOManager().getVOAt_LoadItemNo(getBufferVOManager().getVOPos()).getChildrenVO()[selectedRowNum].setStatus(VOStatus.UNCHANGED);
+		  this.getPoCardPanel().getBillModel().setRowState(selectedRowNum, RowStatus.UPDATED);
 		  this.onButtonClicked(this.getBtnManager().btnBillSave);
 		  //2011-01-18 MeiChao 更新订单表体重量. end
+		  
+		  
 	  }
 	  //保存成功后需要更新当前页面的数据.
 		String pk = getPoCardPanel().getHeadItem("corderid").getValue();
@@ -1353,6 +1367,7 @@ private void setButtonsNull(){
 			getPoCardPanel().getBillModel("invdetail").execLoadFormula();
 			getPoListPanel().getBodyBillModel("invdetail").execLoadFormula();
 		} else {
+			this.invDetailVOs=null;
 			getPoCardPanel().getBillModel("invdetail").setBodyDataVO(null);
 			getPoListPanel().getBodyBillModel("invdetail").setBodyDataVO(null);
 		}
