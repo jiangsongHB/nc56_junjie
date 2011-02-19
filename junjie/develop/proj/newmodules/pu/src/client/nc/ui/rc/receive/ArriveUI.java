@@ -1437,6 +1437,7 @@ private void bmrcSetForModify(BillEditEvent e) {
     getBillCardPanel().setCellEditable(e.getRow(), "nelignum", false);
     getBillCardPanel().setCellEditable(e.getRow(), "npresentnum", false);
     getBillCardPanel().setCellEditable(e.getRow(), "nwastnum", false);
+    //add by ouyangzhb 2011-02-19
     getBillCardPanel().setCellEditable(e.getRow(), "cwarehousename", true);
     getBillCardPanel().setCellEditable(e.getRow(), "cstorename", false);
     getBillCardPanel().setCellEditable(e.getRow(), "vproducenum", false);
