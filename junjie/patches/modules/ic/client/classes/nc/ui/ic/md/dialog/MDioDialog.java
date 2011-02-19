@@ -641,6 +641,10 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		//获取表体选中行VO
 		GeneralBillItemVO selectedBody=(GeneralBillItemVO)this.ui.getBillCardPanel().getBillModel("table").getBodyValueRowVO(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), GeneralBillItemVO.class.getName());
 		//if(selectedBody.getCsourcetype()!=null&&selectedBody.getCsourcetype().equals("21")){//如果上游单据为采购订单
+		//
+		/*add by ouyangzhb 
+		 * 问题号0000121,由于之前的设计是 当点击计算时，“钢厂总量”需要计算出来。现在改为自动带出的数量，所以需要注释一下代码。
+		 * add begin 2011-02-19
 		if(true){
 		//平摊维护码单前的实收数量到码单钢厂重量
 			//表体钢厂总重量
@@ -655,11 +659,11 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				//已分配重量
 				UFDouble givedNum=new UFDouble(0);
 				for(int i=0;i<mdvos.length;i++){
-					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()).div(total)));
+					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_meter().multiply(mdvos[i].getSrkzs()).div(total)).setScale(3, UFDouble.ROUND_HALF_UP));
 					if(i==mdvos.length-1){
-						mdvos[i].setDef1(factoryWeight.sub(givedNum));
+						mdvos[i].setDef1(factoryWeight.sub(givedNum.setScale(3, UFDouble.ROUND_HALF_UP)));
 					}else{
-						givedNum=givedNum.add(mdvos[i].getDef1());
+						givedNum=givedNum.add(mdvos[i].getDef1()).setScale(3, UFDouble.ROUND_HALF_UP);
 					}
 				}
 			}else{//否则,按宽*长*支数 来计数
@@ -670,15 +674,17 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				//已分配重量
 				UFDouble givedNum=new UFDouble(0);
 				for(int i=0;i<mdvos.length;i++){
-					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()).div(total)));
+					mdvos[i].setDef1(factoryWeight.multiply(mdvos[i].getMd_length().multiply(mdvos[i].getMd_width()).multiply(mdvos[i].getSrkzs()).div(total)).setScale(3, UFDouble.ROUND_HALF_UP));
 					if(i==mdvos.length-1){
-						mdvos[i].setDef1(factoryWeight.sub(givedNum));
+						mdvos[i].setDef1(factoryWeight.sub(givedNum.setScale(3, UFDouble.ROUND_HALF_UP)));
 					}else{
-						givedNum=givedNum.add(mdvos[i].getDef1());
+						givedNum=givedNum.add(mdvos[i].getDef1()).setScale(3, UFDouble.ROUND_HALF_UP);
 					}
 				}
 			}
-		}
+		} 
+		*add end 2011-02-19
+		*/
 		getBillCardPanel().getBillData().setBodyValueVO(mdvos);
 		getBillCardPanel().getBillModel().execLoadFormula();
 		for(int i=0;i<invDetailCVOsTemp.length;i++){
