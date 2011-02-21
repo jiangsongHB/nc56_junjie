@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import nc.ui.trade.business.HYPubBO_Client;
 import nc.uif.pub.exception.UifException;
 import nc.vo.bd.invdoc.InvbasdocVO;
+import nc.vo.bd.invdoc.InvmandocVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.pub.AggregatedValueObject;
@@ -135,7 +136,7 @@ public class MDPlugin extends SCMBasePlugin {
 		try {
 			SuperVO[] vo = HYPubBO_Client
 					.queryByCondition(
-							InvbasdocVO.class,
+							InvmandocVO.class,
 							" isnull(dr,0)=0 and (isnull(def20,'N')='Y' or isnull(def20,'N')='y') and pk_invbasdoc = '"
 									+ cinvbasid + "' ");
 			if (vo != null && vo.length > 0) {
