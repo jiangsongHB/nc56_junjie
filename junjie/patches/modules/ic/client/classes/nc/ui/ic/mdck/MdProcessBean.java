@@ -77,7 +77,7 @@ public class MdProcessBean {
 			vos[i].setCrkfx(1);// 出入库方向
 			vos[i].setDjfx(0);// 单据方向
 			vos[i].setCgeneralbid(infoVO.getCgeneralbid());// 出入库单表体PK
-			//vos[i].setDef1(null);def1定义为钢厂重量,把原先的置空代码注释掉 2010-12-30 MeiChao
+//			//vos[i].setDef1(null);def1定义为钢厂重量,把原先的置空代码注释掉 2010-12-30 MeiChao
 			vos[i].setDef2(null);
 			vos[i].setDef3(null);
 			vos[i].setSfbj(infoVO.getSfbj());
@@ -134,7 +134,8 @@ public class MdProcessBean {
 		}
 		iVOPersistence.updateVOArray(xclbvos);
 	}
-
+	
+	
 	// 查询表体VOS
 	public MdcrkVO[] queryCrkVOS(ChInfoVO infoVO) throws BusinessException {
 		// 查询表体VOS
@@ -212,7 +213,12 @@ public class MdProcessBean {
 			// 重量
 			xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().add(
 					crkvo.getSrkzl(), MDConstants.ZL_XSW));
+			//钢厂重量    add by ouyang---2011-02-24  在删除出库码单时,将钢厂重量也作重新入库处理.否则钢厂重量在出库维护完码单再清空码单后无法还原
+			xclbvos[j].setDef1(xclbvos[j].getDef1().add(
+					crkvo.getDef1(), MDConstants.ZL_XSW));
+
 		}
+		
 		iVOPersistence.updateVOArray(xclbvos);
 		// 删除历史出库VO
 		iVOPersistence.deleteVOArray(lsckVos);
@@ -229,7 +235,7 @@ public class MdProcessBean {
 			pk_ptzj = rsvos[0].getCgeneralbid();
 			zhishu = zhishu.add(rsvos[i].getSrkzs(), MDConstants.ZS_XSW);
 			zhongliang = zhongliang
-					.add(rsvos[i].getDef1(), MDConstants.ZL_XSW);//2011-01-03 MeiChao 取钢厂重量
+					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);//2011-01-03 MeiChao 取钢厂重量
 //					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
 		}
 		dlg.setNoutnum(zhongliang);
@@ -310,6 +316,7 @@ public class MdProcessBean {
 			e.printStackTrace();
 		}
 	}
+	
 
 	// 查询出出入库单可用量
 	public MdcrkVO queryMdCrkKyl(MdcrkVO evo, UFBoolean bsfbj)
@@ -419,8 +426,9 @@ public class MdProcessBean {
 			vo.setCspaceid((String) voMap.get("cspaceid")); // 货位PK值
 			vo.setVspacecode((String) voMap.get("cscode")); // 货位编码
 			vo.setVspacename((String) voMap.get("csname")); // 货位名称
-			//UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
-			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("def1"));
+			//注释掉，把货位数量改为 出库验收重量
+			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
+//			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("def1"));
 			UFDouble d2 = new UFDouble((BigDecimal) voMap.get("srkzs"));
 			// 入库
 			if (billType.equals("45") || billType.equals("4A")) {

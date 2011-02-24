@@ -179,10 +179,11 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 					MdcrkVO mvo = (MdcrkVO) crkvos[i].clone();
 					MdcrkVO kylMdCrkVo = new MdProcessBean().queryMdCrkKyl(mvo,
 							mvo.getSfbj());
-					crkvos[i].setDef1(crkvos[i].getSrkzs().add(
-							kylMdCrkVo.getDef1()));// 现存支数
-					crkvos[i].setDef2(crkvos[i].getSrkzl().add(
-							kylMdCrkVo.getDef2()));// 现存重量
+					// add by ouyangzhb 2011-02-24 修改 出库钢厂重量
+//					crkvos[i].setDef1(crkvos[i].getSrkzs().add(
+//							kylMdCrkVo.getDef1()));// 现存支数
+//					crkvos[i].setDef2(crkvos[i].getSrkzl().add(
+//							kylMdCrkVo.getDef2()));// 现存重量
 				}
 			} catch (BusinessException e) {
 				e.printStackTrace();
@@ -583,6 +584,8 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				MdcrkVO kylMdCrkVo = new MdProcessBean().queryMdCrkKyl(evo,
 						bsfbj);
 				vos[arg0.getRow()] = kylMdCrkVo;
+				
+				
 				getOPBillCardPanel().getBillModel().setBodyDataVO(vos);
 				getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
 				//2010-12-30 MeiChao add 每次选择参照之后,将钢厂重量放到临时字段上去,后面修改支数时,可以计算出钢厂重量(不得已而为之)
