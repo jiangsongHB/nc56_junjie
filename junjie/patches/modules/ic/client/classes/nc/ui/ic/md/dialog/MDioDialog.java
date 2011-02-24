@@ -142,7 +142,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			
 		}else{//如果来源单据不是到货单,那么隐藏存货参照字段.
 			BillItem width=this.getBillCardPanel().getBillModel().getItemByKey("invdetailref");
-			this.getBillCardPanel().hideBodyTableCol("invdetailref");
+//			this.getBillCardPanel().hideBodyTableCol("invdetailref");
 			this.getBillCardPanel().getBillModel().getItemByKey("md_width").setEnabled(true);
 			this.getBillCardPanel().getBillModel().getItemByKey("md_length").setEnabled(true);
 			this.getBillCardPanel().getBillModel().getItemByKey("md_meter").setEnabled(true);
@@ -641,7 +641,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		//获取表体选中行VO
 		GeneralBillItemVO selectedBody=(GeneralBillItemVO)this.ui.getBillCardPanel().getBillModel("table").getBodyValueRowVO(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), GeneralBillItemVO.class.getName());
 		//if(selectedBody.getCsourcetype()!=null&&selectedBody.getCsourcetype().equals("21")){//如果上游单据为采购订单
-		//
+		
 		/*add by ouyangzhb 
 		 * 问题号0000121,由于之前的设计是 当点击计算时，“钢厂总量”需要计算出来。现在改为自动带出的数量，所以需要注释一下代码。
 		 * add begin 2011-02-19
@@ -682,12 +682,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					}
 				}
 			}
-		} 
+		}
 		*add end 2011-02-19
 		*/
 		getBillCardPanel().getBillData().setBodyValueVO(mdvos);
 		getBillCardPanel().getBillModel().execLoadFormula();
+		
 		for(int i=0;i<invDetailCVOsTemp.length;i++){
+			String str = invDetailCVOsTemp[i].getPk_invdetail();
 			this.getBillCardPanel().setBodyValueAt(invDetailCVOsTemp[i].getPk_invdetail(), i, "pk_invdetail");
 		}
 		// setMessage("计算成功...");
