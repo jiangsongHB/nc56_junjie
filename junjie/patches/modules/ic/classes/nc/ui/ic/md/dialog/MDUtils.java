@@ -131,9 +131,17 @@ public class MDUtils {
 
 		for (int i = 0; i < vos.length; i++) {
 			MdcrkVO vo = vos[i];
-			UFDouble lenth = vo.getMd_length();// 长
-			UFDouble width = vo.getMd_width();// 宽
-			UFDouble meter = vo.getMd_meter();// 米数
+			//add by ouyangzhb 2011-02-24  取出长、宽 、米数 并转换成DOUBLE 型
+			Double lenth =null, width=null,meter=null;
+			if(vo.getDef7()!=null){
+				lenth = Double.parseDouble(vo.getDef7());// 长
+			}
+			if(vo.getDef8()!=null){
+				width =Double.parseDouble(vo.getDef8());// 宽
+			}
+			if(vo.getDef9()!=null){
+				meter = Double.parseDouble(vo.getDef9());// 米数
+			}
 			UFDouble zs = vo.getSrkzs();
 			if (zs == null || zs.doubleValue() <= 0) {
 				throw new BusinessException("第" + (i + 1) + "行，件数不能小于0");
@@ -142,7 +150,7 @@ public class MDUtils {
 				if (meter == null || meter.doubleValue() <= 0) {
 					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
 				}
-				count_LW = count_LW.add(meter.multiply(zs));
+				count_LW = count_LW.add(zs.multiply(meter));
 			} else {
 				if (lenth == null || lenth.doubleValue() <= 0) {
 					throw new BusinessException("第" + (i + 1) + "行，长不能小于0");
@@ -150,15 +158,23 @@ public class MDUtils {
 				if (width == null || width.doubleValue() <= 0) {
 					throw new BusinessException("第" + (i + 1) + "行，宽不能小于0");
 				}
-				count_LW = count_LW.add(lenth.multiply(width).multiply(zs));
+				count_LW = count_LW.add(zs.multiply(lenth*width));
 			}
 		}
 
 		for (int i = 0; i < vos.length; i++) {
 			MdcrkVO vo = vos[i];
-			UFDouble lenth = vo.getMd_length();// 长
-			UFDouble width = vo.getMd_width();// 宽
-			UFDouble meter = vo.getMd_meter();// 米数
+			//add by ouyangzhb 2011-02-24  取出长、宽 、米数 并转换成DOUBLE 型
+			double lenth =0, width=0,meter=0;
+			if(vo.getDef7()!=null){
+				lenth = Double.parseDouble(vo.getDef7());// 长
+			}
+			if(vo.getDef8()!=null){
+				width =Double.parseDouble(vo.getDef8());// 宽
+			}
+			if(vo.getDef9()!=null){
+				meter = Double.parseDouble(vo.getDef9());// 米数
+			}
 			UFDouble zs = vo.getSrkzs();
 			if (i == vos.length - 1) {
 				vo.setSrkzl(sszl.sub(count_ZL));
@@ -192,15 +208,23 @@ public class MDUtils {
 		boolean isCG = false;// 是否为槽钢
 		if (vos[0].getMd_meter() != null) {
 			isCG = true;
-		} else if (vos[0].getMd_length() == null
-				|| vos[0].getMd_width() == null) {
+		} else if (vos[0].getDef7() == null
+				|| vos[0].getDef8() == null) {
 			throw new BusinessException("第1行，长度/宽度/米数不能同时为空.");
 		}
 		for (int i = 0; i < vos.length; i++) {
 			MdcrkVO vo = vos[i];
-			UFDouble lenth = vo.getMd_length();// 长
-			UFDouble width = vo.getMd_width();// 宽
-			UFDouble meter = vo.getMd_meter();// 米数
+			//add by ouyangzhb 2011-02-25 
+			Double lenth =null, width=null,meter=null;
+			if(vo.getDef7()!=null){
+				lenth = Double.parseDouble(vo.getDef7());// 长
+			}
+			if(vo.getDef8()!=null){
+				width =Double.parseDouble(vo.getDef8());// 宽
+			}
+			if(vo.getDef9()!=null){
+				meter = Double.parseDouble(vo.getDef9());// 米数
+			}
 			String guige = vo.getDef6();
 			UFDouble zs = vo.getSrkzs();
 			if (zs == null || zs.doubleValue() <= 0) {
