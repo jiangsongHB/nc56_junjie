@@ -142,7 +142,8 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			
 		}else{//如果来源单据不是到货单,那么隐藏存货参照字段.
 			BillItem width=this.getBillCardPanel().getBillModel().getItemByKey("invdetailref");
-			this.getBillCardPanel().hideBodyTableCol("invdetailref");
+			//修改 需求 不需要隐藏 存货参照字段
+//			this.getBillCardPanel().hideBodyTableCol("invdetailref");
 			this.getBillCardPanel().getBillModel().getItemByKey("md_width").setEnabled(true);
 			this.getBillCardPanel().getBillModel().getItemByKey("md_length").setEnabled(true);
 			this.getBillCardPanel().getBillModel().getItemByKey("md_meter").setEnabled(true);
@@ -1368,10 +1369,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		UFDouble sumZczl = new UFDouble(0);// 正材重量之和
 		UFDouble sumMbzl = new UFDouble(0);// 毛边重量之和
 		for (int i = 0; i < mdcrkVos.length; i++) {
-			mdcrkVos[i].setDef1(mdcrkVos[i].getSrkzl());// 正材重量
+			//add by ouyangzhb 2011-02-25 begin 
+			// 注释代码，正材重量是自动带出的，不需要设置
+//			mdcrkVos[i].setDef1(mdcrkVos[i].getSrkzl());// 正材重量
+			//毛边重量应该为 通过理计出的 钢材重量*毛边系数
 			mdcrkVos[i].setDef2(mdcrkVos[i].getSrkzl().multiply(mbxs,
 					MDConstants.ZL_XSW));// 毛边重量
-			mdcrkVos[i].setSrkzl(mdcrkVos[i].getDef1().add(
+			//add by ouyangzhb 2011-02-25 end
+			mdcrkVos[i].setSrkzl(mdcrkVos[i].getSrkzl().add(
 					mdcrkVos[i].getDef2())); // 正材+毛边重量,即实入库重量
 			sumZczl = sumZczl.add(mdcrkVos[i].getDef1());// 正材重量相加
 			sumMbzl = sumMbzl.add(mdcrkVos[i].getDef2());// 毛边重量相加
@@ -1403,9 +1408,10 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	private boolean CheckSfmbjs(String pk_invbas) throws BusinessException {
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
+		//add by ouyangzhb 2011-02-25  改为查询存货管理档案中的自定义项19
 		Object[] objs = (Object[]) iUAPQueryBS
 				.executeQuery(
-						"select t1.def19 from bd_invbasdoc t1 left join bd_invmandoc t2 on t1.pk_invbasdoc=t2.pk_invbasdoc where t2.pk_invmandoc='"
+						"select t2.def19 from bd_invmandoc t2 left join bd_invbasdoc t1 on t1.pk_invbasdoc=t2.pk_invbasdoc where t2.pk_invmandoc='"
 								+ pk_invbas + "'", new ArrayProcessor());
 		if (objs[0] != null && objs[0].toString() != null
 				&& objs[0].toString().toUpperCase().equals("Y"))
