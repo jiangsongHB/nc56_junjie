@@ -426,18 +426,18 @@ public class MdProcessBean {
 			vo.setCspaceid((String) voMap.get("cspaceid")); // 货位PK值
 			vo.setVspacecode((String) voMap.get("cscode")); // 货位编码
 			vo.setVspacename((String) voMap.get("csname")); // 货位名称
-			//注释掉，把货位数量改为 出库验收重量
+			//add by ouyangzhb  当做出库操作的时候   把货位数量改为 出库验收重量 当做入库操作的时候 把 货位数量改为    入库钢厂重量
 			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
-//			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("def1"));
+			UFDouble d12 = new UFDouble((BigDecimal) voMap.get("def1"));
 			UFDouble d2 = new UFDouble((BigDecimal) voMap.get("srkzs"));
 			// 入库
 			if (billType.equals("45") || billType.equals("4A")) {
 				if (sfth == true) {
-					vo.setNinspacenum(new UFDouble(-d1.doubleValue()));
+					vo.setNinspacenum(new UFDouble(-d12.doubleValue()));
 					vo.setNinspaceassistnum(new UFDouble(-d2.doubleValue()));
 					vo.setNingrossnum(null);
 				} else {
-					vo.setNinspacenum(d1);
+					vo.setNinspacenum(d12);
 					vo.setNinspaceassistnum(d2);
 					vo.setNingrossnum(null);
 				}
