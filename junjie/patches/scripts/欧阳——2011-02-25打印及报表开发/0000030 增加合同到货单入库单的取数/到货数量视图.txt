@@ -1,0 +1,39 @@
+create or replace view v_num_ht_dhs
+as 
+select  po_arriveorder_b.narrvnum,ct_manage_b.pk_ct_manage,ct_manage_b.pk_ct_manage_b,ct_manage_b.invid ,
+ct_manage.custid,ct_manage.ct_code
+from po_arriveorder, po_arriveorder_b,ct_manage_b,ct_manage,po_order_b,po_order
+where po_arriveorder_b.csourcebillid= po_order.corderid
+and po_order_b.ccontractrowid= ct_manage_b.pk_ct_manage_b
+and po_arriveorder.carriveorderid=po_arriveorder_b.carriveorderid
+and po_order.corderid=po_order_b.corderid
+and ct_manage.pk_ct_manage=ct_manage_b.pk_ct_manage
+and po_arriveorder_b.cmangid=ct_manage_b.invid
+and po_order_b.cmangid=ct_manage_b.invid
+and po_arriveorder_b.dr=0
+and po_arriveorder.dr=0
+and ct_manage_b.dr=0
+and ct_manage.dr=0
+and po_order_b.dr=0
+and po_order.dr=0;
+
+
+create or replace view v_sumnum_ht_dhs
+as 
+select  sum(po_arriveorder_b.narrvnum)narrvnum,ct_manage_b.pk_ct_manage_b,ct_manage_b.invid ,
+ct_manage.custid
+from po_arriveorder, po_arriveorder_b,ct_manage_b,ct_manage,po_order_b,po_order
+where po_arriveorder_b.csourcebillid= po_order.corderid
+and po_order_b.ccontractrowid= ct_manage_b.pk_ct_manage_b
+and po_arriveorder.carriveorderid=po_arriveorder_b.carriveorderid
+and po_order.corderid=po_order_b.corderid
+and ct_manage.pk_ct_manage=ct_manage_b.pk_ct_manage
+and po_arriveorder_b.cmangid=ct_manage_b.invid
+and po_order_b.cmangid=ct_manage_b.invid
+and po_arriveorder_b.dr=0
+and po_arriveorder.dr=0
+and ct_manage_b.dr=0
+and ct_manage.dr=0
+and po_order_b.dr=0
+and po_order.dr=0
+group by ct_manage_b.pk_ct_manage_b,ct_manage_b.invid ,ct_manage.custid;
