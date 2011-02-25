@@ -1,0 +1,9 @@
+create or replace view v_so_sale_cost
+as
+select noriginalcursummny,so_saleorder_b.csaleid,corder_bid ,cinvbasdocid 
+from so_saleorder_b,so_sale	
+where cinvbasdocid  in 
+(select pk_invbasdoc from bd_invbasdoc where laborflag='Y' and dr=0)
+and so_sale.csaleid = so_saleorder_b.csaleid
+and so_saleorder_b.dr=0
+and so_sale.dr=0;
