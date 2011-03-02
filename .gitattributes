@@ -268,6 +268,7 @@ junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/list/SaleBillL
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceBtn.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceUI.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SalePrintData.java -text
 junjie/develop/proj/newmodules/uap/.classpath -text
 junjie/develop/proj/newmodules/uap/.module_prj -text
 junjie/develop/proj/newmodules/uap/.project -text
