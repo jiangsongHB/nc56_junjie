@@ -3614,13 +3614,16 @@ public class SaleInvoiceUI extends ToftPanel implements
   
   
 
-  
+  /*
+   * add by ouyangzhb 2011-02-28
+   * 实现打印动作
+   */
  private void onPrint(){
 	 if(ListShow == getShowState()){
 		 onCard();
 	 }
 	 ArrayList listVo = new ArrayList();
-		listVo.add(this.getDataVO(true));
+	 listVo.add(getDataVO(false));
 		SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel().getBillValueVO(
 				  SaleinvoiceVO.class.getName(),
 				  SaleVO.class.getName(), 
@@ -3628,16 +3631,16 @@ public class SaleInvoiceUI extends ToftPanel implements
 				  );
 		SalePrintData printData = new SalePrintData();
 		printData.setVo(saleinvoice);
-		SaleInvoiceCardPanel Panel = getBillCardPanel(); 
-		Panel.getBillData().setBillValueVO(getDataVO(false));
-		printData.setBillCardPanel(Panel);
-		m_printList = new ScmPrintTool(Panel, printData,
+		SaleInvoiceCardPanel panel = getBillCardPanel(); 
+		panel.getBillData().setBillValueVO(getDataVO(false));
+		printData.setBillCardPanel(panel);
+		m_printList = new ScmPrintTool(panel, printData,
 				listVo, getModuleCode());
 		
 		try {
-			m_printList.onCardPrintPreview(Panel, this.getBillListPanel(),
+			m_printList.onCardPrintPreview(panel, this.getBillListPanel(),
 					SaleBillType.SaleInvoice);
-			this.getBillCardPanel().getBillData().setBillValueVO(saleinvoice);
+			getBillCardPanel().getBillData().setBillValueVO(saleinvoice);
 		} catch (Exception e) {
 			MessageDialog.showErrorDlg(this,
 					NCLangRes.getInstance().getStrByID("4004020201",
@@ -3815,18 +3818,20 @@ public class SaleInvoiceUI extends ToftPanel implements
   }
   */
   
-  //过滤不需要的vo
+  /*
+   * add by ouyangzhb 2011-02-28 
+   * 把 销售发票的 存货和费用分开保存
+   */
   public SaleinvoiceVO getDataVO(boolean costflag){
 	  SaleinvoiceBVO[] newBodyVO ;
 	  ArrayList<SaleinvoiceBVO> bodyVOList = new ArrayList<SaleinvoiceBVO>();
 	  ArrayList<SaleinvoiceBVO> bodyVOList2 = new ArrayList<SaleinvoiceBVO>();
-	  SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel().getBillValueVO(
+	  SaleinvoiceVO saleinvoicevo = (SaleinvoiceVO) getBillCardPanel().getBillValueVO(
 			  SaleinvoiceVO.class.getName(),
 			  SaleVO.class.getName(), 
 			  SaleinvoiceBVO.class.getName()
 			  );
-	   SaleinvoiceVO saleinvoice2 =  saleinvoice;
-	   SaleinvoiceBVO[] childrenVO = saleinvoice.getChildrenVO();
+	   SaleinvoiceBVO[] childrenVO = saleinvoicevo.getChildrenVO();
 	  for(int i=0;i<childrenVO.length;i++){
 		  String cinvbasdocid = childrenVO[i].getCinvbasdocid();
 		  Object flag = execQuery(cinvbasdocid);
@@ -3844,8 +3849,8 @@ public class SaleInvoiceUI extends ToftPanel implements
 		   newBodyVO = new SaleinvoiceBVO[bodyVOList2.size()];
 		   bodyVOList2.toArray(newBodyVO);
 	  }
-	  saleinvoice.setChildrenVO(newBodyVO);
-	return saleinvoice;
+	  saleinvoicevo.setChildrenVO(newBodyVO);
+	return saleinvoicevo;
   }
 
   /**

@@ -14,6 +14,7 @@ import nc.ui.pub.bill.IBillItem;
 import nc.ui.pub.print.IDataSource;
 import nc.vo.pu.jjvo.InformationCostVO;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.pu.PuPubVO;
 import nc.vo.so.so002.SaleVO;
 import nc.vo.so.so002.SaleinvoiceBVO;
@@ -24,10 +25,9 @@ public class SalePrintData implements IDataSource {
 	// 需打印的卡片Panel
 	private BillCardPanel m_pnlCard = null;
 	
-	//打印对应的整个Panel
+	//add by ouyangzhb 2011-03-01  begin 
+	//打印对应的整个Panel 从对应的panel中把界面VO传过来
 	private SaleinvoiceVO vo= null;
-	
-	
 
 	public SaleinvoiceVO getVo() {
 		return vo;
@@ -238,40 +238,40 @@ public class SalePrintData implements IDataSource {
 				}
 
 			}
-			//add by ouyangzhb
+			//add by ouyangzhb beging 为打印模板中固定的字段赋值
 			if(sItemExpress.equals("c_costname")){//费用名称
 				for(int j=0;j<this.getVOs().length;j++){
-					vecValue.addElement( getVOs()[j].getAttributeValue("cinventoryname") );
+					vecValue.addElement( getVOs()[j].getAttributeValue("cinventoryname").toString() );
 				}
 			}
 			if(sItemExpress.equals("costcode")){//费用编码
 				for(int j=0;j<this.getVOs().length;j++){
-					vecValue.addElement( getVOs()[j].getAttributeValue("cinventorycode") );
+					vecValue.addElement( getVOs()[j].getAttributeValue("cinventorycode").toString() );
 				}
 			}
 			if(sItemExpress.equals("c-gg")){//规格
 				for(int j=0;j<this.getVOs().length;j++){
-					vecValue.addElement( getVOs()[j].getAttributeValue("GG") );
+					vecValue.addElement( getVOs()[j].getAttributeValue("GG").toString() );
 				}
 			}
 			if(sItemExpress.equals("c_ccustomername")){//费用单位
 				for(int j=0;j<this.getVOs().length;j++){
-					vecValue.addElement( getVOs()[j].getAttributeValue("ccustomername") );
+					vecValue.addElement( getVOs()[j].getAttributeValue("ccustomername"));
 				}
 			}
 			if(sItemExpress.equals("c_noriginalcursummny")){//费用金额
 				for(int j=0;j<this.getVOs().length;j++){
-					vecValue.addElement( getVOs()[j].getAttributeValue("noriginalcursummny") );
+					vecValue.addElement( (getVOs()[j].getAttributeValue("noriginalcursummny")==null? UFDouble.ZERO_DBL:getVOs()[j].getAttributeValue("noriginalcursummny")).toString() );
 				}
 			}
 			if(sItemExpress.equals("c_nnumber")){//重量
 				for(int j=0;j<this.getVOs().length;j++){
-					vecValue.addElement( getVOs()[j].getAttributeValue("nnumber") );
+					vecValue.addElement( (getVOs()[j].getAttributeValue("nnumber")==null? UFDouble.ZERO_DBL:getVOs()[j].getAttributeValue("nnumber")).toString()  );
 				}
 			}
 			if(sItemExpress.equals("c_noriginalcurtaxprice")){//单价
 				for(int j=0;j<this.getVOs().length;j++){
-					vecValue.addElement( getVOs()[j].getAttributeValue("noriginalcurtaxprice") );
+					vecValue.addElement( (getVOs()[j].getAttributeValue("noriginalcurtaxprice")==null? UFDouble.ZERO_DBL:getVOs()[j].getAttributeValue("noriginalcurtaxprice")).toString() );
 				}
 			}
 			if(sItemExpress.equals("c_vdef1")){//车船号
@@ -287,11 +287,16 @@ public class SalePrintData implements IDataSource {
 		}
 		// 构造数据数组
 		return (String[]) vecValue.toArray(new String[vecValue.size()]);
-	}
+	} 
+	//add by ouyangzhb 2011-03-02 
 	
+	
+	/*
+	 * add by ouyangzhb 2011-03-02
+	 * 当存货信息为费用时，取出并保存到LIST中
+	 */
 	 public SaleinvoiceBVO[] getVOs(){
 		  SaleinvoiceBVO[] newBodyVO ;
-//		  print = true ;
 		  ArrayList<SaleinvoiceBVO> bodyVOList = new ArrayList<SaleinvoiceBVO>();
 		  SaleinvoiceVO saleinvoice = this.getVo();
 		   SaleinvoiceBVO[] childrenVO = saleinvoice.getChildrenVO();
@@ -307,27 +312,13 @@ public class SalePrintData implements IDataSource {
 					bodyVOList.add(childrenVO[i]);
 				  }
 			} catch (BusinessException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		  }
-		  
 		  newBodyVO = new SaleinvoiceBVO[bodyVOList.size()];
 		   bodyVOList.toArray(newBodyVO);
 		  
-//		  bvo1.setAttributeValue(name, "");
-		  
-//		  if(print){
-//			   newBodyVO = new SaleinvoiceBVO[bodyVOList.size()];
-//			   bodyVOList.toArray(newBodyVO);
-//			   // 修改单据的表体VO,过滤掉未选择的表体行
-////			   saleinvoice.setChildrenVO(newBodyVO);
-//		  }else{
-//			   newBodyVO = new SaleinvoiceBVO[bodyVOList2.size()];
-//			   bodyVOList2.toArray(newBodyVO);
-////			   saleinvoice.setChildrenVO(newBodyVO);
-//		  }
-		  saleinvoice.setChildrenVO(newBodyVO);
+//		  saleinvoice.setChildrenVO(newBodyVO);
 		return newBodyVO;
 	  }
 
