@@ -479,6 +479,7 @@ junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceBtn.class -te
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$1.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$2.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI.class -text
+junjie/patches/modules/so/client/classes/nc/ui/so/so002/SalePrintData.class -text
 junjie/patches/modules/uap/META-INF/JJ_queryservice.upm -text
 junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.class -text
 junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text

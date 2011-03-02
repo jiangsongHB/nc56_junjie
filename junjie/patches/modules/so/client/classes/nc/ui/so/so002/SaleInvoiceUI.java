@@ -22,6 +22,7 @@ import nc.ui.ml.NCLangRes;
 import nc.ui.pf.change.PfUtilUITools;
 import nc.ui.pf.pub.PfUIDataCache;
 import nc.ui.pf.query.ICheckRetVO;
+import nc.ui.po.pub.OrderPrintData;
 import nc.ui.pub.ButtonObject;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.ToftPanel;
@@ -53,6 +54,7 @@ import nc.ui.scm.print.IFreshTsListener;
 import nc.ui.scm.print.PrintLogClient;
 import nc.ui.scm.pub.BillTools;
 import nc.ui.scm.pub.panel.SetColor;
+import nc.ui.scm.pub.print.ScmPrintTool;
 import nc.ui.scm.pub.report.BillRowNo;
 import nc.ui.scm.so.SaleBillType;
 import nc.ui.so.pub.IBatchWorker;
@@ -75,6 +77,7 @@ import nc.vo.scm.goldtax.Configuration;
 import nc.vo.scm.goldtax.GoldTaxHeadVO;
 import nc.vo.scm.goldtax.GoldTaxVO;
 import nc.vo.scm.plugin.Action;
+import nc.vo.scm.pu.BillTypeConst;
 import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.session.ClientLink;
 import nc.vo.scm.pub.smart.ObjectUtils;
@@ -162,6 +165,8 @@ public class SaleInvoiceUI extends ToftPanel implements
   
   //V55销售发票支持二次开发扩展
   private InvokeEventProxy pluginproxy = null;
+  
+  private ScmPrintTool m_printList = null;
   
   private ButtonObject m_boUnitePrint = new ButtonObject("合并打印","合并打印","合并打印");//合并打印  add by QuSida 2010-8-6 10:09:58 （顺德骏杰）
   private HashMap invMap = null;//合并打印使用,存储非应税劳务存货  add by QuSida 2010-8-6 10:09:58 （顺德骏杰）
@@ -3606,7 +3611,43 @@ public class SaleInvoiceUI extends ToftPanel implements
       ordvo.getHeadVO().setTs(new UFDateTime(sTS.trim()));
     }
   }
+  
+  
 
+  
+ private void onPrint(){
+	 if(ListShow == getShowState()){
+		 onCard();
+	 }
+	 ArrayList listVo = new ArrayList();
+		listVo.add(this.getDataVO(true));
+		SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel().getBillValueVO(
+				  SaleinvoiceVO.class.getName(),
+				  SaleVO.class.getName(), 
+				  SaleinvoiceBVO.class.getName()
+				  );
+		SalePrintData printData = new SalePrintData();
+		printData.setVo(saleinvoice);
+		SaleInvoiceCardPanel Panel = getBillCardPanel(); 
+		Panel.getBillData().setBillValueVO(getDataVO(false));
+		printData.setBillCardPanel(Panel);
+		m_printList = new ScmPrintTool(Panel, printData,
+				listVo, getModuleCode());
+		
+		try {
+			m_printList.onCardPrintPreview(Panel, this.getBillListPanel(),
+					SaleBillType.SaleInvoice);
+			this.getBillCardPanel().getBillData().setBillValueVO(saleinvoice);
+		} catch (Exception e) {
+			MessageDialog.showErrorDlg(this,
+					NCLangRes.getInstance().getStrByID("4004020201",
+							"UPP4004020201-000051")/* @res "报错" */, e
+							.getMessage());
+		}
+	}
+
+		
+ 
   /**
    * 方法功能描述：V55修改为使用billprinttools实现支持多模板选择。
    * <b>参数说明</b>
@@ -3614,6 +3655,9 @@ public class SaleInvoiceUI extends ToftPanel implements
    * @author fengjb
    * @time 2008-11-26 下午01:13:02
    */
+ /**
+  * 
+ 
   private void onPrint(boolean previewflag) {
     
     boolean total = getBillCardPanel().getBodyPanel().isTatolRow();
@@ -3621,7 +3665,7 @@ public class SaleInvoiceUI extends ToftPanel implements
     getBillCardPanel().getBodyPanel().setTotalRowShow(false);
   
     try {
-      ArrayList<SaleinvoiceVO> alPrintVO = new ArrayList<SaleinvoiceVO>();
+      ArrayList<Object> alPrintVO = new ArrayList<Object>();
       //列表显示时
       if (ListShow == getShowState() && !previewflag) {
         //列表下选中行
@@ -3631,10 +3675,12 @@ public class SaleInvoiceUI extends ToftPanel implements
             getBillCardPanel().loadCardData(
                 getVOCache().getVO_Load(selectRows[i]));
       
-            SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel()
-            .getBillValueVO(SaleinvoiceVO.class.getName(),
-                SaleVO.class.getName(), SaleinvoiceBVO.class.getName());
-             alPrintVO.add(saleinvoice);
+//            SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel()
+//            .getBillValueVO(SaleinvoiceVO.class.getName(),
+//                SaleVO.class.getName(), SaleinvoiceBVO.class.getName());
+//            saleinvoice.setChildrenVO(getVO(true));
+//             alPrintVO.add(getVO(true));
+             alPrintVO.add(getDataVO(false));
         }
       }else if(UnitePrintFlag == false){
       if(ListShow == getShowState()){
@@ -3646,10 +3692,12 @@ public class SaleInvoiceUI extends ToftPanel implements
       
        	  
       }
-      SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel()
-          .getBillValueVO(SaleinvoiceVO.class.getName(),
-              SaleVO.class.getName(), SaleinvoiceBVO.class.getName());
-      alPrintVO.add(saleinvoice);
+//      SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel()
+//          .getBillValueVO(SaleinvoiceVO.class.getName(),
+//              SaleVO.class.getName(), SaleinvoiceBVO.class.getName());
+//      saleinvoice.setChildrenVO(getVO(true));
+//      alPrintVO.add(saleinvoice);
+      alPrintVO.add(getDataVO(false));
       }
     //合并打印的处理  add by QuSida 2010-8-7 （顺德骏杰） --- begin
 			else {
@@ -3722,14 +3770,17 @@ public class SaleInvoiceUI extends ToftPanel implements
 					// 修改单据的表体VO,过滤掉未选择的表体行
 					saleinvoice.setChildrenVO(newBodyVO);
 					alPrintVO.add(saleinvoice);
+//				      alPrintVO.add(getVO(false));
 					// }
 
 				} else {
-					SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel()
-							.getBillValueVO(SaleinvoiceVO.class.getName(),
-									SaleVO.class.getName(),
-									SaleinvoiceBVO.class.getName());
-					alPrintVO.add(saleinvoice);
+//					SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel()
+//							.getBillValueVO(SaleinvoiceVO.class.getName(),
+//									SaleVO.class.getName(),
+//									SaleinvoiceBVO.class.getName());
+//					saleinvoice.setChildrenVO(getVO(true));
+//					alPrintVO.add(getVO(true));
+				      alPrintVO.add(getDataVO(false));
 				}
 
 			}
@@ -3747,6 +3798,7 @@ public class SaleInvoiceUI extends ToftPanel implements
         printTool.onCardPrintPreview(getBillCardPanel(), getBillListPanel(), SaleBillType.SaleInvoice);
       }else{
         if(ListShow == getShowState())
+//        	printTool.onBatchPrint(arg0, arg1, arg2);
           printTool.onBatchPrint(getBillListPanel(), SaleBillType.SaleInvoice,getPrintLogClient());
         else
           printTool.onCardPrint(getBillCardPanel(),getBillListPanel(), SaleBillType.SaleInvoice,getPrintLogClient());
@@ -3761,6 +3813,41 @@ public class SaleInvoiceUI extends ToftPanel implements
       invMap = null;//将合并打印的缓存清空  add by QuSida 2010-8-10 （顺德骏杰）
     }
   }
+  */
+  
+  //过滤不需要的vo
+  public SaleinvoiceVO getDataVO(boolean costflag){
+	  SaleinvoiceBVO[] newBodyVO ;
+	  ArrayList<SaleinvoiceBVO> bodyVOList = new ArrayList<SaleinvoiceBVO>();
+	  ArrayList<SaleinvoiceBVO> bodyVOList2 = new ArrayList<SaleinvoiceBVO>();
+	  SaleinvoiceVO saleinvoice = (SaleinvoiceVO) getBillCardPanel().getBillValueVO(
+			  SaleinvoiceVO.class.getName(),
+			  SaleVO.class.getName(), 
+			  SaleinvoiceBVO.class.getName()
+			  );
+	   SaleinvoiceVO saleinvoice2 =  saleinvoice;
+	   SaleinvoiceBVO[] childrenVO = saleinvoice.getChildrenVO();
+	  for(int i=0;i<childrenVO.length;i++){
+		  String cinvbasdocid = childrenVO[i].getCinvbasdocid();
+		  Object flag = execQuery(cinvbasdocid);
+			if(flag!=null&&"Y".equals(flag)){
+				bodyVOList.add(childrenVO[i]);
+			  }else{
+				  bodyVOList2.add(childrenVO[i]) ;
+			  }
+		
+	  }
+	  if(costflag){
+		   newBodyVO = new SaleinvoiceBVO[bodyVOList.size()];
+		   bodyVOList.toArray(newBodyVO);
+	  }else{
+		   newBodyVO = new SaleinvoiceBVO[bodyVOList2.size()];
+		   bodyVOList2.toArray(newBodyVO);
+	  }
+	  saleinvoice.setChildrenVO(newBodyVO);
+	return saleinvoice;
+  }
+
   /**
    * 方法功能描述：批操作中删除一张销售发票。
    * <b>参数说明</b>
@@ -4260,9 +4347,9 @@ public class SaleInvoiceUI extends ToftPanel implements
     // 打印
     else if (bo.getParent() == getBtns().m_boPrintManage) {
       if (bo == getBtns().m_boPrint)
-        onPrint(false);
+        onPrint();
       else if (bo == getBtns().m_boPreview) {
-        onPrint(true);
+        onPrint();
       }
       // 合并显示
       else if (bo == getBtns().m_boBillCombin)
