@@ -1251,11 +1251,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 
 	public boolean beforeEdit(BillEditEvent billeditevent) {
 		//2010-12-20 MeiChao 在采购入库单存在来源单据类型并且为到货单事,增设"钢厂数据"参照的查询条件
-		if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
+		// 2011-03-03 Ouyangzhb 所有的采购入库单都需要增设"钢厂数据"参照的过滤条件
+		if(billeditevent.getKey().equals("invdetailref")){
 			String orderBid=this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCfirstbillbid();
 			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
 			invdetailref.setWhereString("corder_bid='"+orderBid+"' and unstoragenumber>0 and unstorageweight>0");
 		}
+		
 		if(billeditevent.getKey()=="srkzs"){
 			
 		}
@@ -1469,7 +1471,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			invDetailCVO.setDr(0);
 			invDetailCVOs[i]=invDetailCVO;
 		}
-		return "23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())?invDetailCVOs:null;
+		return invDetailCVOs;
 	}
 
 }
