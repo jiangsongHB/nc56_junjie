@@ -14,6 +14,7 @@ import java.util.Vector;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
 import nc.itf.arap.pub.IArapBillPublic;
+import nc.itf.gl.accbook.IBillModel;
 import nc.itf.ia.bill.IBill;
 import nc.itf.ps.estimate.IEstimate;
 import nc.itf.uap.IUAPQueryBS;
@@ -31,6 +32,7 @@ import nc.ui.ic.pub.device.DevInputCtrl;
 import nc.ui.ic.pub.pf.ICSourceRefBaseDlg;
 import nc.ui.ic.pub.pf.QryInICBillDlg;
 import nc.ui.ic.pub.print.PrintDataInterface;
+import nc.ui.po.pub.OrderPrintData;
 import nc.ui.pub.ButtonObject;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.ToftPanel;
@@ -51,6 +53,7 @@ import nc.ui.scm.file.DocumentManager;
 import nc.ui.scm.print.IFreshTsListener;
 import nc.ui.scm.pub.CollectSettingDlg;
 import nc.ui.scm.pub.bill.ButtonTree;
+import nc.ui.scm.pub.print.ScmPrintTool;
 import nc.ui.scm.pub.sourceref.IBillReferQueryProxy;
 import nc.ui.scm.pub.sourceref.SourceRefDlg;
 import nc.vo.dm.service.delivery.SourceBillDeliveryStatus;
@@ -354,10 +357,12 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				ICButtonConst.BTN_ASSIST_FUNC_ONHAND))
 			onOnHandShowHidden();
 		else if (bo == getButtonTree().getButton(ICButtonConst.BTN_PRINT_PRINT))
-			onPrint();
+			//add by ouyangzhb 2011-03-04
+			onPrint(true);
 		else if (bo == getButtonTree().getButton(
 				ICButtonConst.BTN_PRINT_PREVIEW))
-			onPreview();
+			//add by ouyangzhb 2011-03-04
+				onPrint(false);
 		else if (bo == getButtonTree().getButton(ICButtonConst.BTN_PRINT_SUM))
 			onPrintSumRow();
 
@@ -2808,6 +2813,28 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 
 		getClientUI().getM_layoutManager().show();
 	}
+	/*
+	 * add by ouyangzhb 2011-03-04
+	 * 需要把费用合并到库存入库单打印模板中
+	 */
+	public void onPrint(boolean bprint) {
+		if(BillMode.List == getM_iCurPanel()){
+			onSwitch();
+		}
+		try {
+
+			IOPrintData printData = new IOPrintData();
+			printData.setBillCardPanel(this.getClientUI().getBillCardPanel());
+			if(bprint){
+				ScmPrintTool.onPrint(this.getClientUI().getPrintEntry(),printData);
+			}else{
+				ScmPrintTool.onPreview(this.getClientUI().getPrintEntry(),printData);
+			}
+		} catch (Exception e) {
+			SCMEnv.out(e);
+		}
+	
+	}
 
 	/**
 	 * 创建者：仲瑞庆 功能：打印 参数： 返回： 例外： 日期：(2001-5-10 下午 4:16) 修改日期，修改人，修改原因，注释标志：
@@ -3000,7 +3027,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 																			 */);
 					return;
 				}
-
+				
 				// 卡片下预览
 				printOnCard(voBill, true);
 
@@ -3082,6 +3109,11 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					getClientUI().getDataSource().setVO(voBill);
 				pe.setDataSource(getClientUI().getDataSource());
 				pe.preview();
+////				onPrint1(false);
+//				OrderPrintData printData = new OrderPrintData();
+//				printData.setBillCardPanel(this.getBillCardPanel());
+//				ScmPrintTool.onPreview(pe,printData);
+				
 
 			} else
 				showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
@@ -3445,12 +3477,20 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 
 		// 打印提示信息
 		String sPrintMsg = null;
+		ArrayList listVo = new ArrayList();
+		listVo.add(voBill);
+		IOPrintData printData = new IOPrintData();
+		printData.setBillCardPanel(getBillCardPanel());
+		ScmPrintTool m_printList = new ScmPrintTool(getBillCardPanel(), printData,
+				listVo, getClientUI().getModuleCode());
 		// 执行打印
 		if (isPreview) {
-			getClientUI().getPrintEntry().preview();
-			sPrintMsg = plc.getPrintResultMsg(true);
+			
+		
+			m_printList.onPreview(getClientUI().getPrintEntry(), printData);
+			
 		} else {
-			getClientUI().getPrintEntry().print();
+			m_printList.onPrint(getClientUI().getPrintEntry(), printData);
 			sPrintMsg = plc.getPrintResultMsg(false);
 		}
 	}

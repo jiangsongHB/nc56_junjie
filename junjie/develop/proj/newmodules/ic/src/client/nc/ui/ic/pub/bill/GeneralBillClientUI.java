@@ -14047,9 +14047,6 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 	 * 创建者：王乃军 功能：根据当前单据的待审状态决定签字/取消签字那个可用 参数： 返回： 例外： 日期：(2001-5-9 9:23:32)
 	 * 修改日期，修改人，修改原因，注释标志：
 	 * 
-	 * 
-	 * 
-	 * 
 	 */
 	protected void setBtnStatusSign(boolean bUpdateButtons) {
 
