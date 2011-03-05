@@ -403,6 +403,7 @@ junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralBillClientUI.j
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager$1IBillReferQueryProxyExt.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager$FreshTsListener.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/GeneralButtonManager.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/IOPrintData.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI$1.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/pub/bill/SpecialBillBaseUI.java -text
