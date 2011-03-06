@@ -1068,12 +1068,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 						.getBodyValueVOs(MdcrkVO.class.getName());
 				if (rsvo != null && rsvo.length > 0) {
 					for (int i = 0; i < rsvo.length; i++) {
-						getBillCardPanel().getBillModel().setValueAt(null, i,
-								"srkzl");
+						//add by ouyangzhb 2011-03-05
+						//当点击非计算时，不需要把验收重量和钢厂重量清空
+//						getBillCardPanel().getBillModel().setValueAt(null, i,
+//								"srkzl");
 						getBillCardPanel().getBillModel().setValueAt(
 								new UFBoolean(false), i, "sfbj");
-						getBillCardPanel().getBillModel().setValueAt(null, i,
-								"def1");
+//						getBillCardPanel().getBillModel().setValueAt(null, i,
+//								"def1");
 						getBillCardPanel().getBillModel().setValueAt(null, i,
 								"def2");
 						getBillCardPanel().getBillModel().setValueAt(
