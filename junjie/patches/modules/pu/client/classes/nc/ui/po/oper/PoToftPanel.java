@@ -1791,14 +1791,15 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 					getCurPk_corp(), nc.vo.scm.pu.BillTypeConst.PO_ORDER, bo);
 			Vector vecBtn = getBtnManager().btnBillAddContinue.getChildren();
 			if (vecBtn.size() > 0) {
-				for (int i = 0; i < vecBtn.size(); ) {
+				for (int i = 0; i < vecBtn.size();i++ ) {
 					ButtonObject btn = (ButtonObject) vecBtn.get(i);
-					if (!btn.getTag().startsWith("20")||!bright) {
-						getBtnManager().btnBillAddContinue
-								.removeChildButton(btn);
-					}else{
-						i++;
-					}
+					//注释，流程不走请购单 ouyangzhb 2011-03-10
+//					if (!btn.getTag().startsWith("20")||!bright) {
+//						getBtnManager().btnBillAddContinue
+//								.removeChildButton(btn);
+//					}else{
+//						i++;
+//					}
 
 				}
 			}
@@ -3430,30 +3431,37 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 		} else if (bo.getParent() == getBtnManager().btnBillAddContinue) {
 			// 来源单据类型 业务类型
 			String tag = bo.getTag();
-			int index = tag.indexOf(":");
-			setCupsourcebilltype(tag.substring(0, index));
-			setCurBizeType(tag.substring(index + 1, tag.length()));
-
-			// 设置环境变量业务类型，UI端的VO交换可用用到
-			ClientEnvironment.getInstance().putValue(OrderPubVO.ENV_BIZTYPEID,
-					tag.substring(index + 1, tag.length()));
-
-			// 调用公共接口
-			PfUtilClient.childButtonClicked(bo,
-					getCurPk_corp(),
-					getModuleCode(), // "4004020201"
-					getClientEnvironment().getUser().getPrimaryKey(),
-					nc.vo.scm.pu.BillTypeConst.PO_ORDER, this);
-			if (PfUtilClient.isCloseOK()) {
-				// 初始化缓存原有的长度
-				setOrgBufferLen(getBufferLength());
-				AggregatedValueObject[] arySourceVOs = PfUtilClient.getRetVos();
-				processAfterChangeAdd(getCupsourcebilltype(), arySourceVOs);
-				m_renderYellowAlarmLine.setRight(false);
-				getPoCardPanel().getBillTable().repaint();
-				SCMEnv.out("out");
+			//add by ouyangzhb 2011-03-10 为参照增行子菜单为“自制单据”的作处理
+			if (bo.getTag().startsWith("makeflag")) {
+				onBillAppendLine();//增加订单行
 			} else {
-				setCurOperState(STATE_BILL_EDIT);
+				int index = tag.indexOf(":");
+				setCupsourcebilltype(tag.substring(0, index));
+				setCurBizeType(tag.substring(index + 1, tag.length()));
+
+				// 设置环境变量业务类型，UI端的VO交换可用用到
+				ClientEnvironment.getInstance().putValue(OrderPubVO.ENV_BIZTYPEID,
+						tag.substring(index + 1, tag.length()));
+
+				// 调用公共接口
+				PfUtilClient.childButtonClicked(bo,
+						getCurPk_corp(),
+						getModuleCode(), // "4004020201"
+						getClientEnvironment().getUser().getPrimaryKey(),
+						nc.vo.scm.pu.BillTypeConst.PO_ORDER, this);
+				if (PfUtilClient.isCloseOK()) {
+					// 初始化缓存原有的长度
+					setOrgBufferLen(getBufferLength());
+					AggregatedValueObject[] arySourceVOs = PfUtilClient.getRetVos();
+					processAfterChangeAdd(getCupsourcebilltype(), arySourceVOs);
+					m_renderYellowAlarmLine.setRight(false);
+					getPoCardPanel().getBillTable().repaint();
+					SCMEnv.out("out");
+				} else {
+					setCurOperState(STATE_BILL_EDIT);
+				
+			}
+			
 			}
 		} else if (bo == getBtnManager().btnBillSave
 				|| bo.getParent() == getBtnManager().btnBillMaintain) {
