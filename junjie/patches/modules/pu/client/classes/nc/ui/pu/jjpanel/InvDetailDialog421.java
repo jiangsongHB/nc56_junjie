@@ -867,7 +867,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 								for (int col = 0; col < columnsnumber; col++) {
 									// 获取第row行，第col列的值
 									Cell c = ((jxl.Sheet) rs).getCell(col, row);
-									String strc = this.toDBC(c.getContents());//实行全角转半角操作
+									String strc = this.toDBC(c.getContents()).trim();//实行全角转半角操作
 									switch(col){
 										case 0 :
 											if(strc==null||!strc.equals(invname)){
@@ -1182,7 +1182,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 	 */
 	public static boolean isNumeric(String str) {
     
-	Pattern pattern = Pattern.compile("[0-9]*");
+	Pattern pattern = Pattern.compile("[0-9]*.*[0-9]*");
 
 	return pattern.matcher(str).matches();
 
