@@ -1284,11 +1284,14 @@ private void setButtonsNull(){
  	 OrderItemVO selectedArriveBody=(OrderItemVO)this.getPoCardPanel().getBillModel().getBodyValueRowVO(selectedRowNum, OrderItemVO.class.getName());
  	 //选中存货
  	 String selectedInv=selectedArriveBody.getCbaseid();
+ 	 //add by ouyangzhb 2011-03-17 选中行的表体ID
+ 	 String selectedbid = selectedArriveBody.getCorder_bid();
  	 //选中存货对应的明细
  	 ArrayList<InvDetailVO> selectedDetailList=new ArrayList<InvDetailVO>();
  	 if(this.invDetailVOs!=null&&this.invDetailVOs.length>0){
  	 for(int i=0;i<this.invDetailVOs.length;i++){
- 		 if(selectedInv.equals(this.invDetailVOs[i].getPk_invbasdoc())){//如
+ 		 //add by ouyangzhb 2011-03-27 为选中行过滤存货明细。只有属于选中行的明细才出现
+ 		 if(selectedInv.equals(this.invDetailVOs[i].getPk_invbasdoc())&&selectedbid.equals(invDetailVOs[i].getCorder_bid())){//如
  			 selectedDetailList.add((InvDetailVO)this.invDetailVOs[i].clone());
  		 }
  	 }
