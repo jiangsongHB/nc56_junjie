@@ -212,7 +212,10 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 //		UIRefPane refPane = (UIRefPane) getBillListPanel().getHeadItem("costcode").getComponent();
 //		nc.ui.bd.ref.busi.InvmandocDefaultRefModel refModel = (InvmandocDefaultRefModel) refPane.getRefModel();
 //		refModel.setWherePart(" bd_invbasdoc.laborflag = 'Y' and bd_invmandoc.pk_corp = '"+ClientEnvironment.getInstance().getCorporation().getPk_corp()+"'");
-
+		
+		//add by ouyangzhb 2011-03-22   显示合计行
+		this.getBillListPanel().getParentListPanel().setTatolRowShow(true);
+		
 
 	}
 
@@ -883,6 +886,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 												break;
 											}
 											oneRowDetail.put("thick", newstrc[0]);
+											//add by ouyangzhb 2011-03-22 当规格中没有*号时，不需要进行空格和数值验证
 											if(strc.indexOf("*")!=-1){
 												if(!this.checkStringSpace(newstrc[1], row,col, checkErrorInfo)){
 													iswronginv=true;
