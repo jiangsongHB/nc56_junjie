@@ -883,23 +883,25 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 												break;
 											}
 											oneRowDetail.put("thick", newstrc[0]);
-											if(!this.checkStringSpace(newstrc[1], row,col, checkErrorInfo)){
-												iswronginv=true;
-												break;
-											}
-											if(!this.checkString(newstrc[1], row,col, checkErrorInfo)){
-												iswronginv=true;
-												break;
-											}
-											oneRowDetail.put("contractwidth", newstrc[1]);
-											if(newstrc.length==3){
-												if(!this.checkStringSpace(newstrc[2], row,col, checkErrorInfo)){
+											if(strc.indexOf("*")!=-1){
+												if(!this.checkStringSpace(newstrc[1], row,col, checkErrorInfo)){
 													iswronginv=true;
 													break;
 												}
-												oneRowDetail.put("contractlength", newstrc[2]);
-											}else{
-												oneRowDetail.put("contractlength", null);
+												if(!this.checkString(newstrc[1], row,col, checkErrorInfo)){
+													iswronginv=true;
+													break;
+												}
+												oneRowDetail.put("contractwidth", newstrc[1]);
+												if(newstrc.length==3){
+													if(!this.checkStringSpace(newstrc[2], row,col, checkErrorInfo)){
+														iswronginv=true;
+														break;
+													}
+													oneRowDetail.put("contractlength", newstrc[2]);
+												}else{
+													oneRowDetail.put("contractlength", null);
+												}
 											}
 											break;
 										case 2 :
