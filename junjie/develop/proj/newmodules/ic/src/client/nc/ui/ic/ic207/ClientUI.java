@@ -482,6 +482,9 @@ public UITextField getUITxtFldStatus() {
  * 算法说明：
  */
 public void initialize() {
+	
+	//add by ouyangzhb 2011-03-31 为费用页签添加合计行
+    getBillCardPanel().getBodyPanel("jj_scm_informationcost").setTatolRowShow(true);
 	//在父类初始化方法执行前,将费用录入按钮添加到按钮树中.
 	this.getButtonManager().getButtonTree().addMenu(this.getButtonExpenseInput());
 	//必须重载基类的initialize方法后,
