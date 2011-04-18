@@ -516,7 +516,12 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 			vo.setDef9((String) objMap.get("def9"));
 //			vo.setDef1(new UFDouble((BigDecimal)(objMap.get("def1")==null?0:objMap.get("def1"))));//2010-12-30 MeiChao 现存钢厂重量
 			//add by ouyangzhb 2011-04-18，不能直接赋为0，类型出错
-			vo.setDef1((UFDouble) (objMap.get("def1")==null?UFDouble.ZERO_DBL:objMap.get("def1")));
+			if(objMap.get("def1")==null){
+				vo.setDef1(UFDouble.ZERO_DBL);
+			}else{
+				vo.setDef1(new UFDouble((BigDecimal)(objMap.get("def1"))));
+			}
+				
 			// 有效锁定支数
 			if (objMap.get("yxsdzs") != null) {
 				vo.setYxsdzs(new UFDouble(((Integer) objMap.get("yxsdzs"))
