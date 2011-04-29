@@ -13539,7 +13539,10 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxkjqj(this.getClientEnvironment().getAccountMonth());//设置生效会计期间
 			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxr(this.getClientEnvironment().getUser().getPrimaryKey());//设置生效人
 			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxrq(this.getClientEnvironment().getDate());//设置生效日期
-			iARAP.saveArapBill(expenseAPVO);
+			
+			//add by ouyangzhb 2011-04-29 系统已经在审核时生成了一张应付单，不需要再次保存转换过来的应付单，否则会生成重复的单据
+//			iARAP.saveArapBill(expenseAPVO);
+			//add end 2011-04-29
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
