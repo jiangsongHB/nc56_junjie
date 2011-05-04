@@ -253,6 +253,7 @@ junjie/develop/proj/newmodules/scmpub/src/public/nc/ui/scm/pub/ScmPubHelper.java
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InformationCostVO.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InformationCostVOMeta.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InvDetailVO.java -text
+junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/relacal/SCMRelationsCal.java -text
 junjie/develop/proj/newmodules/so/.classpath -text
 junjie/develop/proj/newmodules/so/.module_prj -text
 junjie/develop/proj/newmodules/so/.project -text
