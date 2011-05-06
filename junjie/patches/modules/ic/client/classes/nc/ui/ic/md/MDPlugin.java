@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import nc.ui.trade.business.HYPubBO_Client;
 import nc.uif.pub.exception.UifException;
 import nc.vo.bd.invdoc.InvbasdocVO;
-import nc.vo.bd.invdoc.InvmandocVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.pub.AggregatedValueObject;
@@ -134,10 +133,11 @@ public class MDPlugin extends SCMBasePlugin {
 	 */
 	boolean checkNeedMD(String cinvbasid) {
 		try {
+			//add by ouyangzhb 2011-05-06 问题0000178: 直调业务的采购入库单签字时提示“签字出错
 			SuperVO[] vo = HYPubBO_Client
 					.queryByCondition(
-							InvmandocVO.class,
-							" isnull(dr,0)=0 and (isnull(def20,'N')='Y' or isnull(def20,'N')='y') and pk_invbasdoc = '"
+							InvbasdocVO.class,
+							" isnull(dr,0)=0 and (isnull(def20,'N')='Y' or isnull(def20,'N')='y')  and (isnull(vuserdef20,'N')='Y' or isnull(vuserdef20,'N')='y') and pk_invbasdoc = '"
 									+ cinvbasid + "' ");
 			if (vo != null && vo.length > 0) {
 				return true;
