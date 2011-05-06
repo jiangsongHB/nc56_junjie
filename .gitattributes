@@ -510,6 +510,8 @@ junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1003/InvtypeModel.class -te
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientCtrl.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientEH.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientUI.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$1.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient.class -text
 junjie/patches/scripts/.project -text
 junjie/patches/scripts/2010-10-20-0000023[!!-~]patcher到货单换算率机制改变/问题0000023脚本.sql -text
 junjie/patches/scripts/2010-10-20-0000024[!!-~]patcher入库单换算率机制修改/patcher-for-0000024入库单换算率机制补丁.sql -text
