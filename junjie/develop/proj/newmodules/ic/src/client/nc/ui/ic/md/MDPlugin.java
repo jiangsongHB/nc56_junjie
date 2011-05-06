@@ -136,7 +136,7 @@ public class MDPlugin extends SCMBasePlugin {
 			SuperVO[] vo = HYPubBO_Client
 					.queryByCondition(
 							InvbasdocVO.class,
-							" isnull(dr,0)=0 and (isnull(def20,'N')='Y' or isnull(def20,'N')='y') and pk_invbasdoc = '"
+							" isnull(dr,0)=0 and (isnull(def20,'N')='Y' or isnull(def20,'N')='y')  and pk_invbasdoc = '"
 									+ cinvbasid + "' ");
 			if (vo != null && vo.length > 0) {
 				return true;
@@ -157,16 +157,23 @@ public class MDPlugin extends SCMBasePlugin {
 	@Override
 	public void beforAudit(AggregatedValueObject[] arg1)
 			throws BusinessException {
+		
 		for (AggregatedValueObject avo : arg1) {
-			ArrayList<GeneralBillItemVO> list = new ArrayList<GeneralBillItemVO>();
-			GeneralBillItemVO[] items = (GeneralBillItemVO[]) avo
-					.getChildrenVO();
-			for (GeneralBillItemVO item : items) {
-				if (checkNeedMD(item.getCinvbasid())) {
-					list.add(item);
+			//add by ouyangzhb 2011-05-06 问题0000178: 直调业务的采购入库单签字时提示“签字出错 BEGIN
+			String iszd = (String) avo.getParentVO().getAttributeValue("vuserdef20");
+			if(iszd==null||!iszd.equals("Y")){
+				ArrayList<GeneralBillItemVO> list = new ArrayList<GeneralBillItemVO>();
+				GeneralBillItemVO[] items = (GeneralBillItemVO[]) avo
+						.getChildrenVO();
+				for (GeneralBillItemVO item : items) {
+					if (checkNeedMD(item.getCinvbasid())) {
+						list.add(item);
+					}
 				}
+				notrefMD(list.toArray(new GeneralBillItemVO[list.size()]));
 			}
-			notrefMD(list.toArray(new GeneralBillItemVO[list.size()]));
+			//add end 
+			
 		}
 	}
 
