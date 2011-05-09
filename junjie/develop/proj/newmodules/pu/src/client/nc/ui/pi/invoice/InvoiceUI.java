@@ -33,6 +33,7 @@ import nc.itf.ps.estimate.IEstimate;
 import nc.itf.pu.mm.ISrvPUToMM;
 import nc.itf.scm.cenpur.service.TempTableUtil;
 import nc.itf.uap.IUAPQueryBS;
+import nc.itf.uap.busibean.ISysInitQry;
 import nc.itf.uap.pf.IPFMetaModel;
 import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
@@ -132,6 +133,7 @@ import nc.vo.pi.NormalCondVO;
 import nc.vo.po.pub.Operlog;
 import nc.vo.po.pub.OrderPubVO;
 import nc.vo.pps.PricParaVO;
+import nc.vo.ps.settle.IAdjuestVO;
 import nc.vo.pu.exception.RwtPiToPoException;
 import nc.vo.pu.exception.RwtPiToScException;
 import nc.vo.pub.AggregatedValueObject;
@@ -4397,8 +4399,9 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
         		  MessageDialog.showErrorDlg(this.getBillCardPanel(), "费用回冲错误", "无法获取当前页面的费用信息,请联系技术员.");
         		  return;
         	  }
-        	  //this.formalExpenseTOAP(expenseInvoiceVO); 
-        	  this.invoiceTOAP(expenseInvoiceVO);
+        	  //add by ouyangzhb 2011-05-09 注释，不需要调用之前的费用回冲的实现方法，应该调用系统的方法实现，已在动作脚本中配置了
+//        	  //this.formalExpenseTOAP(expenseInvoiceVO); 
+////        	  this.invoiceTOAP(expenseInvoiceVO);
           }
         }
       }
@@ -13499,6 +13502,29 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 		
 		
   }
+  
+//  public IAdjuestVO[] washDataForfFYZGYF(InvoiceVO invoiceVOs[]) throws Exception{
+//	  
+//	  Vector vBid = new Vector(), v2 = new Vector();
+//  	String sUnitCode = null;
+//  	
+//  	//发票归类
+//  	for(int i = 0; i < invoiceVOs.length; i++){
+//  		InvoiceHeaderVO headVO = invoiceVOs[i].getHeadVO();
+//  		sUnitCode = headVO.getPk_corp();
+//  		InvoiceItemVO bodyVO[] = invoiceVOs[i].getBodyVO();   		
+//   		for(int j = 0; j < bodyVO.length; j++){
+//  			if(!vBid.contains(bodyVO[j].getCbaseid())) vBid.addElement(bodyVO[j].getCbaseid());
+//  		}
+//  	}
+//  	String sTemp[] = new String[vBid.size()];
+//  	vBid.copyInto(sTemp);
+//  	
+//  	ISysInitQry myService = (ISysInitQry) NCLocator.getInstance().lookup(ISysInitQry.class.getName());
+//  	String sZGYF = myService.getParaString(sUnitCode,"PO52");
+//  	if(sZGYF.equals("N") || sZGYF.equals("否")) return null;
+//	  
+//  }
   /**
    * 2010-10-24 MeiChao
    * 采购费用发票回冲暂估应付的直接方法
@@ -13522,23 +13548,25 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			return;
 		}
 		
+		
+		
 		//转换发票至应付
 		  DJZBVO expenseAPVO=new DJZBVO();
 		  try {
 			  //使用数据转换平台工具类,将采购发票VO转换成采购应付单VO
 			expenseAPVO=(DJZBVO)PfChangeBO_Client.pfChangeBillToBill(expenseInvoiceVO, "25","D1");
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setZgyf(0);//设置此应付单为非暂估应付单
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setDjzt(2);//设置单据状态 2
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSpzt("1");//设置审核状态 1 
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShkjnd(this.getClientEnvironment().getAccountYear());//设置审核会计年度
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShkjqj(this.getClientEnvironment().getAccountMonth());//设置审核会计期间
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShr(this.getClientEnvironment().getUser().getPrimaryKey());//设置审核人
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShrq(this.getClientEnvironment().getDate());//设置审核日期
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxbz(10);//设置生效标志
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxkjnd(this.getClientEnvironment().getAccountYear());//设置生效会计年度
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxkjqj(this.getClientEnvironment().getAccountMonth());//设置生效会计期间
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxr(this.getClientEnvironment().getUser().getPrimaryKey());//设置生效人
-			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxrq(this.getClientEnvironment().getDate());//设置生效日期
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setZgyf(0);//设置此应付单为非暂估应付单
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setDjzt(2);//设置单据状态 2
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSpzt("1");//设置审核状态 1 
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShkjnd(this.getClientEnvironment().getAccountYear());//设置审核会计年度
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShkjqj(this.getClientEnvironment().getAccountMonth());//设置审核会计期间
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShr(this.getClientEnvironment().getUser().getPrimaryKey());//设置审核人
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setShrq(this.getClientEnvironment().getDate());//设置审核日期
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxbz(10);//设置生效标志
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxkjnd(this.getClientEnvironment().getAccountYear());//设置生效会计年度
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxkjqj(this.getClientEnvironment().getAccountMonth());//设置生效会计期间
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxr(this.getClientEnvironment().getUser().getPrimaryKey());//设置生效人
+//			((DJZBHeaderVO)expenseAPVO.getParentVO()).setSxrq(this.getClientEnvironment().getDate());//设置生效日期
 			
 			//add by ouyangzhb 2011-04-29 系统已经在审核时生成了一张应付单，不需要再次保存转换过来的应付单，否则会生成重复的单据
 //			iARAP.saveArapBill(expenseAPVO);
@@ -13630,22 +13658,31 @@ private InvoiceVO voProcess(AggregatedValueObject avo){
 			//如果转换后的应付单与上层来源应付单表体存货id一致,那么将上层来源应付单表体数量、单价、金额转换为负数,再将表体交换.
 			if(backExpenseBody[i].getCinventoryid().equals(oldbody[k].getCinventoryid())){
 				//贷方数量转换为负数
-				Double dfshl=Double.valueOf("-"+oldbody[k].getDfshl().toString());
+//				Double dfshl=Double.valueOf("-"+oldbody[k].getDfshl().toString());
+				UFDouble dfshl=oldbody[k].getDfshl().multiply(-1);
 				oldbody[k].setDfshl(new UFDouble(dfshl));
 				//贷方原币金额,原币无税金额,本币金额,本币无税金额,本币余额,原币余额 转换为负数
-				Double dfybje=Double.valueOf("-"+oldbody[k].getDfybje().toString());
-				oldbody[k].setDfybje(new UFDouble(dfybje));
-				oldbody[k].setDfybwsje(new UFDouble(dfybje));
-				oldbody[k].setDfbbje(new UFDouble(dfybje));
-				oldbody[k].setDfbbwsje(new UFDouble(dfybje));
-				oldbody[k].setBbye(new UFDouble(dfybje));//本币余额
-				oldbody[k].setYbye(new UFDouble(dfybje));//原币余额
-				String ddlx=backExpenseBody[i].getDdlx();// 临时变量  上层来源单据id--采购发票id
-				String ddhh=backExpenseBody[i].getDdhh();//临时变量 上层来源单据行id--
+//				Double dfybje=Double.valueOf("-"+oldbody[k].getDfybje().toString());
+				UFDouble dfybje=oldbody[k].getDfybje().multiply(-1);
+				oldbody[k].setDfybje(dfybje);
+				oldbody[k].setDfybwsje(dfybje);
+				oldbody[k].setDfbbje(dfybje);
+				oldbody[k].setDfbbwsje(dfybje);
+				oldbody[k].setBbye(dfybje);//本币余额
+				oldbody[k].setYbye(dfybje);//原币余额
+//				String ddlx=backExpenseBody[i].getDdlx();// 临时变量  上层来源单据id--采购发票id
+//				String ddhh=backExpenseBody[i].getDdhh();//临时变量 上层来源单据行id--
+//				backExpenseBody[i]=(DJZBItemVO)oldbody[k].clone();//VO交换
+//				backExpenseBody[i].setDdlx(ddlx);//上层来源单据id--采购发票id
+//				backExpenseBody[i].setDdhh(ddhh);//上层来源单据行id--
+//				backExpenseBody[i].setJsfsbm("25");//上层来源单据类型--25 采购发票
+				
+				String ddlx=oldbody[k].getDdlx();// 临时变量  上层来源单据id--采购发票id
+				String ddhh=oldbody[k].getDdhh();//临时变量 上层来源单据行id--
 				backExpenseBody[i]=(DJZBItemVO)oldbody[k].clone();//VO交换
 				backExpenseBody[i].setDdlx(ddlx);//上层来源单据id--采购发票id
 				backExpenseBody[i].setDdhh(ddhh);//上层来源单据行id--
-				backExpenseBody[i].setJsfsbm("25");//上层来源单据类型--25 采购发票
+				backExpenseBody[i].setJsfsbm("D1");//上层来源单据类型--25 采购发票				
 				break;
 			}
 			}
