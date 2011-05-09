@@ -1693,6 +1693,152 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
     }
     return listResultVos;
   }
+  
+  /*
+   * 费用发票弃审
+   * ouyangzhb
+   */
+  public void unAdjustForFEEZGYF(InvoiceVO[] voaInv) throws BusinessException {
+
+	    try {
+	      // 参数正确性检查
+	      if (voaInv == null || voaInv.length == 0) {
+	        return;
+	      }
+
+	      // 得到每个发票体id对应的发票头id
+	      Hashtable htHeadId = new Hashtable();
+
+	      InvoiceItemVO[] aInvoiceItemVOs = null;
+	      for (int i = 0; i < voaInv.length; i++) {
+
+	        aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
+	        if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
+	          continue;
+	        }
+
+	        for (int j = 0; j < aInvoiceItemVOs.length; j++) {
+	          htHeadId.put(aInvoiceItemVOs[j].getCinvoice_bid(), aInvoiceItemVOs[j].getCinvoiceid());
+	        }
+
+	      }
+
+	      // 判断应付是否启用
+	      ICreateCorpQueryService myService0 = null;
+	      myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator.getInstance().lookup(
+	          ICreateCorpQueryService.class.getName());
+	      String unitCode = ((InvoiceHeaderVO) voaInv[0].getParentVO()).getPk_corp();
+	      boolean bAPStartUp = myService0.isEnabled(unitCode, "AP");
+	      if (!bAPStartUp) {
+	        return;
+	      }
+
+	      // 获取暂估应付冲减VO
+	      IAdjuestVO washVO[] = new InvoiceDMO().washDataForFeeZGYF(voaInv);
+//	      IAdjuestVO[] washVO = new InvoiceDMO().antiWashDataForZGYF(voaInv);
+
+	      if (washVO != null && washVO.length > 0) {
+
+	        // 通过washVO[]组织应付单行id[]
+	        String[] saFEEBid = new String[washVO.length];
+	        for (int i = 0; i < washVO.length; i++) {
+	        	saFEEBid[i] = washVO[i].getDdhh();
+	        }
+
+	        String strInvoiceHid = null;
+	        Object objTemp = null;
+
+	        InvoiceDMO invoiceDMO = new InvoiceDMO();
+	        //
+	        ArrayList<IAdjuestVO> listAdjuestVO = new ArrayList<IAdjuestVO>();
+	        ArrayList<String> listInvoiceHid = new ArrayList<String>();
+	        for (int i = 0; i < washVO.length; i++) {
+
+	          // 根据发票体id查询发票头id
+	          objTemp = htHeadId.get(washVO[i].getCinvoice_bid());
+	          if (objTemp == null || objTemp.toString().trim().length() == 0) {
+	            continue;
+	          }
+	          strInvoiceHid = objTemp.toString();
+	          //
+	          if (!listInvoiceHid.contains(strInvoiceHid)) {
+	            listInvoiceHid.add(strInvoiceHid);
+	          }
+	          //
+	          washVO[i].setCinvoiceid(strInvoiceHid);
+	          listAdjuestVO.add(washVO[i]);
+
+	          // 调用应付提供的保存+冲减方法冲减暂估应付
+	          // iArap.unAdjuest(strInvoiceHid,unitCode);
+
+	          // 回写ic_general_bb3上的暂估应付累计回冲数量
+//	          if (washVO[i].isVmi()) {
+//	            invoiceDMO.updateAccumWashNumForVmi(new String[] {
+//	              washVO[i].getDdhh()
+//	            }, new UFDouble[] {
+//	              washVO[i].getShl()
+//	            }, false);
+//	          }
+//	          else {
+//	            invoiceDMO.updateAccumWashNumForIC(new String[] {
+//	              washVO[i].getDdhh()
+//	            }, new UFDouble[] {
+//	              washVO[i].getShl()
+//	            }, false);
+//	          }
+	        }
+	        // 调用应付提供的保存+冲减方法冲减暂估应付
+	        if (listAdjuestVO.size() > 0) {
+	          Hashtable hashHidClbh = new PubDMO().queryHtResultFromAnyTable("po_invoice", "cinvoiceid", new String[] {
+	            "clbh"
+	          }, " cinvoiceid in " + new TempTableUtil().getSubSql(listInvoiceHid));
+	          if (hashHidClbh != null && hashHidClbh.size() > 0) {
+	            Map<String, Map<String, String>> clbhs = new HashMap<String, Map<String, String>>();
+	            Map<String, String> mapDdhh = null;
+	            String strClbh = null;
+	            Vector vClbh = null;
+	            IAdjuestVO voAdjust = null;
+	            String strLylx = "1";
+	            ArrayList<IAdjuestVO> listAdjuestVos = new ArrayList<IAdjuestVO>();
+	            for (int i = 0; i < listAdjuestVO.size(); i++) {
+	              voAdjust = (IAdjuestVO) listAdjuestVO.get(i);
+	              strInvoiceHid = voAdjust.getCinvoiceid();
+	              vClbh = (Vector) hashHidClbh.get(strInvoiceHid);
+	              if (vClbh == null || vClbh.size() == 0) {
+	                continue;
+	              }
+	              strClbh = (String) ((Object[]) vClbh.get(0))[0];
+	              if (PuPubVO.getString_TrimZeroLenAsNull(strClbh) == null) {
+	                continue;
+	              }
+	              listAdjuestVos.add(voAdjust);
+	              mapDdhh = clbhs.get(strClbh);
+	              if (mapDdhh == null) {
+	                mapDdhh = new HashMap<String, String>();
+	              }
+	              mapDdhh.put(voAdjust.getDdhh(), strLylx);
+	              clbhs.put(strClbh, mapDdhh);
+	            }
+	            //
+	            if (clbhs.size() > 0) {
+	              IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator.getInstance().lookup(
+	                  IArapForGYLPublic.class.getName());
+	              iArap.unAdjuestForGC(clbhs, unitCode);
+	            }
+
+	            // 更新处理编号
+	            if (listAdjuestVos.size() > 0) {
+	              invoiceDMO.updateClbh(listAdjuestVO.toArray(new IAdjuestVO[listAdjuestVO.size()]), null, null, true);
+	            }
+	          }
+	        }
+	      }
+	    }
+	    catch (Exception e) {
+	      PubDMO.throwBusinessException(e);
+	    }
+	  }
+  
 
   /**
    * 发票弃审，组织暂估应付冲减VO, 调用应付的调差接口, 冲减暂估应付
@@ -6593,7 +6739,7 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
  * @date 2010-9-26 下午03:14:24
  */
 public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
-
+	
 	    try {
 	      // 参数正确性检查
 	      if (voaInv == null || voaInv.length == 0) {
@@ -6602,6 +6748,9 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	      for (int i = 0; i < voaInv.length; i++) {
 	        if (voaInv[i] == null)
 	          return;
+	        //add by ouyangzhb 2011-05-08 当不是费用发票时，不需要执行之后的代码
+	        if(voaInv[i].getHeadVO().getVdef20()==null||!voaInv[i].getHeadVO().getVdef20().equals("Y"))
+	        	return;
 	      }
 
 	      // 得到每个发票体id对应的发票头id,发票头id对应的审批日期和审批人
@@ -6828,8 +6977,9 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	     * 调用应付提供的保存+冲减方法冲减暂估应付 后两个参数: lylx (来源类型 0 订单行ID 1 出库单行ID 2 发票行ID ly: 0 销售
 	     * 1 采购
 	     */
-
-	    iArap.Adjuest(washVO, strClbh, strAuditPsnId, ufdatAuditDate.toString(), unitCode, 1, 1);
+	    
+	    //add by ouyangzhb 2011-05-09 把lylx和ly 设为3，后面的程序会为这两个值设置相应的处理代码
+	    iArap.Adjuest(washVO, strClbh, strAuditPsnId, ufdatAuditDate.toString(), unitCode, 3, 3);
 	    //
 	    // 回写ic_general_bb3上的暂估应付累计回冲数量
 //	    String[] saDdhhBB3 = null;

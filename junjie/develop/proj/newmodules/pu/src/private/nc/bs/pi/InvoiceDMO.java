@@ -9272,6 +9272,8 @@ private IAdjuestVO[] getReturnVOsToWashFeeZGYF(Vector vBid,HashMap hSettle, Vect
     	ArrayList list = null;
 		//sinve v502,
     	HashMap<String, String> mapHid = new HashMap<String, String>();
+    	//add by ouyangzhb 2011-05-09 把ddh保存到tempVO中  begin
+    	HashMap<String, String> mapddh = new HashMap<String, String>();
     	if(vOverItemVo != null && vOverItemVo.size() > 0){
     		InvoiceItemVO bodyVO = null;
 	      	for(int i=0; i<vOverItemVo.size(); i++){
@@ -9280,6 +9282,7 @@ private IAdjuestVO[] getReturnVOsToWashFeeZGYF(Vector vBid,HashMap hSettle, Vect
 	      				&& bodyVO.getCinvoiceid() != null
 	      				&& bodyVO.getCinvoice_bid() != null){
 	      			mapHid.put(bodyVO.getCinvoice_bid(), bodyVO.getCinvoiceid());
+	      			mapddh.put(bodyVO.getCinvoice_bid(), bodyVO.getCupsourcebillrowid());
 	      		}
 	      	}
     	}
@@ -9315,6 +9318,9 @@ private IAdjuestVO[] getReturnVOsToWashFeeZGYF(Vector vBid,HashMap hSettle, Vect
 //	      		if(d[1] != null) d1 = new UFDouble(d[1].toString());
 //	      		if(d[2] != null) d2 = new UFDouble(d[2].toString());
 	      		tempVO.setShl(d1);
+	      		tempVO.setDdhh(mapddh.get(tempVO.getCinvoice_bid()));
+	      		//add 2011-05-09 end
+	      		
 	      		      		
 	      		v2.addElement(tempVO);	
     		
