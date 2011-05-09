@@ -6593,7 +6593,7 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
  * @date 2010-9-26 下午03:14:24
  */
 public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
-
+	
 	    try {
 	      // 参数正确性检查
 	      if (voaInv == null || voaInv.length == 0) {
@@ -6602,6 +6602,9 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	      for (int i = 0; i < voaInv.length; i++) {
 	        if (voaInv[i] == null)
 	          return;
+	        //add by ouyangzhb 2011-05-08 当不是费用发票时，不需要执行之后的代码
+	        if(voaInv[i].getHeadVO().getVdef20()==null||!voaInv[i].getHeadVO().getVdef20().equals("Y"))
+	        	return;
 	      }
 
 	      // 得到每个发票体id对应的发票头id,发票头id对应的审批日期和审批人
@@ -6828,8 +6831,9 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	     * 调用应付提供的保存+冲减方法冲减暂估应付 后两个参数: lylx (来源类型 0 订单行ID 1 出库单行ID 2 发票行ID ly: 0 销售
 	     * 1 采购
 	     */
-
-	    iArap.Adjuest(washVO, strClbh, strAuditPsnId, ufdatAuditDate.toString(), unitCode, 1, 1);
+	    
+	    //add by ouyangzhb 2011-05-09 把lylx和ly 设为3，后面的程序会为这两个值设置相应的处理代码
+	    iArap.Adjuest(washVO, strClbh, strAuditPsnId, ufdatAuditDate.toString(), unitCode, 3, 3);
 	    //
 	    // 回写ic_general_bb3上的暂估应付累计回冲数量
 //	    String[] saDdhhBB3 = null;
