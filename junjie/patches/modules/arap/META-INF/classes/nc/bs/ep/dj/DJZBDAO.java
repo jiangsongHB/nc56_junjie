@@ -4391,14 +4391,24 @@ public class DJZBDAO {
 	    else if(Integer.valueOf(lx)==2)//发票行id
 	    {
 	    	lyattr="fphid";
+	    } 
+    	//add by ouyangzhb 2011-05-10 为来源类型为3的设置过滤条件
+	    else if(Integer.valueOf(lx)==3)//订单行id
+	    {
+	    	lyattr="ddhid";
 	    }
+    	
     	String tempTableName=null;
     	PersistenceManager pm=null;
     	Connection connection = null;
     	try {
     		pm=PersistenceManager.getInstance(InvocationInfoProxy.getInstance().getUserDataSource());
-    		String sql= " select distinct fb_oid,ddhh from arap_djfb where  "+SqlUtils.getInStr(lyattr, values);
-    		sql+= "and clbh='"+clbh+"' and dr=0 ";
+    		String sql= null;
+    		
+    		sql= " select distinct fb_oid,ddhh from arap_djfb where  "+SqlUtils.getInStr(lyattr, values)+" and dr=0 ";
+    		sql+= "and clbh='"+clbh+"'";
+    			
+    		
 //	    	if(values.length<1000){
 //	    		StringBuffer sb=new StringBuffer();
 //	    		sb.append(lyattr).append(" in ( ");

@@ -8528,6 +8528,9 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
         //
       	return VOs;  	
     }
+    
+    
+    
     /*
      * 冲减暂估应付调用
      * 
@@ -8677,7 +8680,99 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
       	vecItemVo2.copyInto(VOs);
     	return VOs;
     }
+     
     
+    /**
+     * @function 费用暂估应付的取消传应付
+     *
+     * @author ouyangzhb 
+     *
+     * @param voaInv
+     * @throws BusinessException 
+     *
+     * @return IAdjuestVO
+     *
+     * @date 2011-05-10 
+     */
+    
+    public IAdjuestVO[] antiWashDataForFEEZGYF(InvoiceVO invoiceVOs[]) throws Exception{
+    	Vector vecCbaseid = new Vector(), vecItemVo2 = new Vector(), vecItemVo22 = new Vector();
+    	String sUnitCode = null;
+    	
+    	//发票归类
+    	for(int i = 0; i < invoiceVOs.length; i++){
+    		InvoiceHeaderVO headVO = invoiceVOs[i].getHeadVO();
+    		sUnitCode = headVO.getPk_corp();
+    		InvoiceItemVO bodyVO[] = invoiceVOs[i].getBodyVO();   		
+     		for(int j = 0; j < bodyVO.length; j++){
+    			if(!vecCbaseid.contains(bodyVO[j].getCbaseid())) 
+    				vecCbaseid.addElement(bodyVO[j].getCbaseid());
+    			
+    		}
+    	}
+    	String sTemp[] = new String[vecCbaseid.size()];
+    	vecCbaseid.copyInto(sTemp);
+    	HashMap hInv = new PubDMO().queryArrayValues("bd_invbasdoc","pk_invbasdoc",new String[]{"laborflag","discountflag"},sTemp,"dr=0");
+    	vecCbaseid = new Vector();
+    	Object oTemp = null, invFlag[] = null;
+      	for(int i = 0; i < invoiceVOs.length; i++){
+    		InvoiceItemVO bodyVO[] = invoiceVOs[i].getBodyVO();
+    		InvoiceHeaderVO headerVO = (InvoiceHeaderVO)invoiceVOs[i].getParentVO();
+    		for(int j = 0; j < bodyVO.length; j++){
+    			oTemp = hInv.get(bodyVO[j].getCbaseid());
+    			if(oTemp != null){
+    				invFlag = (Object[]) oTemp;
+//    				if(invFlag[0].equals("Y") 
+//                || invFlag[1].equals("Y") 
+//                || headerVO.getIinvoicetype().intValue() == 3) {
+//                vecCbaseid.addElement(bodyVO[j]);//同washDataForZGYF（）的差别仅在于支持虚拟发票
+//            }else{
+                vecItemVo2.addElement(bodyVO[j]);
+//            }
+    			}
+//    			if(Math.abs(bodyVO[j].getNaccumsettmny().doubleValue() - bodyVO[j].getNmoney().doubleValue()) <= 0.0){
+    				vecItemVo22.addElement(bodyVO[j]);
+//    			}
+    		}
+      	}
+      	if(vecItemVo2.size() == 0 || vecItemVo22.size() == 0) return null;
+      	
+      	//以发票行ID, 获取结算单行中的如下信息: 入库单行ID, 结算数量, 合理损耗数量, 消耗总ID
+      
+//      	if(hSettle == null || hSettle.size() == 0) return null;
+      
+      	//查询发票参照的暂估应付单
+      
+      	Object key = null, data = null, d[] = null, dd[] = null;
+      	for(int i=0;i<vecItemVo22.size();i++){
+      		 InvoiceItemVO vo = (InvoiceItemVO) vecItemVo22.elementAt(i);
+      		vecCbaseid.addElement(vo.getCsourcebillrowid());
+      	}
+      	if(vecCbaseid.size() == 0) return null;
+      	sTemp = new String[vecCbaseid.size()];
+      	vecCbaseid.copyInto(sTemp);
+//      	HashMap tZGYF = new PubDMO().queryArrayValues("arap_djfb","ddhh",new String[]{"vouchid"},sTemp,"dr=0");
+//      	if(tZGYF == null || tZGYF.size() == 0) return null;
+      	
+      	//确定哪些发票行需要回冲
+      	vecCbaseid = new Vector();
+      	vecItemVo2 =  new Vector();
+      	for(int i = 0; i < vecItemVo22.size(); i++){
+      		InvoiceItemVO bodyVO = (InvoiceItemVO) vecItemVo22.elementAt(i);
+      		//
+      		IAdjuestVO tempVO = new IAdjuestVO();
+      		tempVO.setCinvoice_bid(bodyVO.getCinvoice_bid());
+       
+          tempVO.setDdhh(bodyVO.getCsourcebillrowid());
+      		vecItemVo2.addElement(tempVO);	
+      		
+              }
+      
+      	IAdjuestVO VOs[] = new IAdjuestVO[vecItemVo2.size()];
+    	vecItemVo2.toArray(VOs);
+//      	vecItemVo2.copyInto(VOs);
+    	return VOs;
+    }
     /*
      * 获取采购发票的核算规则和单据状态
      */
