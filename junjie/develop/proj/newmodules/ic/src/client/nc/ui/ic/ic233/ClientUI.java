@@ -1148,29 +1148,34 @@ protected boolean checkVO() {
       }
         
     if(iFbillrowflag.intValue()==BillRowType.afterConvert){
-      if(convBeforePos<0){
-        showErrorMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
-            "4008other", "UPP4008other-000513")); //"在类型为[转换后]的行前面必须至少有一个[转换前]的行";
-        return false;
-      }
+    	
+//      if(convBeforePos<0){
+//        showErrorMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
+//            "4008other", "UPP4008other-000513")); //"在类型为[转换后]的行前面必须至少有一个[转换前]的行";
+//        return false;
+//      }
+    
 
       key = SmartVOUtilExt.getKeysString(bodyvos[i], fields, null);
-      if (key.equals(convBeforeKey)) {
-        showErrorMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID("4008spec","UPP4008spec-000140")/*@res "转换前与转换后的 存货编码、辅计量单位、自由项、批次 至少有一项应不同..."*/);
-        //更改颜色为正常颜色
-/*        SetColor.SetTableColor(
-          getBillCardPanel().getBillModel(),
-          getBillCardPanel().getBillTable(),
-          getBillCardPanel(),
-          new ArrayList(),
-          m_cNormalColor,
-          m_cNormalColor,
-          m_bExchangeColor,
-          m_bLocateErrorColor,
-          "");*/
-        nc.ui.ic.pub.tools.GenMethod.reSetRowColorWhenNOException(getBillCardPanel());
-        return false;
-      }
+    //add by ouyangzhb 2011-05-10问题号：0000203: 要求修改形态转换单保存条件
+//
+//      if (key.equals(convBeforeKey)) {
+//        showErrorMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID("4008spec","UPP4008spec-000140")/*@res "转换前与转换后的 存货编码、辅计量单位、自由项、批次 至少有一项应不同..."*/);
+//        //更改颜色为正常颜色
+///*        SetColor.SetTableColor(
+//          getBillCardPanel().getBillModel(),
+//          getBillCardPanel().getBillTable(),
+//          getBillCardPanel(),
+//          new ArrayList(),
+//          m_cNormalColor,
+//          m_cNormalColor,
+//          m_bExchangeColor,
+//          m_bLocateErrorColor,
+//          "");*/
+//        nc.ui.ic.pub.tools.GenMethod.reSetRowColorWhenNOException(getBillCardPanel());
+//        return false;
+//      }
+  	//add by ouyangzhb 2011-05-10 问题号：0000203: 要求修改形态转换单保存条件 end
       
     }else {
     	isSupplierstock = bodyvos[i].getM_Issupplierstock();
