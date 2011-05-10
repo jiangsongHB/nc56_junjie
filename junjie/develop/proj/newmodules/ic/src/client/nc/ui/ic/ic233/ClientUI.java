@@ -1148,14 +1148,11 @@ protected boolean checkVO() {
       }
         
     if(iFbillrowflag.intValue()==BillRowType.afterConvert){
-    	
-//      if(convBeforePos<0){
-//        showErrorMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
-//            "4008other", "UPP4008other-000513")); //"在类型为[转换后]的行前面必须至少有一个[转换前]的行";
-//        return false;
-//      }
-    
-
+      if(convBeforePos<0){
+        showErrorMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
+            "4008other", "UPP4008other-000513")); //"在类型为[转换后]的行前面必须至少有一个[转换前]的行";
+        return false;
+      }
       key = SmartVOUtilExt.getKeysString(bodyvos[i], fields, null);
     //add by ouyangzhb 2011-05-10问题号：0000203: 要求修改形态转换单保存条件
 //
