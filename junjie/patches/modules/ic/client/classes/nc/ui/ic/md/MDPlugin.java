@@ -161,6 +161,11 @@ public class MDPlugin extends SCMBasePlugin {
 		for (AggregatedValueObject avo : arg1) {
 			//add by ouyangzhb 2011-05-06 问题0000178: 直调业务的采购入库单签字时提示“签字出错 BEGIN
 			String iszd = (String) avo.getParentVO().getAttributeValue("vuserdef20");
+			//add by ouyangzhb 2011-05-10 当为出库单时，不需要维护码单
+			String cbilltypecode = (String) avo.getParentVO().getAttributeValue("cbilltypecode");
+			if(cbilltypecode==null||cbilltypecode.equals("4C")||cbilltypecode.equals("4I")){
+				return;
+			}
 			if(iszd==null||!iszd.equals("Y")){
 				ArrayList<GeneralBillItemVO> list = new ArrayList<GeneralBillItemVO>();
 				GeneralBillItemVO[] items = (GeneralBillItemVO[]) avo
