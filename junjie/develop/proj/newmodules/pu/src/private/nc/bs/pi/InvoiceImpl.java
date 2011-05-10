@@ -1694,9 +1694,17 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
     return listResultVos;
   }
   
-  /*
-   * 费用发票弃审
-   * ouyangzhb
+  /**
+   * @function 费用发票取消传应付
+   *
+   * @author ouyangzhb 
+   *
+   * @param voaInv
+   * @throws BusinessException 
+   *
+   * @return void
+   *
+   * @date 2011-05-10 
    */
   public void unAdjustForFEEZGYF(InvoiceVO[] voaInv) throws BusinessException {
 
@@ -1711,6 +1719,10 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
 
 	      InvoiceItemVO[] aInvoiceItemVOs = null;
 	      for (int i = 0; i < voaInv.length; i++) {
+	    	  //过滤正常的物料发票
+	    	  if(voaInv[i].getHeadVO().getVdef20()==null||!voaInv[i].getHeadVO().getVdef20().equals("Y")){
+	    		  return;
+	    	  }
 
 	        aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
 	        if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
@@ -1734,7 +1746,7 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
 	      }
 
 	      // 获取暂估应付冲减VO
-	      IAdjuestVO washVO[] = new InvoiceDMO().washDataForFeeZGYF(voaInv);
+	      IAdjuestVO washVO[] = new InvoiceDMO().antiWashDataForFEEZGYF(voaInv);
 //	      IAdjuestVO[] washVO = new InvoiceDMO().antiWashDataForZGYF(voaInv);
 
 	      if (washVO != null && washVO.length > 0) {
@@ -1798,7 +1810,8 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
 	            String strClbh = null;
 	            Vector vClbh = null;
 	            IAdjuestVO voAdjust = null;
-	            String strLylx = "1";
+	            //把来源类型设置为3，以便在后面的查询中为其设置附加条件
+	            String strLylx = "3";
 	            ArrayList<IAdjuestVO> listAdjuestVos = new ArrayList<IAdjuestVO>();
 	            for (int i = 0; i < listAdjuestVO.size(); i++) {
 	              voAdjust = (IAdjuestVO) listAdjuestVO.get(i);
@@ -1856,6 +1869,10 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
 
       InvoiceItemVO[] aInvoiceItemVOs = null;
       for (int i = 0; i < voaInv.length; i++) {
+    	  //add by ouyangzhb 2011-05-10 过滤费用发票
+    	  if(voaInv[i].getHeadVO().getVdef20()!=null&&voaInv[i].getHeadVO().getVdef20().equals("Y")){
+    		  return;
+    	  }
 
         aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
         if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
