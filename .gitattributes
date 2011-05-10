@@ -155,6 +155,13 @@ junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1003/AdditionalValueVO.cla
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1003/MyBillVO.class -text
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/BurrCoefficientVO.class -text
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/MyBillVO.class -text
+junjie/develop/proj/newmodules/arap/.classpath -text
+junjie/develop/proj/newmodules/arap/.module_prj -text
+junjie/develop/proj/newmodules/arap/.project -text
+junjie/develop/proj/newmodules/arap/.settings/org.eclipse.jdt.core.prefs -text
+junjie/develop/proj/newmodules/arap/META-INF/module.xml -text
+junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/gyl/ArapForGYL.java -text
+junjie/develop/proj/newmodules/arap/src/private/nc/bs/ep/dj/DJZBDAO.java -text
 junjie/develop/proj/newmodules/ic/.classpath -text
 junjie/develop/proj/newmodules/ic/.module_prj -text
 junjie/develop/proj/newmodules/ic/.project -text
