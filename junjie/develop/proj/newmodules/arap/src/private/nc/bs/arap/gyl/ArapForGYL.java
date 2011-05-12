@@ -1947,17 +1947,25 @@ public class ArapForGYL {
 				fb = "fb.fphid";
 				// add by ouyangzhb 2011-05-09 增加发票的来源单据ID
 			}else if (lylx == 3){
-				fb = "fb.fb_oid";
+				fb = "fb.ckdid";
 			}
 
 			List<String> fbids = new ArrayList<String>();
 			for (int i = 0; i < vo.length; i++) {
 				fbids.add(vo[i].getDdhh());
 			}
-
-			String inStr = SqlUtils
-					.getInStr(fb, fbids.toArray(new String[] {}));
-
+			//add by ouyangzhb 2011-05-12 费用发票红冲单据的核销处理 begin
+			String inStr ;
+			if(lylx == 3){
+				String inStr1 = SqlUtils
+				.getInStr(null, fbids.toArray(new String[] {}));
+				String sql = "select ckdid  from arap_djfb where fb_oid "+inStr1+" and dr=0 ";
+				inStr = " fb.ckdid in ("+sql+")" ;
+			}else{
+				inStr = SqlUtils
+				.getInStr(fb, fbids.toArray(new String[] {}));
+			}
+			//add by ouyangzhb 2011-05-12 费用发票红冲单据的核销处理 end
 			condition.setAttributeValue("other", inStr);
 			ConditionVOSqlTool sqltool = new ConditionVOSqlTool(condition);
 			String sql1 = sqltool.getSql();
