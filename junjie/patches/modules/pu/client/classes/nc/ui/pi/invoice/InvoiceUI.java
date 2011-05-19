@@ -138,6 +138,7 @@ import nc.vo.pu.exception.RwtPiToPoException;
 import nc.vo.pu.exception.RwtPiToScException;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.CommonConstant;
 import nc.vo.pub.VOStatus;
 import nc.vo.pub.ValidationException;
@@ -5772,6 +5773,9 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
           }
           else {
             vos = (InvoiceVO[]) PfUtilClient.getRetVos();
+            
+            
+            
             if (vos == null) {
               MessageDialog.showHintDlg(this, nc.ui.ml.NCLangRes.getInstance().getStrByID("40040401",
                   "UPPSCMCommon-000270")/* @res "提示" */, nc.ui.ml.NCLangRes.getInstance().getStrByID("40040401",
@@ -5780,6 +5784,12 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
             }
             else {
               BillItem item = getBillListPanel().getBodyBillModel().getItemByKey("nplanprice");
+            //add by ouyangzhb 2011-05-18 当参照过来的应付单供应商相同时，合并成一张发票begin
+              if ("D1".equalsIgnoreCase(strUpBillType)||"F1".equalsIgnoreCase(strUpBillType)){
+            	  
+            	 vos = unitInvoice(vos);
+              }
+              //add by ouyangzhb 2011-05-18 当参照过来的应付单供应商相同时，合并成一张发票 end
               for (int i = 0; i < vos.length; i++) {
 
                 if (PuPubVO.getString_TrimZeroLenAsNull(vos[i].getHeadVO().getPk_purcorp()) == null) {// 采购公司为空则默认为当前登录公司
@@ -5835,6 +5845,10 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
               }
 
             }
+          }
+          Object rowno =null;
+          for(int i=0;i<vos[4].getChildrenVO().length;i++){
+        	  rowno = vos[4].getChildrenVO()[i].getAttributeValue("crowno");
           }
 
           //setCurVOPos(0);
@@ -6243,6 +6257,53 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     }
     
 
+  }
+  /*
+   * add by ouyangzhb 2011-05-19
+   * 合并发票
+   */
+  
+  public InvoiceVO[] unitInvoice(InvoiceVO[] vos){
+	  List<InvoiceVO> volist = new ArrayList<InvoiceVO>();
+      Map<String,List<InvoiceItemVO[]>> vomap=new HashMap<String,List<InvoiceItemVO[]>>();
+      Map<String,List<InvoiceItemVO>> vomap1=new HashMap<String,List<InvoiceItemVO>>();
+      Map<String,InvoiceHeaderVO> hvomap=new HashMap<String,InvoiceHeaderVO>();
+	  Set<String> smangids =  new HashSet<String>();
+      for(int j=0;j<vos.length;j++){
+    	  InvoiceHeaderVO vo = vos[j].getHeadVO();
+    	  String   smangid = vos[j].getHeadVO().getCvendormangid();
+    	  hvomap.put(smangid, vo);
+    	  if(!smangids.contains(smangid)){
+    		  List<InvoiceItemVO[]> volist1 = new ArrayList<InvoiceItemVO[]>();
+    		  volist1.add((InvoiceItemVO[]) vos[j].getChildrenVO());
+    		  vomap.put(smangid,volist1 );
+    	  }else{
+    		  List<InvoiceItemVO[]> volist1 = vomap.get(smangid); 
+    		  volist1.add(vos[j].getBodyVO());
+    		  vomap.put(smangid, volist1);
+    	  }
+    	  smangids.add(smangid);
+      }
+      for(int i=0;i<smangids.size();i++){
+    	  InvoiceVO vo = new  InvoiceVO();
+    	  vo.setParentVO((CircularlyAccessibleValueObject) hvomap.get(smangids.toArray()[i]));
+    	  List<InvoiceItemVO[]> bvos = vomap.get(smangids.toArray()[i]);
+    	  List<InvoiceItemVO> volist1 = new ArrayList<InvoiceItemVO>();
+    	  for(int j=0;j<bvos.size();j++){
+    		  for(int b=0;b<bvos.get(j).length;b++){
+    				  volist1.add(bvos.get(j)[b]);
+    		  }
+    		  InvoiceItemVO[] childvo = new InvoiceItemVO[volist1.size()];
+    		  volist1.toArray(childvo);
+    		  vo.setChildrenVO(childvo);
+    	  }
+    	  
+    	  volist.add(vo);
+      }
+       vos = new  InvoiceVO[volist.size()];
+      volist.toArray(vos);
+	  
+	  return vos;
   }
 
   /*
