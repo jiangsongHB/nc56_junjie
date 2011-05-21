@@ -5846,11 +5846,6 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
 
             }
           }
-          Object rowno =null;
-          for(int i=0;i<vos[4].getChildrenVO().length;i++){
-        	  rowno = vos[4].getChildrenVO()[i].getAttributeValue("crowno");
-          }
-
           //setCurVOPos(0);
           sContinueBillTypeName = btn.getName();
           if (btn.getParent() == m_btnInvBillNew) {
