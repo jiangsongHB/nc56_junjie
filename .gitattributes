@@ -240,6 +240,8 @@ junjie/develop/proj/newmodules/pu/src/client/nc/ui/sourceref/arap/SourceBillDlgF
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pi/InvoiceDMO.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pi/InvoiceImpl.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/estimate/EstimateImpl.java -text
+junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/settle/SettleDMO.java -text
+junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/settle/StockToInvoiceSettle.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pu/mm/AdapterPuToMm.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pu/pr/PraybillDMO.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pub/action/N_25_CRTAPBILL.java -text
