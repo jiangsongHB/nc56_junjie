@@ -1719,10 +1719,10 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
 
 	      InvoiceItemVO[] aInvoiceItemVOs = null;
 	      for (int i = 0; i < voaInv.length; i++) {
-	    	  //过滤正常的物料发票
-	    	  if(voaInv[i].getHeadVO().getVdef20()==null||!voaInv[i].getHeadVO().getVdef20().equals("Y")){
-	    		  return;
-	    	  }
+//	    	  //过滤正常的物料发票
+//	    	  if(voaInv[i].getHeadVO().getVdef20()==null||!voaInv[i].getHeadVO().getVdef20().equals("Y")){
+//	    		  return;
+//	    	  }
 
 	        aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
 	        if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
@@ -1869,10 +1869,10 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
 
       InvoiceItemVO[] aInvoiceItemVOs = null;
       for (int i = 0; i < voaInv.length; i++) {
-    	  //add by ouyangzhb 2011-05-10 过滤费用发票
-    	  if(voaInv[i].getHeadVO().getVdef20()!=null&&voaInv[i].getHeadVO().getVdef20().equals("Y")){
-    		  return;
-    	  }
+//    	  //add by ouyangzhb 2011-05-10 过滤费用发票
+//    	  if(voaInv[i].getHeadVO().getVdef20()!=null&&voaInv[i].getHeadVO().getVdef20().equals("Y")){
+//    		  return;
+//    	  }
 
         aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
         if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
@@ -6765,9 +6765,6 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	      for (int i = 0; i < voaInv.length; i++) {
 	        if (voaInv[i] == null)
 	          return;
-	        //add by ouyangzhb 2011-05-08 当不是费用发票时，不需要执行之后的代码
-	        if(voaInv[i].getHeadVO().getVdef20()==null||!voaInv[i].getHeadVO().getVdef20().equals("Y"))
-	        	return;
 	      }
 
 	      // 得到每个发票体id对应的发票头id,发票头id对应的审批日期和审批人

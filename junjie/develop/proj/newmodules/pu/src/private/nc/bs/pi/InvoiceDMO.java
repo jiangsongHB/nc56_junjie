@@ -8093,7 +8093,8 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
     			oTemp = hInv.get(bodyVO[j].getCbaseid());
     			if(oTemp != null){
     				invFlag = (Object[]) oTemp;
-//    				if(invFlag[0].equals("Y") || invFlag[1].equals("Y")) vBid.addElement(bodyVO[j]);
+    				if(invFlag[0].equals("Y") ) 
+//    					vBid.addElement(bodyVO[j]);
 //    				else 
     					v2.addElement(bodyVO[j]);
     			}
@@ -8722,13 +8723,13 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
     			oTemp = hInv.get(bodyVO[j].getCbaseid());
     			if(oTemp != null){
     				invFlag = (Object[]) oTemp;
-//    				if(invFlag[0].equals("Y") 
-//                || invFlag[1].equals("Y") 
-//                || headerVO.getIinvoicetype().intValue() == 3) {
+    				//add by ouyangzhb 2011-06-12 过滤物料发票 begin
+    				if(invFlag[0].equals("Y") ) {
 //                vecCbaseid.addElement(bodyVO[j]);//同washDataForZGYF（）的差别仅在于支持虚拟发票
 //            }else{
                 vecItemVo2.addElement(bodyVO[j]);
-//            }
+            }
+    				//add by ouyangzhb 2011-06-12 过滤物料发票 end
     			}
 //    			if(Math.abs(bodyVO[j].getNaccumsettmny().doubleValue() - bodyVO[j].getNmoney().doubleValue()) <= 0.0){
     				vecItemVo22.addElement(bodyVO[j]);
