@@ -5109,15 +5109,16 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     }
     //过滤出采购费用发票vo..方式二: 简单,但可能有不准确的信息.如果发票VO存在异常,则无法确保检出结果准确.
     List<InvoiceVO> expenseInvoiceVOs=new ArrayList<InvoiceVO>();
-    for(int i=0;i<proceVOs.length;i++){//遍历VO数组
-    	if(proceVOs[i].getHeadVO().getVdef20()!=null&&proceVOs[i].getHeadVO().getVdef20().equals("Y")){
-    		expenseInvoiceVOs.add(proceVOs[i]);
-    	}else{
-    		//do nothing
-    	}
-    }
     
-    
+    //add by ouyangzhb 2011-06-12 这个判断有误，表头自定义项20是判断是否直调，不是是否为费用发票。begin
+//    for(int i=0;i<proceVOs.length;i++){//遍历VO数组
+//    	if(proceVOs[i].getHeadVO().getVdef20()!=null&&proceVOs[i].getHeadVO().getVdef20().equals("Y")){
+//    		expenseInvoiceVOs.add(proceVOs[i]);
+//    	}else{
+//    		//do nothing
+//    	}
+//    }
+  //add by ouyangzhb 2011-06-12 这个判断有误，表头自定义项20是判断是否直调，不是是否为费用发票。end 
     
     //2010-11-03 MeiChao end
     
