@@ -296,6 +296,7 @@ junjie/develop/proj/newmodules/uap/src/client/nc/ui/bd/bd1003/InvtypeModel.java 
 junjie/develop/proj/newmodules/uap/src/client/nc/ui/bd/bd1005/ClientCtrl.java -text
 junjie/develop/proj/newmodules/uap/src/client/nc/ui/bd/bd1005/ClientEH.java -text
 junjie/develop/proj/newmodules/uap/src/client/nc/ui/bd/bd1005/ClientUI.java -text
+junjie/develop/proj/newmodules/uap/src/client/nc/ui/dbcache/version/ClientCacheVersionBS.java -text
 junjie/develop/proj/newmodules/uap/src/client/nc/ui/pub/pf/PfUtilClient.java -text
 junjie/develop/proj/newmodules/uap/src/private/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/itf/uap/pub/jj/IJJUAPService.java -text
