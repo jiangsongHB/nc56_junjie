@@ -553,6 +553,7 @@ junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1003/InvtypeModel.class -te
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientCtrl.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientEH.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientUI.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/dbcache/version/ClientCacheVersionBS.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$1.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient.class -text
 junjie/patches/scripts/.project -text
