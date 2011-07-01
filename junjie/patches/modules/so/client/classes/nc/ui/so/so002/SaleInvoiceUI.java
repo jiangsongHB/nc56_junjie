@@ -4957,9 +4957,13 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 			boolean isshow = getBillCardPanel().getBodyItem("cinvclassid")
 					.isShow();
 			for (Integer rowindex : addlinerow) {
-				// 新增行状态
-				getBillCardPanel().getBillModel().setRowState(rowindex,
-						BillModel.ADD);
+				/*
+				 * 注销掉，因为参照增增行是状态已经为新增转状态了，再次设置会有冲突
+					// 新增行状态
+					getBillCardPanel().getBillModel().setRowState(rowindex,
+							BillModel.ADD);
+				 */
+				
 				// 新增行执行加载公式
 				getBillCardPanel().getBillModel()
 						.execLoadFormulaByRow(rowindex);
