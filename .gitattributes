@@ -336,11 +336,13 @@ junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$7.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$8.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$9.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO.class -text
+junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/ic211/GeneralHBO.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/bill/GeneralBillImpl.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/pa/JJBusinessPluginOne.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/pa/JJBusinessPluginOne.java -text
+junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4C_ORDERINVOICE.class -text
 junjie/patches/modules/ic/META-INF/mdrkTools.upm -text
 junjie/patches/modules/ic/classes/nc/itf/ic/md/IMDTools.class -text
 junjie/patches/modules/ic/classes/nc/itf/ic/md/IMDTools.java -text
