@@ -198,8 +198,10 @@ junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/GeneralButtonMana
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/IOPrintData.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/SpecialBillBaseUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/dialog/MBJSDialog.java -text
+junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/ic211/GeneralHBO.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/pub/bill/GeneralBillImpl.java -text
+junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4C_ORDERINVOICE.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/itf/ic/md/IMDTools.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/itf/ic/pub/IGeneralBill.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/ui/ic/md/dialog/MDUtils.java -text
