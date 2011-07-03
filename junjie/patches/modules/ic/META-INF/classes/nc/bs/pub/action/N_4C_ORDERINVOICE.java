@@ -1,5 +1,6 @@
 package nc.bs.pub.action;
 
+import nc.ui.pub.change.PfChangeBO_Client;
 import nc.vo.pub.pf.PfUtilActionVO;
 import nc.bs.pub.compiler.*;
 import nc.vo.pub.compiler.PfParameterVO;
@@ -10,6 +11,7 @@ import nc.bs.pub.pf.PfUtilTools;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
 import nc.vo.so.so001.SaleOrderVO;
+import nc.vo.so.so002.SaleinvoiceVO;
 import nc.vo.uap.pf.PFBusinessException;
 /**
  * 备注：库存销售出库单的关闭上游订单
@@ -43,7 +45,7 @@ try{
 	setParameter("GeneralBillVO",invo);
 	inObject =  (SaleOrderVO) runClass(
 			"nc.bs.ic.ic211.GeneralHBO",
-			"findOrdervVO",
+			"findOrderVO",
 			"&GeneralBillVO:nc.vo.ic.pub.bill.GeneralBillVO",
 			vo, m_keyHas,m_methodReturnHas);
 	
@@ -54,13 +56,16 @@ try{
 	nc.vo.so.so001.SaleOrderVO inVO = (nc.vo.so.so001.SaleOrderVO) inObject;
 	nc.vo.so.so002.SaleinvoiceVO outVO = (nc.vo.so.so002.SaleinvoiceVO) changeData(
 			inVO, "30", "32");
+//	nc.vo.so.so002.SaleinvoiceVO outVO =(SaleinvoiceVO) PfUtilTools.runChangeData( "30", "32",inVO,null);
+	
+	
 	inObject = null;
 	inVO = null;
 	Object retObj = null;
 	// ####################################################################################################
 	// ##该组件为单动作处理开始,必须修改参数,如果不置入参数值，系统默认为null##
 	// ###动作名称-->PFACTION###
-	setParameter("PFACTION", "SAVE");
+	setParameter("PFACTION", "PUSHWRITE");
 	// ###单据类型-->PFBILLTYPE###
 	setParameter("PFBILLTYPE", "32");
 	// ###当前日期-->PFDATE###

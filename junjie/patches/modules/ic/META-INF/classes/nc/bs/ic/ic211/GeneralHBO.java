@@ -18,6 +18,7 @@ import nc.bs.ic.pub.ModuleEnable;
 import nc.bs.ic.pub.bill.GeneralSqlString;
 import nc.bs.ic.pub.check.CheckDMO;
 import nc.bs.ic.pub.vmi.ICSmartToolsDmo;
+import nc.bs.scm.pub.bill.SQLUtil;
 import nc.bs.scm.pub.smart.SmartDMO;
 import nc.itf.ic.service.IIC211GeneralH;
 import nc.itf.scm.so.so012.IReturnRedSquare;
@@ -1594,100 +1595,112 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
   
   
   /*
+   * add by ouyangzhb 2011-07-03
    * 获取出库单的上游销售订单
    * 
    */
   public nc.vo.so.so001.SaleOrderVO findOrderVO(nc.vo.ic.pub.bill.GeneralBillVO invo){
-	  
-	  GeneralBillItemVO[] cvos = (GeneralBillItemVO[]) invo.getChildrenVO();
-	  IUAPQueryBS iService = (IUAPQueryBS) NCLocator.getInstance().lookup(
-				IUAPQueryBS.class.getName());
 	  ArrayList<SaleorderBVO> childvos = new ArrayList<SaleorderBVO>();
-	  
 	  HashMap hmap = new HashMap();
 	  HashMap bmap = new HashMap();
 	  ArrayList csourcehidlist = new ArrayList();
 	  ArrayList csourdebodyid = new ArrayList();
+	  
+	  IUAPQueryBS iService = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+	  
+	  	if(invo==null){
+	  		return null;
+	  	}
+	  	
+	  GeneralBillItemVO[] cvos = (GeneralBillItemVO[]) invo.getChildrenVO();
+	 
 	  //取上游单据表头，表体ID对应的出库单的出库数量
 	  for(int i=0;i<cvos.length;i++){
 		  String sourcebid = cvos[i].getCsourcebillbid();
 		  String sourcehid = cvos[i].getCsourcebillhid();
-		  UFDouble num =  cvos[i].getNoutnum();
+		  UFDouble num =  cvos[i].getNshouldoutnum();
 		  if(csourcehidlist.contains(sourcehid)){
 			  hmap.put(sourcehid, ((UFDouble) hmap.get(sourcehid)).add(num));
 		  }else{
 			  hmap.put(sourcehid, num);
 		  }
+		  csourdebodyid.add(sourcebid);
 		  csourcehidlist.add(sourcehid);
 		  bmap.put(sourcebid, num);
 	  }
 	  
 	  nc.vo.so.so001.SaleOrderVO ordervo = new nc.vo.so.so001.SaleOrderVO();
+	  String bidinsql = SQLUtil.formInSQL("b.corder_bid",csourdebodyid );
+	  String hidinsql = SQLUtil.formInSQL("b.csaleid", csourcehidlist);
+	 
 	  
 	  //构造销售订单的表头
 	  //因为能过合成一张发票的所有销售订单的表头生成发票时所需要的信息是一致的，只需要取其中一条组成销售订单的表头就可以了
-	  String csoucebillid = (String) invo.getChildrenVO()[0].getAttributeValue("csourcebillid");
-	  SaleorderHVO vo = null;
+	  String csoucebillid=null;
+	  for(int i=0;i<invo.getChildrenVO().length;i++){
+		  csoucebillid = (String) invo.getChildrenVO()[i].getAttributeValue("csourcebillhid");
+		  if(csoucebillid!=null){
+			  break;
+		  }
+	  }
+	  ArrayList<SaleorderHVO> volist = null;
 	  String psql = " select * from so_sale so where so.csaleid='"+csoucebillid+"' and so.dr=0 ";
 	  try {
-			vo = (SaleorderHVO) iService
+		  volist = (ArrayList<SaleorderHVO>) iService
 				.executeQuery(psql, new BeanListProcessor(
 						SaleorderHVO.class));
 		} catch (BusinessException e) {
 			e.printStackTrace();
 		}
 		
-		//出库单表体的长度
-	  int len = invo.getChildrenVO().length;
+//		//出库单表体的长度
+	  ArrayList  listid = new ArrayList();
 	  
 	  //构造销售订单表体vo,根据需求，有两种情况，1、出库单行对应的销售订单行；2、出库单对应的销售订单的费用信息。所有的数量都必须是当前出库单的数量
-	  for(int i=0;i<len;i++){
-		  String csoucebillids = (String) invo.getChildrenVO()[i].getAttributeValue("csourcebillid");
-		  String csourcebillbodyid = (String) invo.getChildrenVO()[i].getAttributeValue("csourcebillbodyid");
-		  
-		  //查询出库单行对应的费用销售费用信息组成表体vo，并把表体的数量改为出库数量
-		  if(!csourcehidlist.contains(csoucebillids)){
-			  String costsql = "select * from so_saleorder_b b where b.csaleid='"+csoucebillids+"' and b.dr=0 " +
-			  		"and b.cinvbasdocid in (select inv.pk_invbasdoc from bd_invbasdoc inv where inv.laborflag='Y' ) ";
-			  try {
-				ArrayList<SaleorderBVO[]> costvolist = (ArrayList<SaleorderBVO[]>) iService
-					.executeQuery(costsql, new BeanListProcessor(
-							SaleorderBVO.class));
-				if(costvolist!=null&&costvolist.size()>0){
-					SaleorderBVO[] costvo = new SaleorderBVO[costvolist.size()];
-					costvolist.toArray(costvo);
-					for(int a=0;a<costvo.length;a++){
-						costvo[a].setNnumber((UFDouble) hmap.get(csoucebillids));
-						childvos.add(costvo[a]);
-					}
-				}
-			} catch (BusinessException e) {
-				e.printStackTrace();
-			}
-		  }
 		  
 		//查询出库单表体行对应的销售订单行，并把数量改为对应出库单的数量
-		  String csql = " select * from so_saleorder_b b where b.csaleid='"+csoucebillids+"' and b.dr=0 " +
-	  		"and b.csourcebillbodyid = '"+csourcebillbodyid+"' ";
+		  String csql = " select * from so_saleorder_b b where  b.dr=0 "+bidinsql ;
 		  try {
-			  SaleorderBVO childvo = (SaleorderBVO) iService
+			  ArrayList<SaleorderBVO> childvolist = new ArrayList<SaleorderBVO>();
+			   childvolist = (ArrayList<SaleorderBVO>) iService
 				.executeQuery(csql, new BeanListProcessor(
 						SaleorderBVO.class));
-			  if(childvo!=null){
-				  childvo.setNnumber((UFDouble) bmap.get(csoucebillids));
-					childvos.add(childvo);
+			  if(childvolist!=null&&childvolist.size()>0){
+				  for(int i=0;i<childvolist.size();i++){
+					  childvolist.get(i).setNnumber((UFDouble) bmap.get(childvolist.get(i).getCorder_bid()));
+					  childvos.add(childvolist.get(i));
+				  }
 			  }
 		} catch (BusinessException e) {
 			e.printStackTrace();
 		}
-	  }
-	
-	  SaleorderBVO[] cvo = new SaleorderBVO[childvos.size()];
-	  childvos.toArray(cvo);
+	  
+  
+//查询出库单行对应的费用销售费用信息组成表体vo，并把表体的数量改为出库数量
+	  String costsql = "select * from so_saleorder_b b where  b.dr=0 "+hidinsql +
+	  		"and b.cinvbasdocid in (select inv.pk_invbasdoc from bd_invbasdoc inv where inv.laborflag='Y' ) ";
+	  try {
+		ArrayList<SaleorderBVO[]> costvolist = (ArrayList<SaleorderBVO[]>) iService
+			.executeQuery(costsql, new BeanListProcessor(
+					SaleorderBVO.class));
+		if(costvolist!=null&&costvolist.size()>0){
+			SaleorderBVO[] costvo = new SaleorderBVO[costvolist.size()];
+			costvolist.toArray(costvo);
+			for(int a=0;a<costvo.length;a++){
+				childvos.add(costvo[a]);
+			}
+		}
+	} catch (BusinessException e) {
+		e.printStackTrace();
+	}
+	 
 	
 	  //组合出库单对应的销售订单
-	if(cvo!=null && cvo.length>0 &&vo!=null){
-		ordervo.setParentVO(vo);
+	if(childvos!=null && childvos.size()>0 &&volist!=null&&volist.size()>0){
+		 SaleorderBVO[] cvo = new SaleorderBVO[childvos.size()];
+		  childvos.toArray(cvo);
+		ordervo.setParentVO(volist.get(0));
 		ordervo.setChildrenVO(cvo);
 		return ordervo;
 	}else{
