@@ -15,6 +15,11 @@ import java.util.Vector;
 import javax.swing.ListSelectionModel;
 
 import nc.bs.bd.b21.BusinessCurrencyRateUtil;
+import nc.bs.framework.common.NCLocator;
+import nc.bs.scm.pub.bill.SQLUtil;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ArrayListProcessor;
+import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.ui.ml.NCLangRes;
 import nc.ui.pi.pub.PiPqPublicUIClass;
 import nc.ui.pps.PricStlHelper;
@@ -52,6 +57,7 @@ import nc.vo.jcom.lang.StringUtil;
 import nc.vo.pps.PricParaVO;
 import nc.vo.ps.estimate.EstimateVO;
 import nc.vo.ps.settle.OorderVO;
+import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.ValidationException;
 import nc.vo.pub.lang.UFBoolean;
@@ -2591,15 +2597,22 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 
     nc.vo.scm.pu.Timer timerDebug = new nc.vo.scm.pu.Timer();
     timerDebug.start();
-
+    
+    //暂估入库单号
+    ArrayList bcodelist = new ArrayList();
     Integer nSelected[] = null;
     Vector v = new Vector();
     Vector vv = new Vector();
     int nRow = getBillCardPanel().getRowCount();
     for (int i = 0; i < nRow; i++) {
+    	 String billcode = m_estimate2VOs[i].getVbillcode();
       int nStatus = getBillCardPanel().getBillModel().getRowState(i);
-      if (nStatus == BillModel.SELECTED)
-        v.addElement(new Integer(i));
+      if (nStatus == BillModel.SELECTED){
+    	  v.addElement(new Integer(i));
+    	  
+    	  bcodelist.add(billcode);
+      }
+      
       else
         vv.addElement(new Integer(i));
     }
@@ -2618,6 +2631,33 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
                                                                                          */);
       return;
     }
+    
+    // add by ouyangzhb 查询需要返暂的入库单的下游单据是否存在发票没有删除 begin
+    String insql = SQLUtil.formInSQL("pb.vdef18", bcodelist);
+    String sql = " select pb.vdef18 from po_invoice_b pb where pb.dr=0 "+insql;
+    IUAPQueryBS queryBS=NCLocator.getInstance().lookup(IUAPQueryBS.class);
+	
+		try {
+			StringBuffer errMessage = new StringBuffer();
+			 Object[] ckdhs = (Object[]) queryBS.executeQuery(sql, new ArrayProcessor());
+			if(ckdhs!=null&&ckdhs.length>0){
+				errMessage.append("暂估入库单:\n");
+				for(int a=0;a<ckdhs.length;a++){
+					errMessage.append(ckdhs[a]);
+					errMessage.append("\n");
+					
+				}
+				errMessage.append("存在下游发票，不能返暂");
+				String errs = new String(errMessage);
+				 MessageDialog.showErrorDlg(this,"发票删除" ,errs);
+				      return;
+			}
+		} catch (BusinessException e1) {
+			e1.printStackTrace();
+		}
+
+		// add by ouyangzhb 查询需要返暂的入库单的下游单据是否存在发票没有删除  end
+    
     Vector vTemp = new Vector();
     for (int i = 0; i < nSelected.length; i++) {
       EstimateVO vo = m_estimate2VOs[nSelected[i].intValue()];
