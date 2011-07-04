@@ -2616,7 +2616,8 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 				showErrorMessage("请选择列表中的一行发票");
 				return;
 			}
-
+			
+			
 			getVOCache().setPos(iRow);
 
 			remove(getBillListPanel());
@@ -2626,6 +2627,11 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 			setShowState(CardShow);
 			getBillCardPanel().loadCardData(getVOCache().getCurrentVO());
 		}
+		
+		//add by ouyangzhb 2011-07-04 在修改状态下，
+		//不允许设置多选状态，这样会导致单据状态冲突，导致无法编辑单签单据 begin
+		getBillCardPanel().setBodyMultiSelect(false);// 设置表体可多选.
+		//add end
 
 		// ------2-------------to card
 		SaleinvoiceVO VO = getVOCache().getCurrentVO();
@@ -3143,6 +3149,9 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 
 		setButtonsStateBrowse();
 
+		//add by ouyangzhb 2011-07-04 在修改保存完成后恢复多选状态
+		getBillCardPanel().setBodyMultiSelect(true);// 设置表体可多选.
+		//add end
 		return sMessage;
 	}
 
@@ -4957,12 +4966,11 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 			boolean isshow = getBillCardPanel().getBodyItem("cinvclassid")
 					.isShow();
 			for (Integer rowindex : addlinerow) {
-				/*
-				 * 注销掉，因为参照增增行是状态已经为新增转状态了，再次设置会有冲突
+				
 					// 新增行状态
 					getBillCardPanel().getBillModel().setRowState(rowindex,
 							BillModel.ADD);
-				 */
+			
 				
 				// 新增行执行加载公式
 				getBillCardPanel().getBillModel()
