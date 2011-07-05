@@ -1619,15 +1619,10 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 	  for(int i=0;i<cvos.length;i++){
 		  String sourcebid = cvos[i].getCsourcebillbid();
 		  String sourcehid = cvos[i].getCsourcebillhid();
-		  UFDouble num =  cvos[i].getNshouldoutnum();
-		  if(csourcehidlist.contains(sourcehid)){
-			  hmap.put(sourcehid, ((UFDouble) hmap.get(sourcehid)).add(num));
-		  }else{
-			  hmap.put(sourcehid, num);
-		  }
+		  UFDouble noutnum =  cvos[i].getNoutnum();
 		  csourdebodyid.add(sourcebid);
 		  csourcehidlist.add(sourcehid);
-		  bmap.put(sourcebid, num);
+		  bmap.put(sourcebid, noutnum);
 	  }
 	  
 	  nc.vo.so.so001.SaleOrderVO ordervo = new nc.vo.so.so001.SaleOrderVO();
