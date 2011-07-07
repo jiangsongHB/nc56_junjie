@@ -5097,7 +5097,10 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener, 
     List<InvoiceVO> expenseInvoiceVO=new ArrayList<InvoiceVO>();
     for(int i=0;i<proceVOs.length;i++){//遍历VO数组
     	for(int j=0;j<proceVOs[i].getBodyVO().length;j++){//遍历发票表体
-    		if(proceVOs[i].getBodyVO()[j].getCupsourcebilltype().equals("D1")){
+    		
+    		//add by ouyangzhb 2011-07-06  需要增加条件，因为当是手工增加的发票时，没有来源单据，会出现空指针
+//    		if(proceVOs[i].getBodyVO()[j].getCupsourcebilltype().equals("D1")){
+    		if(proceVOs[i].getBodyVO()[j].getCupsourcebilltype()!=null&&proceVOs[i].getBodyVO()[j].getCupsourcebilltype().equals("D1")){
     			if(j==proceVOs[i].getBodyVO().length-1){//如果所有的表体上层来源单据类型均为D1,那么表示当前单据为采购费用发票.
     				expenseInvoiceVO.add(proceVOs[i]);//将当前发票VO加入到费用发票VOList中.
     			}

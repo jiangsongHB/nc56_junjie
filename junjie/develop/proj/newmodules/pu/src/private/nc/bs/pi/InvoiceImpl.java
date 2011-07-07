@@ -1861,6 +1861,7 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
     try {
       // 参数正确性检查
       if (voaInv == null || voaInv.length == 0) {
+    	  
         return;
       }
 
@@ -5524,6 +5525,8 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
     try {
       // 滤掉虚拟发票
       voaInvoice = filterVirtualInvoice(voaInvoice);
+      
+      // 过滤掉费暂估应付的发票
       //
       InvoiceItemVO[] bodyVO = null;
       InvoiceHeaderVO headVO = null;
@@ -7012,5 +7015,231 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 //	      invoiceDMO.updateAccumWashNumForVmi(saDdhhVmi, uaNumVmi, true);
 //	    }
 	  }
+	  
+	  /**
+	   * add by ouyangzhb 2011-07-07
+	   *手工结算的时候，组织暂估应付冲减VO, 调用应付的调差接口, 冲减暂估应付
+	   */
+	  public void adjustForSettle(InvoiceVO[] voaInv) throws BusinessException {
+
+	    try {
+	      // 参数正确性检查
+	      if (voaInv == null || voaInv.length == 0) {
+	        return;
+	      }
+	      for (int i = 0; i < voaInv.length; i++) {
+	        if (voaInv[i] == null)
+	          return;
+	      }
+
+	      // 得到每个发票体id对应的发票头id,发票头id对应的审批日期和审批人
+	      Hashtable htHeadId = new Hashtable();
+	      Hashtable htAuditPsnId = new Hashtable();
+	      Hashtable htAuditDate = new Hashtable();
+	      InvoiceItemVO[] aInvoiceItemVOs = null;
+	      InvoiceHeaderVO aInvoiceHeaderVO = null;
+	      for (int i = 0; i < voaInv.length; i++) {
+
+	        aInvoiceHeaderVO = (InvoiceHeaderVO) voaInv[i].getParentVO();
+	        //add by ouyangzhb 2011-07-07 手工结算时，对应的发票必须是已审核的
+	        if(aInvoiceHeaderVO.getCauditpsn()==null||aInvoiceHeaderVO.getCauditpsn().equals(" ")){
+	        	throw new BusinessException("发票未审核，不能结算！"); 
+	        }
+	        //add end 
+
+	        htAuditPsnId.put(aInvoiceHeaderVO.getCinvoiceid(), aInvoiceHeaderVO.getCauditpsn());
+	        htAuditDate.put(aInvoiceHeaderVO.getCinvoiceid(), aInvoiceHeaderVO.getDauditdate());
+
+	        aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
+	        if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
+	          continue;
+	        }
+
+	        for (int j = 0; j < aInvoiceItemVOs.length; j++) {
+	          htHeadId.put(aInvoiceItemVOs[j].getCinvoice_bid(), aInvoiceItemVOs[j].getCinvoiceid());
+	        }
+
+	      }
+
+	      // 判断应付是否启用
+	      ICreateCorpQueryService myService0 = null;
+	      myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator.getInstance().lookup(
+	          ICreateCorpQueryService.class.getName());
+	      String unitCode = ((InvoiceHeaderVO) voaInv[0].getParentVO()).getPk_corp();
+	      boolean bAPStartUp = myService0.isEnabled(unitCode, "AP");
+	      if (!bAPStartUp) {
+	        return;
+	      }
+
+	      // 获取暂估应付冲减VO
+	      IAdjuestVO washVO[] = new InvoiceDMO().washDataForSettle(voaInv);
+
+	      if (washVO != null && washVO.length > 0) {
+	        /*
+	         * 生成并回写发票的处理编号, since v502 since v53, 修改，解决如下问题：
+	         * 如果是来源于同一行入库单时，要拆分成多个处理编号处理，否则发票弃审时按处理编号+入库单行删除红冲单时会多删除单据!
+	         */
+	        ArrayList<ArrayList<IAdjuestVO>> listRepeatVos = getVos(washVO);
+	        // 按分好组的多组数据回冲
+	        if (listRepeatVos.size() > 0) {
+	          PubDMO dmo = new PubDMO();
+	          for (int i = 0; i < listRepeatVos.size(); i++) {
+	            washVO = listRepeatVos.get(i).toArray(new IAdjuestVO[listRepeatVos.get(i).size()]);
+	            adjustForZGYFOneByOne(washVO, unitCode, htHeadId, htAuditPsnId, htAuditDate, dmo);
+	          }
+	        }
+	      }
+	    }
+	    catch (Exception e) {
+	      /* 调用采购公用方法按规范抛出异常 */
+	      nc.bs.pu.pub.PubDMO.throwBusinessException(e);
+	    }
+	  }
+	  
+	  /**
+	   * add by ouyangzhb 2011-07-07
+	   *结算单删除，组织暂估应付冲减VO, 调用应付的调差接口, 冲减暂估应付
+	   */
+	  public void unAdjustForSettle(InvoiceVO[] voaInv,SettlebillVO settleVO) throws BusinessException {
+
+	    try {
+	      // 参数正确性检查
+	      if (voaInv == null || voaInv.length == 0) {
+	    	  
+	        return;
+	      }
+
+	      // 得到每个发票体id对应的发票头id
+	      Hashtable htHeadId = new Hashtable();
+
+	      InvoiceItemVO[] aInvoiceItemVOs = null;
+	      for (int i = 0; i < voaInv.length; i++) {
+	        aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
+	        if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
+	          continue;
+	        }
+
+	        for (int j = 0; j < aInvoiceItemVOs.length; j++) {
+	          htHeadId.put(aInvoiceItemVOs[j].getCinvoice_bid(), aInvoiceItemVOs[j].getCinvoiceid());
+	        }
+
+	      }
+
+	      // 判断应付是否启用
+	      ICreateCorpQueryService myService0 = null;
+	      myService0 = (ICreateCorpQueryService) nc.bs.framework.common.NCLocator.getInstance().lookup(
+	          ICreateCorpQueryService.class.getName());
+	      String unitCode = ((InvoiceHeaderVO) voaInv[0].getParentVO()).getPk_corp();
+	      boolean bAPStartUp = myService0.isEnabled(unitCode, "AP");
+	      if (!bAPStartUp) {
+	        return;
+	      }
+
+	      // 获取暂估应付冲减VO
+	      IAdjuestVO[] washVO = new InvoiceDMO().antiWashDataForSettle(voaInv,settleVO);
+
+	      if (washVO != null && washVO.length > 0) {
+
+	        // 通过washVO[]组织入库单行id[]
+	        String[] saGeneralBid = new String[washVO.length];
+	        for (int i = 0; i < washVO.length; i++) {
+	          saGeneralBid[i] = washVO[i].getDdhh();
+	        }
+
+	        String strInvoiceHid = null;
+	        Object objTemp = null;
+
+	        InvoiceDMO invoiceDMO = new InvoiceDMO();
+	        //
+	        ArrayList<IAdjuestVO> listAdjuestVO = new ArrayList<IAdjuestVO>();
+	        ArrayList<String> listInvoiceHid = new ArrayList<String>();
+	        for (int i = 0; i < washVO.length; i++) {
+
+	          // 根据发票体id查询发票头id
+	          objTemp = htHeadId.get(washVO[i].getCinvoice_bid());
+	          if (objTemp == null || objTemp.toString().trim().length() == 0) {
+	            continue;
+	          }
+	          strInvoiceHid = objTemp.toString();
+	          //
+	          if (!listInvoiceHid.contains(strInvoiceHid)) {
+	            listInvoiceHid.add(strInvoiceHid);
+	          }
+	          //
+	          washVO[i].setCinvoiceid(strInvoiceHid);
+	          listAdjuestVO.add(washVO[i]);
+
+	          // 调用应付提供的保存+冲减方法冲减暂估应付
+	          // iArap.unAdjuest(strInvoiceHid,unitCode);
+
+	          // 回写ic_general_bb3上的暂估应付累计回冲数量
+	          if (washVO[i].isVmi()) {
+	            invoiceDMO.updateAccumWashNumForVmi(new String[] {
+	              washVO[i].getDdhh()
+	            }, new UFDouble[] {
+	              washVO[i].getShl()
+	            }, false);
+	          }
+	          else {
+	            invoiceDMO.updateAccumWashNumForIC(new String[] {
+	              washVO[i].getDdhh()
+	            }, new UFDouble[] {
+	              washVO[i].getShl()
+	            }, false);
+	          }
+	        }
+	        // 调用应付提供的保存+冲减方法冲减暂估应付
+	        if (listAdjuestVO.size() > 0) {
+	          Hashtable hashHidClbh = new PubDMO().queryHtResultFromAnyTable("po_invoice", "cinvoiceid", new String[] {
+	            "clbh"
+	          }, " cinvoiceid in " + new TempTableUtil().getSubSql(listInvoiceHid));
+	          if (hashHidClbh != null && hashHidClbh.size() > 0) {
+	            Map<String, Map<String, String>> clbhs = new HashMap<String, Map<String, String>>();
+	            Map<String, String> mapDdhh = null;
+	            String strClbh = null;
+	            Vector vClbh = null;
+	            IAdjuestVO voAdjust = null;
+	            String strLylx = "1";
+	            ArrayList<IAdjuestVO> listAdjuestVos = new ArrayList<IAdjuestVO>();
+	            for (int i = 0; i < listAdjuestVO.size(); i++) {
+	              voAdjust = (IAdjuestVO) listAdjuestVO.get(i);
+	              strInvoiceHid = voAdjust.getCinvoiceid();
+	              vClbh = (Vector) hashHidClbh.get(strInvoiceHid);
+	              if (vClbh == null || vClbh.size() == 0) {
+	                continue;
+	              }
+	              strClbh = (String) ((Object[]) vClbh.get(0))[0];
+	              if (PuPubVO.getString_TrimZeroLenAsNull(strClbh) == null) {
+	                continue;
+	              }
+	              listAdjuestVos.add(voAdjust);
+	              mapDdhh = clbhs.get(strClbh);
+	              if (mapDdhh == null) {
+	                mapDdhh = new HashMap<String, String>();
+	              }
+	              mapDdhh.put(voAdjust.getDdhh(), strLylx);
+	              clbhs.put(strClbh, mapDdhh);
+	            }
+	            //
+	            if (clbhs.size() > 0) {
+	              IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator.getInstance().lookup(
+	                  IArapForGYLPublic.class.getName());
+	              iArap.unAdjuestForGC(clbhs, unitCode);
+	            }
+
+	            // 更新处理编号
+	            if (listAdjuestVos.size() > 0) {
+	              invoiceDMO.updateClbh(listAdjuestVO.toArray(new IAdjuestVO[listAdjuestVO.size()]), null, null, true);
+	            }
+	          }
+	        }
+	      }
+	    }
+	    catch (Exception e) {
+	      PubDMO.throwBusinessException(e);
+	    }
+	  }
+
+
   
 }
