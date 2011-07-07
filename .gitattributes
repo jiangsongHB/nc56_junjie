@@ -1,4 +1,7 @@
 * text=auto !eol
+junjie/develop/cmp/META-INF/module.xml -text
+junjie/develop/cmp/src/client/nc/ui/cmp/pub/DefaultListEventHandler.java -text
+junjie/develop/cmp/src/client/nc/ui/cmp/settlement/SettlementListEventHandler.java -text
 junjie/develop/proj/modules/ic/.classpath -text
 junjie/develop/proj/modules/ic/.module_prj -text
 junjie/develop/proj/modules/ic/.project -text
