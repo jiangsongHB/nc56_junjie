@@ -490,7 +490,6 @@ junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVO.class -text
 junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVO.java -text
 junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVOMeta.class -text
 junjie/patches/modules/pu/classes/vo/pu/jjvo/InformationCostVOMeta.java -text
-junjie/patches/modules/pu/client/classes/nc/bs/ps/settle/SettleImpl.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pf/PfUtilClient$1.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pf/PfUtilClient.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pf/PfUtilClient.java -text
