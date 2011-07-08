@@ -886,7 +886,7 @@ public class SettleImpl implements ISettle, IPuToIc_SettleImpl {
                 new String[] {
                     "arap_djfb.clbh"
                 },
-                " arap_djfb.vouchid = arap_djzb.vouchid and arap_djzb.zgyf=2 and arap_djzb.dr=0 "+inclbh+"and arap_djfb.dr=0  "+ids );
+                " arap_djfb.vouchid = arap_djzb.vouchid and arap_djzb.zgyf=2 and arap_djzb.dr=0 and arap_djfb.dr=0  "+ids );
         }
         if(hashHidClbh!=null&&hashHidClbh.size()>0){
         	 //add by ouyangzhb 冲减入库单的暂估应付单
@@ -2567,7 +2567,7 @@ public class SettleImpl implements ISettle, IPuToIc_SettleImpl {
         
       //add by ouyangzhb 冲减入库单的暂估应付单
         InvoiceImpl impl = new InvoiceImpl();
-        impl.adjustForSettle(this.getInvoiceVO(iinvoiceVOs));
+        impl.adjustForSettle(this.getInvoiceVO(iinvoiceVOs),settlebillVO);
         //add end 
       }
       else {
