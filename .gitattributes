@@ -467,6 +467,7 @@ junjie/patches/modules/pu/META-INF/classes/nc/bs/pi/InvoiceDMO.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pi/InvoiceImpl.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/estimate/EstimateImpl.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/settle/SettleDMO.class -text
+junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/settle/SettleImpl.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/settle/StockToInvoiceSettle.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pu/mm/AdapterPuToMm.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pu/pr/PraybillDMO.class -text
