@@ -651,12 +651,17 @@ public class SettleImpl implements ISettle, IPuToIc_SettleImpl {
             }
           }
         }
+        
+        /*
+         * add by ouyangzhb 2011-07-09
+         * 删除手工结算时，不需要对是否已传应付做限制
+         */
         // 暂估应付启用、已经传应付、非虚拟发票：不允许删除结算单
-        if (ufbZGYF.booleanValue() && bApFlag!=null && bApFlag.booleanValue() &&
-            (bVirFlag == null || !bVirFlag.booleanValue())) {
-          throw new BusinessException(NCLangResOnserver.getInstance().
-              getStrByID("40040502", "UPP40040502-000239")/* "公司启用暂估应付参数[PO52=‘Y’]、普通采购发票已经传应付后不允许删除结算单" */);
-        }
+//        if (ufbZGYF.booleanValue() && bApFlag!=null && bApFlag.booleanValue() &&
+//            (bVirFlag == null || !bVirFlag.booleanValue())) {
+//          throw new BusinessException(NCLangResOnserver.getInstance().
+//              getStrByID("40040502", "UPP40040502-000239")/* "公司启用暂估应付参数[PO52=‘Y’]、普通采购发票已经传应付后不允许删除结算单" */);
+//        }
       }
 
       // 恢复入库单
