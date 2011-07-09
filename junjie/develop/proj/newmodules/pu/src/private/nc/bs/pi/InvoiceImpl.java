@@ -7020,7 +7020,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	   * add by ouyangzhb 2011-07-07
 	   *手工结算的时候，组织暂估应付冲减VO, 调用应付的调差接口, 冲减暂估应付
 	   */
-	  public void adjustForSettle(InvoiceVO[] voaInv) throws BusinessException {
+	  public void adjustForSettle(InvoiceVO[] voaInv,SettlebillVO settleVO) throws BusinessException {
 
 	    try {
 	      // 参数正确性检查
@@ -7072,7 +7072,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	      }
 
 	      // 获取暂估应付冲减VO
-	      IAdjuestVO washVO[] = new InvoiceDMO().washDataForSettle(voaInv);
+	      IAdjuestVO washVO[] = new InvoiceDMO().washDataForSettle(voaInv,settleVO);
 
 	      if (washVO != null && washVO.length > 0) {
 	        /*
@@ -7226,6 +7226,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	                  IArapForGYLPublic.class.getName());
 	              iArap.unAdjuestForGC(clbhs, unitCode);
 	            }
+	           
 
 	            // 更新处理编号
 	            if (listAdjuestVos.size() > 0) {

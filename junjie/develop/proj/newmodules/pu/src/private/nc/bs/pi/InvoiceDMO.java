@@ -9493,7 +9493,7 @@ private Vector getInvoicesToWashFeeZGYF(HashMap hSettle,HashMap tZGYF,Vector vOv
  * 获取调整VO[]
  *
  */
-public IAdjuestVO[] washDataForSettle(InvoiceVO invoiceVOs[]) throws Exception{
+public IAdjuestVO[] washDataForSettle(InvoiceVO invoiceVOs[],SettlebillVO settleVO) throws Exception{
 	Vector vBid = new Vector(), v2 = new Vector();
 	String sUnitCode = null;
 	
@@ -9586,7 +9586,7 @@ for(int i = 0; i < v2.size(); i++){
       	//判断是否可以冲减暂估应付
       	
       	//以发票行ID, 获取入库单行ID, 结算数量, 合理损耗数量,消耗汇总ID
-      	HashMap hSettle = getSettleInfoByInvoice(vOver);
+      	HashMap hSettle = getSettle(settleVO);
       	if(hSettle == null || hSettle.size() == 0){
       		//发票未与入库单或消耗汇总结算过,直接返回
       		return null;
