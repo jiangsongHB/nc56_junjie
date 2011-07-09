@@ -7031,6 +7031,15 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	        if (voaInv[i] == null)
 	          return;
 	      }
+	      
+	      HashMap clbhmap=new HashMap();
+	      for (int i = 0; i < voaInv.length; i++) {
+		        String clbh = voaInv[i].getHeadVO().getClbh();
+		        String hinvoiceid = voaInv[i].getHeadVO().getCinvoiceid();
+		        clbhmap.put(hinvoiceid, clbh);
+		        
+		      }
+	      
 
 	      // 得到每个发票体id对应的发票头id,发票头id对应的审批日期和审批人
 	      Hashtable htHeadId = new Hashtable();
@@ -7085,7 +7094,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	          PubDMO dmo = new PubDMO();
 	          for (int i = 0; i < listRepeatVos.size(); i++) {
 	            washVO = listRepeatVos.get(i).toArray(new IAdjuestVO[listRepeatVos.get(i).size()]);
-	            adjustForZGYFOneByOne(washVO, unitCode, htHeadId, htAuditPsnId, htAuditDate, dmo);
+	            adjustForSettleOneByOne(washVO, unitCode, htHeadId, htAuditPsnId, htAuditDate, dmo, clbhmap);
 	          }
 	        }
 	      }
@@ -7226,17 +7235,219 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	                  IArapForGYLPublic.class.getName());
 	              iArap.unAdjuestForGC(clbhs, unitCode);
 	            }
+	           
 
-	            // 更新处理编号
-	            if (listAdjuestVos.size() > 0) {
-	              invoiceDMO.updateClbh(listAdjuestVO.toArray(new IAdjuestVO[listAdjuestVO.size()]), null, null, true);
-	            }
+//	            // 更新处理编号
+//	            if (listAdjuestVos.size() > 0) {
+//	              invoiceDMO.updateClbh(listAdjuestVO.toArray(new IAdjuestVO[listAdjuestVO.size()]), null, null, true);
+//	            }
 	          }
 	        }
 	      }
 	    }
 	    catch (Exception e) {
 	      PubDMO.throwBusinessException(e);
+	    }
+	  }
+
+	  /*
+	   * 设置是否最后一次回冲并保存暂估应付红冲单据,since v53
+	   */
+	  private void adjustForSettleOneByOne(IAdjuestVO[] washVO, String unitCode, Hashtable htHeadId, Hashtable htAuditPsnId,
+	      Hashtable htAuditDate, PubDMO dmo,HashMap clbhmap) throws Exception {
+	    // 通过washVO[]组织入库单行id[]及消耗汇总ID[]
+	    ArrayList<String> listGeneralBid = new ArrayList<String>();
+	    ArrayList<String> listVmiHid = new ArrayList<String>();
+	    for (int i = 0; i < washVO.length; i++) {
+	      if (washVO[i].isVmi()) {
+	        listVmiHid.add(washVO[i].getDdhh());
+	      }
+	      else {
+	        listGeneralBid.add(washVO[i].getDdhh());
+	      }
+	    }
+	    String[] saGeneralBid = new String[listGeneralBid.size()];
+	    listGeneralBid.toArray(saGeneralBid);
+	    String[] saVmiHid = new String[listVmiHid.size()];
+	    listVmiHid.toArray(saVmiHid);
+
+	    // 根据入库单行id[]去查询入库单表体上的暂估数量(实收数量)
+	    HashMap htInNum = new HashMap();
+	    if (saGeneralBid != null && saGeneralBid.length > 0) {
+	      htInNum = dmo.queryArrayValues("ic_general_b", "cgeneralbid", new String[] {
+	        "ninnum"
+	      }, saGeneralBid, "dr=0");
+	    }
+	    // 根据VMI头id[]去查询暂估数量(出库数量-出库退回数量)
+	    // For V56 适应库存VMI调整做相应修改 by zhaoyha
+	    HashMap htInNumVmi = new HashMap();
+	    if (saVmiHid != null && saVmiHid.length > 0) {
+	      htInNumVmi = dmo.queryArrayValues("ic_vmi_sum", "cvmihid", new String[] {
+	        "coalesce(nrsvnum1,0)"
+	      }, saVmiHid, "dr=0");
+	    }
+	    // 根据入库单行id[]去查询ic_general_bb3上的暂估应付累计回冲(结算)数量
+	    HashMap htAccumWashNum = new HashMap();
+	    if (saGeneralBid != null && saGeneralBid.length > 0) {
+	      htAccumWashNum = dmo.queryArrayValues("ic_general_bb3", "cgeneralbid", new String[] {
+	        "naccumwashnum"
+	      }, saGeneralBid, "dr=0");
+	    }
+	    // 根据VMI头id[]去查询累计回冲(结算)数量
+	    HashMap htAccumWashNumVmi = new HashMap();
+	    if (saVmiHid != null && saVmiHid.length > 0) {
+	      htAccumWashNumVmi = dmo.queryArrayValues("ic_vmi_sum", "cvmihid", new String[] {
+	        "naccumwashnum"
+	      }, saVmiHid, "dr=0");
+	    }
+	    // 根据 实收数量 ==? （累计回冲数量 + 本次回冲数量）来组织 是否最后一次冲减
+	    String strGeneralBid = null;
+	    String strInvoiceHid = null;
+	    String strAuditPsnId = null;
+	    UFDate ufdatAuditDate = null;
+	    String strVmiBid = null;
+
+	    Object objTemp = null;
+	    Object[] oaTemp = null;
+	    UFDouble ufdInNum = new UFDouble(0);
+	    UFDouble ufdAccumWashNum = new UFDouble(0);
+	    UFBoolean ufbLast[] = new UFBoolean[washVO.length];
+
+	    IArapForGYLPublic iArap = (IArapForGYLPublic) NCLocator.getInstance().lookup(IArapForGYLPublic.class.getName());
+	    InvoiceDMO invoiceDMO = new InvoiceDMO();
+	    //
+	    ArrayList<String> listIdBB3 = new ArrayList<String>();
+	    ArrayList<String> listIdVmi = new ArrayList<String>();
+	    ArrayList<UFDouble> listNumBB3 = new ArrayList<UFDouble>();
+	    ArrayList<UFDouble> listNumVmi = new ArrayList<UFDouble>();
+	    for (int i = 0; i < washVO.length; i++) {
+	      strVmiBid = null;
+	      strGeneralBid = null;
+	      if (washVO[i].isVmi()) {
+	        strVmiBid = washVO[i].getDdhh();
+	      }
+	      else {
+	        strGeneralBid = washVO[i].getDdhh();
+	      }
+	      if ((strGeneralBid == null || strGeneralBid.trim().length() == 0)
+	          && (strVmiBid == null || strVmiBid.trim().length() == 0)) {
+	        continue;
+	      }
+	      // 实收数量
+	      if (washVO[i].isVmi()) {
+	        objTemp = htInNumVmi.get(strVmiBid);
+	      }
+	      else {
+	        objTemp = htInNum.get(strGeneralBid);
+	      }
+	      if (objTemp != null) {
+	        oaTemp = (Object[]) objTemp;
+	        if (oaTemp.length > 0 && oaTemp[0] != null) {
+	          ufdInNum = new UFDouble(oaTemp[0].toString());
+	        }
+	      }
+	      // 累计回冲数量
+	      ufdAccumWashNum = washVO[i].getShl();
+	      if (washVO[i].isVmi()) {
+	        objTemp = htAccumWashNumVmi.get(strVmiBid);
+	      }
+	      else {
+	        objTemp = htAccumWashNum.get(strGeneralBid);
+	      }
+	      if (objTemp != null) {
+	        oaTemp = (Object[]) objTemp;
+	        if (oaTemp.length > 0 && oaTemp[0] != null) {
+	          ufdAccumWashNum = (new UFDouble(oaTemp[0].toString())).add(ufdAccumWashNum);
+	        }
+	      }
+	      if (washVO[i].isVmi()) {
+	        htAccumWashNum.put(strVmiBid, new UFDouble[] {
+	          ufdAccumWashNum
+	        });
+	      }
+	      else {
+	        htAccumWashNum.put(strGeneralBid, new UFDouble[] {
+	          ufdAccumWashNum
+	        });
+	      }
+	      // 是否最后一次冲减
+	      if (ufdInNum.doubleValue() == ufdAccumWashNum.doubleValue()) {
+	        ufbLast[i] = UFBoolean.TRUE;
+	      }
+	      else {
+	        ufbLast[i] = UFBoolean.FALSE;
+	      }
+
+	      // 根据发票体id查询发票头id
+	      objTemp = htHeadId.get(washVO[i].getCinvoice_bid());
+	      if (objTemp != null && objTemp.toString().trim().length() > 0) {
+	        strInvoiceHid = objTemp.toString();
+	      }
+	      //
+	      washVO[i].setCinvoiceid(strInvoiceHid);
+
+	      // 根据发票头id得到审批人和审批日期
+	      objTemp = htAuditPsnId.get(strInvoiceHid);
+	      if (objTemp != null && objTemp.toString().trim().length() > 0) {
+	        strAuditPsnId = objTemp.toString();
+	      }
+
+	      objTemp = htAuditDate.get(strInvoiceHid);
+	      if (objTemp != null && objTemp.toString().trim().length() > 0) {
+	        ufdatAuditDate = new UFDate(objTemp.toString());
+	      }
+	      //
+	      if (washVO[i].isVmi()) {
+	        listIdVmi.add(washVO[i].getDdhh());
+	        listNumVmi.add(washVO[i].getShl());
+	      }
+	      else {
+	        listIdBB3.add(washVO[i].getDdhh());
+	        listNumBB3.add(washVO[i].getShl());
+	      }
+
+	      washVO[i].setIsdone(ufbLast[i]);
+	    }
+	    
+	    
+	    //获取处理编号，只取第一个
+	    String clbh = null;
+	    for(int i=0;i<washVO.length;i++){
+	    	clbh = (String) clbhmap.get(washVO[i].getCinvoiceid());
+	    	if(clbh!=null&&!clbh.equals(""))
+	    		break;
+	    	
+	    }
+	    
+	    //当存在发票已经做过部分结算时，可以处理编号设置为之前的编号，已处理多次结算时无法删除冲减的应付单
+	    String strClbh =null;
+	    if(clbh!=null&&!clbh.equals("")){
+	    	strClbh = invoiceDMO.updateClbh(washVO, unitCode, clbh, false);
+	    }else{
+	    	strClbh = invoiceDMO.updateClbh(washVO, unitCode, null, false);
+	    }
+	   
+	    /*
+	     * 调用应付提供的保存+冲减方法冲减暂估应付 后两个参数: lylx (来源类型 0 订单行ID 1 出库单行ID 2 发票行ID ly: 0 销售
+	     * 1 采购
+	     */
+	    iArap.Adjuest(washVO, strClbh, strAuditPsnId, ufdatAuditDate.toString(), unitCode, 1, 1);
+	    //
+	    // 回写ic_general_bb3上的暂估应付累计回冲数量
+	    String[] saDdhhBB3 = null;
+	    UFDouble[] uaNumBB3 = null;
+	    if (listIdBB3.size() > 0) {
+	      saDdhhBB3 = listIdBB3.toArray(new String[listIdBB3.size()]);
+	      uaNumBB3 = listNumBB3.toArray(new UFDouble[listNumBB3.size()]);
+	      invoiceDMO.updateAccumWashNumForIC(saDdhhBB3, uaNumBB3, true);
+	    }
+	    // 回写ic_vmi_sum上的暂估应付累计回冲数量
+	    String[] saDdhhVmi = null;
+	    UFDouble[] uaNumVmi = null;
+	    if (listIdVmi.size() > 0) {
+	      saDdhhVmi = listIdVmi.toArray(new String[listIdVmi.size()]);
+	      uaNumVmi = listNumVmi.toArray(new UFDouble[listNumVmi.size()]);
+	      invoiceDMO.updateAccumWashNumForVmi(saDdhhVmi, uaNumVmi, true);
 	    }
 	  }
 
