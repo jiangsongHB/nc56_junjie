@@ -136,6 +136,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		this.ui = ui;
 		this.setSize(1024, 700);
 		this.sfth = sfth;
+//		this.getBillCardPanel().setComponentPopupMenu(null);
 		init();
 		//2010-12-20 初始化之后,根据当前入库单的来源单据是否为到货单,设置存货参照字段是否显示
 		if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
@@ -507,7 +508,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					getEnvironment().getCorpID());
 			cardPanel.setRowNOShow(true);
 			cardPanel.setTatolRowShow(true);
-			// cardPanel.setShowMenuBar(true);
+			//cardPanel.setShowMenuBar(false);
+			//cardPanel.setComponentPopupMenu(null);
+			cardPanel.getBodyPanel().setBBodyMenuShow(false);  //wanglei 2011-07-26 禁用右键菜单
 			cardPanel.addEditListener(this);
 			cardPanel.addBillEditListenerHeadTail(this);
 			cardPanel.addBodyEditListener2(this);
@@ -1220,30 +1223,50 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			String[] invdetailpk=invdetailref.getRefPKs();
 			//String[] invdetailname=invdetailref.getRefNames();
 			//Vector datas=invdetailref.getSelectedData();
-			for(int i=0;i<invdetailpk.length;i++){
-			if(i>0){//i>0的时候增行操作
-				ActionEvent e =new ActionEvent(getUIButton(MDUtils.ADDLINE_BUTTON),1001,MDUtils.ADDLINE_BUTTON);
-				this.actionPerformed(e);
+			if (invdetailpk!=null) {
+				for(int i=0;i<invdetailpk.length;i++){
+				if(i>0){//i>0的时候增行操作
+					ActionEvent e =new ActionEvent(getUIButton(MDUtils.ADDLINE_BUTTON),1001,MDUtils.ADDLINE_BUTTON);
+					this.actionPerformed(e);
+				}
+				String[] formulas={"md_width->getColValue(scm_invdetail,contractwidth,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "md_length->getColValue(scm_invdetail,contractlength,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "md_meter->getColValue(scm_invdetail,contractmeter,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "def8->getColValue(scm_invdetail,arrivewidth,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "def7->getColValue(scm_invdetail,arrivelength,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "def9->getColValue(scm_invdetail,arrivemeter,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "pk_invdetail->\""+invdetailpk[i]+"\"",};
+				this.getBillCardPanel().execBodyFormulas(i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, formulas);
+				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstoragenumber"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "srkzs");//支数
+				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstorageweight"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "def1");//钢厂重量
+				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("vdef1"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "md_lph");//炉批号
+				//this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
+				//wanglei 2011-07-26 add
+				hm_invdetailpk.put(invdetailpk[i], invdetailpk[i]);
+				//end
+				}
 			}
-			String[] formulas={"md_width->getColValue(scm_invdetail,contractwidth,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "md_length->getColValue(scm_invdetail,contractlength,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "md_meter->getColValue(scm_invdetail,contractmeter,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "def8->getColValue(scm_invdetail,arrivewidth,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "def7->getColValue(scm_invdetail,arrivelength,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "def9->getColValue(scm_invdetail,arrivemeter,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "pk_invdetail->\""+invdetailpk[i]+"\"",};
-			this.getBillCardPanel().execBodyFormulas(i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, formulas);
-			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstoragenumber"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "srkzs");//支数
-			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstorageweight"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "def1");//钢厂重量
-			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("vdef1"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "md_lph");//炉批号
-			//this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
-			//wanglei 2011-07-26 add
-			hm_invdetailpk.put(invdetailpk[i], invdetailpk[i]);
-			//end
+			else{
+				String[] formulas={"md_width->\"\"",
+						   "md_length->\"\"",
+						   "md_meter->\"\"",
+						   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+						   "def8->\"\"",
+						   "def7->\"\"",
+						   "def9->\"\"",
+						   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+						   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk[i]+"\")",
+						   "pk_invdetail->\"\"",};
+				this.getBillCardPanel().execBodyFormulas(editEvent.getRow(), formulas);
+//				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstoragenumber"))[editEvent.getRow()],editEvent.getRow(), "srkzs");//支数
+//				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstorageweight"))[editEvent.getRow()],editEvent.getRow(), "def1");//钢厂重量
+//				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("vdef1"))[editEvent.getRow()],editEvent.getRow(), "md_lph");//炉批号
+
 			}
+				
 		}
 		//2010-12-21 MeiCha add end
 		edited = true;
@@ -1277,6 +1300,10 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			invdetailref.setWhereString("corder_bid='"+orderBid+"' and unstoragenumber>0 and unstorageweight>0");
 			
 			//wanglei 2011-07-26 add
+			String pk_invdetail = (String) this.getBillCardPanel().getBodyValueAt(billeditevent.getRow(), "pk_invdetail") ;;
+			if (pk_invdetail!=null && hm_invdetailpk.containsKey(pk_invdetail))
+				hm_invdetailpk.remove(pk_invdetail);
+			
 			if (!hm_invdetailpk.isEmpty()){
 				Iterator iter = hm_invdetailpk.entrySet().iterator();
 				String sw_invdetailpk = " and  pk_invdetail not in (";
