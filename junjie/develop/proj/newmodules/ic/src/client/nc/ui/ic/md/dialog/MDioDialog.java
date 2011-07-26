@@ -7,7 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import nc.bs.framework.common.NCLocator;
@@ -123,6 +126,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	private boolean sfth = false;// 是否退货
 
 	private String vfree1;// 自由项1
+	
+	//wanglei 2011-06-26 增加过滤已选择的明细，在参照中过滤掉。
+	private HashMap hm_invdetailpk = new HashMap(); 
 
 	public MDioDialog(GeneralBillClientUI ui, boolean sfth)
 			throws BusinessException {
@@ -582,7 +588,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	private void onDelline() {
+		//wanglei 2011-07-26 add
+		String invdetailpk = null;
+		invdetailpk = (String) this.getBillCardPanel().getBodyValueAt(this.getBillCardPanel().getBillTable().getSelectedRow(), "pk_invdetail") ;
+		hm_invdetailpk.remove(invdetailpk);
+		
 		getBillCardPanel().delLine();
+
+
 
 		setMessage("删除一行数据...");
 		setZLNULl();
@@ -1227,10 +1240,14 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstorageweight"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "def1");//钢厂重量
 			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("vdef1"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "md_lph");//炉批号
 			//this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
+			//wanglei 2011-07-26 add
+			hm_invdetailpk.put(invdetailpk[i], invdetailpk[i]);
+			//end
 			}
 		}
 		//2010-12-21 MeiCha add end
 		edited = true;
+		
 		// md_width
 		// md_length
 		// md_meter
@@ -1258,6 +1275,20 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			String orderBid=this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCfirstbillbid();
 			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
 			invdetailref.setWhereString("corder_bid='"+orderBid+"' and unstoragenumber>0 and unstorageweight>0");
+			
+			//wanglei 2011-07-26 add
+			if (!hm_invdetailpk.isEmpty()){
+				Iterator iter = hm_invdetailpk.entrySet().iterator();
+				String sw_invdetailpk = " and  pk_invdetail not in (";
+				while (iter.hasNext()) {
+				    Map.Entry entry = (Map.Entry) iter.next();
+				    sw_invdetailpk += "'" + (String) entry.getKey() + "',";
+				} 
+				sw_invdetailpk +=  "'##')";
+				
+				invdetailref.setWhereString("corder_bid='"+orderBid+"' and unstoragenumber>0 and unstorageweight>0" + sw_invdetailpk);
+			}
+
 		}
 		
 		if(billeditevent.getKey()=="srkzs"){
