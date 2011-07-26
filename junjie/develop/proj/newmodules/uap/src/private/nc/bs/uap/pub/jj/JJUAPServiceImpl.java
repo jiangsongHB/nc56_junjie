@@ -36,12 +36,14 @@ public class JJUAPServiceImpl implements nc.itf.uap.pub.jj.IJJUAPService {
 					mdvo.get(i).setDef11(o.toString());
 					continue;
 				} else if (o == null) {//如果根据存货基本档案无法查询出结果,那么根据存货分类及宽度去查询
-					if(mdvo.get(i).getMd_width()==null){
+//					if(mdvo.get(i).getMd_width()==null){
+					if(mdvo.get(i).getDef8()==null){   //wanglei 2011-07-26 调整为验收宽度计算
 						//throw new Exception("宽度为空!");
 						mdvo.get(i).setDef12("宽度为空!");
 						continue;//如果宽度为空,直接跳过.
 					}
-					String width=mdvo.get(i).getMd_width().toString();//存货宽度
+//					String width=mdvo.get(i).getMd_width().toString();//存货宽度
+					String width=mdvo.get(i).getDef8().toString();//存货宽度   //wanglei 2011-07-26 调整为验收宽度计算
 					String invbasid=mdvo.get(i).getDef10().toString();//存货基本档案pk
 					String invclpksql = "select t.invspec||" +
 					        "','||" +

@@ -294,6 +294,10 @@ public class MDUtils {
 //		Logger.error("传入的参数是：存货基本档案PK=" + pk_invbasid + ",长度="
 //				+ tempvo.getMd_length().doubleValue() + ",宽度="
 //				+ tempvo.getMd_width().doubleValue());
+		//wanglei 2011-07-26 
+		Logger.error("传入的参数是：存货基本档案PK=" + pk_invbasid + ",长度="
+				+ tempvo.getDef7().toString() + ",宽度="
+				+ tempvo.getDef8().toString());
 		// FIXME 与佛山代码整合后,需要更改此处代码
 		IJJUAPService js = NCLocator.getInstance().lookup(IJJUAPService.class);
 		try {
