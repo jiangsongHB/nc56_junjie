@@ -355,7 +355,6 @@ public class MDioDialog extends UIDialog implements ActionListener,
 										getGenSelectRowID(), "cgeneralbid")
 								+ "'");
 				if (vos != null && vos.length > 0) {
-					
 					getBillCardPanel().getBillModel().setBodyDataVO(vos);
 					getBillCardPanel().getBillModel().execLoadFormula();
 					//2010-12-22 MeiChao add begin
