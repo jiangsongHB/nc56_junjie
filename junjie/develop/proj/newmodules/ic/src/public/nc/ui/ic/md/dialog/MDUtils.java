@@ -186,7 +186,9 @@ public class MDUtils {
 					vga = sszl.multiply(width).multiply(lenth).multiply(zs)
 							.div(count_LW);
 				}
-				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				//add by ouyangzhb 2011-07-28 需求调整，精度改为三位
+//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
 				vo.setSrkzl(vga);
 				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
 			}

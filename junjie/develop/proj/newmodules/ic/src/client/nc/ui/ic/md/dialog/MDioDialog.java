@@ -609,6 +609,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	private void onCalc() throws BusinessException {
+		
 		String ispj = (String) getBillCardPanel().getHeadItem("ispj")
 				.getValueObject();
 		MdcrkVO[] mdvos = getBodyVOs();
