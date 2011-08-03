@@ -10,6 +10,8 @@ public class MdczRef extends AbstractRefModel {
 	public String getTableName() {
 		String table = "(select ttt.* from (select t1.def4,t1.PK_MDXCL_B,"
 				+ " t1.dr,"
+				//车船号
+				+ " t1.def11 as chech,"
 				+ " t4.csname as cspaceid,"
 				+ " t1.jbh,"
 				+ " t1.def8 as md_width,"
@@ -49,12 +51,13 @@ public class MdczRef extends AbstractRefModel {
 	public String[] getFieldCode() {
 		return new String[] { "cspaceid", "jbh", "zhishu", "zhongliang",
 				"kyzs", "md_width", "md_length", "invspec", "md_meter",
-				"md_note", "md_lph", "md_zyh", "md_zlzsh", "remark" };
+				"md_note", "md_lph", "md_zyh", "md_zlzsh", "remark","chech" 
+				};
 	}
 
 	public String[] getFieldName() {
 		return new String[] { "货位", "件编号", "现存支数", "现存重量", "可用支数", "宽度", "长度",
-				"规格（厚度）", "米数", "实测厚*宽*长", "炉批号", "资源号", "质保证书号", "备注" };
+				"规格（厚度）", "米数", "实测厚*宽*长", "炉批号", "资源号", "质保证书号", "备注","车船号" };
 	}
 
 	public String getRefTitle() {
