@@ -592,15 +592,26 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	private void onDelline() {
 		//wanglei 2011-07-26 add
 		String invdetailpk = null;
-		invdetailpk = (String) this.getBillCardPanel().getBodyValueAt(this.getBillCardPanel().getBillTable().getSelectedRow(), "pk_invdetail") ;
-		hm_invdetailpk.remove(invdetailpk);
+
+//		invdetailpk = (String) this.getBillCardPanel().getBodyValueAt(this.getBillCardPanel().getBillTable().getSelectedRow(), "pk_invdetail") ;
+//		hm_invdetailpk.remove(invdetailpk);
+//		
+//		getBillCardPanel().delLine();
+
+		//wanglei 2011-08-09 add 支持删除多行
 		
-		getBillCardPanel().delLine();
-
-
+		int[] ir =  this.getBillCardPanel().getBillTable().getSelectedRows();
+		if (ir.length <= 0 )
+			return;
+		for (int i = ir.length -1 ; i>=0; i-- ) {
+			invdetailpk = (String) this.getBillCardPanel().getBodyValueAt(ir[i], "pk_invdetail") ;
+			hm_invdetailpk.remove(invdetailpk);
+//			getBillCardPanel().remove(ir[i]);
+		}	
+		getBillCardPanel().getBillModel().delLine(ir);
 
 		setMessage("删除一行数据...");
-		setZLNULl();
+			setZLNULl();
 		edited = true;
 	}
 
