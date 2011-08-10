@@ -877,7 +877,9 @@ public class SettleImpl implements ISettle, IPuToIc_SettleImpl {
         for(int i=0;i<stockVOs.length;i++){
         	idlist.add(stockVOs[i].getCgeneralbid());
         }
-        for(int i=0;i<iinvoiceVOs.length; i++){
+//        for(int i=0;i<iinvoiceVOs.length; i++){
+        //wanglei 2011-08-10 
+        for(int i=0;i<invoicevo.length; i++){
         	clbhs.add(invoicevo[i].getParentVO().getAttributeValue("clbh"));
         }
         Hashtable hashHidClbh = new Hashtable();
