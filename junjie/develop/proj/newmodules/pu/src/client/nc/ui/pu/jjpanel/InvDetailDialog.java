@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javax.swing.ListSelectionModel;
+
 import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ColumnProcessor;
@@ -18,6 +20,7 @@ import nc.ui.pub.beans.UIRefPane;
 import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
+import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.pub.bill.BillListPanel;
 import nc.ui.pub.bill.BillModel;
 import nc.ui.pub.hotkey.HotkeyUtil;
@@ -38,7 +41,12 @@ import nc.vo.scm.pub.SCMEnv;
  * @date 2010-12-15
  * 
  */
-public class InvDetailDialog extends UIDialog implements ActionListener,BillEditListener {
+public class InvDetailDialog extends UIDialog implements ActionListener,BillEditListener, BillEditListener2 {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7622707941165575671L;
 
 	//上级卡片  by 付世超 2010-10-13
 	private BillCardPanel parentCardPanel = null;
@@ -180,7 +188,12 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 //		UIRefPane refPane = (UIRefPane) getBillListPanel().getHeadItem("costcode").getComponent();
 //		nc.ui.bd.ref.busi.InvmandocDefaultRefModel refModel = (InvmandocDefaultRefModel) refPane.getRefModel();
 //		refModel.setWherePart(" bd_invbasdoc.laborflag = 'Y' and bd_invmandoc.pk_corp = '"+ClientEnvironment.getInstance().getCorporation().getPk_corp()+"'");
-
+		this.getBillListPanel().getParentListPanel().setTatolRowShow(true);
+		
+		this.getBillListPanel().addBodyEditListener(this);
+	//	this.getBillListPanel().setMultiSelect(true);
+	//wanglei 2011-08-10 设置多选模式。	
+		getBillListPanel().getHeadTable().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
 	}
 
@@ -859,6 +872,11 @@ public class InvDetailDialog extends UIDialog implements ActionListener,BillEdit
 
 	return pattern.matcher(str).matches();
 
+	}
+
+	public boolean beforeEdit(BillEditEvent arg0) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 	
 	
