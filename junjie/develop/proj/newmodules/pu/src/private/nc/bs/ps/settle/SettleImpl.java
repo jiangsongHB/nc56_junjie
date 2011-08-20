@@ -871,41 +871,43 @@ public class SettleImpl implements ISettle, IPuToIc_SettleImpl {
         
         
         //add by ouyangzhb 2011-07-07 判断是否需要冲减暂估应付
-        InvoiceVO[] invoicevo = this.getInvoiceVO(iinvoiceVOs);
-        ArrayList idlist = new ArrayList();
-        ArrayList clbhs = new ArrayList();
-        for(int i=0;i<stockVOs.length;i++){
-        	idlist.add(stockVOs[i].getCgeneralbid());
+        // add by ouyangzhb 2011-08-20 新增一个对iinvoiceVOs 的判断当是费用发票时，在这之前已被过滤了，不能再通过这个值去取到需要冲减暂估应付
+        if(iinvoiceVOs!=null&&iinvoiceVOs.length>0){
+        	 InvoiceVO[] invoicevo = this.getInvoiceVO(iinvoiceVOs);
+             ArrayList idlist = new ArrayList();
+             ArrayList clbhs = new ArrayList();
+             for(int i=0;i<stockVOs.length;i++){
+             	idlist.add(stockVOs[i].getCgeneralbid());
+             }
+//             for(int i=0;i<iinvoiceVOs.length; i++){
+             //wanglei 2011-08-10 
+             for(int i=0;i<invoicevo.length; i++){
+             	clbhs.add(invoicevo[i].getParentVO().getAttributeValue("clbh"));
+             }
+             Hashtable hashHidClbh = new Hashtable();
+             if(idlist!=null&&idlist.size()>0){
+             	String inclbh = SQLUtil.formInSQL("arap_djfb.clbh", clbhs);
+             	String ids = SQLUtil.formInSQL("arap_djfb.ckdid", idlist);
+             	 hashHidClbh = new PubDMO()
+                 .queryHtResultFromAnyTable(
+                     "arap_djfb, arap_djzb",
+                     "arap_djfb.fb_oid",
+                     new String[] {
+                         "arap_djfb.clbh"
+                     },
+                     " arap_djfb.vouchid = arap_djzb.vouchid and arap_djzb.zgyf=2 and arap_djzb.dr=0 and arap_djfb.dr=0  "+ids+inclbh );
+             }
+             if(hashHidClbh!=null&&hashHidClbh.size()>0){
+             	 //add by ouyangzhb 冲减入库单的暂估应付单
+                 InvoiceImpl impl = new InvoiceImpl();
+                 impl.unAdjustForSettle(invoicevo,settleVO);
+                 //add end 
+             	
+             }
+             
+             //add end
+             
         }
-//        for(int i=0;i<iinvoiceVOs.length; i++){
-        //wanglei 2011-08-10 
-        for(int i=0;i<invoicevo.length; i++){
-        	clbhs.add(invoicevo[i].getParentVO().getAttributeValue("clbh"));
-        }
-        Hashtable hashHidClbh = new Hashtable();
-        if(idlist!=null&&idlist.size()>0){
-        	String inclbh = SQLUtil.formInSQL("arap_djfb.clbh", clbhs);
-        	String ids = SQLUtil.formInSQL("arap_djfb.ckdid", idlist);
-        	 hashHidClbh = new PubDMO()
-            .queryHtResultFromAnyTable(
-                "arap_djfb, arap_djzb",
-                "arap_djfb.fb_oid",
-                new String[] {
-                    "arap_djfb.clbh"
-                },
-                " arap_djfb.vouchid = arap_djzb.vouchid and arap_djzb.zgyf=2 and arap_djzb.dr=0 and arap_djfb.dr=0  "+ids+inclbh );
-        }
-        if(hashHidClbh!=null&&hashHidClbh.size()>0){
-        	 //add by ouyangzhb 冲减入库单的暂估应付单
-            InvoiceImpl impl = new InvoiceImpl();
-            impl.unAdjustForSettle(invoicevo,settleVO);
-            //add end 
-        	
-        }
-        
-        //add end
-        
-        
         
       }
 
