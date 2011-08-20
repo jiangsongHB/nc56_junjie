@@ -8097,7 +8097,7 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
     			oTemp = hInv.get(bodyVO[j].getCbaseid());
     			if(oTemp != null){
     				invFlag = (Object[]) oTemp;
-    				if(!invFlag[0].equals("Y") ) 
+    				if(invFlag[0].equals("Y") ) 
 //    					vBid.addElement(bodyVO[j]);
 //    				else 
     					v2.addElement(bodyVO[j]);
