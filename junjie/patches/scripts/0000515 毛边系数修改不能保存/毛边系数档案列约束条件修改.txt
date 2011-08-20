@@ -1,0 +1,16 @@
+alter table JJ_BD_BURRCOEFFICIENT drop constraint UN_JJ_BD_BURRCOEFFICIENT;
+alter table JJ_BD_BURRCOEFFICIENT
+  add constraint UN_JJ_BD_BURRCOEFFICIENT unique (PK_INVBASDOC, PK_CUBASDOC,TS)
+  using index 
+  tablespace NNC_INDEX01
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 128K
+    minextents 1
+    maxextents unlimited
+    pctincrease 0
+  ); 
