@@ -522,7 +522,10 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 					MdcrkVO mvo = (MdcrkVO) rsvos[i].clone();
 					MdcrkVO kylMdCrkVo = new MdProcessBean().queryMdCrkKyl(mvo,
 							new UFBoolean(true));
-					rsvos[i].setDef1(kylMdCrkVo.getDef1());
+					
+					//add by ouyangzhb 2011-09-15 出库钢厂重量应该为实际的出库重量，而不应该是现存的重量，需要注释掉
+//					rsvos[i].setDef1(kylMdCrkVo.getDef1());
+					
 					// rsvos[i].setDef2(kylMdCrkVo.getDef2());
 				} else {
 					rsvos[i].setDef1((UFDouble) kylMap.get(rsvos[i]
