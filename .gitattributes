@@ -313,6 +313,11 @@ junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1003/MyBillVO.java -tex
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1005/BurrCoefficientVO.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1005/MyBillVO.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/ic/md/MdcrkVO.java -text
+junjie/fbm/.classpath -text
+junjie/fbm/.module_prj -text
+junjie/fbm/.project -text
+junjie/fbm/META-INF/module.xml -text
+junjie/fbm/src/client/nc/ui/fbm/invoice/InvoiceEventHandler.java -text
 junjie/patches/modules/.project -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$1.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL.class -text
