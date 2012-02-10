@@ -471,7 +471,8 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				bean.updateXcl(vos);
 				iVOPersistence.insertVOArray(rsvos);
 				// 更新出库单表体数据库中数据
-				bean.updateBill(dlg, rsvos);
+				//add by ouyangzhb 2012-02-10 调用新的方法（针对退库的修改）
+				bean.updateBill_new(dlg, rsvos,infoVO);
 				// 将锁定记录标识为无效
 				bean.updateSdbs(infoVO, "2");
 				onBtnCan();
