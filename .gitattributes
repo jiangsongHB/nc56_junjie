@@ -348,6 +348,7 @@ junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$7.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$8.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$9.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO.class -text
+junjie/patches/modules/cdm/client/classes/nc/ui/fac/account/pub/RefTakenProccessor.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/cmp/pub/DefaultListEventHandler$1.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/cmp/pub/DefaultListEventHandler.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/cmp/settlement/SettlementListEventHandler$Data.class -text
