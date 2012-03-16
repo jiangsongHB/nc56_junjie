@@ -87,6 +87,7 @@ import nc.ui.scm.ic.setpart.SetPartDlg;
 import nc.ui.scm.plugin.InvokeEventProxy;
 import nc.ui.scm.pub.AccreditLoginDialog;
 import nc.ui.scm.pub.bill.IBillExtendFun;
+import nc.ui.scm.pub.bill.ScmButtonConst;
 import nc.ui.scm.pub.def.DefSetTool;
 import nc.ui.scm.pub.print.DefaultFormulaJudge;
 import nc.ui.trade.business.HYPubBO_Client;
@@ -10325,6 +10326,8 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		}
 		return m_SetpartDlg;
 	}
+	
+	ButtonObject inv_Print = new ButtonObject("发票打印","发票打印","发票打印");
 
 	/**
 	 * 简单初始化类。按传入参数，不读环境设置的操作员，公司等。
@@ -10338,6 +10341,20 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					new ButtonObject(MDUtils.MDINFO_BUTTON,
 							MDUtils.MDINFO_BUTTON, MDUtils.MDINFO_BUTTON));
 		}
+		
+		//add by ouyangzhb 2012-03-14 增加发票打印按钮
+		try {
+			if(getBillType()!=null&&getBillType().equals("4C")){
+				getButtonManager().getButtonTree().addChildMenu(getButtonManager().getButtonTree().getButton(
+						ScmButtonConst.BTN_PRINT),((GeneralButtonManager) getButtonManager()).getInv_PrintBO());
+				getButtonManager().getButtonTree().addChildMenu(getButtonManager().getButtonTree().getButton(
+						ScmButtonConst.BTN_PRINT),((GeneralButtonManager) getButtonManager()).getInv_PreviewBO());
+			}
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//add end 
 
 		try {
 			// 界面管理器

@@ -17,6 +17,7 @@ import nc.itf.arap.pub.IArapBillPublic;
 import nc.itf.gl.accbook.IBillModel;
 import nc.itf.ia.bill.IBill;
 import nc.itf.ps.estimate.IEstimate;
+import nc.itf.scm.so.so002.ISaleinvoiceQuery;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pfxx.IPFxxEJBService;
 import nc.jdbc.framework.processor.ArrayListProcessor;
@@ -42,6 +43,7 @@ import nc.ui.pub.beans.UIMenuItem;
 import nc.ui.pub.beans.UIRefPane;
 import nc.ui.pub.bill.BillActionListener;
 import nc.ui.pub.bill.BillCardPanel;
+import nc.ui.pub.bill.BillData;
 import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.BillListPanel;
@@ -53,9 +55,13 @@ import nc.ui.scm.file.DocumentManager;
 import nc.ui.scm.print.IFreshTsListener;
 import nc.ui.scm.pub.CollectSettingDlg;
 import nc.ui.scm.pub.bill.ButtonTree;
+import nc.ui.scm.pub.print.DefaultFormulaJudge;
 import nc.ui.scm.pub.print.ScmPrintTool;
 import nc.ui.scm.pub.sourceref.IBillReferQueryProxy;
 import nc.ui.scm.pub.sourceref.SourceRefDlg;
+import nc.ui.so.so002.SaleInvoiceUI;
+import nc.ui.so.so002.SaleinvoiceBO_Client;
+import nc.ui.uap.sf.SFClientUtil;
 import nc.vo.dm.service.delivery.SourceBillDeliveryStatus;
 import nc.vo.ep.dj.DJZBHeaderVO;
 import nc.vo.ep.dj.DJZBItemVO;
@@ -102,6 +108,8 @@ import nc.vo.scm.print.ScmPrintlogVO;
 import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.session.ClientLink;
 import nc.vo.scm.pub.smart.SmartFieldMeta;
+import nc.vo.so.so002.SaleVO;
+import nc.vo.so.so002.SaleinvoiceVO;
 import nc.vo.so.so120.CreditNotEnoughException;
 import nc.vo.so.so120.PeriodNotEnoughException;
 
@@ -139,6 +147,11 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	
 	private InformationCostVO[] infovos ;
 	
+	//add by ouyangzhb 2012-03-15 发票打印
+	ButtonObject inv_Print;
+	ButtonObject inv_Preview;
+	// end 
+	
 	private UFDouble arrnum ;//累计到货数量
 	private UFDouble arrnumber ;//实际到货数量
 	private UFDouble plannum;//上游单据应到总数量
@@ -163,7 +176,22 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 
 	// add by  付世超  2010-10-16  GET方法 其他类调用费用数据 end
 
+	public ButtonObject getInv_PrintBO(){
+	  if(inv_Print==null){
+		  inv_Print = new ButtonObject("发票打印","发票打印","发票打印");
+	  }
+	  return inv_Print;
+	}
 
+	public ButtonObject getInv_PreviewBO(){
+		  if(inv_Preview==null){
+			  inv_Preview = new ButtonObject("发票打印预览","发票打印预览","发票打印预览");
+		  }
+		  return inv_Preview;
+		}
+
+	
+	
 	public GeneralButtonManager(GeneralBillClientUI clientUI)
 			throws BusinessException {
 		m_ui = clientUI;
@@ -363,6 +391,13 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				ICButtonConst.BTN_PRINT_PREVIEW))
 			//add by ouyangzhb 2011-03-04
 				onPrint(false);
+		/**add by ouyangzhb 2012-03-15 发票打印，从出库单节点调用销售发票的打印动作打印对应的销售发票*/
+		else if (bo ==this.inv_Print )
+			onInv_Print(false);
+		else if (bo ==this.inv_Print )
+			onInv_Print(true);
+		/** end 发票打印，从出库单节点调用销售发票的打印动作打印对应的销售发票*/
+		
 		else if (bo == getButtonTree().getButton(ICButtonConst.BTN_PRINT_SUM))
 			onPrintSumRow();
 
@@ -6817,7 +6852,106 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 			return false;
 		}
 	  return true;
-  }  
+  }
+  
+  
+ 
+  /** add by ouyangzhb 2012-03-15 从出库单节点调用销售发票的打印动作，打印对应销售发票 begin */
+	/***
+	 * 发票的打印
+	 * 
+	 * @param isPreview
+	 */
+	public void onInv_Print(boolean isPreview) {
 
+		String sPrintMsg = null;
+		ISaleinvoiceQuery query = NCLocator.getInstance().lookup(
+				ISaleinvoiceQuery.class);
+		GeneralBillVO vos = getM_voBill();
+		GeneralBillItemVO[] bodyvos = (GeneralBillItemVO[]) vos.getChildrenVO();
+		if (bodyvos != null) {
+			if (bodyvos[0].getCsourcebillhid() != null) {
+
+				String whereStr = "so_saleinvoice_b.csourcebillid = '"
+						+ bodyvos[0].getCsourcebillhid() + "'";
+				try {
+					SaleinvoiceVO[] voBill = query
+							.queryBillDataByWhere(whereStr);
+					ArrayList listVo = new ArrayList();
+					if (voBill == null || voBill.length <= 0)
+						return;
+					for (int i = 0; i < voBill.length; i++) {
+						listVo.add(voBill[i]);
+						IOPrintData printData = new IOPrintData();
+
+						//					
+						getDataSource().setVO(voBill[i]);
+						getPrintEntry().setDataSource(getDataSource());
+
+						printData.setBillCardPanel(getInvClient()
+								.getBillCardPanel());
+						//					
+						ui.getBillCardPanel().getBillModel().execLoadFormula();
+						ScmPrintTool m_printList = new ScmPrintTool(ui
+								.getBillCardPanel(), printData, listVo,
+								getInvClient().getModuleCode());
+						// 执行打印
+						if (isPreview) {
+							m_printList.onPreview(getPrintEntry(), printData);
+
+						} else {
+							m_printList.onPrint(getPrintEntry(), printData);
+							// sPrintMsg = plc.getPrintResultMsg(false);
+						}
+					}
+
+				} catch (BusinessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	protected SaleInvoiceUI ui = null;
+
+	public SaleInvoiceUI getInvClient() {
+		if (ui == null) {
+			ui = (SaleInvoiceUI) SFClientUtil.showNode("40060501");
+			SFClientUtil.closeFuncWindow("40060501");
+		}
+
+		return ui;
+	}
+
+	protected nc.ui.pub.print.PrintEntry m_print = null;
+
+	protected nc.ui.pub.print.PrintEntry getPrintEntry() {
+
+		if (null == m_print) {
+			m_print = new nc.ui.pub.print.PrintEntry(SFClientUtil
+					.showNode("40060501"), null);
+			m_print.setTemplateID(getEnvironment().getCorpID(), "40060501",
+					getEnvironment().getUserID(), null);
+		}
+		return m_print;
+	}
+
+	// 初始化打印接口
+	protected PrintDataInterface m_dataSource = null;
+
+	protected PrintDataInterface getDataSource() {
+		if (null == m_dataSource) {
+			m_dataSource = new PrintDataInterface();
+			BillData bd = getInvClient().getBillCardPanel().getBillData();
+			m_dataSource.setBillData(bd);
+			m_dataSource.setModuleName("40060501");
+			m_dataSource.setTotalLinesInOnePage(getPrintEntry().getBreakPos());
+			m_dataSource.setFormulaJudge(new DefaultFormulaJudge("40060501",
+					getEnvironment().getCorpID()));
+		}
+		return m_dataSource;
+	}
+	/** add by ouyangzhb 2012-03-15 end */
   
 }
