@@ -140,6 +140,28 @@ public class MdcrkVO extends SuperVO {
 
 	/** 备用字段9 */
 	public String def9;
+	
+	/**add by ouyangzhb 2012-03-20自定义项*/
+	/** 备用字段16 */
+	public String def16;
+	/** 备用字段17 */
+	public String def17;
+	/** 备用字段18 */
+	public String def18;
+	/** 备用字段19 */
+	public String def19;
+	/** 备用字段20 */
+	public String def20;
+	/** 是否磅计 */
+	public UFBoolean sfgczl;
+	
+	public static final String SFGCZL = "sfgczl";
+	public static final String DEF16 = "def16";
+	public static final String DEF17 = "def17";
+	public static final String DEF18= "def18";
+	public static final String DEF19 = "def19";
+	public static final String DEF20 = "def20";
+	/**add by ouyangzhb 2012-03-20自定义项*/
 
 	public static final String DEF5 = "def5";
 
@@ -226,6 +248,60 @@ public class MdcrkVO extends SuperVO {
 	public MdcrkVO() {
 		super();
 	}
+
+	
+	/**新增字段*/
+	
+	public String getDef16() {
+		return def16;
+	}
+
+	public void setDef16(String def16) {
+		this.def16 = def16;
+	}
+
+	public String getDef17() {
+		return def17;
+	}
+
+	public void setDef17(String def17) {
+		this.def17 = def17;
+	}
+
+	public String getDef18() {
+		return def18;
+	}
+
+	public void setDef18(String def18) {
+		this.def18 = def18;
+	}
+
+	public String getDef19() {
+		return def19;
+	}
+
+	public void setDef19(String def19) {
+		this.def19 = def19;
+	}
+
+	public String getDef20() {
+		return def20;
+	}
+
+	public void setDef20(String def20) {
+		this.def20 = def20;
+	}
+
+	public UFBoolean getSfgczl() {
+		return sfgczl;
+	}
+
+	public void setSfgczl(UFBoolean sfgczl) {
+		this.sfgczl = sfgczl;
+	}
+	/**新增字段*/
+
+
 
 	/**
 	 * 属性 备用字段5 的setter方法.

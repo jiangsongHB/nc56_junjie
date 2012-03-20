@@ -666,6 +666,24 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			mdvos = MDUtils.mdBJ(mdvos,num);
 			this.setNprice(this.getStuffprice());// 正材单价stuffprice
 		}
+		/**add by ouyangzhb 2012-03-20 计算钢厂重量 begin*/
+		BillItem isgczlitem =  getBillCardPanel().getHeadItem("isgczl");
+		if(isgczlitem!=null){
+			String isgczl =  (String)isgczlitem.getValueObject();
+			if(isgczl!=null&&new UFBoolean(isgczl).booleanValue()){
+				for(int i=0;i<mdvos.length;i++){
+					mdvos[i].setSfgczl(UFBoolean.TRUE);
+					mdvos[i].setDef1(mdvos[i].getSrkzl());
+				}
+			}else{
+				for(int i=0;i<mdvos.length;i++){
+					mdvos[i].setSfgczl(UFBoolean.FALSE);
+				}
+			}
+		}
+		/**add by ouyangzhb 2012-03-20 计算钢厂重量 end */
+		
+		
 		//获取表体选中行VO
 		GeneralBillItemVO selectedBody=(GeneralBillItemVO)this.ui.getBillCardPanel().getBillModel("table").getBodyValueRowVO(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), GeneralBillItemVO.class.getName());
 		//if(selectedBody.getCsourcetype()!=null&&selectedBody.getCsourcetype().equals("21")){//如果上游单据为采购订单
@@ -1074,16 +1092,20 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					getBillCardPanel().getHeadItem("grossprice").setEdit(false); // 毛边单价
 					getBillCardPanel().getHeadItem("ispj").setValue(
 							new UFBoolean(false));
+					getBillCardPanel().getHeadItem("isgczl").setValue(
+							new UFBoolean(false));
 					BillEditEvent e = new BillEditEvent(getBillCardPanel()
 							.getHeadItem("ispj").getComponent(),
 							getBillCardPanel().getHeadItem("ispj"), "ispj");
 					// afterEdit(e);
 					getBillCardPanel().getHeadItem("ispj").setEdit(false); // 是否磅计
+					getBillCardPanel().getHeadItem("isgczl").setEdit(false); // 是否计算钢厂重量
 					getUIButton(MDUtils.CALC_BUTTON).setEnabled(false);
 					getBillCardPanel().getBodyItem("srkzl").setEnabled(true);
 					boolean_fjs = true;
 				} else {
 					getBillCardPanel().getHeadItem("ispj").setEdit(true); // 是否磅计
+					getBillCardPanel().getHeadItem("isgczl").setEdit(true); // 是否计算钢厂重量
 					init();// 初始化
 					onEdit();// 编辑
 					getUIButton(MDUtils.CALC_BUTTON).setEnabled(true);
