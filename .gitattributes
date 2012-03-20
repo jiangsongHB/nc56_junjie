@@ -1,9 +1,4 @@
 * text=auto !eol
-junjie/cdm/.classpath -text
-junjie/cdm/.module_prj -text
-junjie/cdm/.project -text
-junjie/cdm/META-INF/module.xml -text
-junjie/cdm/src/client/nc/ui/fac/account/pub/RefTakenProccessor.java -text
 junjie/develop/proj/modules/ic/.classpath -text
 junjie/develop/proj/modules/ic/.module_prj -text
 junjie/develop/proj/modules/ic/.project -text
