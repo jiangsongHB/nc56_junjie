@@ -1,0 +1,1 @@
+alter table nc_mdcrk add  (sfgczl char(1),def16 VARCHAR2(20),def17 VARCHAR2(20),def18 VARCHAR2(20),def96 VARCHAR2(20),def120 VARCHAR2(20));
