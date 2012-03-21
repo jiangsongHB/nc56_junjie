@@ -271,7 +271,149 @@ public class MDUtils {
 
 		return vos;
 	}
+	
+	
+	/**
+	 * add by ouyangzhb 2012-03-21 钢厂重量磅计的算法,
+	 * 
+	 * @param vos
+	 * @param sszl
+	 * @return
+	 * @throws BusinessException
+	 */
+	public static MdcrkVO[] mdGCBJ(MdcrkVO[] vos, UFDouble sszl)
+			throws BusinessException {
+		sszl = sszl.abs();// 出库单此处的值是负的,所以取绝对值
+		if (sszl == null || sszl.doubleValue() <= 0) {
+			throw new BusinessException("实收重量不能小于0");
+		}
+		boolean isCG = false;
+		if (vos[0].getMd_meter() != null) {
+			isCG = true;
+		}
+		UFDouble count_LW = new UFDouble(0);// 米数*件数和 /长*宽*米数和
+		UFDouble count_ZL = new UFDouble(0);// 所有分摊重量和
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			UFDouble lenth = UFDouble.ZERO_DBL;
+			UFDouble width = UFDouble.ZERO_DBL;
+			UFDouble meter = UFDouble.ZERO_DBL;
+			lenth = vo.getMd_length();// 长
+			width = vo.getMd_width();// 宽
+			meter = vo.getMd_meter();// 米数
+			UFDouble zs = vo.getSrkzs();
+			if (zs == null || zs.doubleValue() <= 0) {
+				throw new BusinessException("第" + (i + 1) + "行，件数不能小于0");
+			}
+			if (isCG) {
+				if (meter == null || meter.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
+				}
+				count_LW = count_LW.add(zs.multiply(meter));
+			} else {
+				if (lenth == null || lenth.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，长不能小于0");
+				}
+				if (width == null || width.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，宽不能小于0");
+				}
+				count_LW = count_LW.add(zs.multiply(lenth.multiply(width)));
+			}
+		}
 
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			UFDouble lenth = UFDouble.ZERO_DBL;
+			UFDouble width = UFDouble.ZERO_DBL;
+			UFDouble meter = UFDouble.ZERO_DBL;
+			lenth = vo.getMd_length();// 长
+			width = vo.getMd_width();// 宽
+			meter = vo.getMd_meter();// 米数
+
+			UFDouble zs = vo.getSrkzs();
+			if (i == vos.length - 1) {
+				vo.setDef1(sszl.sub(count_ZL));
+			} else {
+				UFDouble vga = UFDouble.ZERO_DBL;
+				if (isCG) {
+					vga = sszl.multiply(meter).multiply(zs).div(count_LW);
+				} else {
+					vga = sszl.multiply(width).multiply(lenth).multiply(zs)
+							.div(count_LW);
+				}
+				// add by ouyangzhb 2011-07-28 需求调整，精度改为三位
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
+				vo.setDef1(vga);
+				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
+			}
+		}
+
+		return vos;
+	}
+
+	/**
+	 * add by ouyangzhb 2012-03-21 码单钢厂重量理计算法
+	 * 
+	 * @param vos
+	 * @return
+	 * @throws BusinessException
+	 */
+	public static MdcrkVO[] mdGCLJ(MdcrkVO[] vos) throws BusinessException {
+
+		boolean isCG = false;// 是否为槽钢
+		if (vos[0].getMd_meter() != null) {
+			isCG = true;
+		}
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			UFDouble lenth = UFDouble.ZERO_DBL;
+			UFDouble width = UFDouble.ZERO_DBL;
+			UFDouble meter = UFDouble.ZERO_DBL;
+			lenth = vo.getMd_length();// 长
+			width = vo.getMd_width();// 宽
+			meter = vo.getMd_meter();// 米数
+			String guige = vo.getDef6();
+			UFDouble zs = vo.getSrkzs();
+			if (zs == null || zs.doubleValue() <= 0) {
+				throw new BusinessException("第" + (i + 1) + "行，支数不能小于0");
+			}
+			if (isCG) {
+				UFDouble lsxs = getLSXS(vos[0]);
+				if (meter == null || meter.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
+				}
+				// 2010-11-23 MeiChao 槽钢理算系数计算方式修改: 米数*理算系数- (四舍五入3位小数)* 支数
+				UFDouble zl = lsxs.multiply(meter).setScale(3,
+						UFDouble.ROUND_HALF_UP).multiply(zs);
+				zl = zl.setScale(3, UFDouble.ROUND_HALF_UP);
+				vo.setDef1(zl);
+			} else {
+				UFDouble fjm = getFJM(vos[0]);
+				if (guige == null || guige.trim().equals("")) {
+					throw new BusinessException("第" + (i + 1)
+							+ "行，系统认为该存货为 锅炉板,但其规格不合标准");
+				}
+				if (lenth == null || lenth.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，长度不能小于0");
+				}
+				if (width == null || width.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，宽度不能小于0");
+				}
+				UFDouble gui = new UFDouble(guige);
+
+				// 2010-11-23 MeiChao 理计取数调整,厚*宽*长*7.85-四舍五入保留3位小数后 再/1000000000
+				// ,其结果也保留3位小数
+				UFDouble zl = gui.add(fjm).multiply(width).multiply(lenth)
+						.multiply(zs).multiply(7.85).setScale(3,
+								UFDouble.ROUND_HALF_UP).div(1000000000);
+				zl = zl.setScale(3, UFDouble.ROUND_HALF_UP);
+				vo.setDef1(zl);
+			}
+		}
+
+		return vos;
+	}
+	
 	/**
 	 * 付加码
 	 * 

@@ -645,9 +645,30 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					+ "不等于实入库辅数量" + this.getSsfsl().doubleValue());
 		UFDouble num = new UFDouble((String) getBillCardPanel().getHeadItem(
 				"realWeight").getValueObject());
+		BillItem isgczlitem =  getBillCardPanel().getHeadItem("isgczl");
+		String isgczl = null;
+		if(isgczlitem!=null){
+			 isgczl =  (String)isgczlitem.getValueObject();
+		}
+		
 		if (ispj == null || ispj.equals("false")) {
 			// 理计正材重量
 			mdvos = MDUtils.mdLJ(mdvos);
+			
+			/** add by ouyangzhb 2012-03-21 计算钢厂重量 begin */
+			if (isgczlitem != null && isgczl != null
+					&& new UFBoolean(isgczl).booleanValue()) {
+				mdvos = MDUtils.mdGCLJ(mdvos);
+				for (int i = 0; i < mdvos.length; i++) {
+					mdvos[i].setSfgczl(UFBoolean.TRUE);
+				}
+			} else {
+				for (int i = 0; i < mdvos.length; i++) {
+					mdvos[i].setSfgczl(UFBoolean.FALSE);
+				}
+			}
+			/** add by ouyangzhb 2012-03-21 计算钢厂重量 end */
+			
 			// 判断当前存货是否需要进行毛边计算
 			GeneralBillVO nowVObill = getGeneralBillVO();
 			String InvID = "";
@@ -664,24 +685,30 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		} else {
 			//mdvos = MDUtils.mdBJ(mdvos,new UFDouble(this.ui.getBillCardPanel().getBillModel("table").getValueAt(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), "vuserdef19").toString()));
 			mdvos = MDUtils.mdBJ(mdvos,num);
-			this.setNprice(this.getStuffprice());// 正材单价stuffprice
-		}
-		/**add by ouyangzhb 2012-03-20 计算钢厂重量 begin*/
-		BillItem isgczlitem =  getBillCardPanel().getHeadItem("isgczl");
-		if(isgczlitem!=null){
-			String isgczl =  (String)isgczlitem.getValueObject();
-			if(isgczl!=null&&new UFBoolean(isgczl).booleanValue()){
-				for(int i=0;i<mdvos.length;i++){
+			/** add by ouyangzhb 2012-03-21 计算钢厂重量 begin */
+			if (isgczlitem != null && isgczl != null
+					&& new UFBoolean(isgczl).booleanValue()) {
+				mdvos = MDUtils.mdGCBJ(mdvos, num);
+				for (int i = 0; i < mdvos.length; i++) {
 					mdvos[i].setSfgczl(UFBoolean.TRUE);
-					mdvos[i].setDef1(mdvos[i].getSrkzl());
 				}
-			}else{
-				for(int i=0;i<mdvos.length;i++){
+			} else {
+				for (int i = 0; i < mdvos.length; i++) {
 					mdvos[i].setSfgczl(UFBoolean.FALSE);
 				}
 			}
+			/** add by ouyangzhb 2012-03-21 计算钢厂重量 end */
+			
+			this.setNprice(this.getStuffprice());// 正材单价stuffprice
 		}
-		/**add by ouyangzhb 2012-03-20 计算钢厂重量 end */
+		/**add by ouyangzhb 2012-03-20 计算钢厂重量 begin*/
+		
+		
+			
+			
+			
+		
+		
 		
 		
 		//获取表体选中行VO
