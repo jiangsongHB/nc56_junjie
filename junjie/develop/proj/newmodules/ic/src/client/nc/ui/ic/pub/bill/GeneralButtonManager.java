@@ -6681,6 +6681,12 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				changeBillBody[i].setNsimulatemny(changeBillBody[i].getNmoney());
 				changeBillBody[i].setPk_corp(this.getEnvironment().getCorpID());
 				changeBillBody[i].setVbillcode(changeBillHead.getVbillcode());
+				
+				/**add by ouyangzhb 2012-03-23 新添来源信息*/
+				changeBillBody[i].setCsourcebillid(generalHead.getCgeneralhid());
+				changeBillBody[i].setCsourcebillitemid(generalBody[i].getCgeneralbid());
+				changeBillBody[i].setCsourcebilltypecode(generalHead.getCbilltypecode());
+				/**add end */
 			}
 			changeBillVO.setParentVO(changeBillHead);
 			changeBillVO.setChildrenVO(changeBillBody);
