@@ -227,65 +227,168 @@ public class IOPrintData implements IDataSource {
 					 * 在模板配置时在相应的字段前加上“i_”为前缀，这样能与"存货信息"里的某些字段相区别
 					 * 否则取值会混乱，按相应的字段去取vo里相应的值。
 					 * 
+					 * add by ouyangzhb 2012-04-09 采购入库单的费用信息折行打印，分单双行打印
 					 */
 					InformationCostVO[] inforcost = (InformationCostVO[]) this.m_pnlCard.getBillData().getBodyValueChangeVOs("jj_scm_informationcost", InformationCostVO.class.getName()) ;
+					
 					if ( sItemExpress.equalsIgnoreCase("i_costname"))
 						for(int y=0;y<inforcost.length;y++){
-							vecValue.addElement( inforcost[y].getCostname() );
+							if(y%2==0){
+								vecValue.addElement( inforcost[y].getCostname() );
+							}
+							
 						}
+					if ( sItemExpress.equalsIgnoreCase("i_costname2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1){
+								vecValue.addElement( inforcost[y].getCostname() );
+							}
+						}
+					
 					if(sItemExpress.equalsIgnoreCase("i_costcode"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 					    	vecValue.addElement( inforcost[y].getCostcode() )  ;
 						}
+					if(sItemExpress.equalsIgnoreCase("i_costcode2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+					    	vecValue.addElement( inforcost[y].getCostcode() )  ;
+						}
+					
 					if(sItemExpress.equalsIgnoreCase("i_ccostunitid"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 					    	vecValue.addElement(m_pnlCard.getBillData().getBillModel("jj_scm_informationcost").getValueAt(y, "costunit"))  ;
 						}
+					if(sItemExpress.equalsIgnoreCase("i_ccostunitid2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+					    	vecValue.addElement(m_pnlCard.getBillData().getBillModel("jj_scm_informationcost").getValueAt(y, "costunit"))  ;
+						}
+					
 					if(sItemExpress.equalsIgnoreCase("i_cmeasdocid"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 							vecValue.addElement(m_pnlCard.getBillData().getBillModel("jj_scm_informationcost").getValueAt(y, "currname"))  ;
 						}
+					if(sItemExpress.equalsIgnoreCase("i_cmeasdocid2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+							vecValue.addElement(m_pnlCard.getBillData().getBillModel("jj_scm_informationcost").getValueAt(y, "currname"))  ;
+						}
+					
 					if(sItemExpress.equalsIgnoreCase("i_noriginalcurmny"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 					    	vecValue.addElement( inforcost[y].getNoriginalcurmny().toString() );
 						}
+					if(sItemExpress.equalsIgnoreCase("i_noriginalcurmny2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+					    	vecValue.addElement( inforcost[y].getNoriginalcurmny().toString() );
+						}
+					
 					if(sItemExpress.equalsIgnoreCase("i_noriginalcurprice"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 					    	vecValue.addElement( inforcost[y].getNoriginalcurprice().toString() );
 					    }
+					if(sItemExpress.equalsIgnoreCase("i_noriginalcurprice2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+					    	vecValue.addElement( inforcost[y].getNoriginalcurprice().toString() );
+					    }
+					
 					if(sItemExpress.equalsIgnoreCase("i_nnumber"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 					    	vecValue.addElement( inforcost[y].getNnumber().toString() );
 					    }
+					if(sItemExpress.equalsIgnoreCase("i_nnumber2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+					    	vecValue.addElement( inforcost[y].getNnumber().toString() );
+					    }
+					
 					if(sItemExpress.equalsIgnoreCase("i_vdef2"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 					    	vecValue.addElement( inforcost[y].getVdef2() );
 					    }
+					if(sItemExpress.equalsIgnoreCase("i_vdef22"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+					    	vecValue.addElement( inforcost[y].getVdef2() );
+					    }
+					
 					if(sItemExpress.equalsIgnoreCase("i_vcosttype"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 					    	vecValue.addElement( inforcost[y].getVcosttype() );
 					    }
+					if(sItemExpress.equalsIgnoreCase("i_vcosttype2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+					    	vecValue.addElement( inforcost[y].getVcosttype() );
+					    }
+					
 					if(sItemExpress.equalsIgnoreCase("i_vmemo"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 							vecValue.addElement( inforcost[y].getVmemo() ) ;
 				    	}
+					if(sItemExpress.equalsIgnoreCase("i_vmemo2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+							vecValue.addElement( inforcost[y].getVmemo() ) ;
+				    	}
+					
 					if(sItemExpress.equalsIgnoreCase("i_currtypeid"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 							vecValue.addElement(m_pnlCard.getBillData().getBillModel("jj_scm_informationcost").getValueAt(y, "mea"));
 				    	}
+					if(sItemExpress.equalsIgnoreCase("i_currtypeid2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+							vecValue.addElement(m_pnlCard.getBillData().getBillModel("jj_scm_informationcost").getValueAt(y, "mea"));
+				    	}
+					
 					if(sItemExpress.equalsIgnoreCase("i_ismny"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 							vecValue.addElement( inforcost[y].getIsmny().toString() );
 				    	}
+					if(sItemExpress.equalsIgnoreCase("i_ismny2"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+							vecValue.addElement( inforcost[y].getIsmny().toString() );
+				    	}
+					
 					if(sItemExpress.equalsIgnoreCase("i_vdef3"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 							vecValue.addElement( inforcost[y].getVdef3() ) ;
 						}
+					if(sItemExpress.equalsIgnoreCase("i_vdef32"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+							vecValue.addElement( inforcost[y].getVdef3() ) ;
+						}
+					
 					if(sItemExpress.equalsIgnoreCase("i_vdef1"))
 						for(int y=0;y<inforcost.length;y++){
+							if(y%2==0)
 							vecValue.addElement( inforcost[y].getVdef1() )  ;
-				}
+						}
+					if(sItemExpress.equalsIgnoreCase("i_vdef12"))
+						for(int y=0;y<inforcost.length;y++){
+							if(y%2==1)
+							vecValue.addElement( inforcost[y].getVdef1() )  ;
+						}
 					/*
+					 * add by ouyangzhb 2012-04-09      新增费用行折行打印
 					 * add by ouyangzhb end
 					 */
 		}
