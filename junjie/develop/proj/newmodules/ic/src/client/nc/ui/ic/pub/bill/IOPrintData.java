@@ -10,6 +10,7 @@ import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.IBillItem;
 import nc.ui.pub.print.IDataSource;
 import nc.vo.pu.jjvo.InformationCostVO;
+import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.pu.PuPubVO;
 
 public class IOPrintData implements IDataSource {
@@ -206,18 +207,19 @@ public class IOPrintData implements IDataSource {
 					        m_pnlCard.getBodyItem(sItemExpress),j) )  ;
 					}
 					
-					//处理合计行
-					if (m_pnlCard.getBodyPanel().isTatolRow()) {
-			      		Object total = m_pnlCard.getTotalTableModel().getValueAt(0, m_pnlCard.getBillModel().getBodyColByKey(sItemExpress));
-			      		vecValue.addElement("");
-	  		    		if (total == null) {
-		 		 		 vecValue.addElement("--------");
-		  				}
-		  			else {
-		   				vecValue.addElement(total.toString());
-		  				}
-					}
-					break;
+					/**add by ouyangzhb 2012-04-23 取消合计行*/
+//					//处理合计行
+//					if (m_pnlCard.getBodyPanel().isTatolRow()) {
+//			      		Object total = m_pnlCard.getTotalTableModel().getValueAt(0, m_pnlCard.getBillModel().getBodyColByKey(sItemExpress));
+////			      		vecValue.addElement("");
+//	  		    		if (total == null) {
+//		 		 		 vecValue.addElement("--------");
+//		  				}
+//		  			else {
+//		   				vecValue.addElement(total.toString());
+//		  				}
+//					}
+//					break;
 				}
 			    
 			}
@@ -230,6 +232,37 @@ public class IOPrintData implements IDataSource {
 					 * add by ouyangzhb 2012-04-09 采购入库单的费用信息折行打印，分单双行打印
 					 */
 					InformationCostVO[] inforcost = (InformationCostVO[]) this.m_pnlCard.getBillData().getBodyValueChangeVOs("jj_scm_informationcost", InformationCostVO.class.getName()) ;
+					
+					/**add by ouyanghzb 2012-04-23 新增成本单价及成本金额字段的取值 begin*/
+					UFDouble costprice = UFDouble.ZERO_DBL;
+					if ( sItemExpress.equalsIgnoreCase("i_sumcostprice")||sItemExpress.equalsIgnoreCase("i_sumcostmny")){
+						UFDouble sumcostmny = UFDouble.ZERO_DBL;
+						UFDouble sumnum = UFDouble.ZERO_DBL;
+						 costprice = UFDouble.ZERO_DBL;
+						for(int y=0;y<inforcost.length;y++){
+							sumcostmny=sumcostmny.add(inforcost[y].getNoriginalcurmny());
+							if(inforcost[y].getNnumber()!=null&&inforcost[y].getNnumber().compareTo(UFDouble.ZERO_DBL)!=0&&sumnum.compareTo(UFDouble.ZERO_DBL)==0){
+								sumnum = inforcost[y].getNnumber();
+							}
+						}
+						costprice = sumcostmny.div(sumnum);
+					}
+					if ( sItemExpress.equalsIgnoreCase("i_sumcostprice")){
+						for(int j=0;j<m_pnlCard.getRowCount();j++){
+						    vecValue.addElement( costprice.add(new UFDouble(getValueForCardBody(
+						        m_pnlCard.getBodyItem("nprice"),j))).setScale(2, 2).toString())  ;
+						}
+					}
+					
+					if ( sItemExpress.equalsIgnoreCase("i_sumcostmny")){
+						for(int j=0;j<m_pnlCard.getRowCount();j++){
+						    vecValue.addElement( costprice.add(new UFDouble(getValueForCardBody(
+						        m_pnlCard.getBodyItem("nprice"),j)).multiply(new UFDouble(getValueForCardBody(
+						        m_pnlCard.getBodyItem("ninnum"),j)))).setScale(2, 2).toString())  ;
+						}
+					}
+					/**add by ouyanghzb 2012-04-23 新增成本单价及成本金额字段的取值 end */
+					
 					
 					if ( sItemExpress.equalsIgnoreCase("i_costname"))
 						for(int y=0;y<inforcost.length;y++){
