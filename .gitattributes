@@ -186,6 +186,7 @@ junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/HwtzDialog.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/HwtzObj.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic251/HwtzVO.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic261/CheckTypeChooser.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic261/md/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/BatchModifyDlg.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic601/ClientUI.java -text
@@ -209,10 +210,13 @@ junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/GeneralButtonMana
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/IOPrintData.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/SpecialBillBaseUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/pub/bill/dialog/MBJSDialog.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/vo/ic/ic261/CheckMode.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/ic211/GeneralHBO.java -text
+junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/ic261/SpecialHDMO.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/pub/bill/GeneralBillImpl.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4C_ORDERINVOICE.java -text
+junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4R_CANCELADJUST.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/itf/ic/md/IMDTools.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/itf/ic/pub/IGeneralBill.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/ui/ic/md/dialog/MDUtils.java -text
@@ -275,6 +279,7 @@ junjie/develop/proj/newmodules/scmpub/src/private/nc/bs/scm/pub/ScmPubDMO.java -
 junjie/develop/proj/newmodules/scmpub/src/private/nc/bs/scm/pub/ScmPubImpl.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/itf/scm/pub/IScmPub.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/ui/scm/pub/ScmPubHelper.java -text
+junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/ic/bill/InvVO.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InformationCostVO.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InformationCostVOMeta.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InvDetailVO.java -text

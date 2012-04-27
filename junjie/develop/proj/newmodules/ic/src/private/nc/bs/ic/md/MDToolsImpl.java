@@ -5,14 +5,19 @@ import java.util.Collection;
 import java.util.List;
 
 import nc.bs.dao.BaseDAO;
+import nc.bs.dao.DAOException;
+import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
 import nc.itf.ic.md.IMDTools;
+import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.SQLParameter;
+import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.ColumnListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.md.dialog.MDUtils;
 import nc.vo.ic.md.CargInfVO;
 import nc.vo.ic.md.MdcrkVO;
+import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.xcl.MdxclBVO;
 import nc.vo.ic.xcl.MdxclVO;
 import nc.vo.pub.BusinessException;
@@ -292,5 +297,46 @@ public class MDToolsImpl implements IMDTools {
 		else 
 			return false;
 	}
+	
+	
+	/**add by ouyangzhb 2012-04-26 在取消调整单时的码单处理*/
+	public void cancelMD(String billpk){
+		IUAPQueryBS bs = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+		ArrayList<GeneralBillItemVO> invos = new ArrayList<GeneralBillItemVO>();
+		
+		String sql = "select * from ic_general_b b  where nvl(b.dr,0)=0 and b.csourcebillhid='"+billpk+"' ";
+		try {
+			try {
+				invos = (ArrayList<GeneralBillItemVO>) bs.executeQuery(sql, new BeanListProcessor(GeneralBillItemVO.class));
+			} catch (BusinessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (invos != null && invos.size() > 0) {
+				for (int y = 0; y < invos.size(); y++) {
+					String cbodybilltypecode = invos.get(y).getCbodybilltypecode();
+					String updatestr = null;
+					if(cbodybilltypecode.endsWith("4A")){
+						updatestr = "update nc_mdxcl_b b set b.zhishu = b.zhishu-"+invos.get(y).getNinassistnum()+"  ,b.zhongliang= b.zhongliang-"+invos.get(y).getNinnum()+",b.def1=b.def1-"+invos.get(y).getNinnum()+"  where b.pk_mdxcl_b in (select k.pk_mdxcl_b from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0) ";
+					}else if (cbodybilltypecode.endsWith("4I")){
+						updatestr = "update nc_mdxcl_b b set b.zhishu = b.zhishu+"+invos.get(y).getNoutassistnum()+"  ,b.zhongliang= b.zhongliang+"+invos.get(y).getNoutnum()+",b.def1=b.def1+"+invos.get(y).getNoutnum()+"  where b.pk_mdxcl_b in (select k.pk_mdxcl_b from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0) ";
+					}else{
+						return;
+					}
+					getDAO().executeUpdate(updatestr);
+					String delsql = "update nc_mdcrk k set k.dr=1 where k.cgeneralbid='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0";
+					getDAO().executeUpdate(delsql);
+				}
+			}else{
+				return;
+			}
+				
+		} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	/**add by ouyangzhb 2012-04-26 在取消调整单时的码单处理 end */
+	
 
 }

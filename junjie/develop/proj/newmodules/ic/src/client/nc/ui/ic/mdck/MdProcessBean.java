@@ -383,7 +383,7 @@ public class MdProcessBean {
 		UFDouble zhishu = new UFDouble((BigDecimal) rsmap.get("zhishu"));// 现存支数
 		UFDouble zhongliang = new UFDouble((BigDecimal) rsmap.get("zhongliang"));// 现存验收重量
 		UFDouble factoryallweight=new UFDouble((BigDecimal) rsmap.get("def1"));// 现存钢厂重量
-		UFDouble kyzs = new UFDouble((Integer) rsmap.get("kyzs")); // 可用支数
+		UFDouble kyzs = new UFDouble(rsmap.get("kyzs").toString()); // 可用支数
 		UFDouble kyzl = kyzs.multiply(zhongliang).div(zhishu,
 				MDConstants.ZL_XSW);// 可用重量
 		UFDouble factoryWeight=new UFDouble(rsmap.get("factoryweight").toString());// 2010-12-30 MeiChao add 可用钢厂重量 

@@ -4,12 +4,22 @@ import java.awt.CardLayout;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import nc.bs.dao.DAOException;
+import nc.bs.framework.common.NCLocator;
+import nc.itf.ic.md.IMDTools;
+import nc.itf.uap.IUAPQueryBS;
+import nc.itf.uap.IVOPersistence;
+import nc.jdbc.framework.processor.ArrayListProcessor;
+import nc.jdbc.framework.processor.BeanListProcessor;
+import nc.jdbc.framework.processor.BeanProcessor;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.ic261.CheckTypeChooser;
 import nc.ui.ic.ic261.DataGetSource;
 import nc.ui.ic.ic261.QueryDlgHelpForSpecExt;
@@ -48,6 +58,7 @@ import nc.ui.scm.ic.exp.GeneralMethod;
 import nc.ui.scm.pub.panel.SetColor;
 import nc.ui.trade.businessaction.IPFACTION;
 import nc.vo.ic.ic261.CheckMode;
+import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.BillRowType;
 import nc.vo.ic.pub.BillTypeConst;
 import nc.vo.ic.pub.IBillItemBarcodeVO;
@@ -79,6 +90,7 @@ import nc.vo.ic.pub.locator.LocatorVO;
 import nc.vo.ic.pub.smallbill.SMSpecialBillVO;
 import nc.vo.ic.pub.tools.KeyObject;
 import nc.vo.ic.pub.tools.StringKeyJudge;
+import nc.vo.ic.xcl.MdxclBVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.NullFieldException;
@@ -3961,8 +3973,6 @@ public class ClientUI extends SpecialBillBaseUI implements
 				fillLineSpecailBarCode1VO(i);
 			}
 		}
-		
-		
 		/*SpecialBillVO voNowBill = (SpecialBillVO) m_alListData
 				.get(m_iLastSelListHeadRow);*/
 		SpecialBillVO voNowBill = getM_voBill();
@@ -4067,22 +4077,19 @@ public class ClientUI extends SpecialBillBaseUI implements
 			} else if (voNowBill.getHeaderVO().getIcheckmode() == CheckMode.md){
 				if(null != RowItemVO.getVuserdef9() && new UFBoolean(RowItemVO.getVuserdef9()).booleanValue()
 						&&RowItemVO.getNaccountnum().compareTo(UFDouble.ZERO_DBL)!=0){
-					RowItemVO.setNadjustnum(RowItemVO.getNaccountnum().multiply(
-							-1));
+					RowItemVO.setNadjustnum(RowItemVO.getNaccountnum());
 					RowItemVO
 							.setNadjustastnum(((RowItemVO.getNaccountastnum() == null || RowItemVO.getNaccountastnum()
-									.toString().trim().length() == 0) ? null : RowItemVO.getNaccountastnum().multiply(-1)));
+									.toString().trim().length() == 0) ? null : RowItemVO.getNaccountastnum()));
 					RowItemVO
-							.setNadjustgrsnum(RowItemVO.getNaccountnum().multiply(-1));
+							.setNadjustgrsnum(RowItemVO.getNaccountnum());
 					RowItemVO
 							.setAttributeValue(
 									"je",
-									((RowItemVO.getAttributeValue("je") == null || RowItemVO
-											.getAttributeValue("je").toString()
-											.trim().length() == 0) ? null
+									((RowItemVO.getNprice() == null || RowItemVO
+											.getNprice().toString().trim().length() == 0) ? null
 											: ((UFDouble) RowItemVO
-													.getAttributeValue("je"))
-													.multiply(-1)));
+													.getNprice().multiply(RowItemVO.getNaccountnum()))));
 					vRowItemVOs.addElement(RowItemVO);
 				}
 				/**add by ouyangzhb 2012-04-25 新增码单盘点的判断*/
@@ -4257,14 +4264,12 @@ public class ClientUI extends SpecialBillBaseUI implements
 									.toString().trim().length() == 0) ? null : RowItemVO.getNcheckastnum()));
 					RowItemVO
 							.setNadjustgrsnum(RowItemVO.getNchecknum());
-					RowItemVO
-							.setAttributeValue(
-									"je",
-									((RowItemVO.getAttributeValue("je") == null || RowItemVO
-											.getAttributeValue("je").toString()
-											.trim().length() == 0) ? null
-											: ((UFDouble) RowItemVO
-													.getAttributeValue("je"))));
+					RowItemVO.setAttributeValue(
+											"je",
+											((RowItemVO.getNprice() == null || RowItemVO
+													.getNprice().toString().trim().length() == 0) ? null
+													: ((UFDouble) RowItemVO
+															.getNprice().multiply(RowItemVO.getNchecknum()))));
 					vRowItemVOs.addElement(RowItemVO);
 				}
 				/**add by ouyangzhb 2012-04-25 新增码单盘点的判断*/
@@ -4384,7 +4389,13 @@ public class ClientUI extends SpecialBillBaseUI implements
 				String sBillPK = m_voBill.getPrimaryKey();
 				// 刷新ts
 				freshTs(qryLastTs(sBillPK));
-
+				
+				/**add by ouyangzhb 2012-04-25 根据盘点记录生成码单明细*/
+				if(voNowBill.getHeaderVO().getIcheckmode() == CheckMode.md){
+					createMDcrk(m_voBill);
+				}
+				/**add by ouyangzhb 2012-04-25 根据盘点记录生成码单明细*/
+				
 				m_alListData.set(m_iLastSelListHeadRow, m_voBill.clone());
 
 				m_iFirstSelListHeadRow = -1;
@@ -4455,7 +4466,6 @@ public class ClientUI extends SpecialBillBaseUI implements
 			String sBillPK = vo.getPrimaryKey();
 			// 刷新ts
 			freshTs(qryLastTs(sBillPK));
-
 			m_alListData.set(m_iLastSelListHeadRow, m_voBill.clone());
 			m_iFirstSelListHeadRow = -1;
 			switchListToBill();
@@ -7398,16 +7408,32 @@ public class ClientUI extends SpecialBillBaseUI implements
 				continue;
 			KeyObject sKeyUI = StringKeyJudge.getUKey(voitemSelecte);// v5
 																		// 需要根据存货是否换算率修改
-			if (!StringKeyJudge.containString(hmUK_Inv, sKeyUI)) {
+			
+			/**add by ouyangzhb 2012-04-25 码单盘点-对存货的判断*/
+			if(m_voBill.getHeaderVO().getIcheckmode() !=null && m_voBill.getHeaderVO().getIcheckmode() ==CheckMode.md ){
 				hmUK_Inv.put(sKeyUI, voitemSelecte.getCinventoryid());
-			} else {
-				showWarningMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
-						"4008spec", "UPP4008spec-000227")/*
-															 * @res
-															 * "有重复存货行，请将其合并成一行！"
-															 */);
-				return;
+			}else{
+				if (!StringKeyJudge.containString(hmUK_Inv, sKeyUI)) {
+					hmUK_Inv.put(sKeyUI, voitemSelecte.getCinventoryid());
+				} else {
+					showWarningMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
+							"4008spec", "UPP4008spec-000227")/*
+																 * @res
+																 * "有重复存货行，请将其合并成一行！"
+																 */);
+					return;
+				}
 			}
+//			if (!StringKeyJudge.containString(hmUK_Inv, sKeyUI)) {
+//				hmUK_Inv.put(sKeyUI, voitemSelecte.getCinventoryid());
+//			} else {
+//				showWarningMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
+//						"4008spec", "UPP4008spec-000227")/*
+//															 * @res
+//															 * "有重复存货行，请将其合并成一行！"
+//															 */);
+//				return;
+//			}
 		}
 		if (hmUK_Inv == null || hmUK_Inv.size() <= 0) {
 			showWarningMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
@@ -10026,4 +10052,219 @@ public class ClientUI extends SpecialBillBaseUI implements
 	    }
 	  } 
 	}
+	
+	/**
+	 * 根据盘点的信息，生成码单明细
+	 * @author Ouyang 2012-04-25 
+	 * @
+	 * @param m_voBill
+	 */
+	public void createMDcrk(SpecialBillVO m_voBill){
+		IVOPersistence ivopersistence = (IVOPersistence) NCLocator.getInstance().lookup(IVOPersistence.class.getName());
+		IUAPQueryBS querybs = (IUAPQueryBS) NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+		if(m_voBill==null)
+			return;
+		
+		SpecialBillItemVO[] bvos = m_voBill.getItemVOs();
+		if(bvos ==null||bvos.length<=0)
+			return;
+		
+		ArrayList<Object[]> invs = new ArrayList<Object[]>();
+		
+		HashMap<String, String[]> keyMap = new HashMap<String, String[]>();
+		
+		String sBillPK = m_voBill.getPrimaryKey();
+		
+		/**构建码单明细*/
+		IMDTools tool = (IMDTools) NCLocator.getInstance().lookup(IMDTools.class.getName());
+		/**1、根据来源单据主键，获取所生成的的*/
+		String sql = "select b.cbodybilltypecode,b.csourcebillbid,b.cgeneralbid,h.vbillcode from ic_general_b b inner join ic_general_h h on b.cgeneralhid = h.cgeneralhid where nvl(b.dr,0)=0 and nvl(h.dr,0)=0 and b.csourcebillhid='"+sBillPK+"' ";
+		try {
+			invs = (ArrayList<Object[]>) querybs.executeQuery(sql,new ArrayListProcessor());
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (invs != null && invs.size() > 0) {
+			for (int y = 0; y < invs.size(); y++) {
+				String cbodybilltypecode = invs.get(y)[0] == null ? null : invs
+						.get(y)[0].toString();
+				String csourcebillbid = invs.get(y)[1] == null ? null : invs
+						.get(y)[1].toString();
+				String cgeneralbid = invs.get(y)[2] == null ? null : invs
+						.get(y)[2].toString();
+				String vbillcode = invs.get(y)[3] == null ? null : invs
+						.get(y)[3].toString();
+				String key = cbodybilltypecode+csourcebillbid;
+				keyMap.put(key, new String[]{cgeneralbid,vbillcode});
+			}
+				
+			}
+		for (int i = 0; i < bvos.length; i++) {
+			try {
+				/** 2、码单出库明细 */
+				if (keyMap.containsKey("4I" + bvos[i].getPrimaryKey())) {
+					MdcrkVO mdoutvo = new MdcrkVO();
+					if (keyMap.containsKey("4I" + bvos[i].getPrimaryKey())) {
+						String mdxcl = "select * from nc_mdxcl_b b where b.cspaceid='"+ bvos[i].getCspaceid()
+								+ "' and b.jbh='"
+								+ bvos[i].getVuserdef1()
+								+ "' and isnull(b.dr,0)=0";
+						MdxclBVO mdxclvo = (MdxclBVO) querybs.executeQuery(
+								mdxcl, new BeanProcessor(MdxclBVO.class));
+						
+						/**构建码单出库明细vo*/
+						
+						mdoutvo.setCbodybilltypecode("4I");
+						mdoutvo.setCgeneralbid(keyMap.get("4I"
+								+ bvos[i].getPrimaryKey())[0]);
+						mdoutvo.setDef10(keyMap
+										.get("4I" + bvos[i].getPrimaryKey())[1]);
+						mdoutvo.setCspaceid(mdxclvo.getCspaceid());
+						mdoutvo.setJbh(mdxclvo.getJbh());
+						mdoutvo.setMd_width(mdxclvo.getMd_width());
+						mdoutvo.setMd_length(mdxclvo.getMd_length());
+						mdoutvo.setMd_lph(mdxclvo.getMd_lph());
+						mdoutvo.setMd_meter(mdxclvo.getMd_meter());
+						mdoutvo.setMd_note(mdxclvo.getMd_note());
+						mdoutvo.setMd_zlzsh(mdxclvo.getMd_zlzsh());
+						mdoutvo.setMd_zyh(mdxclvo.getMd_zyh());
+						mdoutvo.setDef6(mdxclvo.getDef6());
+						mdoutvo.setRemark(mdxclvo.getRemark());// 备注
+						mdoutvo.setSrkzl(bvos[i].getNaccountnum());// 验收重量
+						mdoutvo.setSrkzs(bvos[i].getNaccountastnum());
+						mdoutvo.setDr(0);
+						mdoutvo.setDef1(mdxclvo.getDef1());// 钢厂重量
+						mdoutvo.setDef2(mdxclvo.getDef2());// 自定义项2
+						mdoutvo.setDef3(mdxclvo.getDef3());// 自定义项3
+						mdoutvo.setDef4(mdxclvo.getDef4());// 非计算标识
+						mdoutvo.setDef7(mdxclvo.getDef7());// 自定义项7
+						mdoutvo.setDef8(mdxclvo.getDef8());// 自定义项8
+						mdoutvo.setDef9(mdxclvo.getDef9());// 自定义项9
+						mdoutvo.setDef10(mdxclvo.getDef10());// 自定义项10
+						mdoutvo.setDef11(mdxclvo.getDef11());// 自定义项11
+						mdoutvo.setDef12(mdxclvo.getDef12());// 自定义项12
+						mdoutvo.setDef13(mdxclvo.getDef13());// 自定义项13
+						mdoutvo.setDef14(mdxclvo.getDef14());// 自定义项14
+						mdoutvo.setDef15(mdxclvo.getDef15());// 自定义项15
+						mdoutvo.setSfbj(UFBoolean.FALSE);
+						mdoutvo.setSfgczl(UFBoolean.FALSE);
+						
+						
+						
+						mdoutvo.setPk_mdxcl_b(mdxclvo.getPk_mdxcl_b());
+						mdoutvo.setStatus(VOStatus.NEW);
+						//新增码单出库记录
+						ivopersistence.insertVO(mdoutvo);
+						
+						/**更新码单现存量*/
+						mdxclvo.setZhishu(mdxclvo.getZhishu().sub(
+								mdoutvo.getSrkzs()));
+						mdxclvo.setZhongliang(mdxclvo.getZhongliang().sub(
+								mdoutvo.getSrkzl()));
+						mdxclvo.setDef1(mdxclvo.getDef1()
+								.sub(mdoutvo.getDef1()));
+						ivopersistence.updateVO(mdxclvo);
+					}
+
+				}
+
+				/** 3、码单入库明细 */
+				if (keyMap.containsKey("4A" + bvos[i].getPrimaryKey())) {
+					MdcrkVO mdcrkVO = new MdcrkVO();
+					mdcrkVO.setDef1(bvos[i].getNchecknum());
+					mdcrkVO.setSrkzl(bvos[i].getNchecknum());
+					mdcrkVO.setSrkzs(bvos[i].getNcheckastnum());
+					mdcrkVO.setCbodybilltypecode("4A");
+					mdcrkVO.setCgeneralbid(keyMap.get("4A"
+							+ bvos[i].getPrimaryKey())[0]);
+					mdcrkVO.setDef10(keyMap
+									.get("4A" + bvos[i].getPrimaryKey())[1]);
+					mdcrkVO.setJbh(bvos[i].getVuserdef1());
+					mdcrkVO.setCspaceid(bvos[i].getVuserdef8());
+					mdcrkVO.setCwarehouseidb(m_voBill.getHeaderVO()
+							.getCinwarehouseid());
+					mdcrkVO.setCcalbodyidb(m_voBill.getHeaderVO()
+							.getPk_calbody_in());
+					mdcrkVO.setPk_corp(m_voBill.getHeaderVO().getPk_corp());
+					mdcrkVO.setDef7(bvos[i].getVuserdef5());
+					mdcrkVO.setDef8(bvos[i].getVuserdef6());
+					mdcrkVO.setDef9(bvos[i].getVuserdef7());
+					mdcrkVO.setVoperatorid(m_voBill.getHeaderVO()
+							.getCoperatorid());
+					String pk_mdxcl_b = null;
+					String mdxcl = "select * from nc_mdxcl_b b where b.cspaceid='"
+							+ mdcrkVO.getCspaceid()
+							+ "' and b.jbh='"
+							+ mdcrkVO.getJbh() + "' and isnull(b.dr,0)=0";
+					MdxclBVO mdxclvo;
+					mdxclvo = (MdxclBVO) querybs.executeQuery(mdxcl,
+							new BeanProcessor(MdxclBVO.class));
+
+					if (mdxclvo == null || "".equals(mdxclvo)) {
+						String pk_mdxclsql = "select pk_mdxcl from  nc_mdxcl where isnull(dr,0)=0 and  pk_corp ='"
+								+ mdcrkVO.getPk_corp()
+								+ "' and ccalbodyidb='"
+								+ mdcrkVO.getCcalbodyidb()
+								+ "' and cwarehouseidb ='"
+								+ mdcrkVO.getCwarehouseidb()
+								+ "'  and cinventoryidb='"
+								+ bvos[i].getCinventoryid() + "' ";
+						Object pk_mdxcl = querybs.executeQuery(pk_mdxclsql,
+								new ColumnProcessor());
+						MdxclBVO bvo = new MdxclBVO();
+						bvo.setCspaceid(mdcrkVO.getCspaceid());
+						bvo.setJbh(mdcrkVO.getJbh());
+						bvo.setMd_width(mdcrkVO.getMd_width());
+						bvo.setMd_length(mdcrkVO.getMd_length());
+						bvo.setMd_lph(mdcrkVO.getMd_lph());
+						bvo.setMd_meter(mdcrkVO.getMd_meter());
+						bvo.setMd_note(mdcrkVO.getMd_note());
+						bvo.setMd_zlzsh(mdcrkVO.getMd_zlzsh());
+						bvo.setMd_zyh(mdcrkVO.getMd_zyh());
+						bvo.setDef6(mdcrkVO.getDef6());
+						bvo.setRemark(mdcrkVO.getRemark());// 备注
+						bvo.setZhongliang(mdcrkVO.getSrkzl());// 验收重量
+						bvo.setZhishu(mdcrkVO.getSrkzs());
+						bvo.setDr(0);
+						bvo.setDef1(mdcrkVO.getDef1());// 钢厂重量
+						bvo.setDef2(mdcrkVO.getDef2());// 自定义项2
+						bvo.setDef3(mdcrkVO.getDef3());// 自定义项3
+						bvo.setDef4(mdcrkVO.getDef4());// 非计算标识
+						bvo.setDef7(mdcrkVO.getDef7());// 自定义项7
+						bvo.setDef8(mdcrkVO.getDef8());// 自定义项8
+						bvo.setDef9(mdcrkVO.getDef9());// 自定义项9
+						bvo.setDef10(mdcrkVO.getDef10());// 自定义项10
+						bvo.setDef11(mdcrkVO.getDef11());// 自定义项11
+						bvo.setDef12(mdcrkVO.getDef12());// 自定义项12
+						bvo.setDef13(mdcrkVO.getDef13());// 自定义项13
+						bvo.setDef14(mdcrkVO.getDef14());// 自定义项14
+						bvo.setDef15(mdcrkVO.getDef15());// 自定义项15
+						bvo.setPk_mdxcl(pk_mdxcl.toString());
+
+						bvo.setStatus(VOStatus.NEW);
+						pk_mdxcl_b = ivopersistence.insertVO(bvo);
+					} else {
+						pk_mdxcl_b = mdxclvo.getPk_mdxcl_b();
+						mdxclvo.setZhishu(mdxclvo.getZhishu().add(
+								mdcrkVO.getSrkzs()));
+						mdxclvo.setZhongliang(mdxclvo.getZhongliang().add(
+								mdcrkVO.getSrkzl()));
+						mdxclvo.setDef1(mdxclvo.getDef1()
+								.add(mdcrkVO.getDef1()));
+						ivopersistence.updateVO(mdxclvo);
+					}
+					mdcrkVO.setDr(0);
+					mdcrkVO.setStatus(VOStatus.NEW);
+					mdcrkVO.setPk_mdxcl_b(pk_mdxcl_b);
+					ivopersistence.insertVO(mdcrkVO);
+				}
+
+			} catch (BusinessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
 }
