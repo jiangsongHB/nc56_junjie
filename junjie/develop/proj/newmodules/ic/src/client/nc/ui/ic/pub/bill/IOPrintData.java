@@ -257,8 +257,8 @@ public class IOPrintData implements IDataSource {
 					if ( sItemExpress.equalsIgnoreCase("i_sumcostmny")){
 						for(int j=0;j<m_pnlCard.getRowCount();j++){
 						    vecValue.addElement( costprice.add(new UFDouble(getValueForCardBody(
-						        m_pnlCard.getBodyItem("nprice"),j)).multiply(new UFDouble(getValueForCardBody(
-						        m_pnlCard.getBodyItem("ninnum"),j)))).setScale(2, 2).toString())  ;
+						        m_pnlCard.getBodyItem("nprice"),j))).multiply(new UFDouble(getValueForCardBody(
+						        m_pnlCard.getBodyItem("ninnum"),j))).setScale(2, 2).toString())  ;
 						}
 					}
 					/**add by ouyanghzb 2012-04-23 新增成本单价及成本金额字段的取值 end */
