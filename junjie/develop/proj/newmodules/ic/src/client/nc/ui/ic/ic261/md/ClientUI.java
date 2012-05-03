@@ -10252,6 +10252,13 @@ public class ClientUI extends SpecialBillBaseUI implements
 								mdcrkVO.getSrkzl()));
 						mdxclvo.setDef1(mdxclvo.getDef1()
 								.add(mdcrkVO.getDef1()));
+						//add by ouyangzhb 2012-05-03 把现存量的其他字段的值也改成调整后的数据
+						mdxclvo.setMd_width(mdcrkVO.getMd_width());
+						mdxclvo.setMd_length(mdcrkVO.getMd_length());
+						mdxclvo.setMd_meter(mdcrkVO.getMd_meter());
+						mdxclvo.setDef7(bvos[i].getVuserdef5());
+						mdxclvo.setDef8(bvos[i].getVuserdef6());
+						mdxclvo.setDef9(bvos[i].getVuserdef7());
 						ivopersistence.updateVO(mdxclvo);
 					}
 					mdcrkVO.setDr(0);

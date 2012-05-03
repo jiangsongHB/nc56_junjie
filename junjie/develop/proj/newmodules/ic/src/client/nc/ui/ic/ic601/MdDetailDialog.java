@@ -424,7 +424,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 	// 查询所有相关数据
 	private MdDetailVO[] queryAll() throws BusinessException {
 		MdDetailVO[] detailVos = null;
-		String sql = "select t1.pk_mdxcl_b,t3.invcode,"
+		String sql = "select distinct t1.pk_mdxcl_b,t3.invcode,"
 				+ " t3.invname,"
 				+ " t3.invspec,"
 				+ " t3.invtype,"
@@ -445,9 +445,12 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ " t1.def8,"
 				+ " t1.def9,"
 				+ " b.sdzs as yxsdzs,"
-				+ " (t1.zhishu - nvl(b.sdzs, 0)) as kyzs,"
-				+ " t8.dbilldate,"
-				+ " t8.vbillcode,"
+				+ " (t1.zhishu - nvl(b.sdzs, 0)) as kyzs, "
+//				+ " t8.dbilldate,"
+//				+ " t8.vbillcode,"
+				//add by ouyangzhb 2012-05-03 取现存量对应的最后入库单的单号
+				+ " max(t8.dbilldate) dbilldate,"
+				+ " max(t8.vbillcode) vbillcode,"
 				+ " t7.vuserdef4"
 				+ " from nc_mdxcl_b t1"
 				+ " left join nc_mdxcl t2 on t1.pk_mdxcl = t2.pk_mdxcl"
@@ -474,7 +477,14 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				+ "'"
 				+ " and t1.dr = 0"
 				+ " and t2.dr = 0"
-				+ " and (t1.zhishu<>0 or t1.zhongliang<>0) and t6.cbodybilltypecode in ('45','4A')";
+				+ " and (t1.zhishu<>0 or t1.zhongliang<>0) and t6.cbodybilltypecode in ('45','4A')" 
+				//add by ouyangzhb 2012-05-03 取最后入库数据
+				+ "  group by " 
+				+ " t1.pk_mdxcl_b,t3.invcode, t3.invname, t3.invspec,  " 
+				+ " t3.invtype,t4.csname, t1.jbh, t1.md_width, t1.md_length, " 
+				+ " t1.md_meter,   t1.md_note, t1.md_lph, t1.md_zyh, t1.md_zlzsh, " 
+				+ " t1.remark, t1.zhishu, t1.zhongliang,  t1.def1,  t1.def7, t1.def8, " 
+				+ " t1.def9,  b.sdzs,(t1.zhishu - nvl(b.sdzs, 0)), t7.vuserdef4";
 
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
@@ -524,8 +534,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 				
 			// 有效锁定支数
 			if (objMap.get("yxsdzs") != null) {
-				vo.setYxsdzs(new UFDouble(((Integer) objMap.get("yxsdzs"))
-						.doubleValue()));
+				vo.setYxsdzs(new UFDouble(( objMap.get("yxsdzs").toString())));
 				UFDouble ywsdzl = vo.getYxsdzs().div(vo.getZhishu()).multiply(
 						vo.getZhongliang(), 4);
 				vo.setYxsdzl(ywsdzl); // 有效锁定重量
@@ -535,8 +544,7 @@ public class MdDetailDialog extends nc.ui.pub.beans.UIDialog {
 			}
 			// 可用支数
 			if (objMap.get("kyzs") != null) {
-				vo.setKyzs(new UFDouble(((Integer) objMap.get("kyzs"))
-						.doubleValue()));
+				vo.setKyzs(new UFDouble((objMap.get("kyzs").toString())));
 				if (vo.getKyzs().doubleValue() != 0)
 					vo.setKyzl(vo.getZhongliang().sub(vo.getYxsdzl()));// 可用重量
 				else
