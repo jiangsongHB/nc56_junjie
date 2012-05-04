@@ -1915,6 +1915,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		//由于码单维护的保存操作执行了出库界面的修改动作,导致保存时无法取得保存前的所选择行号,所以将其放于此.
 		int selectedRowNum=this.getBillCardPanel().getBillTable().getSelectedRow();
 		
+		//add by ouyangzhb 2012-05-04 取存货基本档案，判断是否毛边计算存货
+		String cinventoryid  = (String) getBillCardPanel().getBodyValueAt(selectedRowNum, "cinventoryid");
+		
 		if (getBillType().equals("4C") || getBillType().equals("4I")) {
 			MdwhDlg dlg;
 			try {
@@ -1976,6 +1979,20 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					// 编辑后事件 数量
 					afterEdit(e);
 
+					/**add by ouyangzhb 2012-05-04 需要判断是否毛边计算，只有毛边计算时，才回写单据，金额变化*/
+					if(dialog.CheckSfmbjs(cinventoryid)){
+						getBillCardPanel().setBodyValueAt(
+								new UFDouble(-dialog.getNmny().doubleValue()), j,
+								"nmny"); // 金额
+						BillEditEvent e2 = new BillEditEvent(getBillCardPanel()
+								.getBodyItem("nmny").getComponent(),
+								getBillCardPanel().getBodyValueAt(j, "nmny"),
+								"nmny", j, BillItem.BODY);
+						// 编辑后事件 金额
+						afterEdit(e2);
+					}
+					/**
+					 * 注销，需要判断是否毛边计算，只有毛边计算时，才回写单据，金额变化
 					getBillCardPanel().setBodyValueAt(
 							new UFDouble(-dialog.getNmny().doubleValue()), j,
 							"nmny"); // 金额
@@ -1985,7 +2002,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 							"nmny", j, BillItem.BODY);
 					// 编辑后事件 金额
 					afterEdit(e2);
-
+					*/
+					/**add by ouyangzhb 2012-05-04 需要判断是否毛边计算，只有毛边计算时，才回写单据，金额变化end */
+					
 					if (getBillCardPanel().getBodyItem("grossprice") != null)
 						getBillCardPanel().setBodyValueAt(
 								dialog.getGrossprice(), j, "grossprice"); // 毛边单价
@@ -2267,12 +2286,24 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 编辑后事件 数量
 				afterEdit(e);
 
+				/**add by ouyangzhb 2012-05-04 需要判断是否毛边计算，只有毛边计算时，才回写单据，金额变化*/
+				if(dialog.CheckSfmbjs(cinventoryid)){
+					getBillCardPanel().setBodyValueAt(dialog.getNmny(), j, "nmny"); // 金额
+					BillEditEvent e2 = new BillEditEvent(getBillCardPanel()
+							.getBodyItem("nmny").getComponent(), getBillCardPanel()
+							.getBodyValueAt(j, "nmny"), "nmny", j, BillItem.BODY);
+					// 编辑后事件 金额
+					afterEdit(e2);
+				}
+				/**注销，只有是毛边计算时，才回写金额和单价 
 				getBillCardPanel().setBodyValueAt(dialog.getNmny(), j, "nmny"); // 金额
 				BillEditEvent e2 = new BillEditEvent(getBillCardPanel()
 						.getBodyItem("nmny").getComponent(), getBillCardPanel()
 						.getBodyValueAt(j, "nmny"), "nmny", j, BillItem.BODY);
 				// 编辑后事件 金额
 				afterEdit(e2);
+				*/
+				/**add by ouyangzhb 2012-05-04 需要判断是否毛边计算，只有毛边计算时，才回写单据，金额变化 end */
 
 				if (getBillCardPanel().getBodyItem("grossprice") != null)
 					getBillCardPanel().setBodyValueAt(dialog.getGrossprice(),

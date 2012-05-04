@@ -1527,13 +1527,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	// 是否需要进行毛边计算
-	private boolean CheckSfmbjs(String pk_invbas) throws BusinessException {
+	public  boolean CheckSfmbjs(String pk_invbas) throws BusinessException {
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
 		//add by ouyangzhb 2011-02-25  改为查询存货管理档案中的自定义项19
 		Object[] objs = (Object[]) iUAPQueryBS
 				.executeQuery(
-						"select t2.def19 from bd_invmandoc t2 left join bd_invbasdoc t1 on t1.pk_invbasdoc=t2.pk_invbasdoc where t2.pk_invmandoc='"
+						"select t2.def19 from bd_invmandoc t2  where t2.pk_invmandoc='"
 								+ pk_invbas + "'", new ArrayProcessor());
 		if (objs[0] != null && objs[0].toString() != null
 				&& objs[0].toString().toUpperCase().equals("Y"))
