@@ -91,6 +91,7 @@ import nc.vo.ic.pub.smallbill.SMSpecialBillVO;
 import nc.vo.ic.pub.tools.KeyObject;
 import nc.vo.ic.pub.tools.StringKeyJudge;
 import nc.vo.ic.xcl.MdxclBVO;
+import nc.vo.ic.xcl.MdxclVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.NullFieldException;
@@ -560,20 +561,20 @@ public class ClientUI extends SpecialBillBaseUI implements
 		if(mditembz !=null ){
 			String ismd = mditembz.getValue();
 			if(ismd !=null&&new UFBoolean(ismd).booleanValue()){
-				if("vuserdef5,vuserdef6,vuserdef7,vuserdef8,nchecknum,ncheckastnum,ncheckgrsnum".contains(strColName)){
+				if("vuserdef5,vuserdef6,vuserdef7,vuserdef8,nchecknum,ncheckastnum,ncheckgrsnum,pspacename".contains(strColName)){
 					//新定义一个标识，如果一下数据项组中存在不相等的，则认为是修改过的，取值为true
-					String vuserdef2 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef2");//验收长
-					String vuserdef3 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef3");//验收宽
-					String vuserdef4 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef4");//验收米数
-					String vuserdef5 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef5");//盘点长
-					String vuserdef6 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef6");//盘点宽
-					String vuserdef7 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef7");//盘点米数
-					String vuserdef8 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef8");//盘点货位
-					String cspaceid = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "cspaceid");//货位
-					 UFDouble nchecknum =  (UFDouble) getBillCardPanel().getBodyValueAt(e.getRow(), "nchecknum");//盘点数量
-					 UFDouble ncheckastnum = (UFDouble) getBillCardPanel().getBodyValueAt(e.getRow(), "ncheckastnum");//盘点辅数量
-					 UFDouble naccountastnum = (UFDouble) getBillCardPanel().getBodyValueAt(e.getRow(), "naccountastnum");//账面辅数量
-					 UFDouble naccountnum = (UFDouble) getBillCardPanel().getBodyValueAt(e.getRow(), "naccountnum");//账面数量
+					String vuserdef2 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef2") == null ? "":(String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef2");//验收长
+					String vuserdef3 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef3") == null ? "":(String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef3");//验收宽
+					String vuserdef4 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef4") == null ? "":(String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef4");//验收米数
+					String vuserdef5 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef5") == null ? "":(String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef5");//盘点长
+					String vuserdef6 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef6") == null ? "":(String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef6");//盘点宽
+					String vuserdef7 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef7") == null ? "":(String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef7");//盘点米数
+					String vuserdef8 = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef8") == null ? "":(String) getBillCardPanel().getBodyValueAt(e.getRow(), "vuserdef8");//盘点货位
+					String cspaceid = (String) getBillCardPanel().getBodyValueAt(e.getRow(), "cspaceid") == null ? "":(String) getBillCardPanel().getBodyValueAt(e.getRow(), "cspaceid");//货位
+					 UFDouble nchecknum =  getBillCardPanel().getBodyValueAt(e.getRow(), "nchecknum") == null ? UFDouble.ZERO_DBL:(UFDouble) getBillCardPanel().getBodyValueAt(e.getRow(), "nchecknum");//盘点数量
+					 UFDouble ncheckastnum = getBillCardPanel().getBodyValueAt(e.getRow(), "ncheckastnum") == null ? UFDouble.ZERO_DBL:(UFDouble) getBillCardPanel().getBodyValueAt(e.getRow(), "ncheckastnum");//盘点辅数量
+					 UFDouble naccountastnum = getBillCardPanel().getBodyValueAt(e.getRow(), "naccountastnum") == null ? UFDouble.ZERO_DBL:(UFDouble) getBillCardPanel().getBodyValueAt(e.getRow(), "naccountastnum");//账面辅数量
+					 UFDouble naccountnum = getBillCardPanel().getBodyValueAt(e.getRow(), "naccountnum") == null ? UFDouble.ZERO_DBL:(UFDouble) getBillCardPanel().getBodyValueAt(e.getRow(), "naccountnum");//账面数量
 					if((vuserdef2 != null && vuserdef5 != null && !vuserdef2.endsWith(vuserdef5))
 							|| (vuserdef3 != null && vuserdef6 != null && !vuserdef3.endsWith(vuserdef6))
 							|| (vuserdef4 != null && vuserdef7 != null && !vuserdef4.endsWith(vuserdef7))
@@ -4075,8 +4076,9 @@ public class ClientUI extends SpecialBillBaseUI implements
 				}
 				/**add by ouyangzhb 2012-04-25 新增码单盘点的判断*/
 			} else if (voNowBill.getHeaderVO().getIcheckmode() == CheckMode.md){
+				UFDouble Naccountnum = RowItemVO.getNaccountnum()==null ? UFDouble.ZERO_DBL:RowItemVO.getNaccountnum();
 				if(null != RowItemVO.getVuserdef9() && new UFBoolean(RowItemVO.getVuserdef9()).booleanValue()
-						&&RowItemVO.getNaccountnum().compareTo(UFDouble.ZERO_DBL)!=0){
+						&&Naccountnum.compareTo(UFDouble.ZERO_DBL)!=0){
 					RowItemVO.setNadjustnum(RowItemVO.getNaccountnum());
 					RowItemVO
 							.setNadjustastnum(((RowItemVO.getNaccountastnum() == null || RowItemVO.getNaccountastnum()
@@ -4256,8 +4258,9 @@ public class ClientUI extends SpecialBillBaseUI implements
 
 				/**add by ouyangzhb 2012-04-25 新增码单盘点的判断*/
 			} else if (voNowBill.getHeaderVO().getIcheckmode() == CheckMode.md){
+				UFDouble Nchecknum = RowItemVO.getNchecknum()==null ? UFDouble.ZERO_DBL:RowItemVO.getNchecknum();
 				if(null != RowItemVO.getVuserdef9() && new UFBoolean(RowItemVO.getVuserdef9()).booleanValue()
-						&&RowItemVO.getNchecknum().compareTo(UFDouble.ZERO_DBL)!=0){
+						&&Nchecknum.compareTo(UFDouble.ZERO_DBL)!=0){
 					RowItemVO.setNadjustnum(RowItemVO.getNchecknum());
 					RowItemVO
 							.setNadjustastnum(((RowItemVO.getNcheckastnum()  == null || RowItemVO.getNcheckastnum()
@@ -10183,9 +10186,9 @@ public class ClientUI extends SpecialBillBaseUI implements
 					mdcrkVO.setJbh(bvos[i].getVuserdef1());
 					mdcrkVO.setCspaceid(bvos[i].getVuserdef8());
 					mdcrkVO.setCwarehouseidb(m_voBill.getHeaderVO()
-							.getCinwarehouseid());
+							.getCoutwarehouseid());
 					mdcrkVO.setCcalbodyidb(m_voBill.getHeaderVO()
-							.getPk_calbody_in());
+							.getPk_calbody_out());
 					mdcrkVO.setPk_corp(m_voBill.getHeaderVO().getPk_corp());
 					mdcrkVO.setDef7(bvos[i].getVuserdef5());
 					mdcrkVO.setDef8(bvos[i].getVuserdef6());
@@ -10212,6 +10215,18 @@ public class ClientUI extends SpecialBillBaseUI implements
 								+ bvos[i].getCinventoryid() + "' ";
 						Object pk_mdxcl = querybs.executeQuery(pk_mdxclsql,
 								new ColumnProcessor());
+						
+						/**如果现存量表头为空，则构建一条现存量*/
+						if(pk_mdxcl==null||pk_mdxcl.equals("")){
+							MdxclVO hvo = new MdxclVO();
+							hvo.setCcalbodyidb(mdcrkVO.getCcalbodyidb());
+							hvo.setCwarehouseidb(mdcrkVO.getCwarehouseidb());
+							hvo.setCinventoryidb(bvos[i].getCinventoryid());
+							hvo.setPk_corp(mdcrkVO.getPk_corp());
+							hvo.setDr(0);
+							pk_mdxcl =  ivopersistence.insertVO(hvo);
+						}
+						
 						MdxclBVO bvo = new MdxclBVO();
 						bvo.setCspaceid(mdcrkVO.getCspaceid());
 						bvo.setJbh(mdcrkVO.getJbh());
