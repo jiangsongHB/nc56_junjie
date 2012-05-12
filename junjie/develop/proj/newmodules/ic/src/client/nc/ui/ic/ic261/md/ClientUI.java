@@ -5568,7 +5568,6 @@ public class ClientUI extends SpecialBillBaseUI implements
 	 */
 	public boolean beforeEdit(nc.ui.pub.bill.BillEditEvent e) {
 		return true;
-
 	}
 
 	public boolean isCellEditable(boolean value, int row, String itemkey) {
@@ -10105,16 +10104,21 @@ public class ClientUI extends SpecialBillBaseUI implements
 			}
 		for (int i = 0; i < bvos.length; i++) {
 			try {
+				
+				MdxclBVO mdxclvo=null;
+				UFDouble def1 = UFDouble.ZERO_DBL;
+				
 				/** 2、码单出库明细 */
 				if (keyMap.containsKey("4I" + bvos[i].getPrimaryKey())) {
 					MdcrkVO mdoutvo = new MdcrkVO();
 					if (keyMap.containsKey("4I" + bvos[i].getPrimaryKey())) {
+						//查出当前现存量
 						String mdxcl = "select * from nc_mdxcl_b b where b.cspaceid='"+ bvos[i].getCspaceid()
-								+ "' and b.jbh='"
-								+ bvos[i].getVuserdef1()
-								+ "' and isnull(b.dr,0)=0";
-						MdxclBVO mdxclvo = (MdxclBVO) querybs.executeQuery(
-								mdxcl, new BeanProcessor(MdxclBVO.class));
+						+ "' and b.jbh='"
+						+ bvos[i].getVuserdef1()
+						+ "' and isnull(b.dr,0)=0";
+						 mdxclvo = (MdxclBVO) querybs.executeQuery(
+						mdxcl, new BeanProcessor(MdxclBVO.class));
 						
 						/**构建码单出库明细vo*/
 						
@@ -10152,7 +10156,7 @@ public class ClientUI extends SpecialBillBaseUI implements
 						mdoutvo.setDef15(mdxclvo.getDef15());// 自定义项15
 						mdoutvo.setSfbj(UFBoolean.FALSE);
 						mdoutvo.setSfgczl(UFBoolean.FALSE);
-						
+						def1 = mdoutvo.getDef1();
 						
 						
 						mdoutvo.setPk_mdxcl_b(mdxclvo.getPk_mdxcl_b());
@@ -10175,7 +10179,7 @@ public class ClientUI extends SpecialBillBaseUI implements
 				/** 3、码单入库明细 */
 				if (keyMap.containsKey("4A" + bvos[i].getPrimaryKey())) {
 					MdcrkVO mdcrkVO = new MdcrkVO();
-					mdcrkVO.setDef1(bvos[i].getNchecknum());
+//					mdcrkVO.setDef1(bvos[i].getNchecknum());
 					mdcrkVO.setSrkzl(bvos[i].getNchecknum());
 					mdcrkVO.setSrkzs(bvos[i].getNcheckastnum());
 					mdcrkVO.setCbodybilltypecode("4A");
@@ -10195,13 +10199,24 @@ public class ClientUI extends SpecialBillBaseUI implements
 					mdcrkVO.setDef9(bvos[i].getVuserdef7());
 					mdcrkVO.setVoperatorid(m_voBill.getHeaderVO()
 							.getCoperatorid());
+					
+					/*
+					 * 如果为改货位的，则取未改之前的现存量的钢厂重量，
+					 * 如果mdxclvo 为空，则表示是新增的，直接取盘点数量
+					 */
+					if(mdxclvo != null){
+						mdcrkVO.setDef1(def1);
+					}else{
+						mdcrkVO.setDef1(bvos[i].getNchecknum());
+					}
+					
 					String pk_mdxcl_b = null;
 					String mdxcl = "select * from nc_mdxcl_b b where b.cspaceid='"
 							+ mdcrkVO.getCspaceid()
 							+ "' and b.jbh='"
 							+ mdcrkVO.getJbh() + "' and isnull(b.dr,0)=0";
-					MdxclBVO mdxclvo;
-					mdxclvo = (MdxclBVO) querybs.executeQuery(mdxcl,
+					MdxclBVO mdxclvotem;
+					mdxclvotem = (MdxclBVO) querybs.executeQuery(mdxcl,
 							new BeanProcessor(MdxclBVO.class));
 
 					if (mdxclvo == null || "".equals(mdxclvo)) {
