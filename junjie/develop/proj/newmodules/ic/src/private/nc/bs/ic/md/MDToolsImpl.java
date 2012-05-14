@@ -317,9 +317,9 @@ public class MDToolsImpl implements IMDTools {
 					String cbodybilltypecode = invos.get(y).getCbodybilltypecode();
 					String updatestr = null;
 					if(cbodybilltypecode.endsWith("4A")){
-						updatestr = "update nc_mdxcl_b b set b.zhishu = b.zhishu-"+invos.get(y).getNinassistnum()+"  ,b.zhongliang= b.zhongliang-"+invos.get(y).getNinnum()+",b.def1=b.def1-"+invos.get(y).getNinnum()+"  where b.pk_mdxcl_b in (select k.pk_mdxcl_b from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0) ";
+						updatestr = "update nc_mdxcl_b b set b.zhishu = b.zhishu-(select k.srkzs from nc_mdcrk k where  k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0)  ,b.zhongliang= b.zhongliang- (select k.srkzl from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0),b.def1=b.def1-(select k.def1 from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0)  where b.pk_mdxcl_b in (select k.pk_mdxcl_b from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0) ";
 					}else if (cbodybilltypecode.endsWith("4I")){
-						updatestr = "update nc_mdxcl_b b set b.zhishu = b.zhishu+"+invos.get(y).getNoutassistnum()+"  ,b.zhongliang= b.zhongliang+"+invos.get(y).getNoutnum()+",b.def1=b.def1+"+invos.get(y).getNoutnum()+"  where b.pk_mdxcl_b in (select k.pk_mdxcl_b from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0) ";
+						updatestr = "update nc_mdxcl_b b set b.zhishu = b.zhishu+(select k.srkzs from nc_mdcrk k  where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0) ,b.zhongliang= b.zhongliang+(select k.srkzl from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0) ,b.def1=b.def1+(select k.def1 from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0)  where b.pk_mdxcl_b in (select k.pk_mdxcl_b from nc_mdcrk k where k.cgeneralbid ='"+invos.get(y).getPrimaryKey()+"' and isnull(k.dr,0)=0) ";
 					}else{
 						return;
 					}

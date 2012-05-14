@@ -10106,7 +10106,7 @@ public class ClientUI extends SpecialBillBaseUI implements
 			try {
 				
 				MdxclBVO mdxclvo=null;
-				UFDouble def1 = UFDouble.ZERO_DBL;
+				UFDouble Srkzl = UFDouble.ZERO_DBL;
 				
 				/** 2、码单出库明细 */
 				if (keyMap.containsKey("4I" + bvos[i].getPrimaryKey())) {
@@ -10138,7 +10138,7 @@ public class ClientUI extends SpecialBillBaseUI implements
 						mdoutvo.setMd_zyh(mdxclvo.getMd_zyh());
 						mdoutvo.setDef6(mdxclvo.getDef6());
 						mdoutvo.setRemark(mdxclvo.getRemark());// 备注
-						mdoutvo.setSrkzl(bvos[i].getNaccountnum());// 验收重量
+						mdoutvo.setSrkzl(mdxclvo.getZhongliang());// 验收重量
 						mdoutvo.setSrkzs(bvos[i].getNaccountastnum());
 						mdoutvo.setDr(0);
 						mdoutvo.setDef1(mdxclvo.getDef1());// 钢厂重量
@@ -10156,7 +10156,7 @@ public class ClientUI extends SpecialBillBaseUI implements
 						mdoutvo.setDef15(mdxclvo.getDef15());// 自定义项15
 						mdoutvo.setSfbj(UFBoolean.FALSE);
 						mdoutvo.setSfgczl(UFBoolean.FALSE);
-						def1 = mdoutvo.getDef1();
+						Srkzl = mdoutvo.getSrkzl();
 						
 						
 						mdoutvo.setPk_mdxcl_b(mdxclvo.getPk_mdxcl_b());
@@ -10179,8 +10179,8 @@ public class ClientUI extends SpecialBillBaseUI implements
 				/** 3、码单入库明细 */
 				if (keyMap.containsKey("4A" + bvos[i].getPrimaryKey())) {
 					MdcrkVO mdcrkVO = new MdcrkVO();
-//					mdcrkVO.setDef1(bvos[i].getNchecknum());
-					mdcrkVO.setSrkzl(bvos[i].getNchecknum());
+					mdcrkVO.setDef1(bvos[i].getNchecknum());
+//					mdcrkVO.setSrkzl(bvos[i].getNchecknum());
 					mdcrkVO.setSrkzs(bvos[i].getNcheckastnum());
 					mdcrkVO.setCbodybilltypecode("4A");
 					mdcrkVO.setCgeneralbid(keyMap.get("4A"
@@ -10205,9 +10205,9 @@ public class ClientUI extends SpecialBillBaseUI implements
 					 * 如果mdxclvo 为空，则表示是新增的，直接取盘点数量
 					 */
 					if(mdxclvo != null){
-						mdcrkVO.setDef1(def1);
+						mdcrkVO.setSrkzl(Srkzl);
 					}else{
-						mdcrkVO.setDef1(bvos[i].getNchecknum());
+						mdcrkVO.setSrkzl(bvos[i].getNchecknum());
 					}
 					
 					String pk_mdxcl_b = null;
@@ -10219,7 +10219,7 @@ public class ClientUI extends SpecialBillBaseUI implements
 					mdxclvotem = (MdxclBVO) querybs.executeQuery(mdxcl,
 							new BeanProcessor(MdxclBVO.class));
 
-					if (mdxclvo == null || "".equals(mdxclvo)) {
+					if (mdxclvotem == null || "".equals(mdxclvotem)) {
 						String pk_mdxclsql = "select pk_mdxcl from  nc_mdxcl where isnull(dr,0)=0 and  pk_corp ='"
 								+ mdcrkVO.getPk_corp()
 								+ "' and ccalbodyidb='"
@@ -10275,21 +10275,21 @@ public class ClientUI extends SpecialBillBaseUI implements
 						bvo.setStatus(VOStatus.NEW);
 						pk_mdxcl_b = ivopersistence.insertVO(bvo);
 					} else {
-						pk_mdxcl_b = mdxclvo.getPk_mdxcl_b();
-						mdxclvo.setZhishu(mdxclvo.getZhishu().add(
+						pk_mdxcl_b = mdxclvotem.getPk_mdxcl_b();
+						mdxclvotem.setZhishu(mdxclvotem.getZhishu().add(
 								mdcrkVO.getSrkzs()));
-						mdxclvo.setZhongliang(mdxclvo.getZhongliang().add(
-								mdcrkVO.getSrkzl()));
-						mdxclvo.setDef1(mdxclvo.getDef1()
-								.add(mdcrkVO.getDef1()));
+						mdxclvotem.setZhongliang(mdxclvotem.getZhongliang()
+								.add(mdcrkVO.getSrkzl()));
+						mdxclvotem.setDef1(mdxclvotem.getDef1()
+								.add(mdcrkVO.getDef1()));//mdxclvo.getZhongliang().add(mdcrkVO.getSrkzl())
 						//add by ouyangzhb 2012-05-03 把现存量的其他字段的值也改成调整后的数据
-						mdxclvo.setMd_width(mdcrkVO.getMd_width());
-						mdxclvo.setMd_length(mdcrkVO.getMd_length());
-						mdxclvo.setMd_meter(mdcrkVO.getMd_meter());
-						mdxclvo.setDef7(bvos[i].getVuserdef5());
-						mdxclvo.setDef8(bvos[i].getVuserdef6());
-						mdxclvo.setDef9(bvos[i].getVuserdef7());
-						ivopersistence.updateVO(mdxclvo);
+						mdxclvotem.setMd_width(mdcrkVO.getMd_width());
+						mdxclvotem.setMd_length(mdcrkVO.getMd_length());
+						mdxclvotem.setMd_meter(mdcrkVO.getMd_meter());
+						mdxclvotem.setDef7(bvos[i].getVuserdef5());
+						mdxclvotem.setDef8(bvos[i].getVuserdef6());
+						mdxclvotem.setDef9(bvos[i].getVuserdef7());
+						ivopersistence.updateVO(mdxclvotem);
 					}
 					mdcrkVO.setDr(0);
 					mdcrkVO.setStatus(VOStatus.NEW);
