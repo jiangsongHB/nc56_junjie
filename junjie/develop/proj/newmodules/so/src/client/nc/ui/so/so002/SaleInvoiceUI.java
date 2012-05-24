@@ -15,6 +15,7 @@ import java.util.TreeMap;
 
 import nc.bs.bd.b21.BusinessCurrencyRateUtil;
 import nc.bs.framework.common.NCLocator;
+import nc.itf.scm.so.so002.ISaleinvoiceQuery;
 import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.cmp.report.reportuicommon.LinkQueryBillData;
@@ -3826,6 +3827,7 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 		}
 	}
 
+	
 	/*
 	 * add by ouyangzhb 2011-02-28 实现打印动作
 	 */
@@ -3847,10 +3849,11 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 				getModuleCode());
 		try {
 			if(printflag){
-				m_printList.onCardPrint(panel, this.getBillListPanel(),
+				m_printList.onCardPrintPreview(panel, this.getBillListPanel(),
 						SaleBillType.SaleInvoice);
 			}else{
-				m_printList.onCardPrintPreview(panel, this.getBillListPanel(),
+			
+				m_printList.onCardPrint(panel, this.getBillListPanel(),
 						SaleBillType.SaleInvoice);
 			}
 			} catch (Exception e) {
@@ -4035,7 +4038,7 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 	/*add by Ouyangzhb 2011-03-09
 	 * 把费用平摊到存货中再打印
 	 */
-	private void UnitePrint(boolean printflag){
+	public void UnitePrint(boolean printflag){
 		if (ListShow == getShowState()) {
 			onCard();
 		}
@@ -4050,7 +4053,7 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 			
 		if (CardShow == getShowState()) {
 			if (bodyVO==null||bodyVO.length==0) {
-				this.showErrorMessage("费用存货为空，取消合并打印状态");
+				MessageDialog.showErrorDlg(this, "提示：", "费用存货为空，取消合并打印状态！");
 				UnitePrintFlag = false;
 				return;
 			}
@@ -4142,6 +4145,8 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 			String cinvbasdocid = childrenVO[i].getCinvbasdocid();
 			Object flag = execQuery(cinvbasdocid);
 			if (flag != null && "Y".equals(flag)) {
+				//add by ouyangzhb 2012-05-24 增加赠品行的过滤
+				if(!(childrenVO[i].getBlargessflag().booleanValue()))
 				bodyVOList.add(childrenVO[i]);
 			} else {
 				bodyVOList2.add(childrenVO[i]);
@@ -4656,16 +4661,16 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 		// 打印
 		else if (bo.getParent() == getBtns().m_boPrintManage) {
 			if (bo == getBtns().m_boPrint)
-				onPrint(true);
-			else if (bo == getBtns().m_boPreview) {
 				onPrint(false);
+			else if (bo == getBtns().m_boPreview) {
+				onPrint(true);
 			}
 			// 合并显示
 			else if (bo == getBtns().m_boBillCombin)
 				onBillCombin();
 			// 合并打印 add by ouyangzhb 2011-03-09 （顺德骏杰）
 			else if (bo == m_boUnitePrint)
-				UnitePrint(true);
+				UnitePrint(false);
 
 		}
 
@@ -5902,6 +5907,51 @@ public class SaleInvoiceUI extends ToftPanel implements BillTableMouseListener,
 		// getBtns().m_boPrint.setEnabled(true);
 		// getBtns().m_boBillCombin.setEnabled(false);
 
+	}
+	
+	/**
+	 * add by ouyangzhb 2012-05-23
+	 * 从出库单界面调用发票的打印方式
+	 * @param csourcebillid
+	 * @param f
+	 */
+	public void printInvoceFromIC(String csourcebillid,int f){
+		ISaleinvoiceQuery query = NCLocator.getInstance().lookup(
+				ISaleinvoiceQuery.class);
+		
+		String whereStr = "so_saleinvoice_b.csourcebillid = '"
+			+ csourcebillid + "'";
+		SaleinvoiceVO[] voBill = null;
+		try {
+			voBill = query.queryBillDataByWhere(whereStr);
+		} catch (BusinessException e) {
+			e.printStackTrace();
+		}
+		ArrayList listVo = new ArrayList();
+		if (voBill == null || voBill.length <= 0)
+			return;
+		for (int i = 0; i < voBill.length; i++) {
+			SaleVO headvo = voBill[i].getParentVO();
+			SaleinvoiceBVO[] bodyVOs = voBill[i].getChildrenVO();
+			
+			getBillCardPanel().getBillData().setBillValueVO(voBill[i]);
+			
+			/**增加打印类型1*/
+			
+			switch (f) {
+			case 1: onPrint(true);
+				break;
+			case 2: onPrint(false);
+				break;
+			case 3: UnitePrint(true);
+				break;
+			case 4: UnitePrint(false);
+				break;
+			default:
+				break;
+			}
+		}
+		
 	}
 
 }

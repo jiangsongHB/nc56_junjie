@@ -10380,6 +10380,10 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						ScmButtonConst.BTN_PRINT),((GeneralButtonManager) getButtonManager()).getInv_PrintBO());
 				getButtonManager().getButtonTree().addChildMenu(getButtonManager().getButtonTree().getButton(
 						ScmButtonConst.BTN_PRINT),((GeneralButtonManager) getButtonManager()).getInv_PreviewBO());
+				getButtonManager().getButtonTree().addChildMenu(getButtonManager().getButtonTree().getButton(
+						ScmButtonConst.BTN_PRINT),((GeneralButtonManager) getButtonManager()).getUnite_PrintBO());
+				getButtonManager().getButtonTree().addChildMenu(getButtonManager().getButtonTree().getButton(
+						ScmButtonConst.BTN_PRINT),((GeneralButtonManager) getButtonManager()).getUnite_PreviewBO());
 			}
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block

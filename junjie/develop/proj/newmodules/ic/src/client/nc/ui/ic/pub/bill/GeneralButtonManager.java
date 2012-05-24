@@ -48,6 +48,7 @@ import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.BillListPanel;
 import nc.ui.pub.bill.BillModel;
+import nc.ui.pub.bill.BillUIUtil;
 import nc.ui.pub.bill.action.BillTableLineAction;
 import nc.ui.pub.query.QueryConditionClient;
 import nc.ui.querytemplate.QueryConditionDLG;
@@ -60,6 +61,7 @@ import nc.ui.scm.pub.print.ScmPrintTool;
 import nc.ui.scm.pub.sourceref.IBillReferQueryProxy;
 import nc.ui.scm.pub.sourceref.SourceRefDlg;
 import nc.ui.so.so002.SaleInvoiceUI;
+import nc.ui.so.so002.SalePrintData;
 import nc.ui.so.so002.SaleinvoiceBO_Client;
 import nc.ui.uap.sf.SFClientUtil;
 import nc.vo.dm.service.delivery.SourceBillDeliveryStatus;
@@ -93,6 +95,7 @@ import nc.vo.ic.pub.sn.SerialVO;
 import nc.vo.pfxx.util.FileUtils;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
+import nc.vo.pub.bill.BillTempletVO;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDateTime;
@@ -139,7 +142,14 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	//2010-10-18 MeiChao 添加
 	private int beforeEditBillMode=0;//修改操作前的单据状态,取值: BillMode.Card或BillMode.List 
 	private InformationCostVO[] expenseBackup=null;//用户作修改操作时,将当前的费用信息存入缓存,用于用户取消修改时恢复.
+	
 	//2010-10-18 MeiChao 添加
+	
+	//ADD BY ouyangzhb 2012-05-23 打印
+	private int  Invprint = 2;
+	private int  Invprev = 1;
+	private int  Uniteprint = 4;
+	private int  Uniteprev = 3;
 	
 	private ButtonTree m_buttonTree;
 
@@ -151,6 +161,10 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	ButtonObject inv_Print;
 	ButtonObject inv_Preview;
 	// end 
+	
+	//add by ouyangzhb 2012-05-23 合并打印
+	ButtonObject Unite_Pre;
+	ButtonObject Unite_Print;
 	
 	private UFDouble arrnum ;//累计到货数量
 	private UFDouble arrnumber ;//实际到货数量
@@ -188,6 +202,21 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 			  inv_Preview = new ButtonObject("发票打印预览","发票打印预览","发票打印预览");
 		  }
 		  return inv_Preview;
+		}
+	
+	/***/
+	public ButtonObject getUnite_PreviewBO(){
+		  if(this.Unite_Pre==null){
+			  Unite_Pre = new ButtonObject("发票合并预览","发票合并预览","发票合并预览");
+		  }
+		  return Unite_Pre;
+		}
+	
+	public ButtonObject getUnite_PrintBO(){
+		  if(this.Unite_Print==null){
+			  Unite_Print = new ButtonObject("发票合并打印","发票合并打印","发票合并打印");
+		  }
+		  return Unite_Print;
 		}
 
 	
@@ -391,11 +420,16 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				ICButtonConst.BTN_PRINT_PREVIEW))
 			//add by ouyangzhb 2011-03-04
 				onPrint(false);
+		
 		/**add by ouyangzhb 2012-03-15 发票打印，从出库单节点调用销售发票的打印动作打印对应的销售发票*/
 		else if (bo ==this.inv_Print )
-			onInv_Print(false);
-		else if (bo ==this.inv_Print )
-			onInv_Print(true);
+			onInv_Print(Invprint);          //发票打印
+		else if (bo ==this.inv_Preview )
+			onInv_Print(Invprev);          //发票打印预览
+		else if (bo ==this.Unite_Print )
+			onInv_Print(Uniteprint);       //合并打印
+		else if (bo ==Unite_Pre )
+			onInv_Print(Uniteprev);        //合并预览
 		/** end 发票打印，从出库单节点调用销售发票的打印动作打印对应的销售发票*/
 		
 		else if (bo == getButtonTree().getButton(ICButtonConst.BTN_PRINT_SUM))
@@ -6866,55 +6900,14 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	/***
 	 * 发票的打印
 	 * 
-	 * @param isPreview
+	 * @param printflag
 	 */
-	public void onInv_Print(boolean isPreview) {
-
-		String sPrintMsg = null;
-		ISaleinvoiceQuery query = NCLocator.getInstance().lookup(
-				ISaleinvoiceQuery.class);
+	public void onInv_Print(int printflag) {
 		GeneralBillVO vos = getM_voBill();
 		GeneralBillItemVO[] bodyvos = (GeneralBillItemVO[]) vos.getChildrenVO();
 		if (bodyvos != null) {
 			if (bodyvos[0].getCsourcebillhid() != null) {
-
-				String whereStr = "so_saleinvoice_b.csourcebillid = '"
-						+ bodyvos[0].getCsourcebillhid() + "'";
-				try {
-					SaleinvoiceVO[] voBill = query
-							.queryBillDataByWhere(whereStr);
-					ArrayList listVo = new ArrayList();
-					if (voBill == null || voBill.length <= 0)
-						return;
-					for (int i = 0; i < voBill.length; i++) {
-						listVo.add(voBill[i]);
-						IOPrintData printData = new IOPrintData();
-
-						//					
-						getDataSource().setVO(voBill[i]);
-						getPrintEntry().setDataSource(getDataSource());
-
-						printData.setBillCardPanel(getInvClient()
-								.getBillCardPanel());
-						//					
-						ui.getBillCardPanel().getBillModel().execLoadFormula();
-						ScmPrintTool m_printList = new ScmPrintTool(ui
-								.getBillCardPanel(), printData, listVo,
-								getInvClient().getModuleCode());
-						// 执行打印
-						if (isPreview) {
-							m_printList.onPreview(getPrintEntry(), printData);
-
-						} else {
-							m_printList.onPrint(getPrintEntry(), printData);
-							// sPrintMsg = plc.getPrintResultMsg(false);
-						}
-					}
-
-				} catch (BusinessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				getInvClient().printInvoceFromIC(bodyvos[0].getCsourcebillhid(), printflag);
 			}
 		}
 	}
@@ -6924,6 +6917,11 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 	public SaleInvoiceUI getInvClient() {
 		if (ui == null) {
 			ui = (SaleInvoiceUI) SFClientUtil.showNode("40060501");
+			
+			BillTempletVO billtempletVO = BillUIUtil.getDefaultTempletStatic("40060501", "32", 
+					ClientEnvironment.getInstance().getUser().getPrimaryKey(),ClientEnvironment.getInstance().getCorporation().getPrimaryKey(), null, null);
+			BillData bd = new BillData(billtempletVO);
+			ui.getBillCardPanel().setBillData(bd);
 			SFClientUtil.closeFuncWindow("40060501");
 		}
 
