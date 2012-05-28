@@ -3,13 +3,22 @@ package nc.ui.ic.pub.bill;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import nc.bs.framework.common.NCLocator;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.ArrayListProcessor;
+import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.ui.po.pub.PoPrintDigitManager;
 import nc.ui.pub.beans.UIComboBox;
 import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.IBillItem;
 import nc.ui.pub.print.IDataSource;
+import nc.vo.ic.md.MdcrkVO;
+import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
+import nc.vo.ic.pub.bill.GeneralBillItemVO;
+import nc.vo.ic.pub.bill.GeneralBillVO;
 import nc.vo.pu.jjvo.InformationCostVO;
+import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.pu.PuPubVO;
 
@@ -424,6 +433,19 @@ public class IOPrintData implements IDataSource {
 					 * add by ouyangzhb 2012-04-09      新增费用行折行打印
 					 * add by ouyangzhb end
 					 */
+					
+					
+					/*add by ouyangzhb 2012-05-28 码单打印*/
+					if(getMdcrkVO() !=null &&getMdcrkVO().length>0 ){
+						if(sItemExpress.indexOf("m_")==0){
+							for(int i =0;i<mdcrkvos.length;i++){
+								vecValue.addElement(mdcrkvos[i].getAttributeValue(sItemExpress.substring(2, sItemExpress.length())))  ;
+							}
+						}
+					}
+					
+					/*add by ouyangzhb 2012-05-28 码单打印 end */
+					
 		}
 
 		//构造数据数组
@@ -530,6 +552,40 @@ public class IOPrintData implements IDataSource {
 	public void setBillCardPanel(BillCardPanel pnlCard) {
 
 		this.m_pnlCard = pnlCard;
+	}
+	
+	
+	/*
+	 * add by ouyangzhb 2012-05-28 
+	 * 获取要打印的码单信息
+	 * 
+	 */
+	MdcrkVO[] mdcrkvos=null ;
+	public MdcrkVO[] getMdcrkVO(){
+		if(mdcrkvos == null){
+			IUAPQueryBS iuapquerybs = (IUAPQueryBS) NCLocator.getInstance().lookup(IUAPQueryBS.class.getName());
+			ArrayList<MdcrkVO> mdcrkvolist = new ArrayList<MdcrkVO>();
+			GeneralBillVO billvo = (GeneralBillVO) (m_pnlCard
+					.getBillValueVO(GeneralBillVO.class.getName(),
+							GeneralBillHeaderVO.class.getName(),
+							GeneralBillItemVO.class.getName()));
+			String cgeneralhid = billvo.getHeaderVO().getPrimaryKey();
+			String mdsql = "select * from nc_mdcrk k where k.cgeneralbid in (select b.cgeneralbid from ic_general_b b where b.cgeneralhid='"+cgeneralhid+"')";
+			try {
+				mdcrkvolist = (ArrayList<MdcrkVO>) iuapquerybs.executeQuery(mdsql, new BeanListProcessor(MdcrkVO.class));
+				if(mdcrkvolist == null && mdcrkvolist.size()<=0){
+					mdcrkvos= new MdcrkVO[0] ;
+				}else{
+					mdcrkvos = new MdcrkVO[mdcrkvolist.size()];
+					mdcrkvolist.toArray(mdcrkvos);
+				}
+			} catch (BusinessException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return mdcrkvos;
+		
 	}
 
 }
