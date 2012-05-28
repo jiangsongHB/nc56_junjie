@@ -442,6 +442,14 @@ public class IOPrintData implements IDataSource {
 								vecValue.addElement(mdcrkvos[i].getAttributeValue(sItemExpress.substring(2, sItemExpress.length())))  ;
 							}
 						}
+						//add by ouyangzhb 2012-05-28 打印行号
+						if(sItemExpress.equals("mdrow")){
+							for(int i =0;i<mdcrkvos.length;i++){
+								vecValue.addElement(String.valueOf(i+1));
+							}
+							
+						}
+						
 					}
 					
 					/*add by ouyangzhb 2012-05-28 码单打印 end */
