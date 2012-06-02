@@ -7,7 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import nc.bs.framework.common.NCLocator;
@@ -123,6 +126,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	private boolean sfth = false;// 是否退货
 
 	private String vfree1;// 自由项1
+	
+	//wanglei 2011-06-26 增加过滤已选择的明细，在参照中过滤掉。
+	private HashMap hm_invdetailpk = new HashMap(); 
 
 	public MDioDialog(GeneralBillClientUI ui, boolean sfth)
 			throws BusinessException {
@@ -130,6 +136,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		this.ui = ui;
 		this.setSize(1024, 700);
 		this.sfth = sfth;
+//		this.getBillCardPanel().setComponentPopupMenu(null);
 		init();
 		//2010-12-20 初始化之后,根据当前入库单的来源单据是否为到货单,设置存货参照字段是否显示
 		if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
@@ -348,7 +355,6 @@ public class MDioDialog extends UIDialog implements ActionListener,
 										getGenSelectRowID(), "cgeneralbid")
 								+ "'");
 				if (vos != null && vos.length > 0) {
-					
 					getBillCardPanel().getBillModel().setBodyDataVO(vos);
 					getBillCardPanel().getBillModel().execLoadFormula();
 					//2010-12-22 MeiChao add begin
@@ -501,7 +507,9 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					getEnvironment().getCorpID());
 			cardPanel.setRowNOShow(true);
 			cardPanel.setTatolRowShow(true);
-			// cardPanel.setShowMenuBar(true);
+			//cardPanel.setShowMenuBar(false);
+			//cardPanel.setComponentPopupMenu(null);
+			cardPanel.getBodyPanel().setBBodyMenuShow(false);  //wanglei 2011-07-26 禁用右键菜单
 			cardPanel.addEditListener(this);
 			cardPanel.addBillEditListenerHeadTail(this);
 			cardPanel.addBodyEditListener2(this);
@@ -582,10 +590,28 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	private void onDelline() {
-		getBillCardPanel().delLine();
+		//wanglei 2011-07-26 add
+		String invdetailpk = null;
+
+//		invdetailpk = (String) this.getBillCardPanel().getBodyValueAt(this.getBillCardPanel().getBillTable().getSelectedRow(), "pk_invdetail") ;
+//		hm_invdetailpk.remove(invdetailpk);
+//		
+//		getBillCardPanel().delLine();
+
+		//wanglei 2011-08-09 add 支持删除多行
+		
+		int[] ir =  this.getBillCardPanel().getBillTable().getSelectedRows();
+		if (ir.length <= 0 )
+			return;
+		for (int i = ir.length -1 ; i>=0; i-- ) {
+			invdetailpk = (String) this.getBillCardPanel().getBodyValueAt(ir[i], "pk_invdetail") ;
+			hm_invdetailpk.remove(invdetailpk);
+//			getBillCardPanel().remove(ir[i]);
+		}	
+		getBillCardPanel().getBillModel().delLine(ir);
 
 		setMessage("删除一行数据...");
-		setZLNULl();
+			setZLNULl();
 		edited = true;
 	}
 
@@ -594,6 +620,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	private void onCalc() throws BusinessException {
+		
 		String ispj = (String) getBillCardPanel().getHeadItem("ispj")
 				.getValueObject();
 		MdcrkVO[] mdvos = getBodyVOs();
@@ -618,9 +645,30 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					+ "不等于实入库辅数量" + this.getSsfsl().doubleValue());
 		UFDouble num = new UFDouble((String) getBillCardPanel().getHeadItem(
 				"realWeight").getValueObject());
+		BillItem isgczlitem =  getBillCardPanel().getHeadItem("isgczl");
+		String isgczl = null;
+		if(isgczlitem!=null){
+			 isgczl =  (String)isgczlitem.getValueObject();
+		}
+		
 		if (ispj == null || ispj.equals("false")) {
 			// 理计正材重量
 			mdvos = MDUtils.mdLJ(mdvos);
+			
+			/** add by ouyangzhb 2012-03-21 计算钢厂重量 begin */
+			if (isgczlitem != null && isgczl != null
+					&& new UFBoolean(isgczl).booleanValue()) {
+				mdvos = MDUtils.mdGCLJ(mdvos);
+				for (int i = 0; i < mdvos.length; i++) {
+					mdvos[i].setSfgczl(UFBoolean.TRUE);
+				}
+			} else {
+				for (int i = 0; i < mdvos.length; i++) {
+					mdvos[i].setSfgczl(UFBoolean.FALSE);
+				}
+			}
+			/** add by ouyangzhb 2012-03-21 计算钢厂重量 end */
+			
 			// 判断当前存货是否需要进行毛边计算
 			GeneralBillVO nowVObill = getGeneralBillVO();
 			String InvID = "";
@@ -637,8 +685,32 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		} else {
 			//mdvos = MDUtils.mdBJ(mdvos,new UFDouble(this.ui.getBillCardPanel().getBillModel("table").getValueAt(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), "vuserdef19").toString()));
 			mdvos = MDUtils.mdBJ(mdvos,num);
+			/** add by ouyangzhb 2012-03-21 计算钢厂重量 begin */
+			if (isgczlitem != null && isgczl != null
+					&& new UFBoolean(isgczl).booleanValue()) {
+				mdvos = MDUtils.mdGCBJ(mdvos, num);
+				for (int i = 0; i < mdvos.length; i++) {
+					mdvos[i].setSfgczl(UFBoolean.TRUE);
+				}
+			} else {
+				for (int i = 0; i < mdvos.length; i++) {
+					mdvos[i].setSfgczl(UFBoolean.FALSE);
+				}
+			}
+			/** add by ouyangzhb 2012-03-21 计算钢厂重量 end */
+			
 			this.setNprice(this.getStuffprice());// 正材单价stuffprice
 		}
+		/**add by ouyangzhb 2012-03-20 计算钢厂重量 begin*/
+		
+		
+			
+			
+			
+		
+		
+		
+		
 		//获取表体选中行VO
 		GeneralBillItemVO selectedBody=(GeneralBillItemVO)this.ui.getBillCardPanel().getBillModel("table").getBodyValueRowVO(this.ui.getBillCardPanel().getBillTable("table").getSelectedRow(), GeneralBillItemVO.class.getName());
 		//if(selectedBody.getCsourcetype()!=null&&selectedBody.getCsourcetype().equals("21")){//如果上游单据为采购订单
@@ -1011,7 +1083,12 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					" group by m.pk_invdetail) m on n.pk_invdetail=m.pk_invdetail ) where  pk_invdetail='"+this.getBillCardPanel().getBodyValueAt(editEvent.getRow(), "pk_invdetail")+"'";
 			UFDouble weightpernumber=null;
 			try {
-				weightpernumber=new UFDouble(queryService.executeQuery(queryString, new ColumnProcessor()).toString());
+				//add by ouyangzhb 2012-06-02 如果钢厂入库时没有提供明细，需要计算钢厂重量的，这里会出现空指针错误，需要做控制
+				Object temdata = queryService.executeQuery(queryString, new ColumnProcessor());
+				weightpernumber= temdata==null? UFDouble.ZERO_DBL :new UFDouble(temdata.toString());
+//				weightpernumber=new UFDouble(queryService.executeQuery(queryString, new ColumnProcessor()).toString());
+				//add by ouyangzhb 2012-06-02 end
+				
 			} catch (BusinessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1047,16 +1124,20 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					getBillCardPanel().getHeadItem("grossprice").setEdit(false); // 毛边单价
 					getBillCardPanel().getHeadItem("ispj").setValue(
 							new UFBoolean(false));
+					getBillCardPanel().getHeadItem("isgczl").setValue(
+							new UFBoolean(false));
 					BillEditEvent e = new BillEditEvent(getBillCardPanel()
 							.getHeadItem("ispj").getComponent(),
 							getBillCardPanel().getHeadItem("ispj"), "ispj");
 					// afterEdit(e);
 					getBillCardPanel().getHeadItem("ispj").setEdit(false); // 是否磅计
+					getBillCardPanel().getHeadItem("isgczl").setEdit(false); // 是否计算钢厂重量
 					getUIButton(MDUtils.CALC_BUTTON).setEnabled(false);
 					getBillCardPanel().getBodyItem("srkzl").setEnabled(true);
 					boolean_fjs = true;
 				} else {
 					getBillCardPanel().getHeadItem("ispj").setEdit(true); // 是否磅计
+					getBillCardPanel().getHeadItem("isgczl").setEdit(true); // 是否计算钢厂重量
 					init();// 初始化
 					onEdit();// 编辑
 					getUIButton(MDUtils.CALC_BUTTON).setEnabled(true);
@@ -1068,6 +1149,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 						.getBodyValueVOs(MdcrkVO.class.getName());
 				if (rsvo != null && rsvo.length > 0) {
 					for (int i = 0; i < rsvo.length; i++) {
+						//add by ouyangzhb 2011-03-05
 						//当点击非计算时，不需要把验收重量和钢厂重量清空
 //						getBillCardPanel().getBillModel().setValueAt(null, i,
 //								"srkzl");
@@ -1206,30 +1288,54 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			String[] invdetailpk=invdetailref.getRefPKs();
 			//String[] invdetailname=invdetailref.getRefNames();
 			//Vector datas=invdetailref.getSelectedData();
-			for(int i=0;i<invdetailpk.length;i++){
-			if(i>0){//i>0的时候增行操作
-				ActionEvent e =new ActionEvent(getUIButton(MDUtils.ADDLINE_BUTTON),1001,MDUtils.ADDLINE_BUTTON);
-				this.actionPerformed(e);
+			if (invdetailpk!=null) {
+				for(int i=0;i<invdetailpk.length;i++){
+				if(i>0){//i>0的时候增行操作
+					ActionEvent e =new ActionEvent(getUIButton(MDUtils.ADDLINE_BUTTON),1001,MDUtils.ADDLINE_BUTTON);
+					this.actionPerformed(e);
+				}
+				String[] formulas={"md_width->getColValue(scm_invdetail,contractwidth,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "md_length->getColValue(scm_invdetail,contractlength,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "md_meter->getColValue(scm_invdetail,contractmeter,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "def8->getColValue(scm_invdetail,arrivewidth,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "def7->getColValue(scm_invdetail,arrivelength,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "def9->getColValue(scm_invdetail,arrivemeter,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk[i]+"\")",
+								   "pk_invdetail->\""+invdetailpk[i]+"\"",};
+				this.getBillCardPanel().execBodyFormulas(i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, formulas);
+				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstoragenumber"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "srkzs");//支数
+				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstorageweight"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "def1");//钢厂重量
+				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("vdef1"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "md_lph");//炉批号
+				//this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
+				//wanglei 2011-07-26 add
+				hm_invdetailpk.put(invdetailpk[i], invdetailpk[i]);
+				//end
+				}
 			}
-			String[] formulas={"md_width->getColValue(scm_invdetail,contractwidth,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "md_length->getColValue(scm_invdetail,contractlength,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "md_meter->getColValue(scm_invdetail,contractmeter,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "def8->getColValue(scm_invdetail,arrivewidth,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "def7->getColValue(scm_invdetail,arrivelength,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "def9->getColValue(scm_invdetail,arrivemeter,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk[i]+"\")",
-							   "pk_invdetail->\""+invdetailpk[i]+"\"",};
-			this.getBillCardPanel().execBodyFormulas(i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, formulas);
-			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstoragenumber"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "srkzs");//支数
-			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstorageweight"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "def1");//钢厂重量
-			this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("vdef1"))[i],i==0?editEvent.getRow():this.getBillCardPanel().getRowCount()-1, "md_lph");//炉批号
-			//this.getBillCardPanel().setBodyValueAt(invdetailref.getRefValue("unstorageweight"), editEvent.getRow(), "srkzl");//验收重量
+			else{
+				String[] formulas={"md_width->\"\"",
+						   "md_length->\"\"",
+						   "md_meter->\"\"",
+						   //"def1->getColValue(scm_invdetail,contractweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+						   "def8->\"\"",
+						   "def7->\"\"",
+						   "def9->\"\"",
+						   //"srkzl->getColValue(scm_invdetail,arriveweight,pk_invdetail,\""+invdetailpk[i]+"\")",
+						   //"srkzs->getColValue(scm_invdetail,arrivenumber,pk_invdetail,\""+invdetailpk[i]+"\")",
+						   "pk_invdetail->\"\"",};
+				this.getBillCardPanel().execBodyFormulas(editEvent.getRow(), formulas);
+//				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstoragenumber"))[editEvent.getRow()],editEvent.getRow(), "srkzs");//支数
+//				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("unstorageweight"))[editEvent.getRow()],editEvent.getRow(), "def1");//钢厂重量
+//				this.getBillCardPanel().setBodyValueAt(((Object[])invdetailref.getRefValues("vdef1"))[editEvent.getRow()],editEvent.getRow(), "md_lph");//炉批号
+
 			}
+				
 		}
 		//2010-12-21 MeiCha add end
 		edited = true;
+		
 		// md_width
 		// md_length
 		// md_meter
@@ -1257,6 +1363,24 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			String orderBid=this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCfirstbillbid();
 			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
 			invdetailref.setWhereString("corder_bid='"+orderBid+"' and unstoragenumber>0 and unstorageweight>0");
+			
+			//wanglei 2011-07-26 add
+			String pk_invdetail = (String) this.getBillCardPanel().getBodyValueAt(billeditevent.getRow(), "pk_invdetail") ;;
+			if (pk_invdetail!=null && hm_invdetailpk.containsKey(pk_invdetail))
+				hm_invdetailpk.remove(pk_invdetail);
+			
+			if (!hm_invdetailpk.isEmpty()){
+				Iterator iter = hm_invdetailpk.entrySet().iterator();
+				String sw_invdetailpk = " and  pk_invdetail not in (";
+				while (iter.hasNext()) {
+				    Map.Entry entry = (Map.Entry) iter.next();
+				    sw_invdetailpk += "'" + (String) entry.getKey() + "',";
+				} 
+				sw_invdetailpk +=  "'##')";
+				
+				invdetailref.setWhereString("corder_bid='"+orderBid+"' and unstoragenumber>0 and unstorageweight>0" + sw_invdetailpk);
+			}
+
 		}
 		
 		if(billeditevent.getKey()=="srkzs"){
@@ -1408,13 +1532,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 	}
 
 	// 是否需要进行毛边计算
-	private boolean CheckSfmbjs(String pk_invbas) throws BusinessException {
+	public  boolean CheckSfmbjs(String pk_invbas) throws BusinessException {
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
 		//add by ouyangzhb 2011-02-25  改为查询存货管理档案中的自定义项19
 		Object[] objs = (Object[]) iUAPQueryBS
 				.executeQuery(
-						"select t2.def19 from bd_invmandoc t2 left join bd_invbasdoc t1 on t1.pk_invbasdoc=t2.pk_invbasdoc where t2.pk_invmandoc='"
+						"select t2.def19 from bd_invmandoc t2  where t2.pk_invmandoc='"
 								+ pk_invbas + "'", new ArrayProcessor());
 		if (objs[0] != null && objs[0].toString() != null
 				&& objs[0].toString().toUpperCase().equals("Y"))
