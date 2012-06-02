@@ -1083,7 +1083,12 @@ public class MDioDialog extends UIDialog implements ActionListener,
 					" group by m.pk_invdetail) m on n.pk_invdetail=m.pk_invdetail ) where  pk_invdetail='"+this.getBillCardPanel().getBodyValueAt(editEvent.getRow(), "pk_invdetail")+"'";
 			UFDouble weightpernumber=null;
 			try {
-				weightpernumber=new UFDouble(queryService.executeQuery(queryString, new ColumnProcessor()).toString());
+				//add by ouyangzhb 2012-06-02 如果钢厂入库时没有提供明细，需要计算钢厂重量的，这里会出现空指针错误，需要做控制
+				Object temdata = queryService.executeQuery(queryString, new ColumnProcessor());
+				weightpernumber= temdata==null? UFDouble.ZERO_DBL :new UFDouble(temdata.toString());
+//				weightpernumber=new UFDouble(queryService.executeQuery(queryString, new ColumnProcessor()).toString());
+				//add by ouyangzhb 2012-06-02 end
+				
 			} catch (BusinessException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
