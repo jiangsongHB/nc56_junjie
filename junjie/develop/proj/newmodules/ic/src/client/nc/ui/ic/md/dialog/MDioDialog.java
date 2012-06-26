@@ -818,6 +818,17 @@ public class MDioDialog extends UIDialog implements ActionListener,
 							+ sum_srkzs.doubleValue() + "不等于实入库辅数量"
 							+ this.getSsfsl().doubleValue());
 			}
+			
+			//add by ouyangzhb 2012-06-25 码单维护的时候，判断 货位+件编号 是否唯一
+			ArrayList jphList = new ArrayList();
+			for (int i = 0; i < mdvos.length; i++){
+				if(jphList.contains(mdvos[i].getCspaceid()+mdvos[i].getJbh())){
+					MessageDialog.showErrorDlg(this, "提示", "货位+件编号不唯一！");
+					return;
+				}
+				jphList.add(mdvos[i].getCspaceid()+mdvos[i].getJbh());
+			}
+			//add by ouyangzhb end 
 
 			IMDTools tools = NCLocator.getInstance().lookup(IMDTools.class);
 			//根据来源单据类型是否为到货单(23)以及存货明细子表数组是否成功组织,决定是否传入存货明细子表进入保存接口
