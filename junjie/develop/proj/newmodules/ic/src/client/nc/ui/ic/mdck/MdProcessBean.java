@@ -234,6 +234,10 @@ public class MdProcessBean {
 	
 	public void updateBill_new(MdwhDlg dlg, MdcrkVO[] rsvos,ChInfoVO infovo)
 			throws BusinessException {
+		
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		
 		UFDouble zhishu = new UFDouble(0);
 		UFDouble zhongliang = new UFDouble(0);
 		UFDouble yszhongliang = new UFDouble(0);
@@ -248,14 +252,16 @@ public class MdProcessBean {
 					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
 			
 		}
-		if(infovo.getCbodybilltypecode()!=null&&"4I".equals(infovo.getCbodybilltypecode())){
+		//add by ouyangzhb 2012-07-06  通过对应出入库单主键查询对应单据类型，如果为“45”，说明是采购退库，回写的钢厂重量，否则回写验收重量
+		String sql ="select h.cbilltypecode from ic_general_h h where h.cgeneralhid in (  select b.cgeneralhid from ic_general_b b where b.cgeneralbid='"+infovo.getCgeneralbid()+"')";
+		Object bodybilltypecode = iUAPQueryBS.executeQuery(sql, new ColumnProcessor());
+		if(bodybilltypecode!=null&&"45".equals(bodybilltypecode.toString())){
 			dlg.setNoutnum(zhongliang);
 		}else{
 			dlg.setNoutnum(yszhongliang);
 		}
 		dlg.setNoutassistnum(zhishu);
-		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
-				IUAPQueryBS.class.getName());
+		
 	}
 	
 	// 更新出入库单数据
