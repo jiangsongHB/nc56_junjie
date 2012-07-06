@@ -225,18 +225,61 @@ public class MdProcessBean {
 		return true;
 	}
 
-	// 更新出入库单数据
-	public void updateBill(MdwhDlg dlg, MdcrkVO[] rsvos)
+	/*
+	 * add by ouyangzhb 2012-02-10 
+	 * 修改方法，因为在采购入库退库的时候，也是采用了码单出库的逻辑进行码单维护，
+	 * 但出入库的码单回写逻辑有差异：入库退库回写的是钢厂重量，出库回写的是验收重量，
+	 * 从而导致数据不对，需要新增 过滤条件。
+	 */
+	
+	public void updateBill_new(MdwhDlg dlg, MdcrkVO[] rsvos,ChInfoVO infovo)
 			throws BusinessException {
+		
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		
 		UFDouble zhishu = new UFDouble(0);
 		UFDouble zhongliang = new UFDouble(0);
+		UFDouble yszhongliang = new UFDouble(0);
 		String pk_ptzj = null;
 		for (int i = 0; i < rsvos.length; i++) {
 			pk_ptzj = rsvos[0].getCgeneralbid();
 			zhishu = zhishu.add(rsvos[i].getSrkzs(), MDConstants.ZS_XSW);
 			zhongliang = zhongliang
-					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);//2011-01-03 MeiChao 取钢厂重量
+					.add(rsvos[i].getDef1(), MDConstants.ZL_XSW);//2011-01-03 MeiChao 取钢厂重量
 //					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
+			yszhongliang = yszhongliang
+					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
+			
+		}
+		//add by ouyangzhb 2012-07-06  通过对应出入库单主键查询对应单据类型，如果为“45”，说明是采购退库，回写的钢厂重量，否则回写验收重量
+		String sql ="select h.cbilltypecode from ic_general_h h where h.cgeneralhid in (  select b.cgeneralhid from ic_general_b b where b.cgeneralbid='"+infovo.getCgeneralbid()+"')";
+		Object bodybilltypecode = iUAPQueryBS.executeQuery(sql, new ColumnProcessor());
+		if(bodybilltypecode!=null&&"45".equals(bodybilltypecode.toString())){
+			dlg.setNoutnum(zhongliang);
+		}else{
+			dlg.setNoutnum(yszhongliang);
+		}
+		dlg.setNoutassistnum(zhishu);
+		
+	}
+	
+	// 更新出入库单数据
+	public void updateBill(MdwhDlg dlg, MdcrkVO[] rsvos)
+			throws BusinessException {
+		UFDouble zhishu = new UFDouble(0);
+		UFDouble zhongliang = new UFDouble(0);
+		UFDouble yszhongliang = new UFDouble(0);
+		String pk_ptzj = null;
+		for (int i = 0; i < rsvos.length; i++) {
+			pk_ptzj = rsvos[0].getCgeneralbid();
+			zhishu = zhishu.add(rsvos[i].getSrkzs(), MDConstants.ZS_XSW);
+			zhongliang = zhongliang
+					.add(rsvos[i].getDef1(), MDConstants.ZL_XSW);//2011-01-03 MeiChao 取钢厂重量
+//					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
+			yszhongliang = yszhongliang
+					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
+			
 		}
 		dlg.setNoutnum(zhongliang);
 		dlg.setNoutassistnum(zhishu);
@@ -346,7 +389,7 @@ public class MdProcessBean {
 		UFDouble zhishu = new UFDouble((BigDecimal) rsmap.get("zhishu"));// 现存支数
 		UFDouble zhongliang = new UFDouble((BigDecimal) rsmap.get("zhongliang"));// 现存验收重量
 		UFDouble factoryallweight=new UFDouble((BigDecimal) rsmap.get("def1"));// 现存钢厂重量
-		UFDouble kyzs = new UFDouble((Integer) rsmap.get("kyzs")); // 可用支数
+		UFDouble kyzs = new UFDouble(rsmap.get("kyzs").toString()); // 可用支数
 		UFDouble kyzl = kyzs.multiply(zhongliang).div(zhishu,
 				MDConstants.ZL_XSW);// 可用重量
 		UFDouble factoryWeight=new UFDouble(rsmap.get("factoryweight").toString());// 2010-12-30 MeiChao add 可用钢厂重量 
