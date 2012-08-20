@@ -468,6 +468,8 @@ junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/ChInfoVO.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/ChInfoVO.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MDConstants.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MDConstants.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MDGbftdialog.class -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdGbPanel.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdProcessBean.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdProcessBean.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdczRef.class -text

@@ -29,6 +29,7 @@ import nc.ui.ic.jj.JJIcScmPubHelper;
 import nc.ui.ic.md.MDPlugin;
 import nc.ui.ic.md.dialog.MDUtils;
 import nc.ui.ic.md.dialog.MDioDialog;
+import nc.ui.ic.mdck.MDGbftdialog;
 import nc.ui.ic.mdck.MdProcessBean;
 import nc.ui.ic.mdck.MdwhDlg;
 import nc.ui.ic.pub.BarcodeValidateDialog;
@@ -1902,9 +1903,67 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			}
 
 			// 2010-10-12 heyq add
+			
+			//add by ouyangzhb 2012-08-18
+			if (bo.getName().equals("过磅分摊")) {
+				getMdGbft();
+			}
+			
+			
 		} catch (Exception e) {
 			nc.ui.ic.pub.tools.GenMethod.handleException(null, null, e);
 			return;
+		}
+
+	}
+	
+	
+	/**
+	 * add by ouyangzhb 2012-08-18 过磅分摊 动作实现
+	 * 
+	 */
+	public void getMdGbft() {
+		int[] selrows = getBillCardPanel().getBillTable().getSelectedRows();
+		try {
+			if (BillMode.List == getM_iCurPanel())
+				throw new BusinessException("请在卡片状态下进行过磅分摊");
+			selrows = getBillCardPanel().getBillTable().getSelectedRows();
+			if (selrows == null || selrows.length == 0) {
+				throw new BusinessException("请选择需要过磅的表体行");
+			}
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			MDGbftdialog dialog = new MDGbftdialog(this);
+			dialog.showModal();
+			if (dialog.getNoutnummap() != null
+					&& dialog.getNoutassnummap() != null) {
+				// 调用修改方法
+				onButtonClicked(getButtonManager().getButton(
+						ICButtonConst.BTN_BILL_EDIT));
+				for (int i = 0; i < selrows.length; i++) {
+					getBillCardPanel().setBodyValueAt(
+							dialog.getNoutnummap().get(
+									getBillCardPanel().getBodyValueAt(
+											selrows[i], "cgeneralbid")),
+							selrows[i], "noutnum");
+					BillEditEvent e = new BillEditEvent(getBillCardPanel()
+							.getBodyItem("noutnum").getComponent(),
+							getBillCardPanel().getBodyValueAt(selrows[i],
+									"noutnum"), "noutnum", selrows[i],
+							BillItem.BODY);
+					// 编辑后事件
+					afterEdit(e);
+				}
+				// 调用保存方法
+				onButtonClicked(getButtonManager().getButton(
+						ICButtonConst.BTN_SAVE));
+			}
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}
@@ -10385,6 +10444,13 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				getButtonManager().getButtonTree().addChildMenu(getButtonManager().getButtonTree().getButton(
 						ScmButtonConst.BTN_PRINT),((GeneralButtonManager) getButtonManager()).getUnite_PreviewBO());
 			}
+			//add by ouyangzhb 2012-08-18 为出库单，其他出库单增加“过磅分摊”按钮
+			if(getBillType()!=null&&(getBillType().equals("4C")||getBillType().equals("4I"))){
+				getButtonManager().getButtonTree().addMenu(
+						new ButtonObject("过磅分摊",
+								"过磅分摊", "过磅分摊"));
+			}
+			
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
