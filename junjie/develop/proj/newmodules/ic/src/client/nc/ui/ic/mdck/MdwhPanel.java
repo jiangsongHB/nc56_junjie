@@ -26,9 +26,12 @@ import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.pub.bill.BillItem;
+import nc.ui.pub.bill.BillModel;
+import nc.vo.bd.access.BddataVO;
 import nc.vo.ic.md.MdcrkTempVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.ValueObject;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDouble;
 
@@ -571,15 +574,34 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 
 	public void afterEdit(BillEditEvent arg0) {
 		if (arg0.getKey().equals("jbh")) {
+			//add by ouyangzhb 2012-08-13 设置码单参照允许多选
+			BillItem jbh = getOPBillCardPanel().getBodyItem("jbh");
+			UIRefPane jbhPa = (UIRefPane) jbh.getComponent();
+			String[] pks = jbhPa.getRefPKs();
+			int len = pks.length;
+			for (int j = 0; j < len; j++) {
+				if (pks != null) {
+					if (j > 0) {
+						getOPBillCardPanel().insertLine();
+					}
+				}
+			}
+			jbhPa.setPKs(null);
+			
 			String[] s = getOPBillCardPanel().getBodyItem(arg0.getKey())
 					.getEditFormulas();
+			MdcrkVO[] vos = (MdcrkVO[]) getOPBillCardPanel().getBillData()
+			.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
+			for(int i=0;i<pks.length;i++){
+				 if(pks==null)
+					 continue;
+				 getOPBillCardPanel().getBillModel().setValueAt(pks[i], arg0.getRow()+i, "pk_mdxcl_b"); 
+				 vos[arg0.getRow()+i].setPk_mdxcl_b(pks[i]);
 			if (s != null && s.length > 0) {
-				getOPBillCardPanel().execBodyFormulas(arg0.getRow(), s);
+				getOPBillCardPanel().execBodyFormulas(arg0.getRow()+i, s);
 			}
 			String sfbj = getOPBillCardPanel().getHeadItem("sfbj").getValue();
-			MdcrkVO[] vos = (MdcrkVO[]) getOPBillCardPanel().getBillData()
-					.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
-			MdcrkVO evo = vos[arg0.getRow()]; // 编辑的VO
+			MdcrkVO evo = vos[arg0.getRow()+i]; // 编辑的VO
 			UFBoolean bsfbj = new UFBoolean(true);
 			if (sfbj.equals("false"))
 				bsfbj = new UFBoolean(false);
@@ -587,13 +609,11 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				// 查询码单出入库可用量VO
 				MdcrkVO kylMdCrkVo = new MdProcessBean().queryMdCrkKyl(evo,
 						bsfbj);
-				vos[arg0.getRow()] = kylMdCrkVo;
-				
-				
+				vos[arg0.getRow()+i] = kylMdCrkVo;
 				getOPBillCardPanel().getBillModel().setBodyDataVO(vos);
 				getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
 				//2010-12-30 MeiChao add 每次选择参照之后,将钢厂重量放到临时字段上去,后面修改支数时,可以计算出钢厂重量(不得已而为之)
-				getOPBillCardPanel().getBillModel().setValueAt(kylMdCrkVo.getDef1(), arg0.getRow(), "myrefweighttemp");
+				getOPBillCardPanel().getBillModel().setValueAt(kylMdCrkVo.getDef1(), arg0.getRow()+i, "myrefweighttemp");
 				if (bsfbj.booleanValue() == true)
 					buttonState(true, true, false, true, true);
 				else
@@ -603,6 +623,8 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 				MessageDialog.showWarningDlg(dlg, "提示", "可用量查询出错!");
 				return;
 			}
+		}
+			//add by ouyangzhb 2012-08-13 end
 
 		}
 		// 编辑了支数
@@ -749,11 +771,18 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 					+ infoVO.getCwarehouseidb() + "' and cinvbasid='"
 					+ infoVO.getPk_invbasdoc() + "' and cinventoryidb='"
 					+ infoVO.getPk_invmandoc() + "' and kyzs>0 ";//2011-01-03 MeiChao 增加 可用支数>0 的条件
+			/**
+			 * add by ouyangzhb 2012-08-13 码单的参照界面不需要有是否“非计算”条件的限制
+			 
 			if (b_fjs == true)
 				sqlWhere += " and def4='Y'";
 			else
 				sqlWhere += " and def4='N'";
+			*/
 			jbhPa.setWhereString(sqlWhere);
+			
+			//add by ouyangzhb 2012-08-13 码单的参照允许多选
+			jbhPa.setMultiSelectedEnabled(true);
 		}
 		return true;
 

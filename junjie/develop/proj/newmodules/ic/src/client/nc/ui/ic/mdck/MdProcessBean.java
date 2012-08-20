@@ -143,10 +143,10 @@ public class MdProcessBean {
 		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
 				IUAPQueryBS.class.getName());
 		Collection coll = iUAPQueryBS.retrieveByClause(MdcrkVO.class,
-				" cgeneralbid='" + infoVO.getCgeneralbid() + "' and dr=0 ");
+				" cgeneralbid='" + infoVO.getCgeneralbid() + "' and nvl(dr,0)=0  ");
 		if (coll == null || coll.size() == 0){//2010-12-04 MeiChao改造 如果查不到,那么便去nc_mdcrk_temp中查找
 			coll = iUAPQueryBS.retrieveByClause(MdcrkTempVO.class,
-					" cgeneralbid='" + infoVO.getCgeneralbid() + "' and dr=0 ");
+					" cgeneralbid='" + infoVO.getCgeneralbid() + "' and nvl(dr,0)=0  ");
 			if(coll == null || coll.size() == 0){//如果仍旧为空,那么假定其为转库生成的其他出,去查转库的临时码单nc_mdcrk_temp
 				Object sourcetype = iUAPQueryBS.executeQuery(
 						"select t.csourcebillbid from ic_general_b t where t.cgeneralbid='"
@@ -155,7 +155,7 @@ public class MdProcessBean {
 						new ColumnProcessor());
 				
 				coll = iUAPQueryBS.retrieveByClause(MdcrkTempVO.class,
-						" cgeneralbid='" + (sourcetype==null?"梅超最帅了":sourcetype.toString()) + "' and dr=0 ");
+						" cgeneralbid='" + (sourcetype==null?"梅超最帅了":sourcetype.toString()) + "' and nvl(dr,0)=0  ");
 				if(coll == null || coll.size() == 0)//如果依旧没找到码单信息,那么返回null
 					return null;
 			}
@@ -589,6 +589,71 @@ public class MdProcessBean {
 		return rsvo;
 	}
 	
+	/**
+	 * add by ouyangzhb 2012-08-18 批查询
+	 * @param infoVOs
+	 * @return
+	 * @throws BusinessException
+	 */
+	public MdcrkVO[] queryCrkVOSByArray(ChInfoVO[] infoVOs) throws BusinessException {
+		
+		if(infoVOs==null||infoVOs.length==0)
+			return null;
+		
+		// 查询表体VOS
+		boolean istemp=false;//是否查询的是出入库码单临时表(转库码单)
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		/**add by ouyangzhb 2012-08-18 构造 Cgeneralbid 的in 语句*/
+		String inStr = "(";
+		for(int i=0;i<infoVOs.length;i++){
+			inStr += "'"+infoVOs[i].getCgeneralbid()+"'";
+			if(i+1<infoVOs.length){
+				inStr +=",";
+			}
+		}
+		inStr += ")";
+		/**add end */
+		
+		Collection coll = iUAPQueryBS.retrieveByClause(MdcrkVO.class,
+				" cgeneralbid in " + inStr + " and nvl(dr,0)=0 ");
+		if (coll == null || coll.size() == 0){//2010-12-04 MeiChao改造 如果查不到,那么便去nc_mdcrk_temp中查找
+			coll = iUAPQueryBS.retrieveByClause(MdcrkTempVO.class,
+					" cgeneralbid in " + inStr + " and nvl(dr,0)=0  ");
+			if(coll == null || coll.size() == 0){//如果仍旧为空,那么假定其为转库生成的其他出,去查转库的临时码单nc_mdcrk_temp
+				Object sourcetype = iUAPQueryBS.executeQuery(
+						"select t.csourcebillbid from ic_general_b t where t.cgeneralbid in "
+								+ inStr
+								+ " and t.cbodybilltypecode='4I'",
+						new ColumnProcessor());
+				
+				coll = iUAPQueryBS.retrieveByClause(MdcrkTempVO.class,
+						" cgeneralbid in (select t.csourcebillbid from ic_general_b t where t.cgeneralbid in "
+								+ inStr + " and t.cbodybilltypecode='4I') and nvl(dr,0)=0  ");
+				if(coll == null || coll.size() == 0)//如果依旧没找到码单信息,那么返回null
+					return null;
+			}
+			istemp=true;
+		}
+		
+		MdcrkVO[] rsvos = new MdcrkVO[coll.size()];
+		
+		if(istemp){
+			MdcrkTempVO[] tempvos=new MdcrkTempVO[coll.size()];//将集合中的值传入TempVO再转化入正常的码单VO
+			coll.toArray(tempvos);
+			for(int i=0;i<tempvos.length;i++){
+				String[] attributeNames=tempvos[i].getAttributeNames();
+				MdcrkVO MdcrkTemp=new MdcrkVO();
+				for(int j=0;j<attributeNames.length;j++){
+					MdcrkTemp.setAttributeValue(attributeNames[j], tempvos[i].getAttributeValue(attributeNames[j]));
+				}
+				rsvos[i]=MdcrkTemp;
+			}
+		}else{
+			coll.toArray(rsvos);
+		}
+		return rsvos;
+	}
 	
 	
 	
