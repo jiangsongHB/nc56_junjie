@@ -1,0 +1,1 @@
+alter table dm_delivbill add  isestimate    char(1);
