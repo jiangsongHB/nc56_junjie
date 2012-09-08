@@ -380,6 +380,7 @@ junjie/patches/modules/cmp/client/classes/nc/ui/cmp/pub/DefaultListEventHandler.
 junjie/patches/modules/cmp/client/classes/nc/ui/cmp/settlement/SettlementListEventHandler$Data.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/cmp/settlement/SettlementListEventHandler.class -text
 junjie/patches/modules/dm/META-INF/classes/nc/bs/pf/changedir/CHG21TO4804.class -text
+junjie/patches/modules/dm/META-INF/classes/nc/bs/pf/changedir/CHG4CTO4804.class -text
 junjie/patches/modules/dm/META-INF/classes/nc/impl/dm/dm220/DelivBillImpl.class -text
 junjie/patches/modules/dm/classes/nc/itf/dm/dm220/IDelivBill.class -text
 junjie/patches/modules/dm/classes/nc/vo/dm/model/delivbill/entity/DelivBillHeadVO.class -text
