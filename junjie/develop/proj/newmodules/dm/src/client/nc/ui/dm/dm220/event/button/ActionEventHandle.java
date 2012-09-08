@@ -313,7 +313,16 @@ public class ActionEventHandle {
 					body.setFbye(new UFDouble(new Double(0.0)));//辅币余额--0
 					body.setFlbh(0);//分录编号--既行号
 					body.setFx(-1);//方向
-					body.setHbbm(delivbillitemvo[0].getCtakefeebasid());//伙伴编码--客商管理id
+					String cubasdocsql="select bd.pk_cubasdoc from dm_trancust dm,bd_cumandoc bd where dm.pkcusmandoc=bd.pk_cumandoc and pk_trancust='"+delivbillheadvo.getCtrancustid()+"'";
+					String pk_cubasdoc=null;
+					try {//如果当前其他入库单的销售类型字段为空,那么开始查询通用收付流程的业务类型编码.
+						pk_cubasdoc= (String) query.executeQuery(cubasdocsql, new ColumnProcessor());
+					} catch (BusinessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						return false;
+					}
+					body.setHbbm(pk_cubasdoc);//伙伴编码--客商管理id
 				//	body.setHsdj(new UFDouble(oneExpense.getNoriginalcurprice()));//含税单价--单价
 					body.setIsSFKXYChanged(new UFBoolean(false));//收付款协议是否发生变化--N
 					body.setIsverifyfinished(new UFBoolean(false));//是否核销完成--N
@@ -352,7 +361,6 @@ public class ActionEventHandle {
 					body.setZyx18("tureFree");//2010-11-07 "费用暂估应付"标志,启用于: 暂估处理,See:EstimateImpl 约9181行 用于生成采购发票时的处理
 					body.setZyx19(body.getHbbm());//2010-11-07 "客商管理ID" 启用于: 暂估处理 ,See:EstimateImpl 约9423行 用于生成采购发票时的处理
 					bodyVOs[0]=body;
-				
 				head.setBbje(new UFDouble(nmoneytotal));//本币金额--表体累加金额
 				head.setDjdl("yf");//单据大类--yf
 				head.setDjkjnd(ce.getAccountYear());//会计年度--当前系统的会计年度

@@ -176,6 +176,7 @@ junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/ClientHelper.java -t
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/event/button/ActionEventHandle.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/scm/pattern/listcard/ListCardButtonCalculator.java -text
 junjie/develop/proj/newmodules/dm/src/private/nc/bs/pf/changedir/CHG21TO4804.java -text
+junjie/develop/proj/newmodules/dm/src/private/nc/bs/pf/changedir/CHG4CTO4804.java -text
 junjie/develop/proj/newmodules/dm/src/private/nc/impl/dm/dm220/DelivBillImpl.java -text
 junjie/develop/proj/newmodules/dm/src/public/nc/itf/dm/dm220/IDelivBill.java -text
 junjie/develop/proj/newmodules/dm/src/public/nc/vo/dm/model/delivbill/entity/DelivBillHeadVO.java -text
