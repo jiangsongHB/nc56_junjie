@@ -167,7 +167,7 @@ public class CHG4ATO4804  extends VOConversion{
 	    return new String[] {
 	      "B_csourcebilltypecode->\"4A\"",
 	      "B_nnumber->B_noutnum-B_ntotaltrannum",
-	      "H_isestimate->\"N\"",//采购订单将是否已暂估设置为Y
+	      "H_isestimate->\"Y\"",//采购订单将是否已暂估设置为Y
 	    };
 	  }
 

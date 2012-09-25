@@ -60,7 +60,7 @@ public class CHG4CTO4804 extends VOConversion{
       "H_pk_defdoc14->H_pk_defdoc14",
       "H_pk_defdoc15->H_pk_defdoc15",
       "H_pk_defdoc16->H_pk_defdoc16",
-      "H_pk_defdoc17->H_pk_defdoc17",
+      "H_pk_defdoc17->H_ccustomerid",
       "H_pk_defdoc18->H_pk_defdoc18",
       "H_pk_defdoc19->H_pk_defdoc19",
       "H_pk_defdoc20->H_pk_defdoc20",
@@ -178,7 +178,7 @@ public class CHG4CTO4804 extends VOConversion{
     return new String[] {
       "B_csourcebilltypecode->\"4C\"",
       "B_nnumber->B_noutnum-B_ntotaltrannum",
-      "H_isestimate->\"N\"",//采购订单将是否已暂估设置为Y
+      "H_isestimate->\"N\"",//销售出库将是否已暂估设置为Y
     };
   }
 }

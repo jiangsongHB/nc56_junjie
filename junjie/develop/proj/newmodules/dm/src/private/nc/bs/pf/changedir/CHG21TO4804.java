@@ -55,7 +55,7 @@ public class CHG21TO4804 extends VOConversion{
       "H_pk_defdoc14->H_pk_defdoc14",
       "H_pk_defdoc15->H_pk_defdoc15",
       "H_pk_defdoc16->H_pk_defdoc16",
-      "H_pk_defdoc17->H_pk_defdoc17",
+      "H_pk_defdoc17->H_cvendormangid",
       "H_pk_defdoc18->H_pk_defdoc18",
       "H_pk_defdoc19->H_pk_defdoc19",
       "H_pk_defdoc20->H_pk_defdoc20",
