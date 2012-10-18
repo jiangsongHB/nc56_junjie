@@ -6489,7 +6489,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					DJZBItemVO body=new DJZBItemVO();//实例化一个暂估应付单表体VO
 					body.setBbhl(new UFDouble(1.0));//本币汇率
 					body.setBbye(new UFDouble(oneExpense.getNoriginalcurmny()));//本币余额--无税金额
-					body.setBilldate(new UFDate());//日期
+//					body.setBilldate(new UFDate());//日期
+					body.setBilldate(ce.getDate());//add by ouyangzhb 2012-10-18 应该取系统登录时间，而不是服务器时间
 					body.setBzbm(oneExpense.getCurrtypeid());//币种编码--币种
 					//body.setcheckflag 对账标记
 					String sql="select pk_invbasdoc from bd_invbasdoc where invcode='"+oneExpense.getCostcode();
@@ -6543,7 +6544,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					body.setPausetransact(new UFBoolean(false));//挂起标志--N
 					body.setPh("4A");//源头单据类型--4A
 					body.setpjdirection("none");//票据方向--none
-					body.setQxrq(new UFDate());//起效日期--当前日期
+//					body.setQxrq(new UFDate());//起效日期--当前日期
+					body.setQxrq(ce.getDate());//add by ouyangzhb 2012-10-18 应该取系统登录时间，而不是服务器时间
 					body.setSfbz("3");//收付标志--"3"
 					body.setShlye(new UFDouble(oneExpense.getNnumber()));//数量余额--数量
 					body.setSl(new UFDouble(new Double(0.0)));//税率--0
@@ -6570,11 +6572,13 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				head.setDjkjnd(ce.getAccountYear());//会计年度--当前系统的会计年度
 				head.setDjkjqj(ce.getAccountMonth());//会计期间--当前系统会计期间
 				head.setDjlxbm("D1");//单据类型编码--D1
-				head.setDjrq(new UFDate());//单据日期--当前系统日期
+				head.setDjrq(ce.getDate());//单据日期--当前系统日期//add by ouyangzhb 2012-10-18 应该取系统登录时间，而不是服务器时间
 				head.setDjzt(2);//单据状态--1 表示已保存 2表示已生效
 				head.setDr(0);
 				head.setDwbm(this.getEnvironment().getCorpID());//单位编码--公司ID
-				head.setEffectdate(new UFDate());//起效日期--当前系统日期
+//				head.setEffectdate(new UFDate());//起效日期--当前系统日期
+				head.setEffectdate(ce.getDate());//add by ouyangzhb 2012-10-18 应该取系统登录时间，而不是服务器时间
+				
 				head.setHzbz("-1");//坏账标志--  -1 表示不是坏账
 				head.setIsjszxzf(new UFBoolean(false));//是否结算中心支付--否
 				head.setIsnetready(new UFBoolean(false));//是否已经补录--否
@@ -6663,7 +6667,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 			changeBillHead.setCoperatorid(ce.getUser().getPrimaryKey());//操作员
 			changeBillHead.setCrdcenterid(generalHead.getPk_calbody());//库存组织
 			changeBillHead.setCsourcemodulename("IC");//来源模块
-			changeBillHead.setDbilldate(new UFDate());
+//			changeBillHead.setDbilldate(new UFDate());
+			changeBillHead.setDbilldate(ce.getDate());//add by ouyangzhb 2012-10-18 应该取系统登录时间，而不是服务器时间
 			changeBillHead.setDr(0);
 			changeBillHead.setFdispatchflag(0);
 			changeBillHead.setIdebtflag(-1);
@@ -6695,7 +6700,8 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				changeBillBody[i].setCvendorid(generalBody[i].getCvendorid());//供应商管理档案id,取库存表体对应字段
 				changeBillBody[i].setCinvbasid(generalBody[i].getCinvbasid());//存货基本档案id,取库存表体对应字段
 				changeBillBody[i].setCinventoryid(generalBody[i].getCinventoryid());//存货管理档案id,取库存表体对应字段
-				changeBillBody[i].setDbizdate(new UFDate());
+//				changeBillBody[i].setDbizdate(new UFDate());
+				changeBillBody[i].setDbizdate(ce.getDate());//add by ouyangzhb 2012-10-18 应该取系统登录时间，而不是服务器时间
 				changeBillBody[i].setDr(0);
 				changeBillBody[i].setFcalcbizflag(0);
 				changeBillBody[i].setFdatagetmodelflag(1);
