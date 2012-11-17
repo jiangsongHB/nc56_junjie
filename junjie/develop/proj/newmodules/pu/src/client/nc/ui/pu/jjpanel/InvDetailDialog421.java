@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -820,7 +821,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			// 设定文件选择框标题
 			fc.setDialogTitle("请选择存货明细Excel文件");
 			// 显示文件选择框，在选择后将结果储存到returnVal变量中
-			int returnVal = fc.showOpenDialog(null);
+			int returnVal = fc.showOpenDialog(this);
 			// 如果用户选择了文件，并点击了"Open/打开"按钮，显示用户选择的文件全名路径，
 			// 如果用户点击"Close/关闭"按钮，以及其它方式退出文件选择框，则什么也不做。
 			if (returnVal == JFileChooser.CANCEL_OPTION) { // 选择取消
@@ -854,12 +855,14 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 					 */
 					int rownumber=0;//行数,用于try...catch之后的代码
 					checkErrorInfo="";//初始化校验后返回的错误信息
+					InputStream is = null ;
+					jxl.Workbook rwb = null ;
 					try {
 						// 构建Workbook对象, 只读Workbook对象
 						// 直接从本地文件创建Workbook
 						// 从输入流创建Workbook
-						InputStream is = new FileInputStream(file.getPath());
-						jxl.Workbook rwb = Workbook.getWorkbook(is);
+						  is = new FileInputStream(file.getPath());
+						  rwb = Workbook.getWorkbook(is);
 						// 一旦创建了Workbook，我们就可以通过它来访问Excel Sheet(术语：工作表)。参考下面的代码片段：
 						int sheetnumber = rwb.getNumberOfSheets();
 						for (int i = 0; i < 1; i++) {//使i<1 控制只循环1次
@@ -888,11 +891,11 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 											break;
 										case 1 :
 											String[] newstrc=strc.split("\\*");
-											if(newstrc[0]==null||!newstrc[0].equals(invspec)){
+											if(newstrc[0]==null||(!newstrc[0].equals(invspec)&& !strc.equals(invspec))){
 												iswronginv=true;
 												break;
 											}
-											oneRowDetail.put("thick", newstrc[0]);
+											oneRowDetail.put("thick", invspec);
 											//add by ouyangzhb 2011-03-22 当规格中没有*号时，不需要进行空格和数值验证
 											if(strc.indexOf("*")!=-1){
 												if(!this.checkStringSpace(newstrc[1], row,col, checkErrorInfo)){
@@ -993,6 +996,20 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 						rwb.close();//关闭数据流
 					} catch (Exception ex) {
 						ex.printStackTrace();
+					}finally{
+						/**add by ouyangzhb 2012-11-17 不管是否正常导入，最终都需要关闭数据流*/
+						if(rwb != null){
+							rwb.close();//关闭数据流
+						}
+						if(is != null){
+							try {
+								is.close();
+							} catch (IOException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}						
+						}
+						/**add by ouyangzhb 2012-11-17 不管是否正常导入，最终都需要关闭数据流*/
 					}
 					/**
 					 * 解析成功后,供用户选择.,是 则写入页面,否 则不做操作
@@ -1120,8 +1137,10 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 //			}
 		}
 		else if(e.getKey().equals("contractlength")){//2010-12-28 MeiChao
-			String curcontractlength=this.getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "contractlength").toString();	
-			if(!this.isDoueric(curcontractlength)){
+			
+			//add by ouyangzhb 2012-11-17 增加空值判断
+			Object curcontractlength=this.getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "contractlength");	
+			if(curcontractlength !=null &&!this.isDoueric(curcontractlength.toString())){
 				if(this.isLengthAllNumber){
 					MessageDialog.showHintDlg(this,"提示","您输入了非纯数字类型的存货长度,存货重量自动计算将不可用,请手动输入!");
 					this.isLengthAllNumber=false;
@@ -1131,7 +1150,7 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 			if(!this.isLengthAllNumber){//如果this.isLengthAllNumber标记为false,遍历判断是否所有存货长度均为数字.
 				for(int i=0;i<this.getBillListPanel().getHeadBillModel().getRowCount();i++){
 					curcontractlength=this.getBillListPanel().getHeadBillModel().getValueAt(i, "contractlength").toString();
-					if(!this.isDoueric(curcontractlength)){
+					if(curcontractlength !=null &&!this.isDoueric(curcontractlength.toString())){
 						break;
 					}else if(i==this.getBillListPanel().getHeadBillModel().getRowCount()-1){
 						this.isLengthAllNumber=true;
@@ -1145,15 +1164,16 @@ public class InvDetailDialog421 extends UIDialog implements ActionListener,BillE
 //				this.getBillListPanel().getHeadBillModel().setValueAt(null, i, "contractweight");//将钢厂重量全部置空
 //			}
 		}else if(e.getKey().equals("contractweight")){//修改了钢厂重量
-			String curcontractweight=this.getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "contractweight").toString();
-			if(!this.isDoueric(curcontractweight)){
+			
+			 Object curcontractweight = getBillListPanel().getHeadBillModel().getValueAt(e.getRow(), "contractweight");
+			if(curcontractweight != null &&!this.isDoueric(curcontractweight.toString())){
 				MessageDialog.showHintDlg(this, "提示", "钢厂重量不允许输入非数字!");
 				this.getBillListPanel().getHeadBillModel().setValueAt(null, e.getRow(),"contractweight");
 				return;
 			}
 			for(int i=0;i<this.getBillListPanel().getHeadBillModel().getRowCount();i++){
 				curcontractweight=this.getBillListPanel().getHeadBillModel().getValueAt(i, "contractweight")==null?null:this.getBillListPanel().getHeadBillModel().getValueAt(i, "contractweight").toString();
-				if(!this.isDoueric(curcontractweight)){
+				if(curcontractweight != null &&!this.isDoueric(curcontractweight.toString())){
 					break;
 				}else if(i==this.getBillListPanel().getHeadBillModel().getRowCount()-1){
 					this.isCalculate=true;
