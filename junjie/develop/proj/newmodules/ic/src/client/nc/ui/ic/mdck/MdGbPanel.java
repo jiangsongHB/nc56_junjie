@@ -279,14 +279,19 @@ public class MdGbPanel extends UIPanel implements ActionListener,
 			}
 			UFDouble gbzl = new UFDouble(getOPBillCardPanel().getHeadItem(
 					"gbzl").getValueObject().toString());
-			vos = MDUtils.mdBJ(vos, gbzl);// 磅计计算
+			/**
+			 * add by ouyangzhb 2012-12-06 用新的算法计算：，
+			 * （1）对于有验收宽度和验收长度的，按照码单的厚（规格）×验收宽度×验收长度得到体积来合计，然后按照每个码单所占比例进行分摊，余数放在最后一个码单上；
+			 * （2）如果只有长度的，则按照理算系数×长度合计，然后按照每个码单所占比例进行分摊，余数放在最后一个码单上。
+			 */
+			vos = MDUtils.mdGBBJ(vos, gbzl);// 磅计计算
 			getOPBillCardPanel().getBillModel().setBodyDataVO(vos);
 			int row = getOPBillCardPanel().getBillModel().getRowCount();
 			for(int i=0;i<row;i++){
 				getOPBillCardPanel().getBillModel().setRowState(i, BillModel.MODIFICATION);
 			}
 			getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
-			buttonState(true, true, true, true, false);
+			buttonState(true, true, true, true, true);
 			MessageDialog.showWarningDlg(dlg, "提示", "计算成功！");
 		} catch (BusinessException e) {
 			e.printStackTrace();

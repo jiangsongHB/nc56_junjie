@@ -568,4 +568,103 @@ public class MDUtils {
 				return false;
 		}
 	}
+	
+	/**
+	 * add by ouyangzhb 2012-12-06 用新的算法计算：，
+	 * （1）对于有验收宽度和验收长度的，按照码单的厚（规格）×验收宽度×验收长度得到体积来合计，然后按照每个码单所占比例进行分摊，余数放在最后一个码单上；
+	 * （2）如果只有长度的，则按照理算系数×长度合计，然后按照每个码单所占比例进行分摊，余数放在最后一个码单上。
+	 */
+	public static MdcrkVO[] mdGBBJ(MdcrkVO[] vos, UFDouble sszl)
+			throws BusinessException {
+		sszl = sszl.abs();// 出库单此处的值是负的,所以取绝对值
+
+		if (sszl == null || sszl.doubleValue() <= 0) {
+			throw new BusinessException("实收重量不能小于0");
+		}
+		boolean isCG = false;
+
+		if (vos[0].getMd_meter() != null) {
+			isCG = true;
+		}
+		UFDouble count_LW = new UFDouble(0);// 米数*件数和 /长*宽*米数和
+		UFDouble count_ZL = new UFDouble(0);// 所有分摊重量和
+
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			//add by ouyangzhb 2011-02-24  取出长、宽 、米数 并转换成DOUBLE 型
+			Double lenth =null, width=null,meter=null,gg = null;
+			//add by ouyangzhb 2012-12-06
+			if(vo.getDef6()!=null){
+				gg = Double.parseDouble(vo.getDef6());// 米数
+			}
+			if(vo.getDef7()!=null){
+				lenth = Double.parseDouble(vo.getDef7());// 长
+			}
+			if(vo.getDef8()!=null){
+				width =Double.parseDouble(vo.getDef8());// 宽
+			}
+			if(vo.getDef9()!=null){
+				meter = Double.parseDouble(vo.getDef9());// 米数
+			}
+			UFDouble zs = vo.getSrkzs();
+			if (zs == null || zs.doubleValue() <= 0) {
+				throw new BusinessException("第" + (i + 1) + "行，件数不能小于0");
+			}
+			if (isCG) {
+				if (meter == null || meter.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
+				}
+				count_LW = count_LW.add(zs.multiply(meter));
+			} else {
+				if (lenth == null || lenth.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，长不能小于0");
+				}
+				if (width == null || width.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，宽不能小于0");
+				}
+				count_LW = count_LW.add(zs.multiply(lenth*width*gg));
+			}
+		}
+
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			//add by ouyangzhb 2011-02-24  取出长、宽 、米数 并转换成DOUBLE 型
+			double lenth =0, width=0,meter=0, gg=0;
+			if(vo.getDef6()!=null){
+				gg = Double.parseDouble(vo.getDef6());// 米数
+			}
+			if(vo.getDef7()!=null){
+				lenth = Double.parseDouble(vo.getDef7());// 长
+			}
+			if(vo.getDef8()!=null){
+				width =Double.parseDouble(vo.getDef8());// 宽
+			}
+			if(vo.getDef9()!=null){
+				meter = Double.parseDouble(vo.getDef9());// 米数
+			}
+			UFDouble zs = vo.getSrkzs();
+			if (i == vos.length - 1) {
+				vo.setSrkzl(sszl.sub(count_ZL));
+			} else {
+				UFDouble vga = UFDouble.ZERO_DBL;
+				if (isCG) {
+					vga = sszl.multiply(meter).multiply(zs).div(count_LW);
+				} else {
+					vga = sszl.multiply(width).multiply(lenth).multiply(gg).multiply(zs)
+							.div(count_LW);
+				}
+				//add by ouyangzhb 2011-07-28 需求调整，精度改为三位
+//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
+				vo.setSrkzl(vga);
+				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
+			}
+		}
+
+		return vos;
+	}
+	
+	
+	
+	
 }
