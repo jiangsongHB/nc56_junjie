@@ -186,7 +186,9 @@ public class MDUtils {
 					vga = sszl.multiply(width).multiply(lenth).multiply(zs)
 							.div(count_LW);
 				}
-				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				//add by ouyangzhb 2011-07-28 需求调整，精度改为三位
+//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
 				vo.setSrkzl(vga);
 				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
 			}
@@ -269,7 +271,149 @@ public class MDUtils {
 
 		return vos;
 	}
+	
+	
+	/**
+	 * add by ouyangzhb 2012-03-21 钢厂重量磅计的算法,
+	 * 
+	 * @param vos
+	 * @param sszl
+	 * @return
+	 * @throws BusinessException
+	 */
+	public static MdcrkVO[] mdGCBJ(MdcrkVO[] vos, UFDouble sszl)
+			throws BusinessException {
+		sszl = sszl.abs();// 出库单此处的值是负的,所以取绝对值
+		if (sszl == null || sszl.doubleValue() <= 0) {
+			throw new BusinessException("实收重量不能小于0");
+		}
+		boolean isCG = false;
+		if (vos[0].getMd_meter() != null) {
+			isCG = true;
+		}
+		UFDouble count_LW = new UFDouble(0);// 米数*件数和 /长*宽*米数和
+		UFDouble count_ZL = new UFDouble(0);// 所有分摊重量和
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			UFDouble lenth = UFDouble.ZERO_DBL;
+			UFDouble width = UFDouble.ZERO_DBL;
+			UFDouble meter = UFDouble.ZERO_DBL;
+			lenth = vo.getMd_length();// 长
+			width = vo.getMd_width();// 宽
+			meter = vo.getMd_meter();// 米数
+			UFDouble zs = vo.getSrkzs();
+			if (zs == null || zs.doubleValue() <= 0) {
+				throw new BusinessException("第" + (i + 1) + "行，件数不能小于0");
+			}
+			if (isCG) {
+				if (meter == null || meter.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
+				}
+				count_LW = count_LW.add(zs.multiply(meter));
+			} else {
+				if (lenth == null || lenth.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，长不能小于0");
+				}
+				if (width == null || width.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，宽不能小于0");
+				}
+				count_LW = count_LW.add(zs.multiply(lenth.multiply(width)));
+			}
+		}
 
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			UFDouble lenth = UFDouble.ZERO_DBL;
+			UFDouble width = UFDouble.ZERO_DBL;
+			UFDouble meter = UFDouble.ZERO_DBL;
+			lenth = vo.getMd_length();// 长
+			width = vo.getMd_width();// 宽
+			meter = vo.getMd_meter();// 米数
+
+			UFDouble zs = vo.getSrkzs();
+			if (i == vos.length - 1) {
+				vo.setDef1(sszl.sub(count_ZL));
+			} else {
+				UFDouble vga = UFDouble.ZERO_DBL;
+				if (isCG) {
+					vga = sszl.multiply(meter).multiply(zs).div(count_LW);
+				} else {
+					vga = sszl.multiply(width).multiply(lenth).multiply(zs)
+							.div(count_LW);
+				}
+				// add by ouyangzhb 2011-07-28 需求调整，精度改为三位
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
+				vo.setDef1(vga);
+				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
+			}
+		}
+
+		return vos;
+	}
+
+	/**
+	 * add by ouyangzhb 2012-03-21 码单钢厂重量理计算法
+	 * 
+	 * @param vos
+	 * @return
+	 * @throws BusinessException
+	 */
+	public static MdcrkVO[] mdGCLJ(MdcrkVO[] vos) throws BusinessException {
+
+		boolean isCG = false;// 是否为槽钢
+		if (vos[0].getMd_meter() != null) {
+			isCG = true;
+		}
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			UFDouble lenth = UFDouble.ZERO_DBL;
+			UFDouble width = UFDouble.ZERO_DBL;
+			UFDouble meter = UFDouble.ZERO_DBL;
+			lenth = vo.getMd_length();// 长
+			width = vo.getMd_width();// 宽
+			meter = vo.getMd_meter();// 米数
+			String guige = vo.getDef6();
+			UFDouble zs = vo.getSrkzs();
+			if (zs == null || zs.doubleValue() <= 0) {
+				throw new BusinessException("第" + (i + 1) + "行，支数不能小于0");
+			}
+			if (isCG) {
+				UFDouble lsxs = getLSXS(vos[0]);
+				if (meter == null || meter.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
+				}
+				// 2010-11-23 MeiChao 槽钢理算系数计算方式修改: 米数*理算系数- (四舍五入3位小数)* 支数
+				UFDouble zl = lsxs.multiply(meter).setScale(3,
+						UFDouble.ROUND_HALF_UP).multiply(zs);
+				zl = zl.setScale(3, UFDouble.ROUND_HALF_UP);
+				vo.setDef1(zl);
+			} else {
+				UFDouble fjm = getFJM(vos[0]);
+				if (guige == null || guige.trim().equals("")) {
+					throw new BusinessException("第" + (i + 1)
+							+ "行，系统认为该存货为 锅炉板,但其规格不合标准");
+				}
+				if (lenth == null || lenth.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，长度不能小于0");
+				}
+				if (width == null || width.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，宽度不能小于0");
+				}
+				UFDouble gui = new UFDouble(guige);
+
+				// 2010-11-23 MeiChao 理计取数调整,厚*宽*长*7.85-四舍五入保留3位小数后 再/1000000000
+				// ,其结果也保留3位小数
+				UFDouble zl = gui.add(fjm).multiply(width).multiply(lenth)
+						.multiply(zs).multiply(7.85).setScale(3,
+								UFDouble.ROUND_HALF_UP).div(1000000000);
+				zl = zl.setScale(3, UFDouble.ROUND_HALF_UP);
+				vo.setDef1(zl);
+			}
+		}
+
+		return vos;
+	}
+	
 	/**
 	 * 付加码
 	 * 
@@ -291,9 +435,13 @@ public class MDUtils {
 		qList.add(tempvo);
 		Logger.init("heyq");
 		Logger.error("开始查询附加值:" + MDConstants.getCurrentTime());
+//		Logger.error("传入的参数是：存货基本档案PK=" + pk_invbasid + ",长度="
+//				+ tempvo.getMd_length().doubleValue() + ",宽度="
+//				+ tempvo.getMd_width().doubleValue());
+		//wanglei 2011-07-26 
 		Logger.error("传入的参数是：存货基本档案PK=" + pk_invbasid + ",长度="
-				+ tempvo.getMd_length().doubleValue() + ",宽度="
-				+ tempvo.getMd_width().doubleValue());
+				+ tempvo.getDef7().toString() + ",宽度="
+				+ tempvo.getDef8().toString());
 		// FIXME 与佛山代码整合后,需要更改此处代码
 		IJJUAPService js = NCLocator.getInstance().lookup(IJJUAPService.class);
 		try {
@@ -420,4 +568,103 @@ public class MDUtils {
 				return false;
 		}
 	}
+	
+	/**
+	 * add by ouyangzhb 2012-12-06 用新的算法计算：，
+	 * （1）对于有验收宽度和验收长度的，按照码单的厚（规格）×验收宽度×验收长度得到体积来合计，然后按照每个码单所占比例进行分摊，余数放在最后一个码单上；
+	 * （2）如果只有长度的，则按照理算系数×长度合计，然后按照每个码单所占比例进行分摊，余数放在最后一个码单上。
+	 */
+	public static MdcrkVO[] mdGBBJ(MdcrkVO[] vos, UFDouble sszl)
+			throws BusinessException {
+		sszl = sszl.abs();// 出库单此处的值是负的,所以取绝对值
+
+		if (sszl == null || sszl.doubleValue() <= 0) {
+			throw new BusinessException("实收重量不能小于0");
+		}
+		boolean isCG = false;
+
+		if (vos[0].getMd_meter() != null) {
+			isCG = true;
+		}
+		UFDouble count_LW = new UFDouble(0);// 米数*件数和 /长*宽*米数和
+		UFDouble count_ZL = new UFDouble(0);// 所有分摊重量和
+
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			//add by ouyangzhb 2011-02-24  取出长、宽 、米数 并转换成DOUBLE 型
+			Double lenth =null, width=null,meter=null,gg = null;
+			//add by ouyangzhb 2012-12-06
+			if(vo.getDef6()!=null){
+				gg = Double.parseDouble(vo.getDef6());// 米数
+			}
+			if(vo.getDef7()!=null){
+				lenth = Double.parseDouble(vo.getDef7());// 长
+			}
+			if(vo.getDef8()!=null){
+				width =Double.parseDouble(vo.getDef8());// 宽
+			}
+			if(vo.getDef9()!=null){
+				meter = Double.parseDouble(vo.getDef9());// 米数
+			}
+			UFDouble zs = vo.getSrkzs();
+			if (zs == null || zs.doubleValue() <= 0) {
+				throw new BusinessException("第" + (i + 1) + "行，件数不能小于0");
+			}
+			if (isCG) {
+				if (meter == null || meter.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，米数不能小于0");
+				}
+				count_LW = count_LW.add(zs.multiply(meter));
+			} else {
+				if (lenth == null || lenth.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，长不能小于0");
+				}
+				if (width == null || width.doubleValue() <= 0) {
+					throw new BusinessException("第" + (i + 1) + "行，宽不能小于0");
+				}
+				count_LW = count_LW.add(zs.multiply(lenth*width*gg));
+			}
+		}
+
+		for (int i = 0; i < vos.length; i++) {
+			MdcrkVO vo = vos[i];
+			//add by ouyangzhb 2011-02-24  取出长、宽 、米数 并转换成DOUBLE 型
+			double lenth =0, width=0,meter=0, gg=0;
+			if(vo.getDef6()!=null){
+				gg = Double.parseDouble(vo.getDef6());// 米数
+			}
+			if(vo.getDef7()!=null){
+				lenth = Double.parseDouble(vo.getDef7());// 长
+			}
+			if(vo.getDef8()!=null){
+				width =Double.parseDouble(vo.getDef8());// 宽
+			}
+			if(vo.getDef9()!=null){
+				meter = Double.parseDouble(vo.getDef9());// 米数
+			}
+			UFDouble zs = vo.getSrkzs();
+			if (i == vos.length - 1) {
+				vo.setSrkzl(sszl.sub(count_ZL));
+			} else {
+				UFDouble vga = UFDouble.ZERO_DBL;
+				if (isCG) {
+					vga = sszl.multiply(meter).multiply(zs).div(count_LW);
+				} else {
+					vga = sszl.multiply(width).multiply(lenth).multiply(gg).multiply(zs)
+							.div(count_LW);
+				}
+				//add by ouyangzhb 2011-07-28 需求调整，精度改为三位
+//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
+				vo.setSrkzl(vga);
+				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
+			}
+		}
+
+		return vos;
+	}
+	
+	
+	
+	
 }
