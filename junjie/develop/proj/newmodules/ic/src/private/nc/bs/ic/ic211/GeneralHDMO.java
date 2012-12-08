@@ -4015,8 +4015,9 @@ public class GeneralHDMO extends nc.bs.ic.pub.bill.GeneralBillDMO implements
 			}
 		}
 		StringBuffer sql = new StringBuffer(" select csaleid ");
-		sql.append(" from so_sale ");
-		sql.append(" where so_sale.dr = 0 ");
+		sql.append(" from so_saleinvoice_b ");
+		sql.append(" where so_saleinvoice_b.dr = 0 ");
+		sql.append(" and cupsourcebillid = '"+csourcebillhid+"'");
 		Object[] rows;
 		try {
 			SmartDMO sdmo = new SmartDMO();
