@@ -65,7 +65,7 @@ try{
 	// ####################################################################################################
 	// ##该组件为单动作处理开始,必须修改参数,如果不置入参数值，系统默认为null##
 	// ###动作名称-->PFACTION###
-	setParameter("PFACTION", "PUSHWRITE");
+	setParameter("PFACTION", "PreKeep");
 	// ###单据类型-->PFBILLTYPE###
 	setParameter("PFBILLTYPE", "32");
 	// ###当前日期-->PFDATE###
