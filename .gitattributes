@@ -412,12 +412,14 @@ junjie/patches/modules/dm/client/classes/nc/ui/scm/pattern/listcard/ListCardButt
 junjie/patches/modules/fbm/META-INF/classes/nc/bs/pub/action/N_36GM_APPROVE.class -text
 junjie/patches/modules/fbm/client/classes/nc/ui/fbm/invoice/InvoiceEventHandler.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/ic211/GeneralHBO.class -text
+junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/ic211/GeneralHDMO.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/ic261/SpecialHDMO.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/bill/GeneralBillImpl.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/pa/JJBusinessPluginOne.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/pa/JJBusinessPluginOne.java -text
+junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4C_CANCELSIGN.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4C_ORDERINVOICE.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4R_CANCELADJUST.class -text
 junjie/patches/modules/ic/META-INF/mdrkTools.upm -text
@@ -605,6 +607,7 @@ junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To2
 junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To25.java -text
 junjie/patches/modules/scmpub/classes/nc/vo/scm/ic/bill/InvVO.class -text
 junjie/patches/modules/scmpub/classes/nc/vo/scm/relacal/SCMRelationsCal.class -text
+junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/so001/SaleOrderDMO.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/MdsdBean.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/MdsdBean.java -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SaleOrderAdminUI.class -text
