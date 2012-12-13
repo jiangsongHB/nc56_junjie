@@ -11,6 +11,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+
+import nc.vo.fp.combase.pub01.IBillStatus;
 import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.md.MdcrkVO;
 
@@ -132,6 +134,7 @@ import nc.vo.ic.pub.sn.SerialVO;
 import nc.vo.po.OrderItemVO;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.NullFieldException;
 import nc.vo.pub.SuperVO;
 import nc.vo.pub.VOStatus;
@@ -1943,6 +1946,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				// 调用修改方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_BILL_EDIT));
+				GeneralBillVO billvo = getM_voBill();
 				for (int i = 0; i < selrows.length; i++) {
 					getBillCardPanel().setBodyValueAt(
 							dialog.getNoutnummap().get(
@@ -1956,7 +1960,22 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 							BillItem.BODY);
 					// 编辑后事件
 					afterEdit(e);
+					
+					/**add by ouyangzhb 2012-12-13 修改了数量，需要重新调整货位信息*/
+					MdProcessBean bean = new MdProcessBean();
+					LocatorVO voLoc[] = bean.builderHwVos(
+							(GeneralBillItemVO) billvo.getChildrenVO()[i],
+							getBillType(), false);
+					if (voLoc != null && voLoc.length > 0)
+						getM_alLocatorData().set(i, voLoc);
+
+					if (getBillCardPanel().getBillModel().getRowState(i) == BillModel.NORMAL)
+						getBillCardPanel().getBillModel().setRowState(i,
+								BillModel.MODIFICATION);
+					
+					/**add by ouyangzhb 2012-12-13 修改了数量，需要重新调整货位信息*/
 				}
+				
 				// 调用保存方法
 				onButtonClicked(getButtonManager().getButton(
 						ICButtonConst.BTN_SAVE));
