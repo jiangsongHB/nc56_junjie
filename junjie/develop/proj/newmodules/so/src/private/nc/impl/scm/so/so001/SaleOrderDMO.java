@@ -10697,7 +10697,15 @@ public class SaleOrderDMO extends DataManageObject implements IQueryData, IQuery
 		// 处理出库打开的行
 		if (outopenvolist.size() > 0) {
 			vos = toSaleOrderVO(hvos, outopenvolist);
-			outopenend.addAll(Arrays.asList(vos));
+			/*add by ouyangzhb 2012-12-12 outopenend.addAll(Arrays.asList(vos))
+			会报：java.lang.UnsupportedOperationException 的错误
+			list 不支持addAll 方法？莫名奇妙*/
+			outopenend.clear();
+			for(int i=0;vos!= null &&i<vos.length;i++){
+				outopenend.add(vos[i]);
+			}
+//			outopenend.addAll(Arrays.asList(vos));
+			/*add by ouyangzhb 2012-12-12  end */
 		}
 
 		// 3.处理跨公司直运销售订单行出库关闭/打开，联带调拨订单行出库关闭/打开 v5.5
