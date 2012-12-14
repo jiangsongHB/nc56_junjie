@@ -3176,7 +3176,12 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 			// 2010-10-11 MeiChao 当前单据类型为"采购入库单"时, 将卡片及列表中的费用页签中的信息清空
 			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
 					.setBodyDataVO(null);
+		}else{
+		//add by ouyangzhb 2012-12-15 如果查询到的数据为空，则清空界面数据
+			getBillListPanel().getBodyBillModel("jj_scm_informationcost")
+			.setBodyDataVO(null);
 		}
+		
 		// add by QuSida 2010-9-11 (佛山骏杰) --- end
 
 		timer.showExecuteTime("@@方法selectListBill时间");

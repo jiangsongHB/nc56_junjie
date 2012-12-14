@@ -5,11 +5,16 @@ package nc.bs.ic.ic211;
  * code generator for NC product.                              *
 \***************************************************************/
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
+import nc.bs.dao.BaseDAO;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.ic.ic621.MemosetupDMO;
 import nc.bs.ic.pub.GenMethod;
@@ -20,15 +25,28 @@ import nc.bs.ic.pub.check.CheckDMO;
 import nc.bs.ic.pub.vmi.ICSmartToolsDmo;
 import nc.bs.scm.pub.bill.SQLUtil;
 import nc.bs.scm.pub.smart.SmartDMO;
+import nc.itf.arap.pub.IArapBillPublic;
+import nc.itf.ia.bill.IBill;
 import nc.itf.ic.service.IIC211GeneralH;
 import nc.itf.scm.so.so012.IReturnRedSquare;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pf.IPFConfig;
 import nc.jdbc.framework.processor.BeanListProcessor;
+import nc.jdbc.framework.processor.ColumnProcessor;
+import nc.ui.pub.ClientEnvironment;
+import nc.ui.pub.beans.MessageDialog;
+import nc.vo.ep.dj.DJZBHeaderVO;
+import nc.vo.ep.dj.DJZBItemVO;
+import nc.vo.ep.dj.DJZBVO;
+import nc.vo.ia.bill.BillHeaderVO;
+import nc.vo.ia.bill.BillItemVO;
+import nc.vo.ia.bill.BillVO;
 import nc.vo.ic.ic621.MemosetupVO;
 import nc.vo.ic.ic700.ICDataSet;
+import nc.vo.ic.jjvo.InformationCostVO;
 import nc.vo.ic.pub.BillTypeConst;
 import nc.vo.ic.pub.ICGenVO;
+import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
 import nc.vo.ic.pub.bill.GeneralBillVO;
 import nc.vo.ic.pub.bill.QryConditionVO;
@@ -36,6 +54,9 @@ import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.ProductCode;
 import nc.vo.pub.VOStatus;
+import nc.vo.pub.lang.UFBoolean;
+import nc.vo.pub.lang.UFDate;
+import nc.vo.pub.lang.UFDateTime;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.constant.ScmConst;
 import nc.vo.scm.pub.SCMEnv;
@@ -1703,5 +1724,334 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 	}
 	
   }
+  
+  /**
+   *add by ouyangzhb 2012-12-14 其他入库单签字推出费用暂估应付以及调整单
+   * @param billVOs
+   * @param currdate
+   * @throws BusinessException
+   */
+  public void push4AToAPAndIA(nc.vo.ic.pub.bill.GeneralBillVO[] billVOs,
+			ClientLink cl) throws BusinessException {
+
+		BaseDAO dao = new BaseDAO();
+
+		if (billVOs == null || billVOs.length == 0) {
+			return;
+		}
+		for (int z = 0; z < billVOs.length; z++) {
+
+			/** 1、获取单据对应的费用信息 */
+			String cbillid = billVOs[z].getParentVO().getPrimaryKey();
+			String costsql = "select * from jj_scm_informationcost t where t.cbillid='"
+					+ cbillid + "' and nvl(t.dr,0)=0";
+			ArrayList costvos = (ArrayList) dao.executeQuery(costsql,
+					new BeanListProcessor(InformationCostVO.class));
+			if (costvos == null || costvos.size() == 0)
+				return;
+			InformationCostVO[] expenseVOs = new InformationCostVO[costvos
+					.size()];
+			costvos.toArray(expenseVOs);
+			/** 2、 开始处理费用信息.过滤费用信息,按客商分类. */
+			Map<String, List<InformationCostVO>> expenseAsCustomerMap = new HashMap();
+			List expenseListTemp = Arrays.asList(expenseVOs);// 将费用数组转化成List
+			List<InformationCostVO> allExpenseList = new ArrayList<InformationCostVO>(
+					expenseListTemp);// 新建(复制)一个List,用以后续处理.
+			while (allExpenseList.size() > 0) {// 只要AllExpenseList中还有值.那么便继续循环
+				String customerTemp = allExpenseList.get(0).getCcostunitid();// 初始化起始客商id(客商管理id),默认选择第一个客商.
+				List<InformationCostVO> oneExpenseList = new ArrayList();// 初始化费用List,按客商分类的费用信息均存在此列表中.
+				for (int i = 0; i < allExpenseList.size();) {
+					if (customerTemp.equals(allExpenseList.get(i)
+							.getCcostunitid())) {// 一旦当前循环中的客商管理id与初始化的客商管理id相等
+						oneExpenseList.add(allExpenseList.get(i));// 将该费用信息加入到List中
+						allExpenseList.remove(i);// 将该费用信息从源List中移除
+						i = 0;// 循环指针i归零(重新循环,也可以不写这一句,直接校验List中的下一对象,但不保险.)
+					} else {
+						i++;// 否则,循环指针i累加.
+					}
+				}
+				expenseAsCustomerMap.put(customerTemp, oneExpenseList);// 循环结束后,将按客商分类好的费用信息存入Map中.
+			}
+			/**
+			 *3、 开始组织暂估应付单VO
+			 */
+			// 暂估应付单列表
+			List<DJZBVO> estimationTempVOs = new ArrayList();
+			// 费用keySet,key=客商管理pk
+			Object[] pk_cumandocArray = expenseAsCustomerMap.keySet().toArray();
+			// 其他入库单VO
+			// 支持平台，clone一个，以便于以后的处理，同时防止修改了m_voBill
+			GeneralBillVO voAudit = billVOs[z];
+			GeneralBillHeaderVO generalHead = voAudit.getHeaderVO();// 其他入库单表头
+			GeneralBillItemVO[] generalBody = voAudit.getItemVOs();// 其他入库单表体
+			for (int i = 0; i < pk_cumandocArray.length; i++) {
+				DJZBVO oneAPVO = new DJZBVO();// 实例化一个应付单VO
+				DJZBHeaderVO head = new DJZBHeaderVO();// 实例化一个暂估应付单表头VO.
+				// 某客商下所有费用List
+				List<InformationCostVO> oneCustomerExpense = expenseAsCustomerMap
+						.get(pk_cumandocArray[i].toString());
+				Double oneExpenseSummny = new Double(0.0);// 某暂估应付单的整单应付金额
+				DJZBItemVO[] bodyVOs = new DJZBItemVO[oneCustomerExpense.size()];// 初始化表体VO数组
+				for (int j = 0; j < oneCustomerExpense.size(); j++) {// 遍历某客商下的费用列表
+					InformationCostVO oneExpense = oneCustomerExpense.get(j);// 获取某客商下的一个费用VO
+					DJZBItemVO body = new DJZBItemVO();// 实例化一个暂估应付单表体VO
+					body.setBbhl(new UFDouble(1.0));// 本币汇率
+					body.setBbye(new UFDouble(oneExpense.getNoriginalcurmny()));// 本币余额--无税金额
+					// body.setBilldate(new UFDate());//日期
+					body.setBilldate(cl.getLogonDate());// add by ouyangzhb
+														// 2012-10-18
+														// 应该取系统登录时间，而不是服务器时间
+					body.setBzbm(oneExpense.getCurrtypeid());// 币种编码--币种
+					// body.setcheckflag 对账标记
+					String sql = "select pk_invbasdoc from bd_invbasdoc where invcode='"
+							+ oneExpense.getCostcode();
+					sql += "' and invname='" + oneExpense.getCostname() + "'";
+					Object invbasid = dao.executeQuery(sql,
+							new ColumnProcessor());
+					body.setCinventoryid(invbasid == null ? null : invbasid
+							.toString());// 存货基本档案ID--费用存货基本档案id
+					body.setCksqsh(oneExpense.getPk_informantioncost());// 源头单据行id--费用信息表id
+					body.setDdhh(oneExpense.getPk_informantioncost());// 上层来源单据行id--费用信息表id
+					body.setDdlx(generalHead.getPrimaryKey());// 上层来源单据id--其他入库单ID
+					body.setDeptid(generalHead.getCdptid());// 部门pk-其他入库单中的部门PK
+					body
+							.setDfbbje(new UFDouble(oneExpense
+									.getNoriginalcurmny()));// 贷方本币金额--无税金额
+					body.setDfbbsj(new UFDouble(new Double(0.0)));// 贷方本币税金--0
+					body.setDfbbwsje(new UFDouble(oneExpense
+							.getNoriginalcurmny()));// 贷方本币无税金额--无税金额
+					body.setDfshl(new UFDouble(oneExpense.getNnumber()));// 贷方数量--数量
+					body
+							.setDfybje(new UFDouble(oneExpense
+									.getNoriginalcurmny()));// 贷方原币金额--无税金额
+					body.setDfybsj(new UFDouble(new Double(0.0)));// 贷方原币税金--0
+					body.setDfybwsje(new UFDouble(oneExpense
+							.getNoriginalcurmny()));// 贷方原币无税金额--无税金额
+					body.setDj(new UFDouble(oneExpense.getNoriginalcurprice()));// 单价--单价
+					body.setDjdl("yf");// 单据大类--yf
+					body.setDjlxbm("D1");// 单据类型编码--D1
+					body.setDr(0);
+					body.setDwbm(cl.getCorp());// 公司pk--当前登陆公司id
+					body.setFbye(new UFDouble(new Double(0.0)));// 辅币余额--0
+					body.setFlbh(j);// 分录编号--既行号
+					body.setFx(-1);// 方向
+					// 根据费用信息中的客商管理档案PK,查询对应的客商基本档案PK
+					String queryCustomerBasSQL = "select t.pk_cubasdoc from bd_cumandoc t where t.pk_cumandoc='"
+							+ oneExpense.getCcostunitid() + "'";
+					Object cubasid = dao.executeQuery(queryCustomerBasSQL,
+							new ColumnProcessor());
+					body.setHbbm(cubasid == null ? null : cubasid.toString());// 伙伴编码--客商管理id
+					body
+							.setHsdj(new UFDouble(oneExpense
+									.getNoriginalcurprice()));// 含税单价--单价
+					body.setIsSFKXYChanged(new UFBoolean(false));// 收付款协议是否发生变化--N
+					body.setIsverifyfinished(new UFBoolean(false));// 是否核销完成--N
+					body.setJsfsbm("4A");// 上层来源单据类型--4A 其他入库单
+					body.setKslb(1);// 扣税类别--1
+					body.setOld_flag(new UFBoolean(false));
+					body.setOld_sys_flag(new UFBoolean(false));
+					body.setPausetransact(new UFBoolean(false));// 挂起标志--N
+					body.setPh("4A");// 源头单据类型--4A
+					body.setpjdirection("none");// 票据方向--none
+					// body.setQxrq(new UFDate());//起效日期--当前日期
+					body.setQxrq(cl.getLogonDate());
+					body.setSfbz("3");// 收付标志--"3"
+					body.setShlye(new UFDouble(oneExpense.getNnumber()));// 数量余额--数量
+					body.setSl(new UFDouble(new Double(0.0)));// 税率--0
+					body.setVerifyfinisheddate(new UFDate("3000-01-01"));// 核销完成日期--默认3000-01-01
+					body.setWldx(1);// 往来对象标志--1
+					body.setXgbh(-1);// 并帐标志 --- -1
+					body.setXyzh(generalHead.getPrimaryKey());// 源头单据id--其他入库单id
+					body.setYbye(new UFDouble(oneExpense.getNoriginalcurmny()));// 原币余额--无税金额
+					body.setYwbm("0001AA10000000006MFZ");// 单据类型PK--固定0001AA10000000006MFZ
+					body.setYwybm(generalHead.getCbizid());// 业务员PK--其他入库单业务员id
+					/*** 特殊标志: 自定义项18 19 */
+					body.setZyx18("tureFree");// 2010-11-07 "费用暂估应付"标志,启用于:
+												// 暂估处理,See:EstimateImpl 约9181行
+												// 用于生成采购发票时的处理
+					body.setZyx19(body.getHbbm());// 2010-11-07 "客商管理ID" 启用于:
+													// 暂估处理 ,See:EstimateImpl
+													// 约9423行 用于生成采购发票时的处理
+					oneExpenseSummny += body.getDfbbje().toDouble();// 累加贷方本币金额
+					bodyVOs[j] = body;
+				}
+				head.setBbje(new UFDouble(oneExpenseSummny));// 本币金额--表体累加金额
+				head.setDjdl("yf");// 单据大类--yf
+				head.setDjkjnd(cl.getAccountYear());// 会计年度--当前系统的会计年度
+				head.setDjkjqj(cl.getAccountMonth());// 会计期间--当前系统会计期间
+				head.setDjlxbm("D1");// 单据类型编码--D1
+				head.setDjrq(cl.getLogonDate());
+				head.setDjzt(2);// 单据状态--1 表示已保存 2表示已生效
+				head.setDr(0);
+				head.setDwbm(cl.getCorp());// 单位编码--公司ID
+				// head.setEffectdate(new UFDate());//起效日期--当前系统日期
+				head.setEffectdate(cl.getLogonDate());
+
+				head.setHzbz("-1");// 坏账标志-- -1 表示不是坏账
+				head.setIsjszxzf(new UFBoolean(false));// 是否结算中心支付--否
+				head.setIsnetready(new UFBoolean(false));// 是否已经补录--否
+				// head.setIspaid(new UFBoolean(false));//是否付款
+				head.setIsreded(new UFBoolean(false));// 是否红冲
+				head.setIsselectedpay(1);// 选择付款--1
+				head.setLrr(cl.getUser());// 录入人--当前登陆用户id
+				head.setLybz(4);// 来源标志--4 表示系统生成, 1 表示自制
+				head.setPrepay(new UFBoolean(false));// 预收款标志--N
+				head.setPzglh(1);// 系统标志--1
+				head.setQcbz(new UFBoolean(false));// 期初标志--N
+				head.setSpzt("1");// 为空,表示未审批
+				head.setShr(cl.getUser());// 审核人,当前登陆用户
+				head.setDjkjnd(cl.getAccountYear());
+				head.setDjkjqj(cl.getAccountMonth());
+				head.setShkjnd(cl.getAccountYear());// 审核会计年度
+				head.setShkjqj(cl.getAccountMonth());// 审核会计期间
+				head.setShrq(cl.getLogonDate());// 审核日期
+				head.setSxbz(10);// 生效标志--0表示未生效 10 表示已生效
+				head.setSxkjnd(cl.getAccountYear());// 生效会计年度
+				head.setSxkjqj(cl.getAccountMonth());// 生效会计期间
+				head.setSxr(cl.getUser());// 生效人
+				head.setSxrq(cl.getLogonDate());// 生效日期
+				String queryBusitype = "select t.pk_busitype from bd_busitype t where t.busicode='arap' and t.businame='收付通用流程'";
+				Object busitype = null;
+				if (generalHead.getCbiztypeid() == null) {
+					// 如果当前其他入库单的销售类型字段为空,那么开始查询通用收付流程的业务类型编码.
+					busitype = dao.executeQuery(queryBusitype,
+							new ColumnProcessor());
+
+				}
+				head.setXslxbm(generalHead.getCbiztypeid() == null ? busitype == null ? "00011110000000002RGT"
+								: busitype.toString()
+								: generalHead.getCbiztypeid());// 销售类型编码--其他入库单的业务类型(业务流程)编码
+				head.setYbje(new UFDouble(oneExpenseSummny));// 本币金额--表体累加金额
+				head.setYwbm("0001AA10000000006MFZ");// 单据类型--默认0001AA10000000006MFZ
+				head.setZgyf(1);// 暂估应付标志--1表示暂估应付 0表示非暂估应付
+				head.setZzzt(0);// 支付状态--0
+				head.setZyx20("Y");// 2010-11-07 MeiChao
+									// 由于后续费用处理需要,加入此值,尚不明了其意义.
+
+				oneAPVO.setParentVO(head);// 加入表头
+				oneAPVO.setChildrenVO(bodyVOs);// 加入表体
+				estimationTempVOs.add(oneAPVO);// 将VO加入数组中.
+			}
+			// 获取应收应付的对外操作接口
+			IArapBillPublic iARAP = (IArapBillPublic) NCLocator.getInstance()
+					.lookup(IArapBillPublic.class.getName());
+			DJZBVO[] apVOs = new DJZBVO[estimationTempVOs.size()];
+			iARAP.saveArapBills(estimationTempVOs.toArray(apVOs));
+
+			/** 4、 开始组织存货核算的库存调整单VO */
+			// 初始化库存调整单VO
+			BillVO changeBillVO = new BillVO();
+			BillHeaderVO changeBillHead = new BillHeaderVO();
+			BillItemVO[] changeBillBody = new BillItemVO[generalBody.length];
+			// 初始化存货核算IA接口
+			IBill iBill = (IBill) NCLocator.getInstance().lookup(
+					IBill.class.getName());
+
+			// 调整总金额
+			Double iaAdjustAmount = 0.0;
+			for (int i = 0; i < estimationTempVOs.size(); i++) {// 计算调整总金额
+				iaAdjustAmount += ((DJZBHeaderVO) estimationTempVOs.get(i)
+						.getParentVO()).getBbje() == null ? 0.0
+						: ((DJZBHeaderVO) estimationTempVOs.get(i)
+								.getParentVO()).getBbje().toDouble();
+			}
+			// 存货总数量
+			Double invSUM = 0.0;
+			for (int i = 0; i < generalBody.length; i++) {// 计算存货总金额
+				invSUM += generalBody[i].getNinnum() == null ? 0.0
+						: generalBody[i].getNinnum().toDouble();
+			}
+
+			// 调整单表头
+			changeBillHead.setBauditedflag(new UFBoolean(false));
+			changeBillHead.setBdisableflag(new UFBoolean(false));
+			changeBillHead.setBestimateflag(new UFBoolean(false));
+			changeBillHead.setBoutestimate(new UFBoolean(false));
+			changeBillHead.setBwithdrawalflag(new UFBoolean(false));
+			changeBillHead.setCbilltypecode("I9");// 单据类型
+			changeBillHead.setClastoperatorid(cl.getUser());// 最后修改人
+			changeBillHead.setCoperatorid(cl.getUser());// 操作员
+			changeBillHead.setCrdcenterid(generalHead.getPk_calbody());// 库存组织
+			changeBillHead.setCsourcemodulename("IC");// 来源模块
+			// changeBillHead.setDbilldate(new UFDate());
+			changeBillHead.setDbilldate(cl.getLogonDate());
+			changeBillHead.setDr(0);
+			changeBillHead.setFdispatchflag(0);
+			changeBillHead.setIdebtflag(-1);
+			changeBillHead.setPk_corp(cl.getCorp());
+			changeBillHead.setTlastmaketime(new UFDateTime(new Date())
+					.toString());
+			changeBillHead.setTmaketime(new UFDateTime(new Date()).toString());
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+			changeBillHead.setVbillcode("I9" + sdf.format(new Date()));
+			// 调整单表体
+			for (int i = 0; i < changeBillBody.length; i++) {
+				changeBillBody[i] = new BillItemVO();
+				changeBillBody[i].setBadjustedItemflag(new UFBoolean(false));
+				changeBillBody[i].setBauditbatchflag(new UFBoolean(false));
+				changeBillBody[i].setBlargessflag(new UFBoolean(false));
+				changeBillBody[i].setBretractflag(new UFBoolean(false));
+				changeBillBody[i].setBrtvouchflag(new UFBoolean(false));
+				changeBillBody[i].setBtransferincometax(new UFBoolean(false));
+				changeBillBody[i].setCadjustbillid(null);// 调整对象单据id
+				changeBillBody[i].setCadjustbillitemid(null);// 调整对象单据体id
+				changeBillBody[i].setCbilltypecode("I9");
+				changeBillBody[i].setCfirstbillid(null);// 源头单据id
+				changeBillBody[i].setCfirstbillitemid(null);// 源头单据体id
+				changeBillBody[i].setCfirstbilltypecode("4A");// 源头单据类型"其他入库单"
+				changeBillBody[i].setCicbillcode(generalHead.getVbillcode());// 上层来源单据编号,其他入库单编号
+				changeBillBody[i].setCicbillid(generalHead.getCgeneralhid());// 上层来源单据id,其他入库单id
+				changeBillBody[i].setCicbilltype("4A");// 上层来源单据类型 25
+				changeBillBody[i].setCicitemid(generalBody[i].getCgeneralbid());// 上层来源单据体id--其他入库单表体id
+				changeBillBody[i].setCvendorbasid(generalBody[i]
+						.getPk_cubasdoc());// 供应商基本档案id,取库存表体对应字段
+				changeBillBody[i].setCvendorid(generalBody[i].getCvendorid());// 供应商管理档案id,取库存表体对应字段
+				changeBillBody[i].setCinvbasid(generalBody[i].getCinvbasid());// 存货基本档案id,取库存表体对应字段
+				changeBillBody[i].setCinventoryid(generalBody[i]
+						.getCinventoryid());// 存货管理档案id,取库存表体对应字段
+				// changeBillBody[i].setDbizdate(new UFDate());
+				changeBillBody[i].setDbizdate(cl.getLogonDate());// add by ouyangzhb 2012-10-18 应该取系统登录时间，而不是服务器时间
+				changeBillBody[i].setDr(0);
+				changeBillBody[i].setFcalcbizflag(0);
+				changeBillBody[i].setFdatagetmodelflag(1);
+				changeBillBody[i].setFolddatagetmodelflag(1);
+				changeBillBody[i].setFoutadjustableflag(new UFBoolean(false));
+				changeBillBody[i].setFpricemodeflag(3);
+				changeBillBody[i].setIauditsequence(-1);
+				changeBillBody[i].setIrownumber(i);// 行号
+				changeBillBody[i].setNadjustnum(new UFDouble(generalBody[i]
+						.getNinnum()));
+				// 计算调整金额
+				java.text.NumberFormat formater = java.text.DecimalFormat
+						.getInstance();
+				formater.setMaximumFractionDigits(2);
+				formater.setMinimumFractionDigits(2);
+				Double changemoney = iaAdjustAmount
+						* (generalBody[i].getNinnum().doubleValue()) / invSUM;
+				// 调整金额计算完毕
+				changeBillBody[i].setNmoney(new UFDouble(formater
+						.format(changemoney)));// 将调整金额四舍五入成2位小数,并赋值.
+				changeBillBody[i]
+						.setNsimulatemny(changeBillBody[i].getNmoney());
+				changeBillBody[i].setPk_corp(cl.getCorp());
+				changeBillBody[i].setVbillcode(changeBillHead.getVbillcode());
+
+				/** add by ouyangzhb 2012-03-23 新添来源信息 */
+				changeBillBody[i]
+						.setCsourcebillid(generalHead.getCgeneralhid());
+				changeBillBody[i].setCsourcebillitemid(generalBody[i]
+						.getCgeneralbid());
+				changeBillBody[i].setCsourcebilltypecode(generalHead
+						.getCbilltypecode());
+				/** add end */
+			}
+			changeBillVO.setParentVO(changeBillHead);
+			changeBillVO.setChildrenVO(changeBillBody);
+
+			iBill.insertBill(changeBillVO, cl);
+
+		}
+	}
+  
 	
 }

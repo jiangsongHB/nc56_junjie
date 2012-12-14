@@ -420,6 +420,7 @@ junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/bill/GeneralBillImpl.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/pa/JJBusinessPluginOne.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/pub/pa/JJBusinessPluginOne.java -text
+junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4A_SIGN.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4C_CANCELSIGN.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4C_ORDERINVOICE.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4R_CANCELADJUST.class -text
