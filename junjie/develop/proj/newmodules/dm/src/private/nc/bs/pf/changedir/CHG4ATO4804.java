@@ -166,7 +166,7 @@ public class CHG4ATO4804  extends VOConversion{
 	  public String[] getFormulas() {
 	    return new String[] {
 	      "B_csourcebilltypecode->\"4A\"",
-	      "B_nnumber->B_noutnum-B_ntotaltrannum",
+//	      "B_nnumber->B_noutnum-B_ntotaltrannum",//add by ouyangzhb 2012-12-14 数量应该为入库数量
 	      "H_isestimate->\"Y\"",//采购订单将是否已暂估设置为Y
 	    };
 	  }
