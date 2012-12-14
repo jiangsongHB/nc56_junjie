@@ -2228,20 +2228,21 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				nc.ui.ic.pub.tools.GenMethod.setRowColorWhenException(getClientUI().getBillCardPanel(),ee);
 			}
 		}
-	 //2010-11-03 MeiChao begin 当其他入库单审核(签字)时,进行费用的传暂估应付及库存调整操作
-		/**
-		 * 在签字的最后执行对其他入库单的费用信息作传暂估应付处理.以及进行存货核算的库存调整单的组织.
-		 */
-		if(this.getBillType().equals("4A")){//如果是其他入库单
-			if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&
-					this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName())!=null
-			         ){//是否有表体费用数据
-				if(!this.icToAPAndIA()){//如果生成暂估应付及库存调整出错.
-					Logger.debug("其他入库单签字时,处理费用的传暂估及库存调整出错!");
-				}
-			}
-	  }
-	 //2010-11-03 MeiChao begin 当其他入库单审核(签字)时,进行费用的传暂估应付及库存调整操作
+		//add by ouyangzhb 2012-12-14 把这个动作移到后台
+//	 //2010-11-03 MeiChao begin 当其他入库单审核(签字)时,进行费用的传暂估应付及库存调整操作
+//		/**
+//		 * 在签字的最后执行对其他入库单的费用信息作传暂估应付处理.以及进行存货核算的库存调整单的组织.
+//		 */
+//		if(this.getBillType().equals("4A")){//如果是其他入库单
+//			if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&
+//					this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName())!=null
+//			         ){//是否有表体费用数据
+//				if(!this.icToAPAndIA()){//如果生成暂估应付及库存调整出错.
+//					Logger.debug("其他入库单签字时,处理费用的传暂估及库存调整出错!");
+//				}
+//			}
+//	  }
+//	 //2010-11-03 MeiChao begin 当其他入库单审核(签字)时,进行费用的传暂估应付及库存调整操作
 	}
   
 

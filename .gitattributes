@@ -241,6 +241,7 @@ junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/ic211/GeneralHDMO.java -t
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/ic261/SpecialHDMO.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/md/MDToolsImpl.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/ic/pub/bill/GeneralBillImpl.java -text
+junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4A_SIGN.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4C_CANCELSIGN.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4C_ORDERINVOICE.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4R_CANCELADJUST.java -text
