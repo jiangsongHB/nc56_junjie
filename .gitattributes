@@ -175,6 +175,9 @@ junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/boundary/ic/IC4ATo4804UI.j
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/ButtonStatusCalculator.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/ClientHelper.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/event/button/ActionEventHandle.java -text
+junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/event/edit/CardAfterEditor.java -text
+junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/event/edit/CardBeforeEditor.java -text
+junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/event/edit/CardEditEventHandle.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/ref/DelivRefBill.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/ic/pub/pf/IC4ATo4804UI.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/ic/pub/pf/ICBillRefListPanel.java -text

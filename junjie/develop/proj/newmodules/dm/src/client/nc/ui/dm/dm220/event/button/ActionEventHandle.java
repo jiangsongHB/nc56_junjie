@@ -246,7 +246,8 @@ public class ActionEventHandle {
 			if(delivbillitemvo!=null && delivbillitemvo.length>0){
              for(int j=0;j<delivbillitemvo.length;j++){
             	 DelivBillItemVO delivbillitem= delivbillitemvo[j];
-            	 nmoneytotal=nmoneytotal.add(delivbillitem.getNmoney()); 
+//            	 nmoneytotal=nmoneytotal.add(delivbillitem.getNmoney());
+            	 nmoneytotal=nmoneytotal.add(delivbillitem.getNmoney()==null?UFDouble.ZERO_DBL:delivbillitem.getNmoney()); //add by ouyangzhb 2012-12-24 需要做空值处理
              }
 			}
 			IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);//实例化客户端查询接口
@@ -1436,6 +1437,13 @@ public class ActionEventHandle {
       SwitchEvent switchEvent = new SwitchEvent(this.node, NodeStatus.List);
       this.node.fireSwitchEvent(switchEvent);
     }
+    /**add by ouyangzhb 2012-12-24 保存后，新增的两个字段会被清空，需要重新加载*/
+    int row= helper.getRowCount();
+    	for(int i=0;i<row;i++){
+    		helper.execBodyFormulas(i, new String[]{"tmpnnumber->nnumber","tmpnassistnum->nassistnum"});
+    	}
+    	 /**add by ouyangzhb 2012-12-24 保存后，新增的两个字段会被清空，需要重新加载*/
+    		
     // 清除掉收发货信息的拷贝内容
     this.handle.getCopyPasteOperator().reset();
   }
