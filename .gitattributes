@@ -405,6 +405,9 @@ junjie/patches/modules/dm/client/classes/nc/ui/dm/dm220/ButtonStatusCalculator.c
 junjie/patches/modules/dm/client/classes/nc/ui/dm/dm220/ClientHelper.class -text
 junjie/patches/modules/dm/client/classes/nc/ui/dm/dm220/event/button/ActionEventHandle$1.class -text
 junjie/patches/modules/dm/client/classes/nc/ui/dm/dm220/event/button/ActionEventHandle.class -text
+junjie/patches/modules/dm/client/classes/nc/ui/dm/dm220/event/edit/CardAfterEditor.class -text
+junjie/patches/modules/dm/client/classes/nc/ui/dm/dm220/event/edit/CardBeforeEditor.class -text
+junjie/patches/modules/dm/client/classes/nc/ui/dm/dm220/event/edit/CardEditEventHandle.class -text
 junjie/patches/modules/dm/client/classes/nc/ui/dm/dm220/ref/DelivRefBill.class -text
 junjie/patches/modules/dm/client/classes/nc/ui/ic/pub/pf/IC4ATo4804UI.class -text
 junjie/patches/modules/dm/client/classes/nc/ui/ic/pub/pf/ICBillRefListPanel.class -text
