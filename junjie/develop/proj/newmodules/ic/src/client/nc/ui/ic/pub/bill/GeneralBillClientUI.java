@@ -1964,13 +1964,13 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					/**add by ouyangzhb 2012-12-13 修改了数量，需要重新调整货位信息*/
 					MdProcessBean bean = new MdProcessBean();
 					LocatorVO voLoc[] = bean.builderHwVos(
-							(GeneralBillItemVO) billvo.getChildrenVO()[i],
+							(GeneralBillItemVO) billvo.getChildrenVO()[selrows[i]],
 							getBillType(), false);
 					if (voLoc != null && voLoc.length > 0)
-						getM_alLocatorData().set(i, voLoc);
+						getM_alLocatorData().set(selrows[i], voLoc);
 
-					if (getBillCardPanel().getBillModel().getRowState(i) == BillModel.NORMAL)
-						getBillCardPanel().getBillModel().setRowState(i,
+					if (getBillCardPanel().getBillModel().getRowState(selrows[i]) == BillModel.NORMAL)
+						getBillCardPanel().getBillModel().setRowState(selrows[i],
 								BillModel.MODIFICATION);
 					
 					/**add by ouyangzhb 2012-12-13 修改了数量，需要重新调整货位信息*/
