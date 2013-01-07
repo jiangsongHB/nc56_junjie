@@ -1,5 +1,6 @@
 package nc.itf.ic.md;
 
+import nc.ui.ic.mdck.ChInfoVO;
 import nc.vo.ic.jjvo.InvDetailCVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.xcl.MdxclVO;
@@ -29,5 +30,14 @@ public interface IMDTools {
 	 * @param csalebid 销售订单表体id  newNumber 要回写至销售订单执行情况表的新入库数量的累加差额  
 	 */
 	public boolean updateNewOutToSo(String csalebid,UFDouble newNumber) throws BusinessException;
+	
+	/**
+	 * add by ouyangzhb 2013-01-07 码单更新现存量时做并发控制
+	 * @param vos
+	 * @param lsckVos
+	 * @return
+	 * @throws BusinessException
+	 */
+	public boolean updateXcl(MdcrkVO[] vos,MdcrkVO[] lsckVos) throws BusinessException ;
 	
 }
