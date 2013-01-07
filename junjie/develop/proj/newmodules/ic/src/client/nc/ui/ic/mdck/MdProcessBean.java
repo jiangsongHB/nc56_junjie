@@ -136,6 +136,51 @@ public class MdProcessBean {
 	}
 	
 	
+	/**
+	 * add by ouyangzhb 2013-01-07 
+	 * 在更新现存量时，需要把修改过的明细单做入库处理
+	 * @param vos
+	 * @throws BusinessException
+	 */
+	public void updateXclForDel(MdcrkVO[] vos) throws BusinessException {
+		IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
+				.getInstance().lookup(IVOPersistence.class.getName());
+		// 查询表体VOS
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		Map crkvoMap = new HashMap();
+		String pk_mdxclStr = " pk_mdxcl_b in (";
+		for (int i = 0; i < vos.length; i++) {
+			pk_mdxclStr += "'" + vos[i].getPk_mdxcl_b() + "',";
+			crkvoMap.put(vos[i].getPk_mdxcl_b(), vos[i]);
+		}
+		pk_mdxclStr = pk_mdxclStr.substring(0, pk_mdxclStr.length() - 1);
+		pk_mdxclStr = pk_mdxclStr + ") and dr=0";
+		Collection coll = iUAPQueryBS.retrieveByClause(MdxclBVO.class,
+				pk_mdxclStr);
+		MdxclBVO[] xclbvos = new MdxclBVO[coll.size()];
+		coll.toArray(xclbvos);
+		for (int j = 0; j < xclbvos.length; j++) {
+			MdcrkVO crkvo = (MdcrkVO) crkvoMap.get(xclbvos[j].getPk_mdxcl_b());
+			// 出库后的支数
+			xclbvos[j].setZhishu(xclbvos[j].getZhishu().add(crkvo.getSrkzs(),
+					MDConstants.ZS_XSW));
+			if (crkvo.getSrkzl() == null || crkvo.getSrkzl().doubleValue() == 0){
+				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().add(
+						new UFDouble(0), MDConstants.ZL_XSW));
+				xclbvos[j].setDef1(xclbvos[j].getDef1().add(
+						new UFDouble(0), MDConstants.ZL_XSW));//2010-12-29 MeiChao 将钢厂重量也更新
+			}else{
+				// 重量
+				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().add(
+						crkvo.getSrkzl(), MDConstants.ZL_XSW));
+				xclbvos[j].setDef1(xclbvos[j].getDef1().add(
+						crkvo.getDef1(), MDConstants.ZL_XSW));//2010-12-29 MeiChao 将钢厂重量也更新
+			}
+		}
+		iVOPersistence.updateVOArray(xclbvos);
+	}
+	
 	// 查询表体VOS
 	public MdcrkVO[] queryCrkVOS(ChInfoVO infoVO) throws BusinessException {
 		// 查询表体VOS

@@ -2,19 +2,27 @@ package nc.bs.ic.md;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import nc.bs.dao.BaseDAO;
 import nc.bs.dao.DAOException;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
+import nc.bs.uap.lock.PKLock;
 import nc.itf.ic.md.IMDTools;
 import nc.itf.uap.IUAPQueryBS;
+import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.SQLParameter;
 import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.ColumnListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ic.md.dialog.MDUtils;
+import nc.ui.ic.mdck.ChInfoVO;
+import nc.ui.ic.mdck.MDConstants;
 import nc.vo.ic.md.CargInfVO;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
@@ -22,11 +30,14 @@ import nc.vo.ic.xcl.MdxclBVO;
 import nc.vo.ic.xcl.MdxclVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.VOStatus;
+import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.ic.jjvo.InvDetailCVO;
 import nc.vo.logging.Debug;
 
 public class MDToolsImpl implements IMDTools {
+	
+	protected final String m_sLockHint = "正在进行相关操作，请稍后再试";
 
 	public void checkRef(String cgeneralbid) throws BusinessException {
 		String sql1 = " select b.pk_mdxcl_b from NC_MDCRK a inner join NC_MDCRK b on a.PK_MDXCL_B = b.PK_MDXCL_B where isnull(a.dr,0)=0 and isnull(b.dr,0)=0 and a.PK_MDCRK!=b.PK_MDCRK and b.CRKFX=1 and b.PK_MDXCL_B is not null and a.cgeneralbid = ? ";
@@ -337,6 +348,114 @@ public class MDToolsImpl implements IMDTools {
 		}
 	}
 	/**add by ouyangzhb 2012-04-26 在取消调整单时的码单处理 end */
+
+	
+	/**
+	 * add by ouyangzhb 2013-01-07 
+	 * 在做码单维护更新码单显存量的时候，需要对表进行PK锁定，防止并发导致数据不一致；
+	 */
+	
+	public boolean updateXcl(MdcrkVO[] vos, MdcrkVO[] lsckVos)
+			throws BusinessException {
+		BaseDAO basedao = new BaseDAO();
+		//回写标识，是否存在删除单据操作
+		boolean isdel = true;
+		
+		//获取现存量主键，用在业务加锁
+		Set set = new HashSet();
+		Collection coll = null;
+		//历史单据
+		if (lsckVos == null || lsckVos.length == 0)
+			isdel = false;
+
+		// 查询码单明细对应的现存量
+		Map crkvoMapdel = new HashMap();
+		String pk_mdxclStrDel = " pk_mdxcl_b in (";
+		for (int i = 0; i < lsckVos.length; i++) {
+			pk_mdxclStrDel += "'" + lsckVos[i].getPk_mdxcl_b() + "',";
+			crkvoMapdel.put(lsckVos[i].getPk_mdxcl_b(), lsckVos[i]);
+			set.add(lsckVos[i].getPk_mdxcl_b());
+		}
+		pk_mdxclStrDel = pk_mdxclStrDel.substring(0,
+				pk_mdxclStrDel.length() - 1);
+		pk_mdxclStrDel = pk_mdxclStrDel + ") and dr=0";
+		coll = basedao.retrieveByClause(MdxclBVO.class, pk_mdxclStrDel);
+		MdxclBVO[] xclbvosdel = new MdxclBVO[coll.size()];
+		coll.toArray(xclbvosdel);
+
+		// 查询修改后的码单明细对应的现存量
+		Map crkvoMap = new HashMap();
+		String pk_mdxclStr = " pk_mdxcl_b in (";
+		for (int i = 0; i < vos.length; i++) {
+			pk_mdxclStr += "'" + vos[i].getPk_mdxcl_b() + "',";
+			crkvoMap.put(vos[i].getPk_mdxcl_b(), vos[i]);
+			set.add(vos[i].getPk_mdxcl_b());
+
+		}
+		pk_mdxclStr = pk_mdxclStr.substring(0, pk_mdxclStr.length() - 1);
+		pk_mdxclStr = pk_mdxclStr + ") and dr=0";
+		coll = basedao.retrieveByClause(MdxclBVO.class, pk_mdxclStr);
+		MdxclBVO[] xclbvos = new MdxclBVO[coll.size()];
+		coll.toArray(xclbvos);
+
+		// 业务加锁
+		if (set != null && set.size() > 0) {
+			String[] alPK = new String[set.size()];
+			set.toArray(alPK);
+			PKLock lock = PKLock.getInstance();
+			for (int i = 0, loop = alPK.length; i < loop; i++) {
+				if (!lock.addDynamicLock(alPK[i]))
+					throw new BusinessException(m_sLockHint);
+			}
+		}
+
+		/** 1、删除历史出入库数据，并把原单做入库处理 **/
+		for (int j = 0; j < xclbvosdel.length; j++) {
+			MdcrkVO crkvo = (MdcrkVO) crkvoMapdel.get(xclbvosdel[j]
+					.getPk_mdxcl_b());
+			// 出库后的支数
+			xclbvosdel[j].setZhishu(xclbvosdel[j].getZhishu().add(
+					crkvo.getSrkzs(), 0));
+			// 重量
+			xclbvosdel[j].setZhongliang(xclbvosdel[j].getZhongliang().add(
+					crkvo.getSrkzl(), 3));
+			// 钢厂重量 add by ouyang---2011-02-24
+			// 在删除出库码单时,将钢厂重量也作重新入库处理.否则钢厂重量在出库维护完码单再清空码单后无法还原
+			xclbvosdel[j].setDef1(xclbvosdel[j].getDef1().add(crkvo.getDef1(),
+					3));
+
+		}
+
+		basedao.updateVOArray(xclbvosdel);
+		// 删除历史出库VO
+		basedao.deleteVOArray(lsckVos);
+		
+
+		/** 1、根据当前码单出明细，计算码单现存量 **/
+		for (int j = 0; j < xclbvos.length; j++) {
+			MdcrkVO crkvo = (MdcrkVO) crkvoMap.get(xclbvos[j].getPk_mdxcl_b());
+			// 出库后的支数
+			xclbvos[j].setZhishu(xclbvos[j].getZhishu()
+					.sub(crkvo.getSrkzs(), 0));
+			if (crkvo.getSrkzl() == null || crkvo.getSrkzl().doubleValue() == 0) {
+				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().sub(
+						new UFDouble(0), 3));
+				xclbvos[j]
+						.setDef1(xclbvos[j].getDef1().sub(new UFDouble(0), 3));// 2010-12-29
+			} else {
+				// 重量
+				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().sub(
+						crkvo.getSrkzl(), 3));
+				xclbvos[j]
+						.setDef1(xclbvos[j].getDef1().sub(crkvo.getDef1(), 3));// 2010-12-29
+			}
+		}
+		basedao.updateVOArray(xclbvos);
+
+		isdel = true;
+
+		return isdel;
+}
 	
 
 }

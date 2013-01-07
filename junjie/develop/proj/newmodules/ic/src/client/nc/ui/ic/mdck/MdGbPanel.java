@@ -218,17 +218,22 @@ public class MdGbPanel extends UIPanel implements ActionListener,
 					.getInstance().lookup(IVOPersistence.class.getName());
 			try {
 				MdProcessBean bean = new MdProcessBean();
+				
+				// 在更新之前，需要把为修改的行做入库处理
+				bean.updateXclForDel(crkvos);
+				MdcrkVO[] crkvosclone = crkvos.clone();
 				HashMap<String,UFDouble> map = new HashMap<String,UFDouble>();
 				for(int i=0;i<vos.length;i++){
 					map.put(vos[i].getPk_mdcrk(), vos[i].getSrkzl());
 					
 				}
-				for(int j=0;j<crkvos.length;j++){
-					crkvos[j].setSrkzl(map.get(crkvos[j].getPk_mdcrk()));
+				for(int j=0;j<crkvosclone.length;j++){
+					crkvosclone[j].setSrkzl(map.get(crkvos[j].getPk_mdcrk()));
 				}
-				// 构造并更新现存量主子表
-				bean.updateXcl(crkvos);
-				iVOPersistence.updateVOArray(crkvos);
+				
+				// 构造并更新现存量主子表：重新出库
+				bean.updateXcl(crkvosclone);
+				iVOPersistence.updateVOArray(crkvosclone);
 				Map<String,UFDouble> noutnummap = new HashMap<String,UFDouble>();//
 				Map<String,UFDouble> noutassnummap = new HashMap<String,UFDouble>();
 				for(int i=0;i<vos.length;i++){
