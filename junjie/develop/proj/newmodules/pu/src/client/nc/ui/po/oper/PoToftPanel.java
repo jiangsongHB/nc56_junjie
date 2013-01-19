@@ -201,6 +201,8 @@ public abstract class PoToftPanel extends nc.ui.pub.ToftPanel implements
 			setCurOperState(STATE_LIST_BROWSE);
 			setButtonsStateList();
 		}
+		//add by ouyangzhb 2013-01-19 存货明细页签显示合计行
+		getPoCardPanel().setTatolRowShow("invdetail", true);
 	}
 
 	/**
