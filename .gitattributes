@@ -334,6 +334,12 @@ junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceUI.java -
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SalePrintData.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/SaleOrderDMO.java -text
+junjie/develop/proj/newmodules/so5/.classpath -text
+junjie/develop/proj/newmodules/so5/.module_prj -text
+junjie/develop/proj/newmodules/so5/.project -text
+junjie/develop/proj/newmodules/so5/.settings/org.eclipse.jdt.core.prefs -text
+junjie/develop/proj/newmodules/so5/META-INF/module.xml -text
+junjie/develop/proj/newmodules/so5/src/private/nc/bs/so/so144/ApplyDMO.java -text
 junjie/develop/proj/newmodules/uap/.classpath -text
 junjie/develop/proj/newmodules/uap/.module_prj -text
 junjie/develop/proj/newmodules/uap/.project -text
