@@ -174,6 +174,8 @@ junjie/develop/proj/newmodules/dm/META-INF/module.xml -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/boundary/ic/IC4ATo4804UI.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/ButtonStatusCalculator.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/ClientHelper.java -text
+junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/ClientUI.java -text
+junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/DelivBillVirtualFiledLoader.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/event/button/ActionEventHandle.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/event/edit/CardAfterEditor.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/event/edit/CardBeforeEditor.java -text
