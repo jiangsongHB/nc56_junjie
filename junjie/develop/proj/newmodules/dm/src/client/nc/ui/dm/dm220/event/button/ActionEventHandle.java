@@ -29,6 +29,8 @@ import nc.ui.dm.dm220.print.SplitPrintDataSource;
 import nc.ui.dm.dm220.print.SplitPrintParametersHelper;
 import nc.ui.dm.dm220.print.SplitPrintTool;
 import nc.ui.dm.pub.ValidateFormulaExecuter;
+import nc.ui.pu.jj.JJPuScmPubHelper;
+import nc.ui.pub.ButtonObject;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIDialog;
@@ -58,6 +60,7 @@ import nc.ui.scm.print.SplitParams;
 import nc.ui.scm.print.SplitPrintParamDlg;
 import nc.ui.scm.pub.panel.SetColor;
 import nc.ui.scm.pub.report.OrientDialog;
+import nc.ui.scm.pub.sourceref.SourceRefDlg;
 import nc.ui.scm.sourcebill.SourceBillFlowDlg;
 import nc.vo.dm.model.delivbill.entity.DelivBillHeadVO;
 import nc.vo.dm.model.delivbill.entity.DelivBillItemVO;
@@ -72,6 +75,7 @@ import nc.vo.ep.dj.DJZBVO;
 import nc.vo.ia.bill.BillHeaderVO;
 import nc.vo.ia.bill.BillItemVO;
 import nc.vo.ia.bill.BillVO;
+import nc.vo.pu.jjvo.InformationCostVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.lang.UFBoolean;
@@ -80,6 +84,9 @@ import nc.vo.pub.lang.UFDateTime;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.pub.para.SysInitException;
 import nc.vo.querytemplate.TemplateInfo;
+import nc.vo.rc.receive.ArriveorderItemVO;
+import nc.vo.rc.receive.ArriveorderVO;
+import nc.vo.scm.constant.ScmConst;
 import nc.vo.scm.pattern.constant.pub.ValueConstant;
 import nc.vo.scm.pattern.context.IParameter;
 import nc.vo.scm.pattern.domain.scm.enumeration.FBillStatusFlag;
@@ -90,6 +97,7 @@ import nc.vo.scm.pattern.model.entity.vo.SmartVO;
 import nc.vo.scm.pattern.pub.SqlBuilder;
 import nc.vo.scm.print.PrintConst;
 import nc.vo.scm.print.ScmPrintlogVO;
+import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.ctrl.GenMsgCtrl;
 import nc.vo.scm.pub.session.ClientLink;
 
@@ -119,10 +127,22 @@ public class ActionEventHandle {
 
   public void doEvent(ActionEvent event) {
     String code = event.getButtonObject().getCode();
+    
+  
 
     if (code.equals("自制")) {
       this.onNew();
     }
+    
+    //chenjianhua 2013-01-17
+    else if(  code.equals("参照采购入库费用")){
+    	this.onRefFee(event.getButtonObject(),"45");
+    	
+    }else if( code.equals("参照其他入库费用")){
+    	//this.onRefA4Fee(event.getButtonObject());
+    	this.onRefFee(event.getButtonObject(),"4A");
+    }//end 2013-01-17
+    
     else if (code.equals("保存")) {
       this.onSave();
     }
@@ -214,7 +234,215 @@ public class ActionEventHandle {
       this.handle.doEvent(event);
     }
   }
-  /**
+  
+  //"参照费用")){//chenjianhua 2013-01-17
+  private void onRefFee(ButtonObject bo,String refbilltype) {			
+    bo.setTag(refbilltype+":");
+    String pk_corp=ClientEnvironment.getInstance().getCorporation().getPrimaryKey();
+    String pk_user=ClientEnvironment.getInstance().getUser().getPrimaryKey();
+    String pk_billtype=this.nodeContext.getCurrentTransactionType();
+	//SourceRefDlg.childButtonClicked(bo, pk_corp, "40080602", pk_corp, ScmConst.PO_Arrive, this);
+    String nodecode=null;
+    if(refbilltype.equals("45")){
+    	nodecode= "40080602";//采购入库
+	}else if(refbilltype.equals("4A")){
+		nodecode= "40080608";//其他入库
+	}
+	SourceRefDlg.childButtonClicked(bo, pk_corp, nodecode, pk_user,  pk_billtype, node.getAbstractUI());
+	//DelivBillVO[] retVOs=null;
+	DelivBillVO[] bills=null;
+	if (SourceRefDlg.isCloseOK()) {
+	    	// Object[] o1 = SourceRefDlg.getRetSrcVos();
+	    	 //Object o2 = SourceRefDlg.getRetSrcVo();
+	      //ArriveorderVO[] retVOs = (ArriveorderVO[]) SourceRefDlg.getRetsVos();
+	      
+		bills = (DelivBillVO[]) SourceRefDlg.getRetsVos();
+	  }   
+	
+//-------------------------------
+	
+	if(bills==null){
+		return ;
+	}
+	//查询的where条件
+    String  whereSql = null;
+    String cbillid=null;
+	for (int i = 0; i < bills.length; i++) {
+		//设置常量信息	
+		bills[i].getHead().setPk_corp(pk_corp);
+		bills[i].getHead().setCdelivtype("4804-A");
+		bills[i].getHead().setCdelivtypename("运输单");
+		//运输组织
+		bills[i].getHead().setCdelivorgid(this.nodeContext.getCdelivorgid());
+		bills[i].getHead().setCdelivorgname(this.nodeContext.getCdelivorgname());//
+					
+		cbillid =bills[i].getInvBodys()[0].getCsourcebillid();
+
+		whereSql = " cbillid= '" + cbillid + "' and nvl(dr,0)=0";
+			try {
+				// 第二个参数为null表示查询全部字段,将查询结果存储在内存中
+				InformationCostVO[] vos = (InformationCostVO[]) JJPuScmPubHelper
+						.querySmartVOs(InformationCostVO.class, null, whereSql);
+
+				// 合并费用信息到运输单
+				combInfo(bills[i], vos);
+
+			} catch (Exception e) {
+				SCMEnv.out(e);
+				return;
+			}
+     }
+	
+	//DelivBillVO[] bills = this.refUI.getBills();
+	
+	// 设置功能状态到"转单"
+	this.node.setFunctionStatus(FunctionStatus.TransferBill);
+	
+	NodeStatus nodeStatus = this.node.getNodeStatus();
+	// 如果转单为多张单据，并且当前单据界面为卡片，则需要切换到列表界面
+	if (bills.length > 1 && nodeStatus == NodeStatus.Card) {
+		SwitchEvent event = new SwitchEvent(this.node, NodeStatus.List);
+		this.node.fireSwitchEvent(event);
+	}
+	// 如果转单为一张单据，并且当前单据界面为列表，则需要切换到卡片界面
+	else if (bills.length == 1 && nodeStatus == NodeStatus.List) {
+		SwitchEvent event = new SwitchEvent(this.node, NodeStatus.Card);
+		this.node.fireSwitchEvent(event);
+	}
+
+	this.node
+			.getAbstractUI()
+			.showHintMessage(
+					NCLangResOnserver.getInstance().getStrByID("40142020",
+							"UPP40142020-000118")/*@res "当前转单操作共有" */
+							+ bills.length
+							+ NCLangResOnserver.getInstance().getStrByID(
+									"40142020", "UPP40142020-000119")/*@res "张单据"*/);
+	
+	// 清除转单的缓存，并把当前的待转单据加入到缓存中
+	IBillBuffer buffer = this.node.getTransferBillBuffer();
+	buffer.clear();
+	for (ISmartBill bill : bills) {
+		buffer.add(bill);
+	}
+	buffer.setCurrentRow(0);
+	
+	// 加载单据到界面
+	nodeStatus = this.node.getNodeStatus();
+	if (nodeStatus == NodeStatus.List) {
+		this.node.getListPanel().getList().getListHelper().showBills(
+				buffer, 0);
+	} else {
+		ISmartBill bill = bills[0];
+		CardCtrl  card = this.node.getCardPanel().getCard();
+		CardHelper helper = new CardHelper(card);
+		helper.addNewBill();
+		helper.show(bill);
+		//      this.node.getCardPanel().getCard().setStatus( CardStatus.New);
+		//      this.node.getCardPanel().getCard().getCardHelper().setEditable( true );
+		  String[] formulas = {
+				  "cinventorycode->getColValue(bd_invbasdoc,invcode,pk_invbasdoc,cinvbasid)", 
+				  "cinventoryname->getColValue(bd_invbasdoc,invname,pk_invbasdoc,cinvbasid)",
+				  "cmeasname->getColValue(bd_measdoc,measname,pk_measdoc,cmeasid)"
+				  };
+		  
+		  int len= ((DelivBillVO)bill).getInvBodys().length;//子表行数
+		  for (int i = 0; i < len; i++) {
+			  helper.execBodyFormulas(i, formulas);
+		      //card.getBillCard().execBodyFormula(i, strkey);
+		  }
+	      
+	}
+   
+  }
+  //end 2013-01-17
+  
+  
+   //合并费用信息到运输单  chenjianhua 2013-01-21
+   private void combInfo(DelivBillVO delivBillVO, InformationCostVO[] vos) throws Exception {
+	    if(delivBillVO==null || vos==null){
+	    	return;
+	    } 
+	    DelivBillItemVO[] dbitemvos=delivBillVO.getInvBodys();
+	    DelivBillItemVO[] newitemvos=new DelivBillItemVO[vos.length];
+	    DelivBillItemVO feeitemvo=null;
+	    String costcode=null;
+	    String[] invPks=null;
+	    String crowno=null;
+	    String pk_corp=ClientEnvironment.getInstance().getCorporation().getPrimaryKey();
+	    for (int i=0;i<vos.length;i++){
+	    	if(dbitemvos==null ||dbitemvos.length==0){
+	    		 feeitemvo=new DelivBillItemVO();
+	    	}else{
+	    		 feeitemvo=(DelivBillItemVO) dbitemvos[0].clone();
+	    	}	    	
+	    	
+	    	crowno =""+((i+1)*10) ;
+	    	feeitemvo.setCrowno(crowno);//行号
+	    	
+	    	costcode=vos[i].getCostcode();//费用编码
+	    	
+	    	//根据费用编码查出存货基本档案主键 和管理主键et
+	    	invPks=queryBdinvid(costcode,pk_corp);	    	
+	    	feeitemvo.setCinvbasid(invPks[0]);//存货基本档案	    	
+	    	feeitemvo.setCinventoryid(invPks[1]);//存货管理档案	    	
+	    	feeitemvo.setCinventoryspec(null);//规格	    	
+	    	feeitemvo.setCinventorytype(null);//型号	    	
+	    	feeitemvo.setCmeasid(vos[i].getCmeasdocid());//主计量单位	
+	    	feeitemvo.setCastunitid(null);//辅计量单位	
+	    	feeitemvo.setNchangerate(null);//换算率
+	    
+	    	
+	    	feeitemvo.setNnumber(vos[i].getNnumber());//数量	    	
+	    	feeitemvo.setNsignnum(vos[i].getNnumber());//签收 数量	    	
+	    	feeitemvo.setNprice(vos[i].getNoriginalcurprice());//单价	    	
+	    	feeitemvo.setNmoney(vos[i].getNoriginalcurmny());//金额
+	    	//项目主键	nmoney
+	       	
+	    	newitemvos[i]=feeitemvo;
+	    	
+	    }
+	    //将费用存货设置为运输单的子表
+	    delivBillVO.setInvBodys(newitemvos);
+	
+   }//end 2013-01-21
+    //根据费用编码查出存货基本档案主键 和管理主键 chenjianhua 2013-01-21
+    private String[] queryBdinvid(String costcode, String pk_corp) throws Exception {
+	  if(costcode==null||pk_corp==null){
+		   return null;
+	  }
+	  String[] pks=new String[2];
+	  //存货基本主键
+	  String sql=" select pk_invbasdoc from bd_invbasdoc where  invcode='"+costcode+"' and nvl(dr,0)=0 ";
+	  ColumnProcessor cl=new ColumnProcessor();
+	  IUAPQueryBS queryService= getQueryService();// NCLocator.getInstance().lookup(IUAPQueryBS.class);	  
+	  Object obj=queryService.executeQuery(sql, cl);
+	  
+	  if (obj!=null){
+		  pks[0]=obj.toString();
+	  }   
+	  //存货管理主键
+	  sql="  select pk_invmandoc from bd_invmandoc where pk_invbasdoc='"+obj.toString()+"'";
+	  sql +="  and pk_corp='"+pk_corp+"'";
+	  sql +="  and nvl(dr,0)=0 ";
+	  obj=queryService.executeQuery(sql, cl);
+	  if (obj!=null){
+		  pks[1]=obj.toString();
+	  }   
+	  return pks;
+	
+    }
+    private  IUAPQueryBS  iUAPQueryBS=null;
+    private IUAPQueryBS getQueryService() {
+		if(this.iUAPQueryBS==null){
+			this.iUAPQueryBS=NCLocator.getInstance().lookup(IUAPQueryBS.class);	 
+		}
+		return this.iUAPQueryBS;
+	}
+   
+  // end chenjianhua 2013-01-21
+
+/**
    * 由销售出库生成的运输单生成费用暂估单
    * 根据运输单的费用信息,生成暂估应付单
    * @author lumzh
