@@ -184,6 +184,8 @@ junjie/develop/proj/newmodules/dm/src/client/nc/ui/dm/dm220/ref/DelivRefBill.jav
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/ic/pub/pf/IC4ATo4804UI.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/ic/pub/pf/ICBillRefListPanel.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/ic/pub/pf/ICSourceBillToBillBaseUI.java -text
+junjie/develop/proj/newmodules/dm/src/client/nc/ui/pf/changedir/CHG45TO4804.java -text
+junjie/develop/proj/newmodules/dm/src/client/nc/ui/pf/changedir/CHG4ATO4804.java -text
 junjie/develop/proj/newmodules/dm/src/client/nc/ui/scm/pattern/listcard/ListCardButtonCalculator.java -text
 junjie/develop/proj/newmodules/dm/src/private/nc/bs/dm/dm220/action/DelivBillExchangeAction.java -text
 junjie/develop/proj/newmodules/dm/src/private/nc/bs/dm/dm220/exchange/CustomerExchange.java -text
