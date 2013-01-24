@@ -114,6 +114,7 @@ public class MdGbPanel extends UIPanel implements ActionListener,
 				e.printStackTrace();
 			}
 			if(crkvos==null){
+				MessageDialog.showWarningDlg(dlg, "提示", "没有码单信息，请先做完码单维护后再做分摊处理！");
 				return ;
 			}
 			getOPBillCardPanel().getBillModel().setBodyDataVO(crkvos);

@@ -49,6 +49,7 @@ public class MdwhDlg extends UIDialog implements ActionListener {
 	}
 
 	public MdwhDlg(GeneralBillClientUI ui) throws BusinessException {
+		super(ui);
 		this.ui = ui;
 		infoVO = getInfoVO();
 		if (infoVO.getCgeneralbid() == null

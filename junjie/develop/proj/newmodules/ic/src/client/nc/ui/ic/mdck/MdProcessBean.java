@@ -119,17 +119,21 @@ public class MdProcessBean {
 			// 出库后的支数
 			xclbvos[j].setZhishu(xclbvos[j].getZhishu().sub(crkvo.getSrkzs(),
 					MDConstants.ZS_XSW));
+			//add by ouyangzhb 2013-01-23 过滤null 值
+			UFDouble xcldef1 = xclbvos[j].getDef1()==null? UFDouble.ZERO_DBL:xclbvos[j].getDef1();
+			UFDouble crkdef1 = crkvo.getDef1()==null? UFDouble.ZERO_DBL:crkvo.getDef1();
+			
 			if (crkvo.getSrkzl() == null || crkvo.getSrkzl().doubleValue() == 0){
 				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().sub(
 						new UFDouble(0), MDConstants.ZL_XSW));
-				xclbvos[j].setDef1(xclbvos[j].getDef1().sub(
+				xclbvos[j].setDef1(xcldef1.sub(
 						new UFDouble(0), MDConstants.ZL_XSW));//2010-12-29 MeiChao 将钢厂重量也更新
 			}else{
 				// 重量
 				xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().sub(
 						crkvo.getSrkzl(), MDConstants.ZL_XSW));
-				xclbvos[j].setDef1(xclbvos[j].getDef1().sub(
-						crkvo.getDef1(), MDConstants.ZL_XSW));//2010-12-29 MeiChao 将钢厂重量也更新
+				xclbvos[j].setDef1(xcldef1.sub(
+						crkdef1, MDConstants.ZL_XSW));//2010-12-29 MeiChao 将钢厂重量也更新
 			}
 		}
 		iVOPersistence.updateVOArray(xclbvos);
@@ -251,7 +255,11 @@ public class MdProcessBean {
 		MdxclBVO[] xclbvos = new MdxclBVO[coll.size()];
 		coll.toArray(xclbvos);
 		for (int j = 0; j < xclbvos.length; j++) {
+			
 			MdcrkVO crkvo = (MdcrkVO) crkvoMap.get(xclbvos[j].getPk_mdxcl_b());
+			//add by ouyangzhb 2013-01-23 过滤null 值
+			UFDouble xcldef1 = xclbvos[j].getDef1()==null? UFDouble.ZERO_DBL:xclbvos[j].getDef1();
+			UFDouble crkdef1 = crkvo.getDef1()==null? UFDouble.ZERO_DBL:crkvo.getDef1();
 			// 出库后的支数
 			xclbvos[j].setZhishu(xclbvos[j].getZhishu().add(crkvo.getSrkzs(),
 					MDConstants.ZS_XSW));
@@ -259,8 +267,8 @@ public class MdProcessBean {
 			xclbvos[j].setZhongliang(xclbvos[j].getZhongliang().add(
 					crkvo.getSrkzl(), MDConstants.ZL_XSW));
 			//钢厂重量    add by ouyang---2011-02-24  在删除出库码单时,将钢厂重量也作重新入库处理.否则钢厂重量在出库维护完码单再清空码单后无法还原
-			xclbvos[j].setDef1(xclbvos[j].getDef1().add(
-					crkvo.getDef1(), MDConstants.ZL_XSW));
+			xclbvos[j].setDef1(xcldef1.add(
+					crkdef1, MDConstants.ZL_XSW));
 
 		}
 		
@@ -291,7 +299,7 @@ public class MdProcessBean {
 			pk_ptzj = rsvos[0].getCgeneralbid();
 			zhishu = zhishu.add(rsvos[i].getSrkzs(), MDConstants.ZS_XSW);
 			zhongliang = zhongliang
-					.add(rsvos[i].getDef1(), MDConstants.ZL_XSW);//2011-01-03 MeiChao 取钢厂重量
+					.add(rsvos[i].getDef1()==null?UFDouble.ZERO_DBL:rsvos[i].getDef1(), MDConstants.ZL_XSW);//2011-01-03 MeiChao 取钢厂重量
 //					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
 			yszhongliang = yszhongliang
 					.add(rsvos[i].getSrkzl(), MDConstants.ZL_XSW);
@@ -698,6 +706,70 @@ public class MdProcessBean {
 			coll.toArray(rsvos);
 		}
 		return rsvos;
+	}
+	
+	/**
+	 * add by ouyangzhb 2013-01-24 码单过磅分摊查询码单锁定信息
+	 * @param infoVOs
+	 * @param dlg
+	 * @return
+	 * @throws BusinessException
+	 */
+	public MdcrkVO[] queryCrkVOSByXsddArray(ChInfoVO[] infoVOs, MDGbftdialog dlg)
+			throws BusinessException {
+		IUAPQueryBS iUAPQueryBS = (IUAPQueryBS) NCLocator.getInstance().lookup(
+				IUAPQueryBS.class.getName());
+		
+		/**add by ouyangzhb 2012-08-18 构造 Cgeneralbid 的in 语句*/
+		String inStr = "(";
+		for(int i=0;i<infoVOs.length;i++){
+			inStr += "'"+infoVOs[i].getLydjh()+"'";
+			if(i+1<infoVOs.length){
+				inStr +=",";
+			}
+		}
+		inStr += ")";
+		/**add end */
+		
+		
+		
+		Collection coll = iUAPQueryBS
+				.retrieveByClause(
+						MdsdVO.class,
+						" xsddbt_pk in "
+								+inStr
+								+ "  and dr=0 and sxrq>=(select to_char(sysdate,'yyyy-MM-dd')from dual)");
+		if (coll == null || coll.size() == 0)
+			return null;
+		MdsdVO[] sdvos = new MdsdVO[coll.size()];
+		coll.toArray(sdvos);
+		List yxsdList = new ArrayList();
+		boolean tt = false;
+		for (int i = 0; i < sdvos.length; i++) {
+			MdcrkVO vo = new MdcrkVO();
+			vo.setPk_mdxcl_b(sdvos[i].getPk_mdxcl_b());// 出入库单主键
+			vo.setSrkzs(sdvos[i].getSdzs());// 支数
+			vo.setSfbj(new UFBoolean(false)); // 是否磅计
+			vo.setDef4(sdvos[i].getDef4());// 非计算
+			vo.setSrkzl(sdvos[i].getDef3());// 锁定重量
+			// 现存量表头VO
+			MdxclBVO bvo = (MdxclBVO) iUAPQueryBS.retrieveByPK(MdxclBVO.class,
+					vo.getPk_mdxcl_b());
+			// 现存量表体VO
+			MdxclVO hvo = (MdxclVO) iUAPQueryBS.retrieveByPK(MdxclVO.class, bvo
+					.getPk_mdxcl());
+			if (!hvo.getCwarehouseidb().equals(infoVOs[0].getCwarehouseidb())) {
+				tt = true;
+				continue;
+			}
+			yxsdList.add(vo);
+		}
+		if (tt == true)
+			MessageDialog.showWarningDlg(dlg, "警告",
+					"被锁定码单的仓库与实际出库仓库不一致，部分或全部码单锁定记录加载失败，请调整仓库！");
+		MdcrkVO[] rsVO = new MdcrkVO[yxsdList.size()];
+		yxsdList.toArray(rsVO);
+		return rsVO;
 	}
 	
 	

@@ -79,6 +79,7 @@ public class MDGbftdialog extends UIDialog implements ActionListener {
 	}
 
 	public MDGbftdialog(GeneralBillClientUI ui) throws BusinessException {
+		super(ui);
 		this.ui = ui;
 		infoVOs = getInfoVOs();
 		for(int i=0;i<infoVOs.length;i++){
