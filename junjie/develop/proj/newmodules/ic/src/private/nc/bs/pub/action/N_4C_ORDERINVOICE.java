@@ -10,7 +10,10 @@ import nc.vo.pub.lang.*;
 import nc.bs.pub.pf.PfUtilTools;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
+import nc.vo.so.credit.CreditUtil;
 import nc.vo.so.so001.SaleOrderVO;
+import nc.vo.so.so002.SaleVO;
+import nc.vo.so.so002.SaleinvoiceBVO;
 import nc.vo.so.so002.SaleinvoiceVO;
 import nc.vo.uap.pf.PFBusinessException;
 /**
@@ -58,6 +61,9 @@ try{
 			inVO, "30", "32");
 //	nc.vo.so.so002.SaleinvoiceVO outVO =(SaleinvoiceVO) PfUtilTools.runChangeData( "30", "32",inVO,null);
 	
+	
+	//add by ouyangzhb 2013-01-24 增加表头合计
+	setInvoiceHeadMny(outVO);
 	
 	inObject = null;
 	inVO = null;
@@ -118,4 +124,26 @@ private void setParameter(String key,Object val)	{
 		m_keyHas.put(key,val);
 	}
 }
+
+/**
+ * add by ouyangzhb 2013-01-24 计算发票表头合计
+ * @param vo
+ */
+private void setInvoiceHeadMny(SaleinvoiceVO vo) {
+	if (vo == null || vo.getParentVO() == null || vo.getChildrenVO() == null || vo.getChildrenVO().length < 1)
+		return;
+	SaleVO headVO = (SaleVO) vo.getParentVO();
+	UFDouble ntotalsummny = CreditUtil.ZERO;
+	SaleinvoiceBVO[] items = (SaleinvoiceBVO[]) vo.getChildrenVO();
+	for (int i = 0; i < items.length; i++) {
+		if (items[i].getBlargessflag() == null || !items[i].getBlargessflag().booleanValue()) {
+			ntotalsummny = ntotalsummny
+					.add(new CreditUtil().convertObjToUFDouble(items[i].getNoriginalcursummny()));
+		}
+	}
+	headVO.setNtotalsummny(ntotalsummny);
+	headVO.setNnetmny(ntotalsummny);
+	headVO.setNstrikemny(CreditUtil.ZERO);
+}
+
 }
