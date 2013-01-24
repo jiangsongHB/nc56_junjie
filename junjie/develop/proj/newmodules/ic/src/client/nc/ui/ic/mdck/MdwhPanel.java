@@ -578,7 +578,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			BillItem jbh = getOPBillCardPanel().getBodyItem("jbh");
 			UIRefPane jbhPa = (UIRefPane) jbh.getComponent();
 			String[] pks = jbhPa.getRefPKs();
-			int len = pks.length;
+			int len = pks==null?0: pks.length;
 			for (int j = 0; j < len; j++) {
 				if (pks != null) {
 					if (j > 0) {
@@ -592,9 +592,7 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 					.getEditFormulas();
 			MdcrkVO[] vos = (MdcrkVO[]) getOPBillCardPanel().getBillData()
 			.getBodyValueVOs(nc.vo.ic.md.MdcrkVO.class.getName());
-			for(int i=0;i<pks.length;i++){
-				 if(pks==null)
-					 continue;
+			for(int i=0;pks !=null &&i<pks.length;i++){
 				 getOPBillCardPanel().getBillModel().setValueAt(pks[i], arg0.getRow()+i, "pk_mdxcl_b"); 
 				 vos[arg0.getRow()+i].setPk_mdxcl_b(pks[i]);
 			if (s != null && s.length > 0) {

@@ -381,6 +381,7 @@ public class MdProcessBean {
 			// 现存量表头VO
 			MdxclBVO bvo = (MdxclBVO) iUAPQueryBS.retrieveByPK(MdxclBVO.class,
 					vo.getPk_mdxcl_b());
+			vo.setDef1(vo.getSrkzs().multiply(bvo.getDef1()==null?UFDouble.ZERO_DBL:bvo.getDef1().div(bvo.getZhishu())));//add by ouyangzhb 2013-01-24 钢厂重量取值
 			// 现存量表体VO
 			MdxclVO hvo = (MdxclVO) iUAPQueryBS.retrieveByPK(MdxclVO.class, bvo
 					.getPk_mdxcl());
@@ -524,7 +525,7 @@ public class MdProcessBean {
 			vo.setVspacename((String) voMap.get("csname")); // 货位名称
 			//add by ouyangzhb  当做出库操作的时候   把货位数量改为 出库验收重量 当做入库操作的时候 把 货位数量改为    入库钢厂重量
 			UFDouble d1 = new UFDouble((BigDecimal) voMap.get("srkzl"));
-			UFDouble d12 = new UFDouble((BigDecimal) voMap.get("def1"));
+			UFDouble d12 = voMap.get("def1")==null?UFDouble.ZERO_DBL:new UFDouble((BigDecimal) voMap.get("def1"));
 			UFDouble d2 = new UFDouble((BigDecimal) voMap.get("srkzs"));
 			// 入库
 			if (billType.equals("45") || billType.equals("4A")) {
