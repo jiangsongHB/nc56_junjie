@@ -28,7 +28,13 @@ import nc.ui.pub.pf.dispatch.WFStartDispatchDialog;
 import nc.ui.pub.pf.dispatch.WFWorkitemAcceptDlg;
 import nc.ui.querytemplate.IBillReferQuery;
 import nc.ui.querytemplate.QueryConditionDLG;
+import nc.ui.querytemplate.filter.DefaultFilter;
+import nc.ui.querytemplate.filter.IFilter;
+import nc.ui.querytemplate.filtereditor.DefaultFilterEditor;
+import nc.ui.querytemplate.filtereditor.IFilterEditor;
+import nc.ui.querytemplate.filtereditor.IFilterEditorFactory;
 import nc.ui.querytemplate.meta.FilterMeta;
+import nc.ui.querytemplate.meta.IFilterMeta;
 import nc.ui.querytemplate.valueeditor.IFieldValueElementEditor;
 import nc.ui.querytemplate.valueeditor.IFieldValueElementEditorFactory;
 import nc.ui.querytemplate.valueeditor.RefElementEditor;
@@ -56,6 +62,7 @@ import nc.vo.uap.pf.PFRuntimeException;
 import nc.vo.uap.rbac.power.PowerResultVO;
 import nc.vo.wfengine.definition.IApproveflowConst;
 import nc.vo.wfengine.pub.WFTask;
+
 
 /**
  * 流程平台客户端工具类
@@ -1615,8 +1622,10 @@ public class PfUtilClient {
 		ti.setUserid(pkOperator);
 		ti.setCurrentCorpPk(pkCorp);
 		ti.setFunNode(funNode);
+		
+	//	QueryConditionDLG qcDlg = new QueryConditionDLG(parent, ti);
 
-		QueryConditionDLG qcDlg = new QueryConditionDLG(parent, ti);
+		final QueryConditionDLG qcDlg = new QueryConditionDLG(parent, ti);
 
 		if (isRelationCorp) {
 			// FIXME::多公司处理？
@@ -1638,6 +1647,42 @@ public class PfUtilClient {
 		} else {
 			qcDlg.setVisibleNormalPanel(false);
 		}
+		
+		//---chenjianhua 2013-01-25增加费用单位查询条件		
+		//	nodecode= "40080602";//采购入库   nodecode= "40080608";//其他入库			
+		if("40080602,40080608".contains(funNode)){
+			
+			qcDlg.registerFilterEditorFactory(new IFilterEditorFactory(){
+
+				public IFilterEditor createFilterEditor(IFilterMeta meta) {                    
+					if(meta.getFieldCode().equals("ccostunitid")){
+				     return new DefaultFilterEditor(qcDlg.getQueryContext(),meta){
+				            protected IFilter createFilter(FilterMeta meta) {
+				                   return new DefaultFilter(meta){
+				                          public String getSqlString() {			                        	  
+				                        	
+				                        	  if(getBasicSql()==null){
+				                        		  return getBasicSql();
+				                        	  } 
+				                        	  String sWhere=" head.cgeneralhid  in (" ;
+				                        	  sWhere+=" select cbillid  from jj_scm_informationcost where "+getBasicSql()+" and nvl(dr,0)=0 ";
+				                        	  sWhere+=" )";
+				                        	  
+				                        	  return sWhere;				                        				         
+				                          }
+				                   };
+				            }
+				     };
+				
+				}
+
+				return null;
+
+				}});
+		}
+		//end 2013-01-25
+		
+		
 		// qcDlg.setTemplateID(templateId);
 		return qcDlg;
 	}
