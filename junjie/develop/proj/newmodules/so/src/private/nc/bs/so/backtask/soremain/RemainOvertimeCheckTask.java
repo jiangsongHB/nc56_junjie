@@ -9,6 +9,7 @@ import nc.bs.pub.taskcenter.BgWorkingContext;
 import nc.bs.pub.taskcenter.IBackgroundWorkPlugin;
 import nc.impl.scm.so.so001.SaleOrderDMO;
 import nc.itf.uap.pf.IPFBusiAction;
+import nc.ui.pub.ClientEnvironment;
 import nc.vo.pf.change.PfUtilBaseTools;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
@@ -45,17 +46,54 @@ public class RemainOvertimeCheckTask implements IBackgroundWorkPlugin {
 		String currTime = nc.ui.pub.ClientEnvironment.getInstance().getDate().toString();
 		HashMap<String, String> eParam = new HashMap<String, String>();
 		eParam.put(PfUtilBaseTools.PARAM_NOAPPROVE, PfUtilBaseTools.PARAM_NOAPPROVE);///不启动流程
+		
+		
+		//ce.getUser().getPrimaryKey();
+		/*nc.vo.sm.UserVO uservo =new nc.vo.sm.UserVO();
+		uservo.setPrimaryKey("0001ZZ1000000000Q7OB");
+		nc.vo.bd.CorpVO  corpvo=new  nc.vo.bd.CorpVO();
+		corpvo.setPrimaryKey("0001");
+		nc.vo.bd.period.AccperiodVO accvo=new  nc.vo.bd.period.AccperiodVO();
+		//accvo
+		ClientEnvironment clientEnvironment = ClientEnvironment.getInstance();
+		clientEnvironment.setUser(uservo);
+		clientEnvironment.setCorporation(corpvo);
+		clientEnvironment.setYearVo(accvo);*/
+		
+		nc.vo.scm.pub.session.ClientLink cllink=//new nc.vo.scm.pub.session.ClientLink(clientEnvironment);
+		
+		
+		new nc.vo.scm.pub.session.ClientLink(
+				"0001", 
+				"0001A81000000000KUTV",//操作用户编码001，用户名test
+				new UFDate(),
+				null, null, null,
+				null, null, null,
+				false,  null,null,
+				null) ;
+		//String userid = "0001ZZ1000000000Q7OB";//inVO.getClientLink().getUser();
+		//nc.vo.pub.lang.UFDate logindate = inVO.getClientLink().getLogonDate();
+		
+		nc.vo.so.so001.SaleOrderVO  salevo=null;
+				
+		
 		for(int i=0;i<sbillvos.length;i++){
 		
 		  try {
+			  salevo=(nc.vo.so.so001.SaleOrderVO)sbillvos[i];
+			  salevo.setClientLink(cllink);
 				//Object processAction= 
+			  
+			  
 			  //调用关闭脚本
-		       getBaService().processAction("OrderFinish","30",currTime,null,sbillvos[i],null, eParam);
+		       getBaService().processAction("OrderFinish","30",currTime,null,salevo,null, eParam);
 			} catch (BusinessException e) {
 				nc.bs.logging.Logger.error(e.getMessage());
 				e.printStackTrace();
-				continue;
-			}
+				//continue;
+				
+				throw e;
+			  }
 		}
 		String msg="销售订单留货时间超期后台任务完成,";
 		msg +=" 本次任务一共关闭"+sbillvos.length+"张销售单。";
