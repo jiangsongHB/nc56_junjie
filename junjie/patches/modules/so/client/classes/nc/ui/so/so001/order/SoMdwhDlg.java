@@ -14,6 +14,9 @@ public class SoMdwhDlg extends UIDialog implements ActionListener {
 	private SaleorderHVO hvo;
 
 	private SaleorderBVO bvo;
+	
+	//chenjianhua 2013-04-11
+	private SaleOrderAdminUI saleOrderAdminUI;
 
 	/**
 	 * This method initializes
@@ -25,9 +28,14 @@ public class SoMdwhDlg extends UIDialog implements ActionListener {
 
 	}
 
-	public SoMdwhDlg(SaleorderHVO hvo, SaleorderBVO bvo) {
+	public SoMdwhDlg(SaleorderHVO hvo, SaleorderBVO bvo, SaleOrderAdminUI saleOrderAdminUI) {
 		this.hvo = hvo;
 		this.bvo = bvo;
+		
+		//chenjianhua 2013-04-11
+		this.saleOrderAdminUI=saleOrderAdminUI;
+		//end 
+		
 		initialize();
 	}
 
@@ -44,7 +52,12 @@ public class SoMdwhDlg extends UIDialog implements ActionListener {
 
 	public SoMdwhPanel getOrigPiecePanel() {
 		if (OrigPiecePanel == null) {
-			OrigPiecePanel = new SoMdwhPanel(this, hvo, bvo);
+			//OrigPiecePanel = new SoMdwhPanel(this, hvo, bvo);
+			
+			//chenjianhua 2013-04-11
+			OrigPiecePanel = new SoMdwhPanel(this, hvo, bvo,saleOrderAdminUI);
+			//end 
+			
 		}
 		return OrigPiecePanel;
 	}

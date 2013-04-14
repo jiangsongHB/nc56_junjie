@@ -381,7 +381,12 @@ public class SaleOrderAdminUI extends SaleBillUI {
 				showWarningMessage(e.getMessage());
 				return;
 			}
-			SoMdwhDlg dlg = new SoMdwhDlg(hvo, bvo);
+			
+			//chenjianhua 2013-04-11
+			//SoMdwhDlg dlg = new SoMdwhDlg(hvo, bvo);
+			SoMdwhDlg dlg = new SoMdwhDlg(hvo, bvo,this);
+			//end 2013-04-11
+			
 			dlg.showModal();
 		}
 	}
@@ -409,4 +414,11 @@ public class SaleOrderAdminUI extends SaleBillUI {
 	}
 
 	// 何意求增加开始 10-09-15 end
+	
+	
+	
+	//chenjianhua  2013-04-11 便于调用
+	protected boolean onSave() {
+		return super.onSave();
+	}
 }
