@@ -6,6 +6,7 @@ import nc.bs.framework.common.NCLocator;
 import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.ui.pub.ButtonObject;
+import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.pf.PfUtilClient;
 import nc.ui.scm.so.SaleBillType;
 import nc.ui.so.so001.panel.SaleBillUI;
@@ -25,6 +26,9 @@ public class SaleOrderAdminUI extends SaleBillUI {
 
 	// 按钮初始化标记
 	private boolean b_init;
+	
+	// 调价  按钮---chenjianhua  2013-04-15
+	protected ButtonObject boAdjustPrice;
 
 	public SaleOrderAdminUI() {
 		super();
@@ -85,10 +89,11 @@ public class SaleOrderAdminUI extends SaleBillUI {
 				boMaintain, boLine, boAudit, boAction, boQuery, boBrowse,
 				boCard, boPrntMgr, boAssistant, boAsstntQry };
 
-		// 卡片按钮
+		// 卡片按钮---增加 调价  按钮---chenjianhua  2013-04-15
+		
 		ButtonObject[] aryButtonGroup = { boBusiType, boAdd, boSave,
 				boMaintain, boLine, boAudit, boAction, boQuery, boBrowse,
-				boReturn, boPrntMgr, boAssistant, boAsstntQry, boMdmx };
+				boReturn, boPrntMgr, boAssistant, boAsstntQry, boMdmx,boAdjustPrice };
 
 		// 退货卡片按钮
 		ButtonObject[] aryBatchButtonGroup = { boBatch, boLine,
@@ -381,8 +386,30 @@ public class SaleOrderAdminUI extends SaleBillUI {
 				showWarningMessage(e.getMessage());
 				return;
 			}
-			SoMdwhDlg dlg = new SoMdwhDlg(hvo, bvo);
+			
+			//chenjianhua 2013-04-11
+			//SoMdwhDlg dlg = new SoMdwhDlg(hvo, bvo);
+			SoMdwhDlg dlg = new SoMdwhDlg(hvo, bvo,this);
+			//end 2013-04-11
+			
 			dlg.showModal();
+		}
+		//调价  按钮---chenjianhua  2013-04-15
+		if (bo == boAdjustPrice) {
+			
+		  String cbiztype =  boBusiType.getTag();
+			
+			if(cbiztype==null){//1004O11000000001HL3R  来源bd_busitype  pub_billbusiness
+				return;
+			}
+			this.getCurrentBillNo();
+			SaleOrderVO billvo=(SaleOrderVO) this.getVo();
+			//this.getBillID();
+			if(billvo==null){
+				   MessageDialog.showHintDlg(this,"提示：","当前单据为空，请先查出要调价的销售单。"); 
+				   return ;
+			}
+					
 		}
 	}
 
@@ -409,4 +436,29 @@ public class SaleOrderAdminUI extends SaleBillUI {
 	}
 
 	// 何意求增加开始 10-09-15 end
+	
+	
+	
+	//chenjianhua  2013-04-11 便于调用
+	protected boolean onSave() {
+		return super.onSave();
+	}
+	/**
+	 * 初始化所有按钮对象，没有业务特性
+	 * 
+	 * 在初始化界面之前调用，子类可覆写
+	 * chenjianhua 2013-04-15
+	 * 
+	 */
+	protected void loadAllBtns() {
+	    super.loadAllBtns();
+		getBoAdjustPrice();
+	}
+	// chenjianhua 2013-04-15  增加调价  按钮
+	protected ButtonObject getBoAdjustPrice() {
+		if (boAdjustPrice == null) {
+			boAdjustPrice = new ButtonObject("调价", "调价", "调价");
+		}
+		return boAdjustPrice;
+	}
 }

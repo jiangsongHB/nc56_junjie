@@ -52,12 +52,18 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 	private SaleorderHVO hvo;
 
 	private SaleorderBVO bvo;
+	
+	//chenjianhua 2013-04-11
+	private SaleOrderAdminUI saleOrderAdminUI;
 
-	public SoMdwhPanel(SoMdwhDlg dlg, SaleorderHVO hvo, SaleorderBVO bvo) {
+	public SoMdwhPanel(SoMdwhDlg dlg, SaleorderHVO hvo, SaleorderBVO bvo, SaleOrderAdminUI saleOrderAdminUI) {
 		super();
 		this.hvo = hvo;
 		this.bvo = bvo;
 		this.dlg = dlg;
+		//chenjianhua 2013-04-11
+		this.saleOrderAdminUI=saleOrderAdminUI;
+		
 		initialize();
 		initDate();
 		// 如果签字后，则不能编辑
@@ -67,6 +73,8 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			buttonState(true, true, false, true);
 
 	}
+
+	
 
 	/**
 	 * This method initializes this
@@ -269,6 +277,10 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			if (fjsStr.equals("true"))
 				fjs_boolean = true;
 			UFDouble sum_sdzs = new UFDouble(0);
+			
+			UFDouble sum_weight=UFDouble.ZERO_DBL;//锁定总量  chenjianhua 2013-04-11
+			
+			
 			for (int i = 0; i < vos.length; i++) {
 				if (vos[i].getSdzs() == null)
 					throw new BusinessException("第" + (i + 1) + "行锁定键编号不能为空!");
@@ -276,6 +288,8 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 					throw new BusinessException("第" + (i + 1) + "行锁定支数不能为空!");
 				sum_sdzs = sum_sdzs.add(vos[i].getSdzs());
 				vos[i].setDef4(new UFBoolean(fjs_boolean));
+				
+				sum_weight=sum_weight.add(vos[i].getDef3());//锁定总量  chenjianhua 2013-04-11
 			}
 			// npacknumber 辅数量
 			if (sum_sdzs.doubleValue() > bvo.getNpacknumber().doubleValue())
@@ -296,6 +310,30 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			// getUIButtonCan().setText("关 闭");
 			MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
 			onBtnCan();
+			
+			
+			//chenjianhua 2013-04-11  更改销售订单表体的件数和吨数	
+			boolean isChange=false;//件数吨数是否变化了
+			int slectedRow= 
+				saleOrderAdminUI.getBillCardPanel().getBodyPanel().getTable().getSelectedRow();//获得选择的行号
+			if(sum_weight.compareTo(bvo.getNnumber())!=0){
+				//吨数
+				this.saleOrderAdminUI.getBillCardPanel().setBodyValueAt(sum_weight, slectedRow, "nnumber");	
+				bvo.setNnumber(sum_weight);
+				isChange=true;
+			}
+			if(sum_sdzs.compareTo(bvo.getNpacknumber())!=0){
+			   //件数
+			   this.saleOrderAdminUI.getBillCardPanel().setBodyValueAt(sum_sdzs, slectedRow, "npacknumber");
+			   bvo.setNpacknumber(sum_sdzs);
+			   isChange=true;
+			}
+			if(isChange){
+				this.saleOrderAdminUI.strState="修改";
+				this.saleOrderAdminUI.onSave();
+			}		
+			//end 2013-04-11
+			
 		} catch (BusinessException e) {
 			e.printStackTrace();
 			MessageDialog.showWarningDlg(dlg, "提示", e.getMessage());
