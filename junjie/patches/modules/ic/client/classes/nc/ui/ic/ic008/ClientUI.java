@@ -446,7 +446,7 @@ public class ClientUI extends ToftPanel {
 		String pk_corp = getClientEnvironment().getCorporation().getPk_corp();
 		String sqlWhere = " dr=0 and pk_mdxcl in(";
 		try {
-			Collection coll_h = iUAPQueryBS.retrieveByClause(MdxclVO.class,
+			/*Collection coll_h = iUAPQueryBS.retrieveByClause(MdxclVO.class,
 					" dr=0 and pk_corp='" + pk_corp + "'");
 			if (coll_h == null || coll_h.size() == 0) {
 				showWarningMessage("没有码单数据，重算失败！");
@@ -458,9 +458,18 @@ public class ClientUI extends ToftPanel {
 				sqlWhere += "'" + hvos[h].getPk_mdxcl() + "',";
 			}
 			sqlWhere = sqlWhere.substring(0, sqlWhere.length() - 1);
-			sqlWhere = sqlWhere + ")";
+			sqlWhere = sqlWhere + ")";*/
+			
+			//chenjianhua  2013-04-16  修改码单重算报错
+			sqlWhere  +=" select pk_mdxcl from nc_mdxcl where dr=0 and pk_corp='" + pk_corp + "'";
+			sqlWhere  +=" )";
+			
+			//end 2013-04-16
+			
 			Collection coll = iUAPQueryBS.retrieveByClause(MdxclBVO.class,
 					sqlWhere);
+			
+			
 			if (coll == null || coll.size() == 0) {
 				showWarningMessage("没有码单数据，重算失败！");
 				return;
