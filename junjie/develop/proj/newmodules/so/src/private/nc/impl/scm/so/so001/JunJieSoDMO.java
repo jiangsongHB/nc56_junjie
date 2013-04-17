@@ -58,5 +58,40 @@ public class JunJieSoDMO {
 		dao.deleteByClause(MdsdVO.class, sWhere);
 		
 	}
+	
+	
+	/**
+	 * N_30_SoBlankout脚本调用
+	 * 作废时释放已锁定的码单
+	 */
+	public void freeMdsd(SaleOrderVO svo) throws BusinessException {
+		if(svo==null ){
+			return ;
+		}
+		SaleorderBVO[] bvos=null;
+		
+		String sBodyIds="(";
+		
+		 
+			bvos=svo.getBodyVOs();
+			if(bvos!=null){
+				for(int j=0;j<bvos.length;j++){
+					sBodyIds +="'";
+					sBodyIds +=bvos[j].getPrimaryKey();
+					sBodyIds +="',";
+				}
+			}
+			
+		 
+		sBodyIds=sBodyIds.substring(0, sBodyIds.lastIndexOf(","));
+		
+		sBodyIds +=")";
+		String sWhere =" xsddbt_pk in " +sBodyIds + " and dr=0 ";
+		
+		BaseDAO dao=new BaseDAO();
+		
+		dao.deleteByClause(MdsdVO.class, sWhere);
+		
+	}
 
 }

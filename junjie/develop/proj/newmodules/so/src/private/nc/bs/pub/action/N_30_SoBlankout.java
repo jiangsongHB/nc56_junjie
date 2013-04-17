@@ -136,10 +136,6 @@ try {
 	/**************(V5.5调用方法更新--modifyATPBefore)*****************/
 	
 	
-	/**############################# add by chenjianhua 2013-04-14 关闭时删除码单锁定 ########################**/
-	runClass( "nc.impl.scm.so.so001.JunJieSoDMO", "freeMdsd", "&INVOS:nc.vo.so.so001.SaleOrderVO[]",vo,m_keyHas,m_methodReturnHas);
-	/**############################# add by chenjianhua 2013-04-14 关闭时删除码单锁定 ########################**/
-	
 	
 	
 	// ##################################################
@@ -170,12 +166,16 @@ try {
 	// ##################################################
 	// ************************把销售订单置入参数表。**************************************************
 	// **************************************************************************************************
+
+	
 	// ####重要说明：生成的业务组件方法尽量不要进行修改####
 	// 方法说明:作废时更新订单核销关系
 	retObj = runClass("nc.impl.scm.so.so016.BalanceDMO", "updateSoBalanceWhenOrdBlankout", "&INVO:nc.vo.so.so001.SaleOrderVO",vo,m_keyHas,m_methodReturnHas);
 	if (retObj != null) {
 		m_methodReturnHas.put("updateSoBalanceWhenOrdBlankout", retObj);
 	}
+	
+	
 	// ##################################################
 	// *********返回结果******************************************************
 	// ##################################################
@@ -191,6 +191,13 @@ try {
 	if (retObj != null) {
 		m_methodReturnHas.put("blankFromOrder", retObj);
 	}
+	
+
+	/**############################# add by chenjianhua 2013-04-14 关闭时删除码单锁定 ########################**/
+	runClass( "nc.impl.scm.so.so001.JunJieSoDMO", "freeMdsd", "&INVO:nc.vo.so.so001.SaleOrderVO",vo,m_keyHas,m_methodReturnHas);
+	/**############################# add by chenjianhua 2013-04-14 关闭时删除码单锁定 ########################**/
+	
+	
 	
 	// 删除时如果是参照采购定单的销售订单，需要回写源采购定单
 	if (inVO.getHeadVO().isCoopped()) {
