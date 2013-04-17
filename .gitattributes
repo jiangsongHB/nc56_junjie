@@ -341,6 +341,7 @@ junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_30_SoBlankout.j
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/JunJieSoDMO.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/SaleOrderDMO.java -text
+junjie/develop/proj/newmodules/so/src/public/nc/util/so/junjie/JunjiePubTool.java -text
 junjie/develop/proj/newmodules/so5/.classpath -text
 junjie/develop/proj/newmodules/so5/.module_prj -text
 junjie/develop/proj/newmodules/so5/.project -text

@@ -10,7 +10,9 @@ import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.pf.PfUtilClient;
 import nc.ui.scm.so.SaleBillType;
 import nc.ui.so.so001.panel.SaleBillUI;
+import nc.util.so.junjie.JunjiePubTool;
 import nc.vo.pub.BusinessException;
+import nc.vo.scm.ic.bill.InvVO;
 import nc.vo.so.so001.SaleOrderVO;
 import nc.vo.so.so001.SaleorderBVO;
 import nc.vo.so.so001.SaleorderHVO;
@@ -396,12 +398,6 @@ public class SaleOrderAdminUI extends SaleBillUI {
 		}
 		//调价  按钮---chenjianhua  2013-04-15
 		if (bo == boAdjustPrice) {
-			
-		  String cbiztype =  boBusiType.getTag();
-			
-			if(cbiztype==null){//1004O11000000001HL3R  来源bd_busitype  pub_billbusiness
-				return;
-			}
 			this.getCurrentBillNo();
 			SaleOrderVO billvo=(SaleOrderVO) this.getVo();
 			//this.getBillID();
@@ -409,8 +405,50 @@ public class SaleOrderAdminUI extends SaleBillUI {
 				   MessageDialog.showHintDlg(this,"提示：","当前单据为空，请先查出要调价的销售单。"); 
 				   return ;
 			}
-					
+		    String cbiztype =  boBusiType.getTag();		  
+		    String businame=JunjiePubTool.getNameByID("bd_busitype", "businame", "pk_busitype", cbiztype);
+		    if(businame==null ||!businame.contains("销售费用流程")){
+			  MessageDialog.showHintDlg(this,"提示："," 必须先选择销售费用流程！"); 
+			   return ;
+		    }		  
+		    
+		    try {
+				super.onCopyBill();//复制
+			} catch (Exception e) {
+			 
+				  e.printStackTrace();
+				  MessageDialog.showErrorDlg(this,"提示：",e.getMessage()); 
+				  return ;
+			}
+			//增加上下游关联---通过行号关联
+			SaleorderHVO hvo = (SaleorderHVO) billvo.getParentVO();
+			SaleorderBVO[]  bvos = billvo.getBodyVOs();
+			String csaleid=hvo.getPrimaryKey();
+			
+			int rowcount=getBillCardPanel().getRowCount();
+			String crowno=null;////行号
+			SaleorderBVO bvo=null;
+			for (int i = 0; i < rowcount; i++) {
+				crowno= (String) getBillCardPanel().getBodyValueAt(i, "crowno");
+				bvo=getSaleorderBVOByCrowno(crowno,bvos);
+				getBillCardPanel().setBodyValueAt("30",i, "creceipttype");//来源单据类型
+				getBillCardPanel().setBodyValueAt(csaleid,i, "csourcebillid");// 来源单据主表ID
+				getBillCardPanel().setBodyValueAt(bvo.getPrimaryKey(),i, "csourcebillbodyid");// 来源单据附表ID				
+			}		
+		}//end 2013-04-15
+	}
+    
+	//根据行号找出子表VO chenjianhua--2013-04-17
+	private SaleorderBVO getSaleorderBVOByCrowno(String crowno, SaleorderBVO[] bvos) {
+		if(crowno==null || bvos==null){
+			return null;
 		}
+		for(int i=0;i<bvos.length;i++){
+			if(crowno.equals(bvos[i].getCrowno())){
+				return bvos[i];
+			}
+		}
+		return null;
 	}
 
 	// 判断是否码单维护
