@@ -27,7 +27,7 @@ import nc.vo.so.so016.SoVoTools;
 public class JunJieSoDMO {
 	/**
 	 * N_30_OrderFinish脚本调用
-	 * 自动关闭已锁定的码单
+	 * 自动关闭时释放已锁定的码单
 	 */
 	public void freeMdsd(SaleOrderVO[] svos) throws BusinessException {
 		if(svos==null || svos.length==0){
@@ -48,6 +48,41 @@ public class JunJieSoDMO {
 			}
 			
 		}
+		sBodyIds=sBodyIds.substring(0, sBodyIds.lastIndexOf(","));
+		
+		sBodyIds +=")";
+		String sWhere =" xsddbt_pk in " +sBodyIds + " and dr=0 ";
+		
+		BaseDAO dao=new BaseDAO();
+		
+		dao.deleteByClause(MdsdVO.class, sWhere);
+		
+	}
+	
+	
+	/**
+	 * N_30_SoBlankout脚本调用
+	 * 作废时释放已锁定的码单
+	 */
+	public void freeMdsd(SaleOrderVO svo) throws BusinessException {
+		if(svo==null ){
+			return ;
+		}
+		SaleorderBVO[] bvos=null;
+		
+		String sBodyIds="(";
+		
+		 
+			bvos=svo.getBodyVOs();
+			if(bvos!=null){
+				for(int j=0;j<bvos.length;j++){
+					sBodyIds +="'";
+					sBodyIds +=bvos[j].getPrimaryKey();
+					sBodyIds +="',";
+				}
+			}
+			
+		 
 		sBodyIds=sBodyIds.substring(0, sBodyIds.lastIndexOf(","));
 		
 		sBodyIds +=")";
