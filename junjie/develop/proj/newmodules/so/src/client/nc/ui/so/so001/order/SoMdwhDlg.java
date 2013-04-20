@@ -29,6 +29,7 @@ public class SoMdwhDlg extends UIDialog implements ActionListener {
 	}
 
 	public SoMdwhDlg(SaleorderHVO hvo, SaleorderBVO bvo, SaleOrderAdminUI saleOrderAdminUI) {
+		super(saleOrderAdminUI);
 		this.hvo = hvo;
 		this.bvo = bvo;
 		

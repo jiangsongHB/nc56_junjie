@@ -361,6 +361,12 @@ public class SaleOrderAdminUI extends SaleBillUI {
 	public void onButtonClicked(ButtonObject bo) {
 		super.onButtonClicked(bo);
 		if (bo == boMdmx) {
+			
+			SaleOrderVO oldvo =(SaleOrderVO) getBillCardPanel().getBillValueVO(
+					SaleOrderVO.class.getName(), SaleorderHVO.class.getName(),
+					SaleorderBVO.class.getName());
+			getBillCardTools().setOldsaleordervo(oldvo);
+			
 			// ±íÍ·VO
 			SaleorderHVO hvo = (SaleorderHVO) getVo().getParentVO();
 			if (hvo == null) {

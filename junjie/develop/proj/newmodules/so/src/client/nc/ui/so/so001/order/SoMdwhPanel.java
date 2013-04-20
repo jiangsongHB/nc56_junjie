@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import nc.bs.framework.common.NCLocator;
+import nc.itf.gl.accbook.IBillModel;
 import nc.itf.uap.IVOPersistence;
 import nc.ui.ic.mdck.MdProcessBean;
 import nc.ui.pub.ClientEnvironment;
@@ -19,6 +20,8 @@ import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.pub.bill.BillItem;
+import nc.ui.pub.bill.BillModel;
+import nc.vo.fp.combase.pub01.IBillStatus;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.sd.MdsdVO;
 import nc.vo.pub.BusinessException;
@@ -330,6 +333,10 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			}
 			if(isChange){
 				this.saleOrderAdminUI.strState="修改";
+				saleOrderAdminUI.getBillCardPanel().getBillModel().setRowState(slectedRow, BillModel.MODIFICATION);
+				BillEditEvent be = new BillEditEvent(saleOrderAdminUI.getBillCardPanel()//制造表体编辑事件
+				          .getBodyItem("nnumber"),saleOrderAdminUI.getBillCardPanel().getBillModel().getValueAt(slectedRow, "nnumber"),"nnumber",slectedRow,BillItem.BODY);
+				saleOrderAdminUI.getBillCardPanel().afterEdit(be);
 				this.saleOrderAdminUI.onSave();
 			}		
 			//end 2013-04-11
