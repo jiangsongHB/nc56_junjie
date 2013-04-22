@@ -333,6 +333,7 @@ junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhPanel.cl
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhPanel.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.class -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/revise/SaleOrderReviseUI.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceBtn.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceUI.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SalePrintData.java -text

@@ -21,10 +21,13 @@ import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.BillModel;
+import nc.ui.so.so001.panel.SaleBillUI;
+import nc.ui.so.so001.revise.SaleOrderReviseUI;
 import nc.vo.fp.combase.pub01.IBillStatus;
 import nc.vo.ic.md.MdcrkVO;
 import nc.vo.ic.sd.MdsdVO;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.VOStatus;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDouble;
@@ -57,9 +60,9 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 	private SaleorderBVO bvo;
 	
 	//chenjianhua 2013-04-11
-	private SaleOrderAdminUI saleOrderAdminUI;
+	private SaleBillUI saleOrderAdminUI;
 
-	public SoMdwhPanel(SoMdwhDlg dlg, SaleorderHVO hvo, SaleorderBVO bvo, SaleOrderAdminUI saleOrderAdminUI) {
+	public SoMdwhPanel(SoMdwhDlg dlg, SaleorderHVO hvo, SaleorderBVO bvo, SaleBillUI saleOrderAdminUI) {
 		super();
 		this.hvo = hvo;
 		this.bvo = bvo;
@@ -70,7 +73,7 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 		initialize();
 		initDate();
 		// 如果签字后，则不能编辑
-		if (hvo.getFstatus() == 2)
+		if (hvo.getFstatus() == 2 &&!(saleOrderAdminUI instanceof SaleOrderReviseUI))
 			buttonState(false, false, false, true);
 		else
 			buttonState(true, true, false, true);
@@ -127,7 +130,7 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 					.showWarningDlg(dlg, "提示", "数据初始化出错：" + e.getMessage());
 		}
 		// 如果签字后，则不能编辑
-		if (hvo.getFstatus() == 2)
+		if (hvo.getFstatus() == 2&&!(saleOrderAdminUI instanceof SaleOrderReviseUI))
 			getOPBillCardPanel().setEnabled(false);
 		else
 			getOPBillCardPanel().setEnabled(true);
@@ -332,12 +335,27 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			   isChange=true;
 			}
 			if(isChange){
-				this.saleOrderAdminUI.strState="修改";
-				saleOrderAdminUI.getBillCardPanel().getBillModel().setRowState(slectedRow, BillModel.MODIFICATION);
+				if(saleOrderAdminUI instanceof SaleOrderAdminUI){
+					this.saleOrderAdminUI.strState="修改";
+					saleOrderAdminUI.getBillCardPanel().getBillModel().setRowState(slectedRow, BillModel.MODIFICATION);
+				}else if(saleOrderAdminUI instanceof SaleOrderReviseUI){
+					((SaleOrderReviseUI)saleOrderAdminUI).onModification();
+					saleOrderAdminUI.getBillCardPanel().getBillModel().setRowState(slectedRow, BillModel.MODIFICATION);
+					saleOrderAdminUI.getBillCardPanel().getBillModel().getBodyValueRowVO(slectedRow, SaleorderBVO.class.getName()).setStatus(VOStatus.UPDATED);
+				}
+				
+				
 				BillEditEvent be = new BillEditEvent(saleOrderAdminUI.getBillCardPanel()//制造表体编辑事件
 				          .getBodyItem("nnumber"),saleOrderAdminUI.getBillCardPanel().getBillModel().getValueAt(slectedRow, "nnumber"),"nnumber",slectedRow,BillItem.BODY);
 				saleOrderAdminUI.getBillCardPanel().afterEdit(be);
-				this.saleOrderAdminUI.onSave();
+				if(saleOrderAdminUI instanceof SaleOrderAdminUI){
+					((SaleOrderAdminUI)saleOrderAdminUI).onSave();
+				}else if(saleOrderAdminUI instanceof SaleOrderReviseUI){
+					((SaleOrderReviseUI)saleOrderAdminUI).onSave();
+					
+				}
+				saleOrderAdminUI.setButtonsState();
+				
 			}		
 			//end 2013-04-11
 			
