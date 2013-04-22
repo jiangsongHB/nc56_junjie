@@ -647,6 +647,7 @@ junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SoMdwhPanel.class 
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SoMdwhPanel.java -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/panel/list/SaleBillListUI.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/panel/list/SaleBillListUI.java -text
+junjie/patches/modules/so/client/classes/nc/ui/so/so001/revise/SaleOrderReviseUI.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceBtn.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$1.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so002/SaleInvoiceUI$2.class -text

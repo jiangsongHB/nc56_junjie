@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import nc.ui.pub.beans.UIDialog;
+import nc.ui.so.so001.panel.SaleBillUI;
 import nc.vo.so.so001.SaleorderBVO;
 import nc.vo.so.so001.SaleorderHVO;
 
@@ -16,7 +17,7 @@ public class SoMdwhDlg extends UIDialog implements ActionListener {
 	private SaleorderBVO bvo;
 	
 	//chenjianhua 2013-04-11
-	private SaleOrderAdminUI saleOrderAdminUI;
+	private SaleBillUI saleOrderAdminUI;
 
 	/**
 	 * This method initializes
@@ -28,7 +29,7 @@ public class SoMdwhDlg extends UIDialog implements ActionListener {
 
 	}
 
-	public SoMdwhDlg(SaleorderHVO hvo, SaleorderBVO bvo, SaleOrderAdminUI saleOrderAdminUI) {
+	public SoMdwhDlg(SaleorderHVO hvo, SaleorderBVO bvo, SaleBillUI saleOrderAdminUI) {
 		super(saleOrderAdminUI);
 		this.hvo = hvo;
 		this.bvo = bvo;

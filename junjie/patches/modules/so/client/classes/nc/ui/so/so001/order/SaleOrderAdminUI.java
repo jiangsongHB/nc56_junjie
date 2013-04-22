@@ -484,7 +484,7 @@ public class SaleOrderAdminUI extends SaleBillUI {
 	
 	
 	//chenjianhua  2013-04-11 ±ãÓÚµ÷ÓÃ
-	protected boolean onSave() {
+	public boolean onSave() {
 		return super.onSave();
 	}
 	/**
