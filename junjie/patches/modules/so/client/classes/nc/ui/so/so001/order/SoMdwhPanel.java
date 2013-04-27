@@ -309,9 +309,15 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			boolean ders = bean.deleteAndRK(bvo);
 			// 保存到出入库单位表体
 			if (rsvos == null && ders == false)
-				throw new BusinessException("保存失败，没有码单明细！");
-			if (rsvos == null && ders == true)
-				throw new BusinessException("码单明细全部删除成功！");
+			{
+				MessageDialog.showWarningDlg(dlg,"提示","保存失败，没有码单明细！");
+				return ;
+			}
+			if (rsvos == null && ders == true){
+				MessageDialog.showWarningDlg(dlg,"提示","码单明细全部删除成功！");
+				return ;
+			}
+			
 			iVOPersistence.insertVOArray(rsvos);
 			// getUIButtonCan().setText("关 闭");
 			MessageDialog.showWarningDlg(dlg, "提示", "保存成功！");
@@ -455,11 +461,16 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			String sqlWhere = " pk_corp='" + hvo.getPk_corp()
 					+ "' and dr=0  and ccalbodyidb='" + hvo.getCcalbodyid()
 					+ "'  and cinvbasid='" + bvo.getCinvbasdocid()
-					+ "' and cinventoryidb='" + bvo.getCinventoryid() + "'";			
+					+ "' and cinventoryidb='" + bvo.getCinventoryid() + "'";
+			
+			/**
+			 * add by ouyangzhb 2013-04-27 码单的参照界面不需要有是否“非计算”条件的限制
 			if (fsjStr.equals("true"))
 				sqlWhere += " and def4='Y'";
 			else
-				sqlWhere += " and def4='N'";			
+				sqlWhere += " and def4='N'";	
+				
+			*/		
 			jbhPa.setWhereString(sqlWhere);
 		}
 		return true;
