@@ -411,13 +411,15 @@ public class SaleOrderAdminUI extends SaleBillUI {
 				   MessageDialog.showHintDlg(this,"提示：","当前单据为空，请先查出要调价的销售单。"); 
 				   return ;
 			}
+			
+			/**：add by ouyangzhb 2013-04-27 “必须先选择销售费用流程！”，该约束需去掉
 		    String cbiztype =  boBusiType.getTag();		  
 		    String businame=JunjiePubTool.getNameByID("bd_busitype", "businame", "pk_busitype", cbiztype);
 		    if(businame==null ||!businame.contains("销售费用流程")){
 			  MessageDialog.showHintDlg(this,"提示："," 必须先选择销售费用流程！"); 
 			   return ;
 		    }		  
-		    
+			 */
 		    try {
 				super.onCopyBill();//复制
 			} catch (Exception e) {
@@ -501,7 +503,7 @@ public class SaleOrderAdminUI extends SaleBillUI {
 	// chenjianhua 2013-04-15  增加调价  按钮
 	protected ButtonObject getBoAdjustPrice() {
 		if (boAdjustPrice == null) {
-			boAdjustPrice = new ButtonObject("调价", "调价", "调价");
+			boAdjustPrice = new ButtonObject("关联复制", "关联复制", "关联复制");
 		}
 		return boAdjustPrice;
 	}
