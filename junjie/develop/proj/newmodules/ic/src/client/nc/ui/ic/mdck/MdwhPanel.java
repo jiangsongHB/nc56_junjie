@@ -781,6 +781,8 @@ public class MdwhPanel extends UIPanel implements ActionListener,
 			
 			//add by ouyangzhb 2012-08-13 码单的参照允许多选
 			jbhPa.setMultiSelectedEnabled(true);
+			//add by ouyangzhb 2013-04-28 清缓存
+			jbhPa.getRefModel().clearCacheData();
 		}
 		return true;
 
