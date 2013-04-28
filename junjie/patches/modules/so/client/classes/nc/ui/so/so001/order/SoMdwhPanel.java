@@ -472,6 +472,8 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 				
 			*/		
 			jbhPa.setWhereString(sqlWhere);
+			//add by ouyangzhb 2013-04-28 Çå»º´æ
+			jbhPa.getRefModel().clearCacheData();
 		}
 		return true;
 
