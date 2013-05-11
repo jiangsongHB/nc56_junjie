@@ -840,7 +840,25 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				}
 			}
 		}
-
+		
+		 /**add by ouyangzhb 2013-05-12 在出入库单删行的时候，需要检查是否还存在有码单明细没有删除 begin*/
+		if(length >=1){
+			for(int i=0;i<length;i++){
+				try {
+					String bid = getM_voBill().getChildrenVO()[selrow[i]].getPrimaryKey();
+					String sql = "select distinct k.cgeneralbid from nc_mdcrk k where k.cgeneralbid='"+bid+"' and nvl(k.dr,0)=0";
+					IUAPQueryBS query1 = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+	                Object o = query1.executeQuery(sql, new ColumnProcessor()); 
+	                if(o !=null&&!"".equals(o)){
+	                	showErrorMessage("第【"+getM_voBill().getChildrenVO()[selrow[i]].getAttributeValue("crowno")+"】行已存在码单明细，不能删行，请检查！");
+	                	return ;
+	                }
+				} catch (BusinessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		 /**add by ouyangzhb 2013-05-12 在出入库单删行的时候，需要检查是否还存在有码单明细没有删除 end*/
 		if (length == 0) { // 没选中一行，返回
 			return;
 		} else if (length == 1) { // 删除一行
@@ -1120,6 +1138,26 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
     
   //  二次开发扩展
       getClientUI().getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.DELETE, voaDeleteBill);
+
+      /**add by ouyangzhb 2013-05-12 在出入库单删除的时候，需要检查是否还存在有码单明细没有删除 begin*/
+		for (int i = 0; i < voaDeleteBill.length; i++) {
+				for (int j = 0; j < voaDeleteBill[i].getChildrenVO().length; j++) {
+					try {
+						String bid = voaDeleteBill[i].getChildrenVO()[j].getPrimaryKey();
+						String sql = "select distinct k.cgeneralbid from nc_mdcrk k where k.cgeneralbid='"
+								+ bid + "' and nvl(k.dr,0)=0";
+						IUAPQueryBS query1 = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+						Object o = query1.executeQuery(sql,new ColumnProcessor());
+						if (o != null && !"".equals(o)) {
+							showErrorMessage("第【"+ voaDeleteBill[i].getChildrenVO()[j].getAttributeValue("crowno")+ "】行已存在码单明细，不能删行，请检查！");
+							return;
+						}
+					} catch (BusinessException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		  /**add by ouyangzhb 2013-05-12 在出入库单删除的时候，需要检查是否还存在有码单明细没有删除 end*/
       
   		onDeleteKernel(voaDeleteBill);
       
