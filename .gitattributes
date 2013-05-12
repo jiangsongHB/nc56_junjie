@@ -647,6 +647,10 @@ junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SoMdwhDlg.class -t
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SoMdwhDlg.java -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SoMdwhPanel.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/order/SoMdwhPanel.java -text
+junjie/patches/modules/so/client/classes/nc/ui/so/so001/panel/SaleBillUI.class -text
+junjie/patches/modules/so/client/classes/nc/ui/so/so001/panel/card/SaleBillCardUI$1.class -text
+junjie/patches/modules/so/client/classes/nc/ui/so/so001/panel/card/SaleBillCardUI$myCellRenderer.class -text
+junjie/patches/modules/so/client/classes/nc/ui/so/so001/panel/card/SaleBillCardUI.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/panel/list/SaleBillListUI.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/panel/list/SaleBillListUI.java -text
 junjie/patches/modules/so/client/classes/nc/ui/so/so001/revise/SaleOrderReviseUI.class -text
