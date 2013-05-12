@@ -331,6 +331,8 @@ junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhDlg.clas
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhDlg.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhPanel.class -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SoMdwhPanel.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/SaleBillUI.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/card/SaleBillCardUI.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.class -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/panel/list/SaleBillListUI.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/revise/SaleOrderReviseUI.java -text
