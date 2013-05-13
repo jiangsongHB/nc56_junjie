@@ -121,7 +121,8 @@ public class MdsdBean {
 		vo.setDef3(kyzl);
 		vo.setDef1(kyzs);
 		vo.setDef2(kyzl);
-		vo.setSxrq(cdate.getDateAfter(3));// 失效日期
+		//add by ouyangzh 2013-05-14 不需要指定失效日期
+//		vo.setSxrq(cdate.getDateAfter(3));// 失效日期
 		vo.setSdrq(cdate);// 锁定日期
 		return vo;
 	}
