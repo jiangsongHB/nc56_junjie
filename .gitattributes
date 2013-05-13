@@ -342,6 +342,7 @@ junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SalePrintData.java -
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_30_OrderFinish.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_30_SoBlankout.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.java -text
+junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/SaleStayOrderClose.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/JunJieSoDMO.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/SaleOrderDMO.java -text
 junjie/develop/proj/newmodules/so/src/public/nc/util/so/junjie/JunjiePubTool.java -text
