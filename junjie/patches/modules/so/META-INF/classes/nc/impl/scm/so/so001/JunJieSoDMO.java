@@ -93,5 +93,25 @@ public class JunJieSoDMO {
 		dao.deleteByClause(MdsdVO.class, sWhere);
 		
 	}
+	
+	
+	
+	/**
+	 * add by ouyangzhb 2013-05-14 预警关闭时，按行删除
+	 * 
+	 */
+	public void freeMdsdBybid(String bodyid) throws BusinessException {
+		if(bodyid==null ){
+			return ;
+		}
+		
+		String sWhere =" xsddbt_pk ='" +bodyid + "' and dr=0 ";
+		
+		BaseDAO dao=new BaseDAO();
+		
+		dao.deleteByClause(MdsdVO.class, sWhere);
+		
+	}
+	
 
 }
