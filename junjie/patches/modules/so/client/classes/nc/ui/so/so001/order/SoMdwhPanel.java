@@ -73,7 +73,7 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 		initialize();
 		initDate();
 		// 如果签字后，则不能编辑
-		if (hvo.getFstatus() == 2 &&!(saleOrderAdminUI instanceof SaleOrderReviseUI))
+		if ((hvo.getFstatus() == 2 &&!(saleOrderAdminUI instanceof SaleOrderReviseUI))||hvo.getFstatus() == 6)
 			buttonState(false, false, false, true);
 		else
 			buttonState(true, true, false, true);
@@ -461,7 +461,8 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			String sqlWhere = " pk_corp='" + hvo.getPk_corp()
 					+ "' and dr=0  and ccalbodyidb='" + hvo.getCcalbodyid()
 					+ "'  and cinvbasid='" + bvo.getCinvbasdocid()
-					+ "' and cinventoryidb='" + bvo.getCinventoryid() + "'";
+					+ "' and cinventoryidb='" + bvo.getCinventoryid() + "'" 
+					+ " and cwarehouseid = '"+bvo.getCbodywarehouseid()+"'";//add by ouyangzhb 2013-05-30 码单锁定增加仓库条件
 			
 			/**
 			 * add by ouyangzhb 2013-04-27 码单的参照界面不需要有是否“非计算”条件的限制
