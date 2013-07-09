@@ -1865,6 +1865,7 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					body.setYbye(new UFDouble(oneExpense.getNoriginalcurmny()));// 原币余额--无税金额
 					body.setYwbm("0001AA10000000006MFZ");// 单据类型PK--固定0001AA10000000006MFZ
 					body.setYwybm(generalHead.getCbizid());// 业务员PK--其他入库单业务员id
+					body.setCkdh(generalHead.getVbillcode());//lumzh 2013-07-08增加出库单号
 					/*** 特殊标志: 自定义项18 19 */
 					body.setZyx18("tureFree");// 2010-11-07 "费用暂估应付"标志,启用于:
 												// 暂估处理,See:EstimateImpl 约9181行
