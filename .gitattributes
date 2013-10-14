@@ -299,6 +299,8 @@ junjie/develop/proj/newmodules/pu/src/private/nc/bs/pu/pr/PraybillDMO.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pub/action/N_25_CRTAPBILL.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pub/action/N_25_DELAPBILL.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pub/action/N_25_FEEAPPROVE.java -text
+junjie/develop/proj/newmodules/pu/src/private/nc/impl/jj/update/UpdateArapImpl.java -text
+junjie/develop/proj/newmodules/pu/src/public/nc/itf/jj/update/IUpdateArap.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/itf/ps/estimate/IEstimate.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/itf/pu/mm/ISrvPUToMM.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/po/OrderVO.java -text

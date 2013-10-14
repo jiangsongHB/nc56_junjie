@@ -398,14 +398,16 @@ public class PfUtilClient {
 			whereString = qcDLG.getWhereSQL();
 		} else
 			whereString = pkField + "='" + sourceBillId + "'";
-		 //add by ouyangzhb 2011-05-06 
-		  // 采购发票参照采购应付单的过滤条件(是否红冲：否    是否暂估应付：是,是否生效）
+          //add by QuSida (佛山骏杰)2010-9-24
+		  // 采购发票参照采购应付单的过滤条件(是否红冲：否    是否暂估应付：是)
 		if(currentBillType.trim().equals("25")&&billType.trim().equals("D1")){
 		whereString = whereString.substring(0, whereString.length()-1);
-		whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0 and zb.sxbz ='10' and fb.ybye <> 0 )";  //wanglei 2011-06-14 增加餘額過濾
-
+		//add by zhang xiao wei and isnull(zb.zyx20,'N')='N' 处理参照回写的问题。
+		whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0 and isnull(zb.zyx20,'N')='N' )";
 		}
-
+		
+		
+		
 		// fgj2001-12-06在条件语句的后边增加0(与公司无关)或1(与公司有关)
 		if (isQueryRelationCorp) {
 			whereString = whereString + "1";
