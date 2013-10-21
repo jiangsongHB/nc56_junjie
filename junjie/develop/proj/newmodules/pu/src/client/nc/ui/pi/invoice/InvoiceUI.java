@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +27,7 @@ import nc.itf.pi.IDataPowerForInv;
 import nc.itf.pi.IInvoiceD;
 import nc.itf.scm.cenpur.service.TempTableUtil;
 import nc.itf.uap.IUAPQueryBS;
+import nc.itf.uap.busibean.ISysInitQry;
 import nc.itf.uap.pf.IPFMetaModel;
 import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.BeanListProcessor;
@@ -104,6 +106,7 @@ import nc.ui.scm.pub.print.ScmPrintTool;
 import nc.ui.scm.pub.query.SCMQueryConditionDlg;
 import nc.ui.scm.pub.report.BillRowNo;
 import nc.ui.scm.pub.sourceref.SourceRefDlg;
+import nc.vo.arap.global.ArapDjCalculator;
 import nc.vo.bd.b06.PsndocVO;
 import nc.vo.ep.dj.DJZBHeaderVO;
 import nc.vo.ep.dj.DJZBItemVO;
@@ -123,6 +126,7 @@ import nc.vo.pu.exception.RwtPiToPoException;
 import nc.vo.pu.exception.RwtPiToScException;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.CommonConstant;
 import nc.vo.pub.VOStatus;
 import nc.vo.pub.ValidationException;
@@ -140,6 +144,7 @@ import nc.vo.scm.ic.bill.InvVO;
 import nc.vo.scm.pu.BillStatus;
 import nc.vo.scm.pu.BillTypeConst;
 import nc.vo.scm.pu.PuPubVO;
+import nc.vo.scm.pu.RelationsCalVO;
 import nc.vo.scm.pu.VariableConst;
 import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.session.ClientLink;
@@ -4700,6 +4705,25 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 					if (vo != null) {
 						if (vo.getDdlx() == null) {
 							bodyvos[k] = vo;
+							vo.setDfshl(invoicevos[k].getNinvoicenum());
+							vo.setYbye(invoicevos[k].getNinvoicenum().multiply(vo.getDj()));
+							vo.setDj(null);
+							vo.setHsdj(null);
+							vo.setDfybje(vo.getYbye());
+							vo.setDffbje(vo.getFbye() == null ? null
+									: vo.getFbye());
+							vo.setDfbbje(vo.getBbye());
+							try {
+								vo = ArapDjCalculator.getInstance().calculateVO(
+										vo, "dfybje", vo.getBilldate().toString(),
+										"D1",
+										getParam(vo.getDwbm(), 3));
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							vo.setYbye(vo.getDfybje());
+							vo.setFbye(vo.getDffbje());
+							vo.setBbye(vo.getDfbbje());
 						} else {
 							return null;
 						}
@@ -4719,7 +4743,6 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 				billvo[i] = aggvo;
 
 			} catch (BusinessException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -6716,7 +6739,16 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 							}
 						}
 					} else {
-						vos = (InvoiceVO[]) PfUtilClient.getRetVos();
+						
+						/** add by ouyangzhb 2013-10-17 如果來源是应付单的，需要根据供应商合并单据 **/
+						if ("D1".equalsIgnoreCase(strUpBillType)) {
+							vos = (InvoiceVO[]) getCombineRetVoS();
+						} else {
+							vos = (InvoiceVO[]) PfUtilClient.getRetVos();
+						}
+						// vos = (InvoiceVO[]) PfUtilClient.getRetVos();
+						/** add by ouyangzhb 2013-10-17 如果來源是应付单的，需要根据供应商合并单据 **/	
+						
 						if (vos == null) {
 							MessageDialog.showHintDlg(this, nc.ui.ml.NCLangRes
 									.getInstance().getStrByID("40040401",
@@ -14778,4 +14810,109 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 		}
 		return queryBS;
 	}
+	
+	
+	/**
+	 * add by ouyangzhb 2013-10-16 根据供应商合并单据
+	 * @return
+	 */
+	public InvoiceVO[] getCombineRetVoS() {
+		InvoiceVO[] vos = null;
+		InvoiceVO[] retvos = (InvoiceVO[]) PfUtilClient.getRetVos();
+		if (retvos == null) {
+			return null;
+		}
+
+		/** 1、按供应商分组发票 **/
+		HashMap<String, ArrayList<InvoiceVO>> vogroup = new HashMap<String, ArrayList<InvoiceVO>>();
+		ArrayList<InvoiceVO> billvolist = null;
+		for (int i = 0; i < retvos.length; i++) {
+			InvoiceHeaderVO headvo = retvos[i].getHeadVO();
+			String cvendorid = headvo.getCvendormangid();
+			if (vogroup.containsKey(cvendorid)) {
+				billvolist = vogroup.get(cvendorid);
+				billvolist.add(retvos[i]);
+				vogroup.put(cvendorid, billvolist);
+			} else {
+				billvolist = new ArrayList<InvoiceVO>();
+				billvolist.add(retvos[i]);
+				vogroup.put(cvendorid, billvolist);
+			}
+		}
+		/** 2、把相同供应商的表头和表体组合在一起 **/
+		ArrayList<InvoiceItemVO> bodylist = null;
+		InvoiceItemVO[] itemvos = null;
+		InvoiceVO vo = null;
+		InvoiceHeaderVO headvo = null;
+		billvolist = new ArrayList<InvoiceVO>();
+		Iterator iter = vogroup.entrySet().iterator();
+		while (iter.hasNext()) {
+			bodylist = new ArrayList<InvoiceItemVO>();
+			vo = new InvoiceVO();
+			Map.Entry entry = (Map.Entry) iter.next();
+			Object key = entry.getKey();
+			ArrayList<InvoiceVO> val = (ArrayList<InvoiceVO>) entry.getValue();
+			// 构建表头
+			headvo = val.get(0).getHeadVO();
+			// 组合表体
+			for (int i = 0; i < val.size(); i++) {
+				InvoiceItemVO[] childvos = (InvoiceItemVO[]) val.get(i)
+						.getChildrenVO();
+				for (int j = 0; j < childvos.length; j++) {
+					bodylist.add(childvos[j]);
+				}
+			}
+			// 为billvo 设置组合后的表头、表体
+			if (bodylist != null && bodylist.size() > 0) {
+				itemvos = new InvoiceItemVO[bodylist.size()];
+				bodylist.toArray(itemvos);
+				vo.setParentVO(headvo);
+				vo.setChildrenVO(itemvos);
+				billvolist.add(vo);
+
+			}
+		}
+		// 获取组合后的vo
+		if (billvolist != null && billvolist.size() > 0) {
+			vos = new InvoiceVO[billvolist.size()];
+			billvolist.toArray(vos);
+		}
+		return vos;
+	}
+	
+	public int[] getParam(String pk_corp, int pzglh) throws Exception {
+		if (pzglh == 0) {
+			if (((ISysInitQry) NCLocator.getInstance().lookup(
+					ISysInitQry.class.getName()))
+					.getParaString(pk_corp, "AR21").equals("含税价格优先"))/*
+																	 * -=notranslate
+																	 * =-
+																	 */
+			{
+				return new int[] { RelationsCalVO.TAXPRICE_PRIOR_TO_PRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			} else {
+				return new int[] { RelationsCalVO.PRICE_PRIOR_TO_TAXPRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			}
+
+		} else {
+			if (((ISysInitQry) NCLocator.getInstance().lookup(
+					ISysInitQry.class.getName()))
+					.getParaString(pk_corp, "AP21").equals("含税价格优先"))/*
+																	 * -=notranslate
+																	 * =-
+																	 */
+			{
+				return new int[] { RelationsCalVO.TAXPRICE_PRIOR_TO_PRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			} else {
+				return new int[] { RelationsCalVO.PRICE_PRIOR_TO_TAXPRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			}
+		}
+
+	}
+	
+	
 }
