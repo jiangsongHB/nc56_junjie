@@ -8764,9 +8764,9 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
 //      	HashMap tZGYF = new PubDMO().queryArrayValues("arap_djfb","ddhh",new String[]{"vouchid"},sTemp,"dr=0");
 //      	if(tZGYF == null || tZGYF.size() == 0) return null;
       	
-      	//add by ouyangzhb 2011-08-20 不能注解，因为需要用这个条件来判断是否是“手工自制费用发票”（有没有来源单据-采购订单）
-      		HashMap tZGYF = new PubDMO().queryArrayValues("arap_djfb","ddhh",new String[]{"vouchid"},sTemp,"dr=0");
-      		if(tZGYF == null || tZGYF.size() == 0) return null;
+      	/**add by ouyangzhb 2013-10-21 需要注解掉，多个来源，按这种方式判断会导致无法删除回冲单据*/
+//      		HashMap tZGYF = new PubDMO().queryArrayValues("arap_djfb","ddhh",new String[]{"vouchid"},sTemp,"dr=0");
+//      		if(tZGYF == null || tZGYF.size() == 0) return null;
       	
       	//确定哪些发票行需要回冲
       	vecCbaseid = new Vector();

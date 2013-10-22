@@ -107,6 +107,7 @@ import nc.ui.scm.pub.query.SCMQueryConditionDlg;
 import nc.ui.scm.pub.report.BillRowNo;
 import nc.ui.scm.pub.sourceref.SourceRefDlg;
 import nc.vo.arap.global.ArapDjCalculator;
+import nc.vo.arap.pub.ArapConstant;
 import nc.vo.bd.b06.PsndocVO;
 import nc.vo.ep.dj.DJZBHeaderVO;
 import nc.vo.ep.dj.DJZBItemVO;
@@ -4683,12 +4684,15 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 	}
 
 	private DJZBVO[] getBillVO(InvoiceVO[] proceVOs) {
-		DJZBVO[] billvo = new DJZBVO[proceVOs.length];
+		ArrayList<DJZBVO> billvolist = new ArrayList<DJZBVO>();
+		ArrayList<DJZBItemVO> bodylist = null;
+		HashMap<String, ArrayList<DJZBItemVO>> volist = new HashMap<String, ArrayList<DJZBItemVO>>();
+		DJZBVO[] billvo = null;
 		for (int i = 0; i < proceVOs.length; i++) {
 			DJZBVO aggvo = new DJZBVO();
 			InvoiceHeaderVO headVO = proceVOs[i].getHeadVO();
 			InvoiceItemVO[] invoicevos = proceVOs[i].getBodyVO();
-			DJZBItemVO[] bodyvos = new DJZBItemVO[invoicevos.length];
+
 			try {
 				for (int k = 0; k < invoicevos.length; k++) {
 					// ArrayList<DJZBItemVO> listvo=null;
@@ -4704,47 +4708,80 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 
 					if (vo != null) {
 						if (vo.getDdlx() == null) {
-							bodyvos[k] = vo;
-							vo.setDfshl(invoicevos[k].getNinvoicenum());
-							vo.setYbye(invoicevos[k].getNinvoicenum().multiply(vo.getDj()));
+							vo.setDfshl(invoicevos[k].getNinvoicenum()
+									.multiply(ArapConstant.INT_NEGATIVE_ONE));
+							vo.setYbye(invoicevos[k].getNinvoicenum().multiply(
+									vo.getDj()));// 后续会对这个金额做负数处理
 							vo.setDj(null);
 							vo.setHsdj(null);
 							vo.setDfybje(vo.getYbye());
-							vo.setDffbje(vo.getFbye() == null ? null
-									: vo.getFbye());
+							vo.setDffbje(vo.getFbye() == null ? null : vo.getFbye());
 							vo.setDfbbje(vo.getBbye());
+							vo.setClbh(headVO.getCinvoiceid());// add by ouyangzhb  2013-10-21 标识红冲单据对应的发票行
 							try {
-								vo = ArapDjCalculator.getInstance().calculateVO(
-										vo, "dfybje", vo.getBilldate().toString(),
-										"D1",
-										getParam(vo.getDwbm(), 3));
+								vo = ArapDjCalculator
+										.getInstance()
+										.calculateVO(vo, "dfybje",
+												vo.getBilldate().toString(),
+												"D1", getParam(vo.getDwbm(), 3));
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
 							vo.setYbye(vo.getDfybje());
 							vo.setFbye(vo.getDffbje());
 							vo.setBbye(vo.getDfbbje());
+							//来源单据相同的，合成一张单
+							String vouchid = invoicevos[k].getCupsourcebillid();
+							if (volist.containsKey(vouchid)) {
+								bodylist = volist.get(vouchid);
+								bodylist.add(vo);
+								volist.put(vouchid, bodylist);
+							} else {
+								bodylist = new ArrayList<DJZBItemVO>();
+								bodylist.add(vo);
+								volist.put(vouchid, bodylist);
+							}
+
 						} else {
-							return null;
+							continue;
 						}
 					} else {
-						return null;
+						continue;
 					}
 
 				}
 
-				DJZBHeaderVO headvo = null;
-				String sqlh = "select * from arap_djzb where vouchid='"
-						+ bodyvos[0].getVouchid() + "' and isnull(dr,0)=0";
-				headvo = (DJZBHeaderVO) getQueryBS().executeQuery(sqlh,
-						new BeanProcessor(DJZBHeaderVO.class));
-				aggvo.setChildrenVO(bodyvos);
-				aggvo.setParentVO(headvo);
-				billvo[i] = aggvo;
-
 			} catch (BusinessException e) {
 				e.printStackTrace();
 			}
+		}
+		if (volist != null && volist.size() > 0) {
+			billvo = new DJZBVO[volist.size()];
+			Iterator iter = volist.entrySet().iterator();
+			while (iter.hasNext()) {
+				DJZBVO aggvo = new DJZBVO();
+				Map.Entry entry = (Map.Entry) iter.next();
+				Object key = entry.getKey();
+				ArrayList<DJZBItemVO> val = (ArrayList<DJZBItemVO>) entry
+						.getValue();
+				DJZBItemVO[] bodyvos = new DJZBItemVO[val.size()];
+				val.toArray(bodyvos);
+				DJZBHeaderVO headvo = null;
+				String sqlh = "select * from arap_djzb where vouchid='" + key
+						+ "' and isnull(dr,0)=0";
+				try {
+					headvo = (DJZBHeaderVO) getQueryBS().executeQuery(sqlh,
+							new BeanProcessor(DJZBHeaderVO.class));
+				} catch (BusinessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				aggvo.setChildrenVO(bodyvos);
+				aggvo.setParentVO(headvo);
+				billvolist.add(aggvo);
+
+			}
+			billvolist.toArray(billvo);
 		}
 		return billvo;
 	}
@@ -4980,7 +5017,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 				DJZBItemVO item = new DJZBItemVO();
 				// 必填，单位编码
 				item.setDwbm(dwbm);
-
+				
 				// 报价单位含税单价
 				item.setBjdwhsdj(UFDouble.ZERO_DBL);
 				// 报价单位数量
@@ -5109,6 +5146,10 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 				item.setJfbbje(UFDouble.ZERO_DBL);
 				// 必填，借方本币无税金额,借方原币金额＊汇率,不能为0必须填值
 				item.setWbfbbje(UFDouble.ZERO_DBL);
+				
+				//add by ouyangzhb 2013-10-21 增加处理编号，用来区分每一笔的单据对应关系
+				item.setClbh(bodyvo[i].getClbh());
+				
 				items[i] = item;
 			}
 		}
@@ -14120,51 +14161,78 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 	/*
 	 * add by zhang xiao wei 2013-09-30 获取回冲暂估应付单 (non-Javadoc)
 	 * 
+	 * 支持多张单
+	 * 
 	 * @see nc.ui.pub.bill.BillActionListener#onEditAction(int)
 	 */
 
 	private ArrayList<DJZBVO> getDjzbvo(InvoiceVO[] voaInvoice) {
 		ArrayList<DJZBVO> listvo = new ArrayList<DJZBVO>();
-
+		ArrayList<DJZBVO> billvolist = new ArrayList<DJZBVO>();
+		ArrayList<DJZBItemVO> bodylist = null;
+		HashMap<String, ArrayList<DJZBItemVO>> keyvolist = new HashMap<String, ArrayList<DJZBItemVO>>();
 		// add by zhang xiao wei 2013-09-30
 		for (int j = 0; j < voaInvoice.length; j++) {
 			DJZBHeaderVO headvo = null;
 			ArrayList<DJZBItemVO> listbodyvo = null;
 			DJZBVO billvo = new DJZBVO();
-
-			String sqlb = "select * from arap_djfb where  ddlx='"
-					+ voaInvoice[j].getBodyVO()[0].getCupsourcebillid()
-					+ "' and isnull(dr,0)=0 ";
+			// add by ouyangzhb 2013-10-21 通过处理编号来控制需要删除的单据
+			String sqlb = "select * from arap_djfb where  isnull(dr,0)=0  and clbh ='"
+					+ voaInvoice[j].getHeadVO().getCinvoiceid() + "' ";
 			try {
 				listbodyvo = (ArrayList<DJZBItemVO>) getQueryBS().executeQuery(
 						sqlb, new BeanListProcessor(DJZBItemVO.class));
 				DJZBItemVO[] itemvos = new DJZBItemVO[listbodyvo.size()];
+				//add by ouyangzhb 2013-10-21 支持多张单的删除（来源多张暂估应付单）
 				if (listbodyvo.size() > 0) {
-
-					String sqlh = "select * from arap_djzb where vouchid='"
-							+ listbodyvo.get(0).getVouchid()
-							+ "' and isnull(dr,0)=0";
-					headvo = (DJZBHeaderVO) getQueryBS().executeQuery(sqlh,
-							new BeanProcessor(DJZBHeaderVO.class));
+					for (int index = 0; index < listbodyvo.size(); index++) {
+						String vouchid = listbodyvo.get(index).getVouchid();
+						if (keyvolist.containsKey(vouchid)) {
+							bodylist = keyvolist.get(vouchid);
+							bodylist.add(listbodyvo.get(index));
+							keyvolist.put(vouchid, bodylist);
+						} else {
+							bodylist = new ArrayList<DJZBItemVO>();
+							bodylist.add(listbodyvo.get(index));
+							keyvolist.put(vouchid, bodylist);
+						}
+					}
 				}
-				for (int i = 0; i < listbodyvo.size(); i++) {
-					DJZBItemVO vo = new DJZBItemVO();
-					itemvos[i] = listbodyvo.get(i);
 
-				}
-				billvo.setParentVO(headvo);
-				billvo.setChildrenVO(itemvos);
-				listvo.add(billvo);
 			} catch (BusinessException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
 		}
+		if (keyvolist != null && keyvolist.size() > 0) {
+			Iterator iter = keyvolist.entrySet().iterator();
 
-		return listvo;
+			while (iter.hasNext()) {
+				DJZBVO aggvo = new DJZBVO();
+				Map.Entry entry = (Map.Entry) iter.next();
+				Object key = entry.getKey();
+				ArrayList<DJZBItemVO> val = (ArrayList<DJZBItemVO>) entry
+						.getValue();
+				DJZBItemVO[] bodyvos = new DJZBItemVO[val.size()];
+				val.toArray(bodyvos);
+				DJZBHeaderVO headvo = null;
+				String sqlh = "select * from arap_djzb where vouchid='" + key
+						+ "' and isnull(dr,0)=0";
+				try {
+					headvo = (DJZBHeaderVO) getQueryBS().executeQuery(sqlh,
+							new BeanProcessor(DJZBHeaderVO.class));
+				} catch (BusinessException e) {
+					e.printStackTrace();
+				}
+				aggvo.setChildrenVO(bodyvos);
+				aggvo.setParentVO(headvo);
+				billvolist.add(aggvo);
+			}
+		}
+		return billvolist;
 	}
 
+	
+	
 	public boolean onEditAction(int action) {
 		if (action == BillScrollPane.ADDLINE) {
 			getBillCardPanel().getBillModel().addLine();
@@ -14828,7 +14896,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 		ArrayList<InvoiceVO> billvolist = null;
 		for (int i = 0; i < retvos.length; i++) {
 			InvoiceHeaderVO headvo = retvos[i].getHeadVO();
-			String cvendorid = headvo.getCvendormangid();
+			String cvendorid = headvo.getCvendorbaseid();
 			if (vogroup.containsKey(cvendorid)) {
 				billvolist = vogroup.get(cvendorid);
 				billvolist.add(retvos[i]);

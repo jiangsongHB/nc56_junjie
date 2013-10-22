@@ -7512,7 +7512,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 				if (numtem != null
 						&& new UFDouble(numtem.toString()).toDouble() < 0) {
 					throw new BusinessException("第" + itemvo[j].getCrowno()
-							+ "行的累计开单数量已超出可开单数量:"+new UFDouble(numtem.toString()).toDouble()+"，不能保存，请检查！");
+							+ "行的累计开单数量已超出可开单数量:"+new UFDouble(numtem.toString())+"，不能保存，请检查！");
 				}
 			}
 
