@@ -38,8 +38,9 @@ public class CHGF1TO25 extends VOConversionUI {
 "B_ccurrencytypeid->B_bzbm",//原币币种ID -> 币种编码
 
 "B_cprojectphaseid->B_pk_jobobjpha",//项目阶段ID ->项目阶段管理档案id
-"B_csourcebillid->B_ddh",//来源单据ID ->订单号
-"B_csourcebillrowid->B_ddhid",//来源单据行ID-> 订单行id 
+"B_csourcebillid->B_ddlx",//来源单据ID ->订单号
+"B_csourcebillrowid->B_ddhh",//来源单据行ID-> 订单行id 
+"B_csourcebilltype->B_jsfsbm",//上层来源类型
 "B_cupsourcebillid->B_vouchid",//上层来源单据ID -> 单据主键
 "B_cupsourcebillrowid->B_fb_oid",//上层来源单据行ID ->单据辅表id
 "B_cupsourcebilltype->H_djlxbm",//上层来源单据类型 ->单据类型编码

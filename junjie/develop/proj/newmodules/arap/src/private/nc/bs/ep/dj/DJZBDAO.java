@@ -4416,7 +4416,7 @@ public class DJZBDAO {
     	//add by ouyangzhb 2011-05-10 为来源类型为3的设置过滤条件
 	    else if(Integer.valueOf(lx)==3)//订单行id
 	    {
-	    	lyattr="ddhid";
+	    	lyattr="ddhh";//源头单据id
 	    }
     	
     	String tempTableName=null;

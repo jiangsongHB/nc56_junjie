@@ -4844,7 +4844,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 			DJZBVO djzbVo = new DJZBVO();
 			djzbVo.setParentVO(header);
 			djzbVo.setChildrenVO(items);
-			djzbVos[0] = djzbVo;
+			djzbVos[i] = djzbVo;
 		}
 		return djzbVos;
 	}

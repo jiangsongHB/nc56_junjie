@@ -1723,11 +1723,6 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
 
 	      InvoiceItemVO[] aInvoiceItemVOs = null;
 	      for (int i = 0; i < voaInv.length; i++) {
-//	    	  //过滤正常的物料发票
-//	    	  if(voaInv[i].getHeadVO().getVdef20()==null||!voaInv[i].getHeadVO().getVdef20().equals("Y")){
-//	    		  return;
-//	    	  }
-
 	        aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
 	        if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
 	          continue;

@@ -309,7 +309,7 @@ public class ArapForGYL {
 
 				bz = ((DJZBItemVO) djvo[0].getChildrenVO()[0]).getBzbm();
 				
-				/**add by ouyangzhb 2013-10-21 获取红冲单据*/
+				/**add by ouyangzhb 2013-10-21 */
 				if(lylx == 3){
 					temp = this.getNewDJForZGYF(djvo, vo[i], clbh, clrq, ly, pk_corp);
 				}else{
@@ -480,6 +480,8 @@ public class ArapForGYL {
 				newItem.setDdhh(((DJZBItemVO) ((DJZBItemVO) source
 						.getChildrenVO()[0])).getFb_oid());
 				newItem.setDdlx(((DJZBItemVO) ((DJZBItemVO) source
+						.getChildrenVO()[0])).getVouchid());
+				newItem.setDdhid(((DJZBItemVO) ((DJZBItemVO) source
 						.getChildrenVO()[0])).getVouchid());
 				DJZBHeaderVO head = (DJZBHeaderVO) source.getParentVO();
 					if (i < item.length - 1) {
@@ -721,6 +723,8 @@ public class ArapForGYL {
 		}
 		return ret;
 	}
+
+	
 
 	/**
 	 * 分单处理。
