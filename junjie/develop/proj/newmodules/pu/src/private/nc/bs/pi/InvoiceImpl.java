@@ -7472,7 +7472,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 			if (invoice_bid != null) {
 
 				// 查询累计开票数量是否超出原有数量
-				querysql = "select (nvl(fb.shlye,0) - (isnull(fb.ntotalinvoicenumber,0) + '"
+				querysql = "select (abs(nvl(fb.dfshl,0)) - abs(isnull(fb.ntotalinvoicenumber,0) + '"
 						+ itemvo[j].getNinvoicenum()
 						+ "'-(select isnull(ninvoicenum,0) from po_invoice_b b where b.cinvoice_bid='"
 						+ invoice_bid
@@ -7489,7 +7489,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 			} else {
 
 				// 查询语句
-				querysql = "select (nvl(fb.shlye,0) - (isnull(fb.ntotalinvoicenumber,0) + '"
+				querysql = "select (nvl(fb.dfshl,0) - (isnull(fb.ntotalinvoicenumber,0) + '"
 						+ itemvo[j].getNinvoicenum()
 						+ "')) num from arap_djfb  fb where  fb.fb_oid='"
 						+ sourcebillrowid + "' ";

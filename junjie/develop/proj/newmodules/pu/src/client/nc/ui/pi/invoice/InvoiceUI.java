@@ -150,6 +150,7 @@ import nc.vo.scm.pu.VariableConst;
 import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.session.ClientLink;
 import nc.vo.scm.pub.smart.ObjectUtils;
+import nc.vo.scm.relacal.SCMRelationsCal;
 import nc.vo.wfengine.engine.exception.EngineException;
 import nc.vo.wfengine.engine.exception.TaskInvalidateException;
 
@@ -2266,6 +2267,10 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 	private void computeValueFrmOtherBill(InvoiceVO vo) throws Exception {
 
 		InvoiceItemVO[] items = vo.getBodyVO();
+		
+		//add by ouyangzhb 2013-10-22 重算金额
+		reCalculateByAdd(items);
+		
 		try {
 			for (int i = 0; i < items.length; i++) {
 				InvoiceItemVO itemVO = items[i];
@@ -14982,5 +14987,47 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 
 	}
 	
+	/***
+	 * add by ouyangzhb 2013-10-22 
+	 * @param items
+	 */
+	public void reCalculateByAdd(InvoiceItemVO[] items) {
+		String iDiscounttaxtype = "应税内含";/* -=notranslate=- */
+		for (int i = 0; i < items.length; i++) {
+			String cupsourcebilltype = items[i].getCupsourcebilltype();
+			if (cupsourcebilltype != null && cupsourcebilltype.equals("D1")) {
+				if (items[i].getIdiscounttaxtype().intValue() == 1)
+					iDiscounttaxtype = "应税外加";/* -=notranslate=- */
+				else if (items[i].getIdiscounttaxtype().intValue() == 2)
+					iDiscounttaxtype = "不计税";/* -=notranslate=- */
+
+				String[] keys = new String[] { iDiscounttaxtype,
+						"idiscounttaxtype", "ninvoicenum", "noriginalcurprice",
+						"norgnettaxprice", "ntaxrate", "noriginalcurmny",
+						"noriginaltaxmny", "noriginalsummny" };
+
+				int[] descriptions = new int[] {
+						SCMRelationsCal.DISCOUNT_TAX_TYPE_NAME,
+						SCMRelationsCal.DISCOUNT_TAX_TYPE_KEY,
+						SCMRelationsCal.NUM,
+						SCMRelationsCal.NET_PRICE_ORIGINAL,
+						SCMRelationsCal.NET_TAXPRICE_ORIGINAL,
+						SCMRelationsCal.TAXRATE,
+						SCMRelationsCal.MONEY_ORIGINAL,
+						SCMRelationsCal.TAX_ORIGINAL,
+						SCMRelationsCal.SUMMNY_ORIGINAL };
+				try {
+					SCMRelationsCal
+							.calculate(
+									new InvoiceItemVO[] { items[i] },
+									new int[] { RelationsCalVO.PRICE_PRIOR_TO_TAXPRICE },
+									"ntaxrate", descriptions, keys);
+				} catch (BusinessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 	
 }
