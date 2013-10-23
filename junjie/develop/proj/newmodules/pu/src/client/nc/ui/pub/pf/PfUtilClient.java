@@ -403,7 +403,7 @@ public class PfUtilClient {
 		if(currentBillType.trim().equals("25")&&billType.trim().equals("D1")){
 		whereString = whereString.substring(0, whereString.length()-1);
 		//add by zhang xiao wei and isnull(zb.zyx20,'N')='N' 处理参照回写的问题。
-		whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0 and nvl(fb. ntotalinvoicenumber,0)< nvl(fb.shlye,0))";
+		whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0 and nvl(fb.ntotalinvoicenumber,0)< nvl(fb.dfshl,0))";
 		}
 		
 		
