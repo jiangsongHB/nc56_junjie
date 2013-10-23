@@ -403,7 +403,8 @@ public class PfUtilClient {
 		if(currentBillType.trim().equals("25")&&billType.trim().equals("D1")){
 		whereString = whereString.substring(0, whereString.length()-1);
 		//add by zhang xiao wei and isnull(zb.zyx20,'N')='N' 处理参照回写的问题。
-		whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0 and nvl(fb.ntotalinvoicenumber,0)< nvl(fb.dfshl,0)) and  fb.isverifyfinished = 'N' ";
+		//add by ouyangzhb 2013-10-23 增加对表体条件的过滤
+		whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0 and abs(nvl(fb.ntotalinvoicenumber,0))< abs(nvl(fb.dfshl,0)) and  fb.isverifyfinished = 'N' ) ";
 		}
 		
 		

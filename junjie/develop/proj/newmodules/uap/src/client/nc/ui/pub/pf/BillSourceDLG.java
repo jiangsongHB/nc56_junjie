@@ -303,7 +303,14 @@ public class BillSourceDLG extends AbstractReferQueryUI implements ActionListene
 	 * @return
 	 */
 	public String getBodyCondition() {
-		return null;
+		//add by ouyangzhb 2013-10-23 如果是参照暂估应付做发票的，需要增加表体过滤条件
+		if("D1".equals(getBillType())&&"25".equals(getCurrentBillType())){
+			return "and abs(nvl(ntotalinvoicenumber,0))< abs(nvl(dfshl,0)) and  isverifyfinished = 'N' ";
+		}else{
+			return null;
+		}
+//		return null;
+		//add by ouyangzhb 2013-10-23 如果是参照暂估应付做发票的，需要增加表体过滤条件
 	}
 
 	/**
