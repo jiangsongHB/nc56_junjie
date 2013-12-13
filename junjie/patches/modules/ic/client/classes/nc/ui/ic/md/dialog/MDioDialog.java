@@ -594,10 +594,13 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		//getBillCardPanel().getBillModel().getItemByKey("invdetailref").setRefType("<nc.ui.ic.jjpanel.InvDetailRef>");
 		//wanglei 2013-12-13 效率问题调整，取消模板的参照设置。
 		getBillCardPanel().getBillModel().getItemByKey("invdetailref").setDataType(IBillItem.UFREF);  //UFREF 
-		getBillCardPanel().getBillModel().getItemByKey("invdetailref").setRefType("<nc.ui.ic.jjpanel.InvDetailRef>");
-		UIRefPane ref = (UIRefPane) this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
+		//getBillCardPanel().getBillModel().getItemByKey("invdetailref").setRefType("<nc.ui.ic.jjpanel.InvDetailRef>");
+		//UIRefPane ref = (UIRefPane) this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
+		UIRefPane ref = new UIRefPane();
+		ref.setRefModel(new nc.ui.ic.jjpanel.InvDetailRef());
 		ref.setIsCustomDefined(true);
 		ref.setCacheEnabled(false);
+		getBillCardPanel().getBillModel().getItemByKey("invdetailref").setComponent(ref);
 //		getBillCardPanel().updateUI();
 		//end 2013-12-13
 	}
