@@ -19,6 +19,7 @@ import nc.itf.ic.md.IMDTools;
 import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
+import nc.ui.ic.jjpanel.InvDetailRef;
 import nc.ui.ic.mdck.MDConstants;
 import nc.ui.ic.pub.bill.Environment;
 import nc.ui.ic.pub.bill.GeneralBillClientUI;
@@ -29,11 +30,14 @@ import nc.ui.pub.beans.UIDialog;
 import nc.ui.pub.beans.UILabel;
 import nc.ui.pub.beans.UIPanel;
 import nc.ui.pub.beans.UIRefPane;
+import nc.ui.pub.bill.BillCardBeforeEditListener;
 import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.pub.bill.BillItem;
+import nc.ui.pub.bill.BillItemEvent;
+import nc.ui.pub.bill.IBillItem;
 import nc.ui.trade.business.HYPubBO_Client;
 import nc.uif.pub.exception.UifException;
 import nc.vo.ic.jjvo.InvDetailCVO;
@@ -350,10 +354,10 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			// "cgeneralbid")
 			try {
 				MdcrkVO[] vos = (MdcrkVO[]) HYPubBO_Client.queryByCondition(
-						MdcrkVO.class, " isnull(dr,0)=0 and cgeneralbid='"
+						MdcrkVO.class, " cgeneralbid='"
 								+ getGeneralBillVO().getItemValue(
 										getGenSelectRowID(), "cgeneralbid")
-								+ "'");
+								+ "' and isnull(dr,0)=0   ");
 				if (vos != null && vos.length > 0) {
 					getBillCardPanel().getBillModel().setBodyDataVO(vos);
 					getBillCardPanel().getBillModel().execLoadFormula();
@@ -361,10 +365,10 @@ public class MDioDialog extends UIDialog implements ActionListener,
 				 if("23".equals(this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCsourcetype())){
 					//获取当前码单对应的存货明细子表VO
 					InvDetailCVO[] invDetailCVOs=(InvDetailCVO[])HYPubBO_Client.queryByCondition(
-							InvDetailCVO.class, " isnull(dr,0)=0 and pk_mdcrk in (select pk_mdcrk from nc_mdcrk where isnull(dr,0)=0 and cgeneralbid='"
+							InvDetailCVO.class, " pk_mdcrk in (select pk_mdcrk from nc_mdcrk where  cgeneralbid='"
 							+ getGeneralBillVO().getItemValue(
 									getGenSelectRowID(), "cgeneralbid")
-							+ "')");
+							+ "' and isnull(dr,0)=0  ) and isnull(dr,0)=0  ");
 					Logger.debug("MDioDialog:码单VO长:"+vos.length+"明细VO长:"+invDetailCVOs.length);
 					for(int i=0;i<invDetailCVOs.length;i++){//组织成List集合
 						this.invDetailvsMD.add((InvDetailCVO)invDetailCVOs[i].clone());
@@ -587,6 +591,18 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			e.printStackTrace();
 		}
 
+		//getBillCardPanel().getBillModel().getItemByKey("invdetailref").setRefType("<nc.ui.ic.jjpanel.InvDetailRef>");
+		//wanglei 2013-12-13 效率问题调整，取消模板的参照设置。
+		getBillCardPanel().getBillModel().getItemByKey("invdetailref").setDataType(IBillItem.UFREF);  //UFREF 
+		//getBillCardPanel().getBillModel().getItemByKey("invdetailref").setRefType("<nc.ui.ic.jjpanel.InvDetailRef>");
+		//UIRefPane ref = (UIRefPane) this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
+		UIRefPane ref = new UIRefPane();
+		ref.setRefModel(new nc.ui.ic.jjpanel.InvDetailRef());
+		ref.setIsCustomDefined(true);
+		ref.setCacheEnabled(false);
+		getBillCardPanel().getBillModel().getItemByKey("invdetailref").setComponent(ref);
+//		getBillCardPanel().updateUI();
+		//end 2013-12-13
 	}
 
 	private void onDelline() {
@@ -1015,6 +1031,10 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			getBillCardPanel().getBillModel().execLoadFormula();// 显示公式
 		}
 
+		
+//		getBillCardPanel().getBillModel().getItemByKey("invdetailref").setDataType(5);  //UFREF 
+//		getBillCardPanel().getBillModel().getItemByKey("invdetailref").setRefType("<nc.ui.ic.jjpanel.InvDetailRef>");
+		
 	}
 
 	/**
@@ -1372,11 +1392,15 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		// 2011-03-03 Ouyangzhb 所有的采购入库单都需要增设"钢厂数据"参照的过滤条件
 		if(billeditevent.getKey().equals("invdetailref")){
 			String orderBid=this.getGeneralBillVO().getItemVOs()[this.getGenSelectRowID()].getCfirstbillbid();
+//			getBillCardPanel().getBillModel().getItemByKey("invdetailref").setDataType(5);  //UFREF 
+//			getBillCardPanel().getBillModel().getItemByKey("invdetailref").setRefType("<nc.ui.ic.jjpanel.InvDetailRef>");
 			UIRefPane invdetailref=(UIRefPane)this.getBillCardPanel().getBillModel().getItemByKey("invdetailref").getComponent();
+			invdetailref.setMultiSelectedEnabled(true);
 			invdetailref.setWhereString("corder_bid='"+orderBid+"' and unstoragenumber>0 and unstorageweight>0");
 			
 			//wanglei 2011-07-26 add
-			String pk_invdetail = (String) this.getBillCardPanel().getBodyValueAt(billeditevent.getRow(), "pk_invdetail") ;;
+			String pk_invdetail = (String) this.getBillCardPanel().getBodyValueAt(billeditevent.getRow(), "pk_invdetail") ;
+			//String pk_invdetail = billeditevent.getItem().getValue();
 			if (pk_invdetail!=null && hm_invdetailpk.containsKey(pk_invdetail))
 				hm_invdetailpk.remove(pk_invdetail);
 			
@@ -1609,5 +1633,10 @@ public class MDioDialog extends UIDialog implements ActionListener,
 		}
 		return invDetailCVOs;
 	}
+
+//	public boolean beforeEdit(BillItemEvent e) {
+//		// TODO Auto-generated method stub
+//		return false;
+//	}
 
 }
