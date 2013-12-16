@@ -255,6 +255,7 @@ junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4A_SIGN.java -t
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4C_CANCELSIGN.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4C_ORDERINVOICE.java -text
 junjie/develop/proj/newmodules/ic/src/private/nc/bs/pub/action/N_4R_CANCELADJUST.java -text
+junjie/develop/proj/newmodules/ic/src/private/nc/impl/ic/ic008/FixOnhandnumDMO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/ic/src/public/nc/itf/ic/md/IMDTools.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/itf/ic/pub/IGeneralBill.java -text
 junjie/develop/proj/newmodules/ic/src/public/nc/ui/ic/md/dialog/MDUtils.java -text
