@@ -4123,6 +4123,29 @@ public class PoCardPanel extends BillCardPanel implements BillEditListener,
       // 得到所有需传到后台的行
       Vector vecAllItem = new Vector();
       for (int i = 0; i < iNewLen; i++) {
+    	  //begin ncm zhangshuaic 201308291118056297_佛山市顺德区骏杰金属材料有限公司_2013-09-11_专
+    	  /*
+    	   * 重置行号后表体需要后台更新行号
+    	   */
+    	  String sNewBId = voaNewItem[i].getCorder_bid();
+    	  String sNewCrowno = voaNewItem[i].getCrowno();
+    	  //行号是否更新
+    	  boolean bUpdated = false;
+    	  OrderItemVO[] voaOldItem = voOld.getBodyVO();
+    	  for(int j = 0; j < voaOldItem.length; j++){
+    		  String sOldBId = voaOldItem[j].getCorder_bid();
+    		  String sOldCrowno = voaOldItem[j].getCrowno();
+    		  if (PuPubVO.isEqual(sNewBId, sOldBId)) {
+    			  if (!PuPubVO.isEqual(sNewCrowno, sOldCrowno)) {
+    				  bUpdated = true;
+    				  break;
+    			  }
+    		  }  
+    	  }
+    	  if (bUpdated) {
+    		  voaNewItem[i].setStatus(VOStatus.UPDATED);
+            }
+    	  //end ncm zhangshuaic 201308291118056297_佛山市顺德区骏杰金属材料有限公司_2013-09-11_专
         vecAllItem.addElement(voaNewItem[i]);
       }
 
