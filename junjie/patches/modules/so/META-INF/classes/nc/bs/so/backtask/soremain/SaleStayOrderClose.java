@@ -1,7 +1,6 @@
 package nc.bs.so.backtask.soremain;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import nc.bs.dao.BaseDAO;
 import nc.bs.framework.common.NCLocator;
@@ -11,11 +10,10 @@ import nc.impl.scm.so.so001.JunJieSoDMO;
 import nc.impl.scm.so.so001.SaleOrderDMO;
 import nc.impl.scm.sp.sp015.PreOrderAlartFormatMsg;
 import nc.itf.scm.so.so001.ISaleOrderQuery;
-import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.BeanListProcessor;
-import nc.jdbc.framework.processor.MapListProcessor;
 import nc.vo.ia.pub.SqlBuilder;
+import nc.vo.ic.sd.MdsdVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
@@ -26,11 +24,13 @@ import nc.vo.so.so001.SaleorderHVO;
 
 /**
  * @author OUYANGZHB 2013-3-15
- *
+ * 
  */
 public class SaleStayOrderClose implements IBusinessPlugin {
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see nc.bs.pub.pa.IBusinessPlugin#getImplmentsType()
 	 */
 	public int getImplmentsType() {
@@ -38,7 +38,9 @@ public class SaleStayOrderClose implements IBusinessPlugin {
 		return 3;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see nc.bs.pub.pa.IBusinessPlugin#getKeys()
 	 */
 	public Key[] getKeys() {
@@ -46,7 +48,9 @@ public class SaleStayOrderClose implements IBusinessPlugin {
 		return null;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see nc.bs.pub.pa.IBusinessPlugin#getTypeDescription()
 	 */
 	public String getTypeDescription() {
@@ -54,7 +58,9 @@ public class SaleStayOrderClose implements IBusinessPlugin {
 		return null;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see nc.bs.pub.pa.IBusinessPlugin#getTypeName()
 	 */
 	public String getTypeName() {
@@ -62,8 +68,12 @@ public class SaleStayOrderClose implements IBusinessPlugin {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see nc.bs.pub.pa.IBusinessPlugin#implementReturnFormatMsg(nc.vo.pub.pa.Key[], java.lang.String, nc.vo.pub.lang.UFDate)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * nc.bs.pub.pa.IBusinessPlugin#implementReturnFormatMsg(nc.vo.pub.pa.Key[],
+	 * java.lang.String, nc.vo.pub.lang.UFDate)
 	 */
 	public IAlertMessage implementReturnFormatMsg(Key[] keys, String corpPK,
 			UFDate clientLoginDate) throws BusinessException {
@@ -126,7 +136,14 @@ public class SaleStayOrderClose implements IBusinessPlugin {
 			bVOs[i].setClientLink(cllink);
 			
 			//关闭前，需要先删除码单锁定
-			sodmo.freeMdsdBybid(bVOs[i].getCorder_bid());
+			String sqlnc = "select * from nc_mdsd  where xsddbt_pk = '"+bVOs[i].getCorder_bid()+"'  and nvl(dr,0)=0 ";
+			ArrayList<MdsdVO> listvo =  (ArrayList<MdsdVO>) baseDao.executeQuery(sqlnc, new BeanListProcessor(MdsdVO.class));
+			while(listvo.size()>0){
+				sodmo.freeMdsdBybid(bVOs[i].getCorder_bid());
+				listvo=null;
+				listvo = (ArrayList<MdsdVO>) baseDao.executeQuery(sqlnc, new BeanListProcessor(MdsdVO.class));
+			}
+			
 		}
 		try {
 			dmo = new SaleOrderDMO();
@@ -172,8 +189,12 @@ public class SaleStayOrderClose implements IBusinessPlugin {
 				return msg;
 	}
 
-	/* (non-Javadoc)
-	 * @see nc.bs.pub.pa.IBusinessPlugin#implementReturnMessage(nc.vo.pub.pa.Key[], java.lang.String, nc.vo.pub.lang.UFDate)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * nc.bs.pub.pa.IBusinessPlugin#implementReturnMessage(nc.vo.pub.pa.Key[],
+	 * java.lang.String, nc.vo.pub.lang.UFDate)
 	 */
 	public String implementReturnMessage(Key[] keys, String corpPK,
 			UFDate clientLoginDate) throws BusinessException {
@@ -181,8 +202,12 @@ public class SaleStayOrderClose implements IBusinessPlugin {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see nc.bs.pub.pa.IBusinessPlugin#implementReturnObject(nc.vo.pub.pa.Key[], java.lang.String, nc.vo.pub.lang.UFDate)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * nc.bs.pub.pa.IBusinessPlugin#implementReturnObject(nc.vo.pub.pa.Key[],
+	 * java.lang.String, nc.vo.pub.lang.UFDate)
 	 */
 	public Object implementReturnObject(Key[] keys, String corpPK,
 			UFDate clientLoginDate) throws BusinessException {
@@ -190,8 +215,11 @@ public class SaleStayOrderClose implements IBusinessPlugin {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see nc.bs.pub.pa.IBusinessPlugin#implementWriteFile(nc.vo.pub.pa.Key[], java.lang.String, java.lang.String, nc.vo.pub.lang.UFDate)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see nc.bs.pub.pa.IBusinessPlugin#implementWriteFile(nc.vo.pub.pa.Key[],
+	 * java.lang.String, java.lang.String, nc.vo.pub.lang.UFDate)
 	 */
 	public boolean implementWriteFile(Key[] keys, String fileName,
 			String corpPK, UFDate clientLoginDate) throws BusinessException {
