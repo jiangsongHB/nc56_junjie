@@ -8,13 +8,17 @@ package nc.vo.verifynew.pub;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import nc.bs.framework.common.NCLocator;
 import nc.itf.fi.pub.Currency;
 import nc.itf.fi.pub.SysInit;
+import nc.itf.uap.IUAPQueryBS;
+import nc.jdbc.framework.processor.MapProcessor;
 import nc.vo.arap.exception.ExceptionHandler;
 import nc.vo.arap.global.ArapCommonTool;
 import nc.vo.arap.verifynew.UFDoubleTool;
@@ -35,6 +39,20 @@ public class FenPeiUtil {
 
     	List<VerifyVO> a=new ArrayList<VerifyVO>();//正
     	List<VerifyVO> n=new ArrayList<VerifyVO>();//负
+    	
+    	//add by ouyangzhb 2013-11-01 计算本次需要核销的金额
+    	HashMap<String, UFDouble> hxje = new HashMap<String, UFDouble>();
+    	HashMap<String, UFDouble> hxshl = new HashMap<String, UFDouble>();
+    	IUAPQueryBS bsQuery = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+    	for(int i=0;i<sel_vos.length;i++){
+    		String sql = "select fb.ddhh from arap_djfb fb where fb.fb_oid='"+sel_vos[i].getM_djfbPk()+"'";
+    		HashMap<String, String> map = (HashMap<String, String>) bsQuery.executeQuery(sql, new MapProcessor());
+    		hxje.put(map.get("ddhh"), sel_vos[i].getM_ybje().multiply(-1));
+    		hxshl.put(map.get("ddhh"), sel_vos[i].getM_shl().multiply(-1));
+    	}
+    	//add by ouyangzhb 2013-11-01 计算本次需要核销的金额
+    	
+    	
     	if(bczk==null)
 		{
 			bczk=new UFDouble(0);
@@ -47,9 +65,21 @@ public class FenPeiUtil {
         			a.add(sel_vos[i]);
         		}else{
         			n.add(sel_vos[i]);
+        		//	add by ouyangzhb 2013-11-01 pzglh=3,标识是来源与费用发票的核销操作，费用发票的核销，需要按行核销
+        			if(pzglh != 3){
+        				sel_vos[i].setM_jsybje(sel_vos[i].getM_ybye());
+        				bcjs=bcjs.add(sel_vos[i].getM_ybye().abs());
+            			jszk=jszk.add(sel_vos[i].getM_ybye().abs());
+        			}else{
+        				sel_vos[i].setM_jsybje(hxje.get(sel_vos[i].getM_djfbPk()));
+        				sel_vos[i].setM_shl(hxshl.get(sel_vos[i].getM_djfbPk()));
+        			}
+          			/**
         			sel_vos[i].setM_jsybje(sel_vos[i].getM_ybye());
         			bcjs=bcjs.add(sel_vos[i].getM_ybye().abs());
         			jszk=jszk.add(sel_vos[i].getM_ybye().abs());
+        			*/
+        			//	add by ouyangzhb 2013-11-01 pzglh=3,标识是来源与费用发票的核销操作，费用发票的核销，需要按行核销
         		}
         	}
     		VerifyVO[] temp=new VerifyVO[a.size()];
@@ -63,9 +93,21 @@ public class FenPeiUtil {
     		for(int i=0;i<sel_vos.length;i++){
         		if(ArapCommonTool.isLargeEqual(sel_vos[i].getM_ybje(),new UFDouble(0))){
         			a.add(sel_vos[i]);
-        			sel_vos[i].setM_jsybje(sel_vos[i].getM_ybye());
+        			//	add by ouyangzhb 2013-11-01 pzglh=3,标识是来源与费用发票的核销操作，费用发票的核销，需要按行核销
+        			if(pzglh != 3){
+        				sel_vos[i].setM_jsybje(sel_vos[i].getM_ybye());
+        				bcjs=bcjs.sub(sel_vos[i].getM_ybye().abs());
+            			jszk=jszk.sub(sel_vos[i].getM_ybye().abs());
+        			}else{
+        				sel_vos[i].setM_jsybje(hxje.get(sel_vos[i].getM_djfbPk()));
+        				sel_vos[i].setM_shl(hxshl.get(sel_vos[i].getM_djfbPk()));
+        			}
+        			/**
+        		 	sel_vos[i].setM_jsybje(sel_vos[i].getM_ybye());
         			bcjs=bcjs.sub(sel_vos[i].getM_ybye().abs());
         			jszk=jszk.sub(sel_vos[i].getM_ybye().abs());
+        			*/
+        			//	add by ouyangzhb 2013-11-01 pzglh=3,标识是来源与费用发票的核销操作，费用发票的核销，需要按行核销
         		}else{
         			n.add(sel_vos[i]);
         		}
@@ -120,6 +162,10 @@ public class FenPeiUtil {
    		 }else if(pzglh==2){
     		HxMode = SysInit.getParaString(pk_corp, "EC1");
     	}
+		//add by ouyangzhb 2013-10-31 
+   		 else 	if(pzglh==3){
+    		HxMode = SysInit.getParaString(pk_corp, "AP1");
+   		 }
 
     	boolean iszzye= HxMode.equals("最早余额法"); /*-=notranslate=-*/
 	
@@ -139,7 +185,73 @@ public class FenPeiUtil {
 			}
 		}
 		
+		/**add by ouyangzhb 2013-10-31 先对暂估回冲的单据进行核销，核销完了再考虑其余单据的核销*/
+		ArrayList<String> pks = new ArrayList<String>();
+		if(pzglh == 3){
+			for(int i=0;i<sel_vos.length;i++){
+	  			if(sel_vos[i].getZgyf()==2){
+	  				if(UFDoubleTool.isZero(bcjs2)){
+	  					sel_vos[i].setM_isSelected(UFBoolean.FALSE);
+	  					if(flag == 0){
+	  						sel_vos[i].setM_jsybje(zero);
+	  						sel_vos[i].setM_jsfbje(zero);
+	  						sel_vos[i].setM_jsbbje(zero);
+	  					}else if(flag ==1){
+	  						sel_vos[i].setM_bczk(zero);
+	  					}
+	  					continue;
+	  				}
+	  				sel_vos[i].setM_isSelected(UFBoolean.TRUE);
+	  				
+	  				//可用于本次结算的原币余额，与折扣按比例分摊
+	  				UFDouble ybye_bcjs = zero;
+	  				UFDouble jszkje = null;
+	  				UFDouble jsybje = null;
+	  				
+	  				if(first){//第一次，全额结算
+	  					ybye_bcjs = getYbye_bcjs(sel_vos[i]);
+	  					jszkje=getYbye_bczk(sel_vos[i]);
+	  				}else {//
+	  					UFDouble[] jsje_zkje=getYbje_Zkje(zkbl, sel_vos[i],digit);
+	  					ybye_bcjs = jsje_zkje[0];
+	  					jszkje=jsje_zkje[1];
+	  				}
+	  				
+	  				if(UFDoubleTool.isAbsDayu(ybye_bcjs, bcjs2)){//ybye_bcjs_bczk大于bcjs,结算bcjs
+	  					jsybje=UFDoubleTool.isDayu0(bcjs)?bcjs2:bcjs2.multiply(-1);	
+	  				}else{
+	  					jsybje=ybye_bcjs;	
+	  				}
+	  				
+//	  				结算原币金额
+	  				sel_vos[i].setM_jsybje(jsybje);
+	  				sel_vos[i].setM_bczk(jszkje);
+	  				
+	  				bcjsSum=bcjsSum.add(jsybje);
+	  				
+	  				//结算辅币和本币金额
+	  				
+	  				fenTanFbBb(sel_vos[i],jsybje,pk_corp,date,fbhl,bbhl);
+	  				
+
+	  				bcjs2 = bcjs2.sub(jsybje.abs()).abs();	
+	  				
+	  				pks.add(sel_vos[i].getM_djfbPk());
+	  			}
+	  				
+	  		}
+		}
+		
+		
+		/**add by ouyangzhb 2013-10-31 先对暂估回冲的单据进行核销，核销完了再考虑其余单据的核销 end */
+		
 		for(int i = 0; i< sel_vos.length; i++){
+			
+			//add by ouyangzhb 2013-10-31 如果已经分摊了核销的，就跳过，不做分摊
+			if(pks.contains(sel_vos[i].getM_djfbPk())){
+				continue;
+			}
+			
 			if(UFDoubleTool.isZero(bcjs2)){
 				sel_vos[i].setM_isSelected(UFBoolean.FALSE);
 				if(flag == 0){
