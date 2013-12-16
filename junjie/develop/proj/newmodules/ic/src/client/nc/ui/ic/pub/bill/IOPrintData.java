@@ -161,8 +161,8 @@ public class IOPrintData implements IDataSource {
 		// ==================表头数据
 		boolean bFound = false;
 		if (sItemExpress.indexOf("h_") == 0) {
-			sItemExpress = sItemExpress.substring("h_".length(),
-					sItemExpress.length());
+			sItemExpress = sItemExpress.substring("h_".length(), sItemExpress
+					.length());
 		}
 		if (headitem.contains(sItemExpress)) {
 			int iHLen = m_pnlCard.getHeadItems().length;
@@ -191,13 +191,13 @@ public class IOPrintData implements IDataSource {
 			titem.add(m_pnlCard.getTailItems()[i].getKey().toString());
 		}
 		if (sItemExpress.indexOf("t_") == 0) {
-			sItemExpress = sItemExpress.substring("h_".length(),
-					sItemExpress.length());
+			sItemExpress = sItemExpress.substring("h_".length(), sItemExpress
+					.length());
 		}
 		if (!bFound && titem.contains(sItemExpress)) {
 			for (int i = 0; i < m_pnlCard.getTailItems().length; i++) {
-				if (m_pnlCard.getTailItems()[i].getKey().trim()
-						.equals(sItemExpress.trim())) {
+				if (m_pnlCard.getTailItems()[i].getKey().trim().equals(
+						sItemExpress.trim())) {
 					vecValue.addElement(getValueForCardHeadTail(m_pnlCard
 							.getTailItems()[i]));
 					bFound = true;
@@ -211,11 +211,11 @@ public class IOPrintData implements IDataSource {
 			int iBLen = m_pnlCard.getBodyItems().length;
 			for (int i = 0; i < iBLen; i++) {
 
-				if (m_pnlCard.getBodyItems()[i].getKey().trim()
-						.equals(sItemExpress.trim())) {
+				if (m_pnlCard.getBodyItems()[i].getKey().trim().equals(
+						sItemExpress.trim())) {
 					for (int j = 0; j < m_pnlCard.getRowCount(); j++) {
-						vecValue.addElement(getValueForCardBody(
-								m_pnlCard.getBodyItem(sItemExpress), j));
+						vecValue.addElement(getValueForCardBody(m_pnlCard
+								.getBodyItem(sItemExpress), j));
 					}
 
 					/** add by ouyangzhb 2012-04-23 取消合计行 */
@@ -258,33 +258,41 @@ public class IOPrintData implements IDataSource {
 				for (int y = 0; y < inforcost.length; y++) {
 					sumcostmny = sumcostmny.add(inforcost[y]
 							.getNoriginalcurmny());
-					if (inforcost[y].getNnumber() != null
-							&& inforcost[y].getNnumber().compareTo(
-									UFDouble.ZERO_DBL) != 0
-							&& sumnum.compareTo(UFDouble.ZERO_DBL) == 0) {
-						sumnum = inforcost[y].getNnumber();
-					}
+					
 				}
+				//处理可能取到的数据为负数的情况！add by zhang xiao wei 2013-08-15
+				if (inforcost[0].getNnumber() != null
+						&& inforcost[0].getNnumber().compareTo(
+								UFDouble.ZERO_DBL) != 0
+						&& sumnum.compareTo(UFDouble.ZERO_DBL) == 0) {
+					if (inforcost[0].getNnumber().compareTo(UFDouble.ZERO_DBL) > 0) {
+						sumnum = inforcost[0].getNnumber();
+					} else {
+						sumnum = new UFDouble(Math.abs(inforcost[0]
+								.getNnumber().toDouble()));
+					}
+
+				}
+			//end 
 				costprice = sumcostmny.div(sumnum);
 			}
 			if (sItemExpress.equalsIgnoreCase("i_sumcostprice")) {
 				for (int j = 0; j < m_pnlCard.getRowCount(); j++) {
-					vecValue.addElement(costprice
-							.add(new UFDouble(getValueForCardBody(
-									m_pnlCard.getBodyItem("nprice"), j)))
-							.setScale(2, 2).toString());
+					vecValue.addElement(costprice.add(
+							new UFDouble(getValueForCardBody(m_pnlCard
+									.getBodyItem("nprice"), j))).setScale(2, 2)
+							.toString());
 				}
 			}
 
 			if (sItemExpress.equalsIgnoreCase("i_sumcostmny")) {
 				for (int j = 0; j < m_pnlCard.getRowCount(); j++) {
-					vecValue.addElement(costprice
-							.add(new UFDouble(getValueForCardBody(
-									m_pnlCard.getBodyItem("nprice"), j)))
-							.multiply(
-									new UFDouble(getValueForCardBody(
-											m_pnlCard.getBodyItem("ninnum"), j)))
-							.setScale(2, 2).toString());
+					vecValue.addElement(costprice.add(
+							new UFDouble(getValueForCardBody(m_pnlCard
+									.getBodyItem("nprice"), j))).multiply(
+							new UFDouble(getValueForCardBody(m_pnlCard
+									.getBodyItem("ninnum"), j))).setScale(2, 2)
+							.toString());
 				}
 			}
 			/** add by ouyanghzb 2012-04-23 新增成本单价及成本金额字段的取值 end */
@@ -510,8 +518,8 @@ public class IOPrintData implements IDataSource {
 		String sKey = itemCheck.getKey();
 		Object oValue = null;
 		if (itemCheck.getDataType() == IBillItem.BOOLEAN) {
-			oValue = nc.vo.scm.pu.PuPubVO.getUFBoolean_NullAs(
-					cardPnl.getBodyValueAt(iRow, sKey),
+			oValue = nc.vo.scm.pu.PuPubVO.getUFBoolean_NullAs(cardPnl
+					.getBodyValueAt(iRow, sKey),
 					nc.vo.scm.pu.VariableConst.UFBOOLEAN_FALSE);
 			if (nc.vo.scm.pu.VariableConst.UFBOOLEAN_FALSE.equals(oValue)) {
 				oValue = "否";
@@ -563,9 +571,8 @@ public class IOPrintData implements IDataSource {
 					.getComponent();
 			oValue = ref.getUITextField().getText();
 		} else if (itemCheck.getDataType() == IBillItem.BOOLEAN) {
-			oValue = nc.vo.scm.pu.PuPubVO.getUFBoolean_NullAs(
-					itemCheck.getValue(),
-					nc.vo.scm.pu.VariableConst.UFBOOLEAN_FALSE);
+			oValue = nc.vo.scm.pu.PuPubVO.getUFBoolean_NullAs(itemCheck
+					.getValue(), nc.vo.scm.pu.VariableConst.UFBOOLEAN_FALSE);
 			if (nc.vo.scm.pu.VariableConst.UFBOOLEAN_FALSE.equals(oValue)) {
 				oValue = nc.ui.ml.NCLangRes.getInstance().getStrByID(
 						"40040200", "UPPSCMCommon-000108")/* @res "否" */;
@@ -615,9 +622,8 @@ public class IOPrintData implements IDataSource {
 					.lookup(IUAPQueryBS.class.getName());
 			ArrayList<MdcrkVO> mdcrkvolist = new ArrayList<MdcrkVO>();
 			GeneralBillVO billvo = (GeneralBillVO) (m_pnlCard.getBillValueVO(
-					GeneralBillVO.class.getName(),
-					GeneralBillHeaderVO.class.getName(),
-					GeneralBillItemVO.class.getName()));
+					GeneralBillVO.class.getName(), GeneralBillHeaderVO.class
+							.getName(), GeneralBillItemVO.class.getName()));
 			String cgeneralhid = billvo.getHeaderVO().getPrimaryKey();
 			String mdsql = "select * from nc_mdcrk k where k.cgeneralbid in (select b.cgeneralbid from ic_general_b b where b.cgeneralhid='"
 					+ cgeneralhid + "')";
