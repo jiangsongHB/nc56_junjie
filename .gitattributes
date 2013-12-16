@@ -465,6 +465,8 @@ junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4A_SIGN.class -tex
 junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4C_CANCELSIGN.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4C_ORDERINVOICE.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/pub/action/N_4R_CANCELADJUST.class -text
+junjie/patches/modules/ic/META-INF/classes/nc/impl/ic/ic008/FixOnhandnumDMO$QueryType.class -text
+junjie/patches/modules/ic/META-INF/classes/nc/impl/ic/ic008/FixOnhandnumDMO.class -text
 junjie/patches/modules/ic/META-INF/mdrkTools.upm -text
 junjie/patches/modules/ic/classes/nc/itf/ic/md/IMDTools.class -text
 junjie/patches/modules/ic/classes/nc/itf/ic/md/IMDTools.java -text
