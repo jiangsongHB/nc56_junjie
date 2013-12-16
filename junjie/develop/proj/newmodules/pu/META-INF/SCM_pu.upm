@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding='gb2312'?>
+<module name="SCM_SO_EJBwz">
+    <public>
+          <component remote="true" singleton="true" tx="NONE">
+            <interface>nc.itf.jj.update.IUpdateArap</interface>
+            <implementation>nc.impl.jj.update.UpdateArapImpl</implementation>
+        </component>
+    </public>
+</module>
