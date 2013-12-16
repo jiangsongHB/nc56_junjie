@@ -165,6 +165,9 @@ junjie/develop/proj/newmodules/arap/src/private/nc/bs/ep/dj/DJZBBO.java -text
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/ep/dj/DJZBDAO.java -text
 junjie/develop/proj/newmodules/arap/src/public/nc/vo/arap/verifynew/RBVerify.java -text
 junjie/develop/proj/newmodules/arap/src/public/nc/vo/verifynew/pub/FenPeiUtil.java -text
+junjie/develop/proj/newmodules/cdm/.classpath -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/cdm/.module_prj -text
+junjie/develop/proj/newmodules/cdm/.project -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cdm/META-INF/module.xml -text
 junjie/develop/proj/newmodules/cdm/src/client/nc/ui/fac/account/pub/RefTakenProccessor.java -text
 junjie/develop/proj/newmodules/cmp/.classpath -text svneol=unset#text/plain
