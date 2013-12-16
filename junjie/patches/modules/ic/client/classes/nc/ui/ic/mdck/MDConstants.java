@@ -12,8 +12,11 @@ import java.util.Date;
 public class MDConstants {
 
 	public static final int ZS_XSW = 0; // 支数的小数位
+	
+	//add by ouyangzhb 2011-07-28 需求调整，小数位改为3位
+	public static final int ZL_XSW = 3;// 重量小数位
 
-	public static final int ZL_XSW = 4;// 重量小数位
+//	public static final int ZL_XSW = 4;// 重量小数位
 
 	public static final int DJ_XSW = 2;// 单价
 

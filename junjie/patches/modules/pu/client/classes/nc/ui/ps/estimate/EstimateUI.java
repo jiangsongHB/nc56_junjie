@@ -2632,7 +2632,7 @@ public class EstimateUI extends nc.ui.pub.ToftPanel implements BillEditListener,
       return;
     }
     
-    // add by ouyangzhb 查询需要返暂的入库单的下游单据是否存在发票没有删除  begin
+    // add by ouyangzhb 查询需要返暂的入库单的下游单据是否存在发票没有删除 begin
     String insql = SQLUtil.formInSQL("pb.vdef18", bcodelist);
     String sql = " select pb.vdef18 from po_invoice_b pb where pb.dr=0 "+insql;
     IUAPQueryBS queryBS=NCLocator.getInstance().lookup(IUAPQueryBS.class);

@@ -1437,6 +1437,7 @@ private void bmrcSetForModify(BillEditEvent e) {
     getBillCardPanel().setCellEditable(e.getRow(), "nelignum", false);
     getBillCardPanel().setCellEditable(e.getRow(), "npresentnum", false);
     getBillCardPanel().setCellEditable(e.getRow(), "nwastnum", false);
+    //add by ouyangzhb 2011-02-19
     getBillCardPanel().setCellEditable(e.getRow(), "cwarehousename", true);
     getBillCardPanel().setCellEditable(e.getRow(), "cstorename", false);
     getBillCardPanel().setCellEditable(e.getRow(), "vproducenum", false);
@@ -2113,6 +2114,8 @@ public BillCardPanel getBillCardPanel() {
           "vdef", "vdef");
       //加合计行
       m_billPanel.setTatolRowShow(true);
+      //add by ouyangzhb 2011-03-31 为费用页签添加合计行
+      this.m_billPanel.getBodyPanel("jj_scm_informationcost").setTatolRowShow(true);
       //单据模板编辑监听器
       m_billPanel.addEditListener(this);
       //编辑前监听
@@ -3162,6 +3165,10 @@ private void initialize() {
   //初始化到货单状态
   getBillCardPanel().setEnabled(false);
 //  getBillListPanel().setListData(getBillListPanel().getBillListData());
+  this.getBillCardPanel().getBillModel("jj_scm_informationcost").setNeedCalculate(true);
+  
+//  getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName());
+	
 
 }
 /**

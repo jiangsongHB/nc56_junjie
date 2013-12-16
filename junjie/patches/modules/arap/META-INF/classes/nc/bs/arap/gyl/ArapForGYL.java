@@ -308,7 +308,15 @@ public class ArapForGYL {
 					continue;
 
 				bz = ((DJZBItemVO) djvo[0].getChildrenVO()[0]).getBzbm();
-				temp = this.getNewDJ(djvo, vo[i], clbh, clrq, ly, pk_corp);
+				
+				/**add by ouyangzhb 2013-10-21 */
+				if(lylx == 3){
+					temp = this.getNewDJForZGYF(djvo, vo[i], clbh, clrq, ly, pk_corp);
+				}else{
+					temp = this.getNewDJ(djvo, vo[i], clbh, clrq, ly, pk_corp);
+				}
+//				temp = this.getNewDJ(djvo, vo[i], clbh, clrq, ly, pk_corp);
+				
 
 				if (temp == null) {
 					continue;
@@ -332,7 +340,16 @@ public class ArapForGYL {
 				}
 
 			}
-			DJZBVO[] vos = seperateBills(lst, pk_corp, clrq);
+			
+			/**add by ouyangzhb 2013-10-21 暂估应付的红冲方式（不需要分单）*/
+			DJZBVO[] vos  = null;
+			if(lylx == 3){
+				vos = seperateBillsForZGYF(lst, pk_corp, clrq);
+			}else{
+				vos = seperateBills(lst, pk_corp, clrq);
+			}
+//			DJZBVO[] vos = seperateBills(lst, pk_corp, clrq);
+			/**add by ouyangzhb 2013-10-21 暂估应付的红冲方式（不需要分单）*/
 
 			if (vos == null || vos.length == 0) {
 				return;
@@ -356,7 +373,320 @@ public class ArapForGYL {
 			throw ExceptionHandler.handleException(this.getClass(), e);
 		}
 	}
+	
+	
+	/***
+	 * add by ouyangzhb 2013-10-21 复制原来的方法，修改重算金额的方式：按数量
+	 * @param vo
+	 * @param adjust
+	 * @param clbh
+	 * @param clrq
+	 * @param ly
+	 * @param pk_corp
+	 * @return
+	 * @throws Exception
+	 */
+	private Hashtable getNewDJForZGYF(DJZBVO[] vo, AdjuestVO adjust, String clbh,
+			String clrq, int ly, String pk_corp) throws Exception {
+		Hashtable<DJZBVO, UFBoolean> result = new Hashtable<DJZBVO, UFBoolean>();
+		DJZBVO zbvo = new DJZBVO();
+		DJZBItemVO[] temp = null;
+		UFDouble shlye = new UFDouble(0);
+		UFDouble shlje = new UFDouble(0); // 合计数量金额
 
+		DJZBVO source = null;
+		Vector<DJZBItemVO> allitem = new Vector<DJZBItemVO>();
+		for (int i = 0; i < vo.length; i++) {
+			if (vo[i] == null)
+				continue;
+			DJZBHeaderVO header = (DJZBHeaderVO) vo[i].getParentVO();
+			DJZBItemVO[] items = (DJZBItemVO[]) vo[i].getChildrenVO();
+			if (header.getZgyf().intValue() == 1) {
+				SystemProfile.getInstance().log(
+						"source" + vo[i].getParentVO().getPrimaryKey());
+
+				source = vo[i];
+			}
+			for (int j = 0; j < items.length; j++) {
+				DJZBItemVO zbItem = items[j];
+				shlye = shlye.add(zbItem.getShlye());
+				shlje = shlje.add(zbItem.getDfshl().add(zbItem.getJfshl()));
+				zbItem.setIsverifyfinished(new UFBoolean(false));
+				zbItem.setVerifyfinisheddate(null);
+				allitem.add(zbItem);
+			}
+		}
+		if (null == source) {
+			throw ExceptionHandler
+					.createException(nc.vo.ml.NCLangRes4VoTransl.getNCLangRes()
+							.getStrByID("2006", "UPP2006-v55-000136")/*
+																	 * @res
+																	 * "没有对应的暂估单据!"
+																	 */);
+		}
+		// boolean
+		// hastax=!ArapCommonTool.isZero(((DJZBItemVO)source.getChildrenVO()[0]).getJfybsj().add(((DJZBItemVO)source.getChildrenVO()[0]).getDfybsj()));
+		DJZBItemVO[] temp1 = allitem.toArray(new DJZBItemVO[] {});
+		Arrays.sort(temp1, new Comparator<Object>() {
+			public int compare(Object a, Object b) {
+				if (ArapCommonTool.isLarge(((DJZBItemVO) a).getShlye().abs(),
+						((DJZBItemVO) b).getShlye().abs()))
+					return 1;
+				else if (((DJZBItemVO) a).getShlye().abs().equals(
+						((DJZBItemVO) b).getShlye().abs()))
+					return 0;
+				else
+					return -1;
+			}
+		});
+		allitem = new Vector<DJZBItemVO>(Arrays.asList(temp1));
+		if (adjust.getIsdone().booleanValue()
+				|| ArapCommonTool.isEqual(adjust.getShl(), shlye)
+				|| ArapCommonTool.isEqual(shlje, adjust.getShl()))// 最后一次调整
+		{
+			SystemProfile.getInstance().log(
+					"adjust.getIsdone()" + adjust.getIsdone());
+			SystemProfile.getInstance()
+					.log("adjust.getShl()" + adjust.getShl());
+			SystemProfile.getInstance().log("shlye" + shlye);
+			SystemProfile.getInstance().log("shlje" + shlje);
+
+			if (ArapCommonTool.isZero(shlye)) {
+				return null;
+			}
+			Vector<DJZBItemVO> con = new Vector<DJZBItemVO>();
+			DJZBItemVO[] item = new DJZBItemVO[allitem.size()];
+			allitem.copyInto(item);
+			UFDouble ybje = new UFDouble(0);
+			UFDouble fbje = new UFDouble(0);
+			UFDouble bbje = new UFDouble(0);
+			UFDouble sumYE = ArapCommonTool.ZERO;
+			for (int i = 0; i < item.length; i++) {
+
+				if (ArapCommonTool.isZero(item[i].getShlye())
+						|| ArapCommonTool.isZero(item[i].getYbye()))
+					continue;
+
+				DJZBItemVO newItem = (DJZBItemVO) item[i].clone();
+				UFDouble sl = newItem.getSl();
+				if (ArapCommonTool.isZero(newItem.getJfybsj().add(
+						newItem.getDfybsj()))) {
+					newItem.setSl(ArapCommonTool.ZERO);
+				}
+				con.add(newItem);
+				newItem.setClbh(clbh);
+				newItem.setJsfsbm(((DJZBHeaderVO) source.getParentVO())
+						.getDjlxbm());
+				newItem.setDdhh(((DJZBItemVO) ((DJZBItemVO) source
+						.getChildrenVO()[0])).getFb_oid());
+				newItem.setDdlx(((DJZBItemVO) ((DJZBItemVO) source
+						.getChildrenVO()[0])).getVouchid());
+				newItem.setDdhid(((DJZBItemVO) ((DJZBItemVO) source
+						.getChildrenVO()[0])).getVouchid());
+				DJZBHeaderVO head = (DJZBHeaderVO) source.getParentVO();
+					if (i < item.length - 1) {
+						newItem.setDfshl(newItem.getShlye().multiply(
+								ArapConstant.INT_NEGATIVE_ONE));
+						sumYE = sumYE.add(newItem.getDfshl());
+
+					} else {
+						newItem.setDfshl(adjust.getShl().multiply(
+								ArapConstant.INT_NEGATIVE_ONE).sub(sumYE));
+					}
+					newItem.setYbye(newItem.getDfshl().multiply(newItem.getDj()));
+					newItem.setDj(null);
+					newItem.setHsdj(null);
+					newItem.setDfybje(newItem.getYbye());
+					newItem.setDffbje(newItem.getFbye() == null ? null
+							: newItem.getFbye());
+					newItem.setDfbbje(newItem.getBbye());
+					newItem = ArapDjCalculator.getInstance().calculateVO(
+							newItem, "dfybje", clrq,
+							((DJZBHeaderVO) source.getParentVO()).getDjdl(),
+							this.getParam(pk_corp, ly));
+					newItem.setYbye(newItem.getDfybje());
+					newItem.setFbye(newItem.getDffbje());
+					newItem.setBbye(newItem.getDfbbje());
+					newItem.setShlye(newItem.getDfshl());
+				newItem.setSl(sl);
+				ybje.add(newItem.getYbye());
+				fbje.add(newItem.getFbye());
+				bbje.add(newItem.getBbye());
+
+			}
+			temp = new DJZBItemVO[con.size()];
+			con.copyInto(temp);
+			DJZBHeaderVO header = (DJZBHeaderVO) source.getParentVO().clone();
+			header.setDjbh(null);
+			header.setZgyf(new Integer(2));
+			header.setYbje(ybje);
+			header.setFbje(fbje);
+			header.setBbje(bbje);
+			zbvo.setParentVO(header);
+			zbvo.setChildrenVO(temp);
+			result.put(zbvo, new UFBoolean(true));// 生成的DJZBVO为key，是否需要红冲为value
+		} else {
+			UFDouble tzshl = adjust.getShl().multiply(-1);// 调整数量
+
+			SystemProfile.getInstance().log("tzshl" + tzshl);
+			SystemProfile.getInstance().log("shlye" + shlye);
+
+			if (ArapCommonTool.isZero(tzshl)) {
+				return null;
+			} else if (ArapCommonTool.isLargeEqual(tzshl.multiply(shlye),
+					new UFDouble(0)))// 同号
+			{
+
+				if (ArapCommonTool.isZero(shlye)) {
+					if (null != adjust.getIsSO()
+							&& adjust.getIsSO().booleanValue()) {
+						UFDouble t = adjust.getTShl();
+						if (t == null)
+							t = new UFDouble(0.0d);
+						if (tzshl.abs().compareTo(t.abs()) > 0) {
+							tzshl = t;
+						}
+					}
+				}
+				temp = new DJZBItemVO[1];
+				temp[0] = (DJZBItemVO) ((DJZBItemVO) source.getChildrenVO()[0])
+						.clone();
+				temp[0].setDdhh(((DJZBItemVO) ((DJZBItemVO) source
+						.getChildrenVO()[0])).getFb_oid());
+				temp[0].setDdlx(((DJZBItemVO) ((DJZBItemVO) source
+						.getChildrenVO()[0])).getVouchid());
+				temp[0].setClbh(clbh);
+				temp[0].setJsfsbm(((DJZBHeaderVO) source.getParentVO())
+						.getDjlxbm());
+				temp[0].setShlye(tzshl);
+				temp[0].setIsverifyfinished(new UFBoolean(false));
+				temp[0].setVerifyfinisheddate(null);
+				DJZBHeaderVO head = (DJZBHeaderVO) source.getParentVO();
+				UFDouble sl = temp[0].getSl();
+				if (ArapCommonTool.isZero(temp[0].getJfybsj().add(
+						temp[0].getDfybsj()))) {
+					temp[0].setSl(ArapCommonTool.ZERO);
+				}
+				if (ly == 0 || (ly == 2 && "ys".equals(head.getDjdl())))// 销售
+				{
+					temp[0].setJfshl(tzshl);
+					temp[0] = ArapDjCalculator.getInstance().calculateVO(
+							temp[0], "jfshl", clrq,
+							((DJZBHeaderVO) source.getParentVO()).getDjdl(),
+							this.getParam(pk_corp, ly));
+					temp[0].setYbye(temp[0].getJfybje());
+					temp[0].setFbye(temp[0].getJffbje());
+					temp[0].setBbye(temp[0].getJfbbje());
+				} else {
+					temp[0].setDfshl(tzshl);
+					temp[0] = ArapDjCalculator.getInstance().calculateVO(
+							temp[0], "dfshl", clrq,
+							((DJZBHeaderVO) source.getParentVO()).getDjdl(),
+							this.getParam(pk_corp, ly));
+					temp[0].setYbye(temp[0].getDfybje());
+					temp[0].setFbye(temp[0].getDffbje());
+					temp[0].setBbye(temp[0].getDfbbje());
+				}
+				temp[0].setSl(sl);
+
+				DJZBHeaderVO header = (DJZBHeaderVO) source.getParentVO()
+						.clone();
+				header.setDjbh(null);
+				header.setZgyf(new Integer(2));
+				header.setYbje(temp[0].getYbye());
+				header.setFbje(temp[0].getFbye());
+				header.setBbje(temp[0].getBbye());
+				zbvo.setParentVO(header);
+				zbvo.setChildrenVO(temp);
+				result.put(zbvo, new UFBoolean(false));// 生成的DJZBVO为key，是否需要红冲为value
+
+			} else// 异号，需要红冲
+			{
+				verify(adjust, clbh, clrq, ly, pk_corp, result, zbvo, shlye,
+						source, allitem, tzshl);
+
+				SystemProfile.getInstance().log("verify");
+
+			}
+		}
+
+		return result;
+	}
+	
+	
+
+	/***
+	 * ADD BY OUYANGZHB 2013-10-21 如果是暂估应付的，不需要分单
+	 * @param bills
+	 * @param corpID
+	 * @param clrq
+	 * @return
+	 * @throws Exception
+	 */
+	private DJZBVO[] seperateBillsForZGYF(List<DJZBVO> bills, String corpID,
+			String clrq) throws Exception {
+		if (null == bills || bills.size() == 0)
+			return null;
+		
+		
+		//不需要分单
+		DJZBVO[] apVOs = new DJZBVO[bills.size()];
+		bills.toArray(apVOs);
+		// 分单
+		DJZBVO[] ret = (DJZBVO[]) getSplitVOs(DJZBVO.class.getName(),
+				DJZBHeaderVO.class.getName(), DJZBItemVO.class.getName(),
+				apVOs, new String[] { }, new String[] { "ckdh" });
+		//
+		for (int i = 0; i < ret.length; i++) {
+			DJZBVO zb = ret[i];
+			DJZBHeaderVO header = (DJZBHeaderVO) zb.getParentVO();
+			UFDouble ybje = new UFDouble(0);
+			UFDouble fbje = new UFDouble(0);
+			UFDouble bbje = new UFDouble(0);
+			for (int k = 0; k < zb.getChildrenVO().length; k++)// 计算表投金额
+			{
+				DJZBItemVO item = (DJZBItemVO) zb.getChildrenVO()[k];
+				ybje = ybje.add(item.getYbye());
+				fbje = fbje.add(item.getFbye());
+				bbje = bbje.add(item.getBbye());
+			}
+			header.setYbje(ybje);
+			header.setFbje(fbje);
+			header.setBbje(bbje);
+		}
+		AccountCalendar calendar = AccountCalendar.getInstance();
+		calendar.setDate(new UFDate(clrq));
+		nc.vo.bd.period.AccperiodVO accperiod = calendar.getYearVO();
+		accperiod.setVosMonth(new AccperiodmonthVO[] { calendar.getMonthVO() });
+		for (int i = 0; i < ret.length; i++) {
+			DJZBVO zb = ret[i];
+			DJZBHeaderVO header = (DJZBHeaderVO) zb.getParentVO();
+			UFDouble ybje = new UFDouble(0);
+			UFDouble fbje = new UFDouble(0);
+			UFDouble bbje = new UFDouble(0);
+			for (int k = 0; k < zb.getChildrenVO().length; k++)// 计算表投金额
+			{
+				DJZBItemVO item = (DJZBItemVO) zb.getChildrenVO()[k];
+				ybje = ybje.add(item.getYbye());
+				fbje = fbje.add(item.getFbye());
+				bbje = bbje.add(item.getBbye());
+				item.setDjbh(null);
+			}
+			header.setYbje(ybje);
+			header.setFbje(fbje);
+			header.setBbje(bbje);
+			header.setDjbh(null);
+			header.setZgyf(new Integer(2));
+			header.setDjrq(new UFDate(clrq));
+			header.setDjkjnd(accperiod.getPeriodyear()); // 单据会计年度
+			header.setDjkjqj(accperiod.getVosMonth()[0].getMonth()); // 单据会计期间
+			header.setQcbz(UFBoolean.FALSE);
+		}
+		return ret;
+	}
+	
+	
+	
 	private DJZBVO[] seperateBills(List<DJZBVO> bills, String corpID,
 			String clrq) throws Exception {
 		if (null == bills || bills.size() == 0)
@@ -393,6 +723,8 @@ public class ArapForGYL {
 		}
 		return ret;
 	}
+
+	
 
 	/**
 	 * 分单处理。

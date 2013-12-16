@@ -379,20 +379,40 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 	}
 
 	public void afterEdit(BillEditEvent arg0) {
+		
 		if (arg0.getKey().equals("jbh")) {
 			// 执行所有编辑公式
+			//add by lumzh 2013-07-08 设置码单参照允许多选   
+			BillItem jbh = getOPBillCardPanel().getBodyItem("jbh");
+			UIRefPane jbhPa = (UIRefPane) jbh.getComponent();
+			String[] pks = jbhPa.getRefPKs();
+			int len = pks==null?0: pks.length;
+			for (int j = 0; j < len; j++) {
+				if (pks != null) {
+					if (j > 0) {
+						getOPBillCardPanel().insertLine();
+					}
+				}
+			}
+			jbhPa.setPKs(null);
+
 			String[] s = getOPBillCardPanel().getBodyItem(arg0.getKey())
 					.getEditFormulas();
-			if (s != null && s.length > 0) {
-				getOPBillCardPanel().execBodyFormulas(arg0.getRow(), s);
-			}
 			MdsdVO[] vos = (MdsdVO[]) getOPBillCardPanel().getBillData()
 					.getBodyValueVOs(nc.vo.ic.sd.MdsdVO.class.getName());
-			MdsdVO vo = vos[arg0.getRow()]; // 编辑的VO
+			
+			for(int i=0;pks !=null &&i<pks.length;i++){
+				 getOPBillCardPanel().getBillModel().setValueAt(pks[i], arg0.getRow()+i, "pk_mdxcl_b"); 
+				 vos[arg0.getRow()+i].setPk_mdxcl_b(pks[i]);
+			if (s != null && s.length > 0) {
+				getOPBillCardPanel().execBodyFormulas(arg0.getRow()+i, s);
+			}
+		
+			MdsdVO vo = vos[arg0.getRow()+i]; // 编辑的VO
 			try {
 				UFDate cdate = ClientEnvironment.getInstance().getDate();
 				MdsdVO kylVo = new MdsdBean().queryKyl(vo, cdate);
-				vos[arg0.getRow()] = kylVo;
+				vos[arg0.getRow()+i] = kylVo;
 				getOPBillCardPanel().getBillModel().setBodyDataVO(vos);
 				getOPBillCardPanel().getBillModel().execLoadFormula();// 显示公式
 				buttonState(true, true, true, true);
@@ -401,6 +421,7 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 				MessageDialog.showWarningDlg(dlg, "提示", "可用量查询出错!");
 				return;
 			}
+		}
 		}
 		if (arg0.getKey().equals("sdzs")) {
 			MdsdVO[] vos = (MdsdVO[]) getOPBillCardPanel().getBillData()
@@ -473,6 +494,8 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 				
 			*/		
 			jbhPa.setWhereString(sqlWhere);
+			//add by lumzh 2013-07-08 码单的参照允许多选
+			jbhPa.setMultiSelectedEnabled(true);
 			//add by ouyangzhb 2013-04-28 清缓存
 			jbhPa.getRefModel().clearCacheData();
 		}

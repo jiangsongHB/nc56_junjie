@@ -5,6 +5,7 @@ import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.trade.bill.AbstractManageController;
+import nc.ui.trade.bill.ITableTreeController;
 import nc.ui.trade.manage.BillManageUI;
 import nc.ui.trade.manage.ManageEventHandler;
 import nc.vo.pub.BusinessException;
@@ -176,5 +177,6 @@ public class ClientUI extends BillManageUI {
 		}
 		return o;
 	}
-
+	protected void setListBodyData() throws Exception {
+}
 }

@@ -423,6 +423,10 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 	 * 此处插入方法说明。 创建日期：(2003-11-19 9:10:04)
 	 */
 	public void initialize() {
+		
+		//add by ouyangzhb 2011-03-31 为费用页签添加合计行
+	      this.getBillCardPanel().getBodyPanel("jj_scm_informationcost").setTatolRowShow(true);
+	      
 		//2010-10-13 MeiChao 在父类初始化方法之前.将费用录入按钮加入到菜单中. begin 
 		this.getButtonManager().getButtonTree().addMenu(this.getBoInfoCost());
 		//2010-10-13 MeiChao 将费用录入按钮加入到菜单中. end

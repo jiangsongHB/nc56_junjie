@@ -24,6 +24,8 @@ import javax.naming.NamingException;
 import org.apache.commons.lang.ArrayUtils;
 
 import nc.bs.bd.b21.BusinessCurrencyRateUtil;
+import nc.bs.dao.BaseDAO;
+import nc.bs.dao.DAOException;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.ml.NCLangResOnserver;
 import nc.bs.po.OrderDMO;
@@ -49,6 +51,8 @@ import nc.itf.uap.busibean.ISysInitQry;
 import nc.itf.uap.pf.IPFBusiAction;
 import nc.itf.uap.pf.IPFMetaModel;
 import nc.itf.uap.sf.ICreateCorpQueryService;
+import nc.jdbc.framework.processor.ColumnProcessor;
+import nc.jdbc.framework.processor.MapProcessor;
 import nc.ui.bd.b21.CurrParamQuery;
 import nc.vo.ic.pub.bill.GeneralBillHeaderVO;
 import nc.vo.ic.pub.bill.GeneralBillItemVO;
@@ -1719,11 +1723,6 @@ public class InvoiceImpl implements IInvoice, IPuToIc_InvoiceImpl {
 
 	      InvoiceItemVO[] aInvoiceItemVOs = null;
 	      for (int i = 0; i < voaInv.length; i++) {
-//	    	  //过滤正常的物料发票
-//	    	  if(voaInv[i].getHeadVO().getVdef20()==null||!voaInv[i].getHeadVO().getVdef20().equals("Y")){
-//	    		  return;
-//	    	  }
-
 	        aInvoiceItemVOs = (InvoiceItemVO[]) voaInv[i].getChildrenVO();
 	        if (aInvoiceItemVOs == null || aInvoiceItemVOs.length == 0) {
 	          continue;
@@ -7451,6 +7450,115 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	    }
 	  }
 
+	  /**
+	 * add by ouyangzhb 2013-10-14 回写累计开票数量（保存）
+	 * 
+	 * @param vos
+	 * @param isdel
+	 * @throws BusinessException
+	 */
+	public void reWriteInvoicenumByAdd(InvoiceVO invvo)
+			throws BusinessException {
+		BaseDAO dao = new BaseDAO();
+		if (invvo == null) {
+			return;
+		}
+		InvoiceItemVO[] itemvo = (InvoiceItemVO[]) invvo.getChildrenVO();
+		for (int j = 0; j < itemvo.length; j++) {
+			String updatesql = "";
+			String querysql = "";
+			String invoice_bid = itemvo[j].getCinvoice_bid();
+			String sourcebillrowid = itemvo[j].getCupsourcebillrowid();
+			if (invoice_bid != null) {
 
+				// 查询累计开票数量是否超出原有数量
+				querysql = "select (abs(nvl(fb.dfshl,0)) - abs(isnull(fb.ntotalinvoicenumber,0) + '"
+						+ itemvo[j].getNinvoicenum()
+						+ "'-(select isnull(ninvoicenum,0) from po_invoice_b b where b.cinvoice_bid='"
+						+ invoice_bid
+						+ "'))) num from arap_djfb  fb where  fb.fb_oid='"
+						+ sourcebillrowid + "' ";
+
+				// ntotalinvoicenumber 后臺新增字段
+				updatesql = "update arap_djfb  fb set fb.ntotalinvoicenumber = isnull(fb.ntotalinvoicenumber,0) + '"
+						+ itemvo[j].getNinvoicenum()
+						+ "'-(select isnull(ninvoicenum,0) from po_invoice_b b where b.cinvoice_bid='"
+						+ invoice_bid
+						+ "') where fb.fb_oid='"
+						+ sourcebillrowid + "'";
+			} else {
+
+				// 查询语句
+				querysql = "select (abs(nvl(fb.dfshl,0)) - abs(isnull(fb.ntotalinvoicenumber,0) + '"
+						+ itemvo[j].getNinvoicenum()
+						+ "')) num from arap_djfb  fb where  fb.fb_oid='"
+						+ sourcebillrowid + "' ";
+				// 更新语句
+				updatesql = "update arap_djfb  fb set fb.ntotalinvoicenumber = isnull(fb.ntotalinvoicenumber,0) + '"
+						+ itemvo[j].getNinvoicenum()
+						+ "' where fb.fb_oid='"
+						+ sourcebillrowid + "'";
+			}
+			HashMap<String, UFDouble> nummap = (HashMap<String, UFDouble>) dao
+					.executeQuery(querysql, new MapProcessor());
+			if (nummap != null && nummap.size() > 0) {
+				Object numtem = nummap.get("num");
+
+				if (numtem != null
+						&& new UFDouble(numtem.toString()).toDouble() < 0) {
+					throw new BusinessException("第" + itemvo[j].getCrowno()
+							+ "行的累计开单数量已超出可开单数量:"+new UFDouble(numtem.toString())+"，不能保存，请检查！");
+				}
+			}
+
+			dao.executeUpdate(updatesql);
+
+			String updatezyx17 = "update arap_djfb  fb set fb.zyx17 = TO_CHAR(isnull(fb.ntotalinvoicenumber,0))  where fb.fb_oid='"
+					+ sourcebillrowid + "'";// fb.zyx17
+
+			dao.executeUpdate(updatezyx17);
+		}
+	}
+			
   
+		
+		
+		 /**
+		 * add by ouyangzhb 2013-10-14 回写累计开票数量(刪除)
+		 * @param vos
+		 * @param isdel
+		 * @throws DAOException
+		 */
+		public void reWriteInvoicenumByDel(InvoiceVO[] invvos)
+			throws DAOException {
+		BaseDAO dao = new BaseDAO();
+		if (invvos == null || invvos.length == 0) {
+			return;
+		}
+		int len = invvos.length;
+		for (int i = 0; i < len; i++) {
+			InvoiceItemVO[] itemvo = (InvoiceItemVO[]) invvos[i]
+					.getChildrenVO();
+			for (int j = 0; j < itemvo.length; j++) {
+				String updatesql = "";
+				String invoice_bid = itemvo[j].getCinvoice_bid();
+				String sourcebillrowid = itemvo[j].getCupsourcebillrowid();
+				updatesql = "update arap_djfb  fb set fb.ntotalinvoicenumber = isnull(fb.ntotalinvoicenumber,0) - '"
+						+ itemvo[j].getNinvoicenum()
+						+ "' where fb.fb_oid='"
+						+ sourcebillrowid + "'";
+
+				dao.executeUpdate(updatesql);
+				
+				String updatezyx17 = "update arap_djfb  fb set fb.zyx17 = TO_CHAR(isnull(fb.ntotalinvoicenumber,0))  where fb.fb_oid='"
+					+ sourcebillrowid + "'";//fb.zyx17
+				
+				dao.executeUpdate(updatezyx17);
+			}
+		}
+
+	}
+		
+		
+		
 }

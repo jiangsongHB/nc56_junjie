@@ -469,18 +469,18 @@ private java.lang.String[] getItemValuesByExpressFromCard(String sItemExpress) {
 				}
 
 				
-				//处理合计行
-				if (m_pnlCard.getBodyPanel().isTatolRow()) {
-		      		Object total = m_pnlCard.getTotalTableModel().getValueAt(0, m_pnlCard.getBillModel().getBodyColByKey(sItemExpress));
-  		    		//rslt[rowCount] = "--------";
-			  		vecValue.addElement("");
-  		    		if (total == null) {
-	 		 		 vecValue.addElement("--------");
-	  				}
-	  			else {
-	   				vecValue.addElement(total.toString());
-	  				}
-				}
+//				//处理合计行
+//				if (m_pnlCard.getBodyPanel().isTatolRow()) {
+//		      		Object total = m_pnlCard.getTotalTableModel().getValueAt(0, m_pnlCard.getBillModel().getBodyColByKey(sItemExpress));
+//  		    		//rslt[rowCount] = "--------";
+//			  		vecValue.addElement("");
+//  		    		if (total == null) {
+//	 		 		 vecValue.addElement("--------");
+//	  				}
+//	  			else {
+//	   				vecValue.addElement(total.toString());
+//	  				}
+//				}
 				
 
 				break;

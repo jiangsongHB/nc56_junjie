@@ -4125,7 +4125,28 @@ public class DJZBDAO {
              pm.release();
     	 }
     }
-
+    //lumzh 2012-08-20运输单生成的暂估单应付单,删除时应将源头的运输单的是否已暂估状态改为N。
+    public void updateDmFlag(List<String> fbpks,int flag) throws BusinessException{
+    	if(null==fbpks||fbpks.size()==0)
+    		return ;
+    	if(flag!=1)return ;
+//    	StringBuffer where=new StringBuffer();
+//    	for(String fbpk:fbpks){
+//    		where.append("'").append(fbpk).append("',");
+//    	}
+     	PersistenceManager pm=null;
+    	try {
+//    	   	String sql="update ARAP_DJFB set djxtflag = "+flag.intValue()+" where  "+SqlUtils.getInStr("fb_oid", fbpks.toArray(new String[]{}))
+//    	   	+" and dr=0 ";
+    	    String sql="update dm_delivbill set isestimate='N' where "+SqlUtils.getInStr("cdelivbill_hid", fbpks.toArray(new String[]{}))+" and dr=0";
+            pm=PersistenceManager.getInstance(InvocationInfoProxy.getInstance().getUserDataSource());
+            pm.getJdbcSession().executeUpdate(sql);
+    	 } catch(Exception e){
+    		 throw ExceptionHandler.handleException(this.getClass(), e);
+    	 } finally {
+             pm.release();
+    	 }
+    }
     /**
      *
      * @param headdatas
@@ -4395,7 +4416,7 @@ public class DJZBDAO {
     	//add by ouyangzhb 2011-05-10 为来源类型为3的设置过滤条件
 	    else if(Integer.valueOf(lx)==3)//订单行id
 	    {
-	    	lyattr="ddhid";
+	    	lyattr="ddhh";//源头单据id
 	    }
     	
     	String tempTableName=null;

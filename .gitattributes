@@ -405,7 +405,9 @@ junjie/develop/proj/newmodules/uapqe/src/client/nc/ui/pub/queryplugin/QEUserTemp
 junjie/develop/proj/newmodules/uapqe/src/client/nc/ui/reportquery/component/table/AggregateTableModel.java -text svneol=unset#text/plain
 junjie/patches/modules/.project -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$1.class -text
+junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$2.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL.class -text
+junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/ApplayBillDMO.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBBO.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$1.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$10.class -text
@@ -433,6 +435,8 @@ junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$7.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$8.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$9.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO.class -text
+junjie/patches/modules/arap/classes/nc/vo/arap/verifynew/RBVerify.class -text
+junjie/patches/modules/arap/classes/nc/vo/verifynew/pub/FenPeiUtil.class -text
 junjie/patches/modules/cc/META-INF/lib/cc.jar -text
 junjie/patches/modules/cdm/client/classes/nc/ui/fac/account/pub/RefTakenProccessor.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/cmp/pub/DefaultListEventHandler$1.class -text
@@ -608,11 +612,15 @@ junjie/patches/modules/pu/META-INF/classes/nc/bs/pu/mm/AdapterPuToMm.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pu/pr/PraybillDMO.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pub/action/N_25_CRTAPBILL.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pub/action/N_25_DELAPBILL.class -text
+junjie/patches/modules/pu/META-INF/classes/nc/bs/pub/action/N_25_DISCARD.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pub/action/N_25_FEEAPPROVE.class -text
+junjie/patches/modules/pu/META-INF/classes/nc/bs/pub/action/N_25_SAVEBASE.class -text
+junjie/patches/modules/pu/META-INF/classes/nc/impl/jj/update/UpdateArapImpl.class -text
 junjie/patches/modules/pu/classes/itf/ps/estimate/IEstimate.class -text
 junjie/patches/modules/pu/classes/itf/ps/estimate/IEstimate.java -text
 junjie/patches/modules/pu/classes/itf/pu/mm/ISrvPUToMM.class -text
 junjie/patches/modules/pu/classes/itf/pu/mm/ISrvPUToMM.java -text
+junjie/patches/modules/pu/classes/nc/itf/jj/update/IUpdateArap.class -text
 junjie/patches/modules/pu/classes/nc/itf/ps/estimate/IEstimate.class -text
 junjie/patches/modules/pu/classes/nc/itf/pu/mm/ISrvPUToMM.class -text
 junjie/patches/modules/pu/classes/nc/ui/pf/changedir/CHGF1TO25.class -text
@@ -666,6 +674,7 @@ junjie/patches/modules/scmpub/classes/nc/vo/scm/ic/bill/InvVO.class -text
 junjie/patches/modules/scmpub/classes/nc/vo/scm/relacal/SCMRelationsCal.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/pub/action/N_30_OrderFinish.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/pub/action/N_30_SoBlankout.class -text
+junjie/patches/modules/so/META-INF/classes/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/so/backtask/soremain/SaleStayOrderClose.class -text
 junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/so001/JunJieSoDMO.class -text
 junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/so001/SaleOrderDMO.class -text
@@ -718,7 +727,12 @@ junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientCtrl.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientEH.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientUI.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/dbcache/version/ClientCacheVersionBS.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/BillSourceDLG$HeadRowStateListener.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/BillSourceDLG.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$1.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$2$1$1.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$2$1.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$2.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient.class -text
 junjie/patches/modules/uapqe/client/classes/nc/ui/reportquery/component/table/AggregateTableModel$VariantWrapper.class -text
 junjie/patches/modules/uapqe/client/classes/nc/ui/reportquery/component/table/AggregateTableModel.class -text

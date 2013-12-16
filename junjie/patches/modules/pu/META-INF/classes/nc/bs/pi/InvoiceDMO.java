@@ -8734,35 +8734,27 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
     				invFlag = (Object[]) oTemp;
     				//add by ouyangzhb 2011-06-12 过滤物料发票 begin
     				if(invFlag[0].equals("Y") ) {
-//                vecCbaseid.addElement(bodyVO[j]);//同washDataForZGYF（）的差别仅在于支持虚拟发票
-//            }else{
-                vecItemVo2.addElement(bodyVO[j]);
+    					vecItemVo2.addElement(bodyVO[j]);
             }
     				//add by ouyangzhb 2011-06-12 过滤物料发票 end
     			}
-//    			if(Math.abs(bodyVO[j].getNaccumsettmny().doubleValue() - bodyVO[j].getNmoney().doubleValue()) <= 0.0){
     				vecItemVo22.addElement(bodyVO[j]);
 //    			}
     		}
       	}
       	if(vecItemVo2.size() == 0 || vecItemVo22.size() == 0) return null;
       	
-      	//以发票行ID, 获取结算单行中的如下信息: 入库单行ID, 结算数量, 合理损耗数量, 消耗总ID
-      
-//      	if(hSettle == null || hSettle.size() == 0) return null;
-      
+     
       	//查询发票参照的暂估应付单
       
       	Object key = null, data = null, d[] = null, dd[] = null;
       	for(int i=0;i<vecItemVo22.size();i++){
       		 InvoiceItemVO vo = (InvoiceItemVO) vecItemVo22.elementAt(i);
-      		vecCbaseid.addElement(vo.getCsourcebillrowid());
+      		vecCbaseid.addElement(vo.getCupsourcebillrowid());
       	}
       	if(vecCbaseid.size() == 0) return null;
       	sTemp = new String[vecCbaseid.size()];
       	vecCbaseid.copyInto(sTemp);
-//      	HashMap tZGYF = new PubDMO().queryArrayValues("arap_djfb","ddhh",new String[]{"vouchid"},sTemp,"dr=0");
-//      	if(tZGYF == null || tZGYF.size() == 0) return null;
       	
       	//确定哪些发票行需要回冲
       	vecCbaseid = new Vector();
@@ -8772,15 +8764,16 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
       		//
       		IAdjuestVO tempVO = new IAdjuestVO();
       		tempVO.setCinvoice_bid(bodyVO.getCinvoice_bid());
-       
-          tempVO.setDdhh(bodyVO.getCsourcebillrowid());
+	       if(bodyVO.getCsourcebillrowid() == null ){
+	    	   continue;
+	       }
+          tempVO.setDdhh(bodyVO.getCupsourcebillrowid());
       		vecItemVo2.addElement(tempVO);	
       		
               }
       
       	IAdjuestVO VOs[] = new IAdjuestVO[vecItemVo2.size()];
     	vecItemVo2.toArray(VOs);
-//      	vecItemVo2.copyInto(VOs);
     	return VOs;
     }
     /*
@@ -9379,6 +9372,9 @@ private IAdjuestVO[] getReturnVOsToWashFeeZGYF(Vector vBid,HashMap hSettle, Vect
     	HashMap<String, String> mapHid = new HashMap<String, String>();
     	//add by ouyangzhb 2011-05-09 把ddh保存到tempVO中  begin
     	HashMap<String, String> mapddh = new HashMap<String, String>();
+    	
+    	//add by ouyangzhb 2013-10-21 本次开票数量
+    	HashMap<String, UFDouble> mapshl = new HashMap<String, UFDouble>();
     	if(vOverItemVo != null && vOverItemVo.size() > 0){
     		InvoiceItemVO bodyVO = null;
 	      	for(int i=0; i<vOverItemVo.size(); i++){
@@ -9388,6 +9384,7 @@ private IAdjuestVO[] getReturnVOsToWashFeeZGYF(Vector vBid,HashMap hSettle, Vect
 	      				&& bodyVO.getCinvoice_bid() != null){
 	      			mapHid.put(bodyVO.getCinvoice_bid(), bodyVO.getCinvoiceid());
 	      			mapddh.put(bodyVO.getCinvoice_bid(), bodyVO.getCupsourcebillrowid());
+	      			mapshl.put(bodyVO.getCinvoice_bid(), bodyVO.getNinvoicenum());
 	      		}
 	      	}
     	}
@@ -9422,7 +9419,7 @@ private IAdjuestVO[] getReturnVOsToWashFeeZGYF(Vector vBid,HashMap hSettle, Vect
 //	      		d2 = new UFDouble(0);
 //	      		if(d[1] != null) d1 = new UFDouble(d[1].toString());
 //	      		if(d[2] != null) d2 = new UFDouble(d[2].toString());
-	      		tempVO.setShl(d1);
+	      		tempVO.setShl(mapshl.get(tempVO.getCinvoice_bid()));
 	      		tempVO.setDdhh(mapddh.get(tempVO.getCinvoice_bid()));
 	      		//add 2011-05-09 end
 	      		

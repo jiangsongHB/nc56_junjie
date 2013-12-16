@@ -2380,9 +2380,11 @@ public void selectListBill(int rownow) {
 				// 如果查出空值,那么将费用信息页签置空
 				this.getBillListPanel().getBodyBillModel(
 						"jj_scm_informationcost").setBodyDataVO(null);
-				this.getBillCardPanel().getBillModel("jj_scm_informationcost")
-						.setBodyDataVO(null);
-
+				if(getBillCardPanel().getBillModel("jj_scm_informationcost")!=null){
+					getBillCardPanel().getBillModel("jj_scm_informationcost")
+					.setBodyDataVO(null);
+				}
+				
 			}
 		}
 	
@@ -5076,7 +5078,8 @@ protected void switchBillToList() {
 				// 如果查出空值,那么将费用信息页签置空
 				this.getBillListPanel().getBodyBillModel(
 						"jj_scm_informationcost").setBodyDataVO(null);
-				this.getBillCardPanel().getBillModel("jj_scm_informationcost")
+				if(getBillCardPanel().getBillModel("jj_scm_informationcost") !=null)
+				getBillCardPanel().getBillModel("jj_scm_informationcost")
 						.setBodyDataVO(null);
 
 			}

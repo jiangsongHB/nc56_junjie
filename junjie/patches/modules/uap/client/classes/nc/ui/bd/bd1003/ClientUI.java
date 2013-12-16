@@ -94,7 +94,16 @@ public class ClientUI extends BillManageUI {
 		if(e.getKey().equals("pk_invcl")){
 			String pk_invcl = getBillCardPanel().getHeadItem("pk_invcl").getValue();
 			InvbasdocDefaultRefModel invMod = 	(InvbasdocDefaultRefModel)((UIRefPane)getBillCardPanel().getHeadItem("pk_invbasdoc").getComponent()).getRefModel();		
-			invMod.setWherePart(" bd_invbasdoc.pk_invcl ='"+pk_invcl+"'");
+			IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+			String invclasscode = null;
+		try {
+			 invclasscode = 	(String)query.executeQuery("select invclasscode from bd_invcl where pk_invcl = '"+pk_invcl+"'", new ColumnProcessor());
+		} catch (BusinessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+			invMod.setWherePart(" bd_invbasdoc.pk_invcl in (select pk_invcl from bd_invcl where invclasscode like '"+invclasscode+"%')");
+			
 			//invMod.setGroupPart("invtype");			
 		}
 		else if(e.getKey().equals("pk_invbasdoc")){
@@ -114,5 +123,7 @@ public class ClientUI extends BillManageUI {
 			e.printStackTrace();
 		}
 		return o;
+	}
+	protected void setListBodyData() throws Exception {
 	}
 }
