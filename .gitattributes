@@ -392,6 +392,7 @@ junjie/develop/proj/newmodules/uapqe/.module_prj -text
 junjie/develop/proj/newmodules/uapqe/.project -text
 junjie/develop/proj/newmodules/uapqe/META-INF/module.xml -text
 junjie/develop/proj/newmodules/uapqe/src/client/nc/ui/pub/queryplugin/QEUserTempletUtil.java -text
+junjie/develop/proj/newmodules/uapqe/src/client/nc/ui/reportquery/component/table/AggregateTableModel.java -text svneol=unset#text/plain
 junjie/patches/modules/.project -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$1.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL.class -text
