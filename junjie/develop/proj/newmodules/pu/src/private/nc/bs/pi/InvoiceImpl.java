@@ -7489,7 +7489,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 			} else {
 
 				// ≤È—Ø”Ôæ‰
-				querysql = "select (nvl(fb.dfshl,0) - (isnull(fb.ntotalinvoicenumber,0) + '"
+				querysql = "select (abs(nvl(fb.dfshl,0)) - abs(isnull(fb.ntotalinvoicenumber,0) + '"
 						+ itemvo[j].getNinvoicenum()
 						+ "')) num from arap_djfb  fb where  fb.fb_oid='"
 						+ sourcebillrowid + "' ";
