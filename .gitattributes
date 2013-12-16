@@ -167,9 +167,13 @@ junjie/develop/proj/newmodules/arap/src/public/nc/vo/arap/verifynew/RBVerify.jav
 junjie/develop/proj/newmodules/arap/src/public/nc/vo/verifynew/pub/FenPeiUtil.java -text
 junjie/develop/proj/newmodules/cdm/META-INF/module.xml -text
 junjie/develop/proj/newmodules/cdm/src/client/nc/ui/fac/account/pub/RefTakenProccessor.java -text
+junjie/develop/proj/newmodules/cmp/.classpath -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/cmp/.module_prj -text
+junjie/develop/proj/newmodules/cmp/.project -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cmp/META-INF/module.xml -text
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/cmp/pub/DefaultListEventHandler.java -text
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/cmp/settlement/SettlementListEventHandler.java -text
+junjie/develop/proj/newmodules/cmp/src/client/nc/ui/gl/initcontrast/BankReceiptClientUI.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/dm/.classpath -text
 junjie/develop/proj/newmodules/dm/.module_prj -text
 junjie/develop/proj/newmodules/dm/.project -text
