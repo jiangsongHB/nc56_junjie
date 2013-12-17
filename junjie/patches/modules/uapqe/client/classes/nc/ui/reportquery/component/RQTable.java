@@ -1174,6 +1174,7 @@ public class RQTable extends RQCompBase implements ListSelectionListener,
 				//m_dbTable.getSelectionModel().setSelectionInterval(iPenetrateRow,iPenetrateRow);
 				//wanglei 2013-12-17 支持多级穿透，根据查询id作为键值
 				m_dbTable.getSelectionModel().setSelectionInterval(((Integer)hm.get(getID())).intValue(),((Integer)hm.get(getID())).intValue());
+				m_dbTable.setSelectionBackground(Color.yellow);
 			} else if (e.getSource() == m_penetrateMenu) {
 				doPenetrate();
 			}
