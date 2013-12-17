@@ -308,7 +308,8 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 	 * @return
 	 */
 	public String getBodyCondition() {
-		return null;
+		return "  and abs(nvl(arap_djfb.ntotalinvoicenumber,0))< abs(nvl(arap_djfb.dfshl,0)) and arap_djfb.isverifyfinished = 'N' ";
+		//return null;
 	}
 
 	/**
@@ -495,7 +496,7 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 		    	String invbasid=tmpBVo.getCinventoryid();
 		    	Object o=this.execQuery(invbasid);
 		    	if(o!=null&&(((String)o).trim().toUpperCase()).equals("Y")){//判断存货的应税劳务标志是否为Y
-		    		tempExpenseVoList.add(tmpBVo);//如果是费用类存货,那么将此行加入费用VO数组
+		    			tempExpenseVoList.add(tmpBVo);//如果是费用类存货,那么将此行加入费用VO数组
 		    	}
 			}
 		    
@@ -523,15 +524,19 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 		try {
 			//利用产品组传入的条件与当前查询条件获得条件组成主表查询条件
 			String tmpWhere = null;
-			if (getHeadCondition() != null) {
-				if (m_whereStr == null) {
-					tmpWhere = " (" + getHeadCondition() + ")";
-				} else {
-					tmpWhere = " (" + m_whereStr + ") and (" + getHeadCondition() + ")";
-				}
-			} else {
-				tmpWhere = m_whereStr;
-			}
+			//wanglei 2013-12-13 获得查询条件
+			IBillReferQuery queryCondition = getQueyDlg();
+			tmpWhere = queryCondition.getWhereSQL();
+			
+//			if (getHeadCondition() != null) {  //2013-12-13 下面的方法都没写,这里还重置，晕！
+//				if (m_whereStr == null) {
+//					tmpWhere = " (" + getHeadCondition() + ")";
+//				} else {
+//					tmpWhere = " (" + m_whereStr + ") and (" + getHeadCondition() + ")";
+//				}
+//			} else {
+//				tmpWhere = m_whereStr;
+//			}
 			// 采购发票参照采购应付单的过滤条件(是否红冲：否    是否暂估应付：是)
 //				whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0)";
 				//因为生成的暂估应付单业务流程改为 arap中的 应付通用流程 所以将更改后的流程id加入查询条件 
@@ -540,7 +545,7 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 			//并添加一个对当前单据类型的判断,防止其他地方使用到采购应付单拉式时此条件对其他业务产生影响
 			if(this.getCurrentBillType()!=null&&this.getCurrentBillType().equals("25")){
 				
-			tmpWhere = tmpWhere + " and zb.zyx19 is null and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0 or zb.zyx19<>'Y' ";
+			tmpWhere = tmpWhere + " and (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0  "; //wanglei 2013-12-13 这种低级错误也有/
 			
 			}
 			
