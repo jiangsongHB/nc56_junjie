@@ -455,6 +455,8 @@ public class RQTable extends RQCompBase implements ListSelectionListener,
 		}
 		m_dbTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		m_dbTable.getTableHeader().resizeAndRepaint();
+		//wanglei 2013-12-17
+		m_dbTable.setSelectionBackground(Color.yellow);
 
 		MouseAdapter adapter = new MouseAdapter() {
 			public void mouseReleased(java.awt.event.MouseEvent e) {
@@ -1174,7 +1176,7 @@ public class RQTable extends RQCompBase implements ListSelectionListener,
 				//m_dbTable.getSelectionModel().setSelectionInterval(iPenetrateRow,iPenetrateRow);
 				//wanglei 2013-12-17 支持多级穿透，根据查询id作为键值
 				m_dbTable.getSelectionModel().setSelectionInterval(((Integer)hm.get(getID())).intValue(),((Integer)hm.get(getID())).intValue());
-				m_dbTable.setSelectionBackground(Color.yellow);
+//				m_dbTable.setSelectionBackground(Color.yellow);
 			} else if (e.getSource() == m_penetrateMenu) {
 				doPenetrate();
 			}
