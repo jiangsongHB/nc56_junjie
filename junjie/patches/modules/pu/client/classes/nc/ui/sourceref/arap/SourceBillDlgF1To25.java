@@ -308,7 +308,8 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 	 * @return
 	 */
 	public String getBodyCondition() {
-		return null;
+		return "  and abs(nvl(arap_djfb.ntotalinvoicenumber,0))< abs(nvl(arap_djfb.dfshl,0)) and arap_djfb.isverifyfinished = 'N' ";
+		//return null;
 	}
 
 	/**
@@ -495,7 +496,7 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 		    	String invbasid=tmpBVo.getCinventoryid();
 		    	Object o=this.execQuery(invbasid);
 		    	if(o!=null&&(((String)o).trim().toUpperCase()).equals("Y")){//判断存货的应税劳务标志是否为Y
-		    		tempExpenseVoList.add(tmpBVo);//如果是费用类存货,那么将此行加入费用VO数组
+		    			tempExpenseVoList.add(tmpBVo);//如果是费用类存货,那么将此行加入费用VO数组
 		    	}
 			}
 		    
