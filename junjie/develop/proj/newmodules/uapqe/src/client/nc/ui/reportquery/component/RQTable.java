@@ -290,6 +290,7 @@ public class RQTable extends RQCompBase implements ListSelectionListener,
 	//wanglei 2013-12-16 穿透返回到选择行
 	private int iPenetrateRow = 0;
 	private HashMap hm = new HashMap();
+	private HashMap hmscrb = new HashMap();
 
 	// 分页事件控制器
 	class PageEventHandler implements ActionListener, KeyListener {
@@ -1177,6 +1178,9 @@ public class RQTable extends RQCompBase implements ListSelectionListener,
 				//wanglei 2013-12-17 支持多级穿透，根据查询id作为键值
 				m_dbTable.getSelectionModel().setSelectionInterval(((Integer)hm.get(getID())).intValue(),((Integer)hm.get(getID())).intValue());
 //				m_dbTable.setSelectionBackground(Color.yellow);
+//				Rectangle rect = m_dbTable.getCellRect(((Integer)hm.get(getID())).intValue()-1, 0, true);
+				m_dbTable.scrollRectToVisible((Rectangle)hmscrb.get(getID()));   //wanglei 恢复到穿透前的位置
+
 			} else if (e.getSource() == m_penetrateMenu) {
 				doPenetrate();
 			}
@@ -2537,6 +2541,7 @@ public class RQTable extends RQCompBase implements ListSelectionListener,
 			iPenetrateRow = selectedRow;
 			//wanlei 2013-12-17 
 			hm.put(getID(), selectedRow);
+			hmscrb.put(getID(), m_dbTable.getVisibleRect()) ;  //wanglei 2013-12-17 记录当前界面位置
 			
 			int selectedCol = m_dbTable.getSelectedColumn();
 			SimpleCrossVO[] scs = getCurSimpleCrossVOs();
