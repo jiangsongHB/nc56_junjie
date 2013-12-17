@@ -10,7 +10,7 @@ import nc.ui.bd.ref.AbstractRefModel;
 public class InvDetailRef extends AbstractRefModel {
 
 	public InvDetailRef() {
-		super.reloadData();
+		//super.reloadData();  //wanglei 2013-12-17 效率问题，不加载数据
 	}
 
 	public String getTableName() {
