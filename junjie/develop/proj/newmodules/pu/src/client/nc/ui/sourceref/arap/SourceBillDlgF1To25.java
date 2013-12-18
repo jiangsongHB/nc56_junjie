@@ -405,7 +405,8 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 	 * @return
 	 */
 	public String getHeadCondition() {
-		return "  (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0 ";
+		return "  (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0  " + 
+			"	and abs(nvl(fb.ntotalinvoicenumber,0))< abs(nvl(fb.dfshl,0)) and fb.isverifyfinished = 'N' ";
 	}
 
 	/**
