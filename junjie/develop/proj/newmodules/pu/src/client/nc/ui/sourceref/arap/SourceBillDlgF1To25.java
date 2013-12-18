@@ -38,6 +38,7 @@ import nc.ui.pub.pf.AbstractReferQueryUI;
 import nc.ui.pub.pf.BillSourceDLG;
 import nc.ui.pub.pf.PfUtilBO_Client;
 import nc.ui.querytemplate.IBillReferQuery;
+import nc.ui.querytemplate.QueryConditionDLG;
 import nc.vo.ep.dj.DJZBItemVO;
 import nc.vo.pf.change.PfUtilBaseTools;
 import nc.vo.pi.InvoiceItemVO;
@@ -163,6 +164,7 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 		super(pkField, pkCorp, operator, funNode, queryWhere, billType, businessType, templateId,
 				currentBillType, nodeKey, userObj, parent);
 		m_whereStr = getQueryWhere();
+		
 		initialize();
 	}
 
@@ -308,7 +310,30 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 	 * @return
 	 */
 	public String getBodyCondition() {
-		return "  and abs(nvl(arap_djfb.ntotalinvoicenumber,0))< abs(nvl(arap_djfb.dfshl,0)) and arap_djfb.isverifyfinished = 'N' ";
+		
+		String strBodyConditon = "  and abs(nvl(arap_djfb.ntotalinvoicenumber,0))< abs(nvl(arap_djfb.dfshl,0)) and arap_djfb.isverifyfinished = 'N' "; // + 
+				//"  and exists (select 1 from bd_invbasdoc where pk_invbasdoc = arap_djfb.cinventoryid  and laborflag = 'Y' )" ;
+		IBillReferQuery queryCondition = getQueyDlg();
+		String qryWhere = queryCondition.getWhereSQL();
+		//String tmpWhere = null;
+		if (qryWhere.contains("fb.hbbm")) {
+			String tmpWhere = qryWhere.replaceAll("fb.", "arap_djfb.");
+			tmpWhere=tmpWhere.substring(tmpWhere.indexOf("arap_djfb.hbbm"));
+			if (tmpWhere.lastIndexOf(")") == tmpWhere.length()-1 )
+				tmpWhere = tmpWhere.substring(0, tmpWhere.length()-1);
+			String strSplit[] = tmpWhere.split(" ");
+			tmpWhere = " and ( ";
+			for (int i = 0 ; i< 3; i++){
+				tmpWhere = tmpWhere.concat(strSplit[i]);
+			}
+			tmpWhere = tmpWhere.concat(" ) ");
+			strBodyConditon = strBodyConditon.concat(tmpWhere);
+			//strBodyConditon.concat(tmpWhere.replaceAll("fb.", "arap_djfb."));
+		}
+		
+		return strBodyConditon ;
+		
+
 		//return null;
 	}
 
@@ -380,7 +405,7 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 	 * @return
 	 */
 	public String getHeadCondition() {
-		return null;
+		return "  (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0 ";
 	}
 
 	/**
@@ -528,26 +553,26 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 			IBillReferQuery queryCondition = getQueyDlg();
 			tmpWhere = queryCondition.getWhereSQL();
 			
-//			if (getHeadCondition() != null) {  //2013-12-13 下面的方法都没写,这里还重置，晕！
-//				if (m_whereStr == null) {
-//					tmpWhere = " (" + getHeadCondition() + ")";
-//				} else {
-//					tmpWhere = " (" + m_whereStr + ") and (" + getHeadCondition() + ")";
-//				}
-//			} else {
-//				tmpWhere = m_whereStr;
-//			}
+			if (getHeadCondition() != null) {  //2013-12-13 下面的方法都没写,这里还重置，晕！
+				if (m_whereStr == null) {
+					tmpWhere = " (" + getHeadCondition() + ")";
+				} else {
+					tmpWhere = " (" + m_whereStr + ") and (" + getHeadCondition() + ")";
+				}
+			} else {
+				tmpWhere = m_whereStr;
+			}
 			// 采购发票参照采购应付单的过滤条件(是否红冲：否    是否暂估应付：是)
 //				whereString = whereString+" and zb.isreded = 'N' and zb.zgyf = 1 and zb.dr = 0)";
 				//因为生成的暂估应付单业务流程改为 arap中的 应付通用流程 所以将更改后的流程id加入查询条件 
 					//另加入对暂估应付的过滤  1 标识暂估应付  0 标识 非暂估应付 by 付世超 2010-10-23
 			//2010-11-22 将下面语句中的 or zb.xslxbm = '00011110000000002RGT' 去掉,
 			//并添加一个对当前单据类型的判断,防止其他地方使用到采购应付单拉式时此条件对其他业务产生影响
-			if(this.getCurrentBillType()!=null&&this.getCurrentBillType().equals("25")){
-				
-			tmpWhere = tmpWhere + " and (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0  "; //wanglei 2013-12-13 这种低级错误也有/
-			
-			}
+//			if(this.getCurrentBillType()!=null&&this.getCurrentBillType().equals("25")){
+//				
+//			tmpWhere = tmpWhere + " and (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0  "; //wanglei 2013-12-13 这种低级错误也有/
+//			
+//			}
 			
 			String businessType = null;
 			if (getIsBusinessType()) {
