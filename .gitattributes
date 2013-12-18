@@ -658,8 +658,6 @@ junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog.class 
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog.java -text
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog421.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog421.java -text
-junjie/patches/modules/pu/client/classes/nc/ui/pub/pf/PfUtilClient$1.class -text
-junjie/patches/modules/pu/client/classes/nc/ui/pub/pf/PfUtilClient.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IBillRelaSortListener2Body.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$IMenuItemListener.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI$MyBillData.class -text
@@ -725,13 +723,6 @@ junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientCtrl.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientEH.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/bd/bd1005/ClientUI.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/dbcache/version/ClientCacheVersionBS.class -text
-junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/BillSourceDLG$HeadRowStateListener.class -text
-junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/BillSourceDLG.class -text
-junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$1.class -text
-junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$2$1$1.class -text
-junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$2$1.class -text
-junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient$2.class -text
-junjie/patches/modules/uap/client/classes/nc/ui/pub/pf/PfUtilClient.class -text
 junjie/patches/modules/uapqe/client/classes/nc/ui/reportquery/component/RQTable$1.class -text
 junjie/patches/modules/uapqe/client/classes/nc/ui/reportquery/component/RQTable$2.class -text
 junjie/patches/modules/uapqe/client/classes/nc/ui/reportquery/component/RQTable$3.class -text
