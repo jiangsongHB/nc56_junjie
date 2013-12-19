@@ -9198,15 +9198,15 @@ public abstract class CtBaseUI extends ToftPanel implements
 				 * if(!sOldCurrate.equals(sNewCurrate)){
 				 * getCtBillCardPanel().getBillModel(CTTableCode.BASE).execFormulas(getFormularForNat(sNewCurrate),0,getCtBillCardPanel().getRowCount()); }
 				 */
-				for (int i = 0; i < getCtBillCardPanel().getRowCount(); i++) {
-					/*
-					 * calcCtLinePriceMny(new BillEditEvent(this, null, null,
-					 * "oritaxprice", i, BillItem.BODY));
-					 */
-					calcCtLinePriceMny(new BillEditEvent(this, null, null,
-							"currrate", i, BillItem.BODY));
-
-				}
+//				for (int i = 0; i < getCtBillCardPanel().getRowCount(); i++) {  //wanglei 2013-12-19 ¿¥½Ü×¢ÊÍ
+//					/*
+//					 * calcCtLinePriceMny(new BillEditEvent(this, null, null,
+//					 * "oritaxprice", i, BillItem.BODY));
+//					 */
+//					calcCtLinePriceMny(new BillEditEvent(this, null, null,
+//							"currrate", i, BillItem.BODY));
+//
+//				}
 
 			}
 		} catch (Exception e) {
