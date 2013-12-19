@@ -187,8 +187,8 @@ public class MDUtils {
 							.div(count_LW);
 				}
 				//add by ouyangzhb 2011-07-28 需求调整，精度改为三位
-//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
-				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);  //wangei 2013-12-19 恢复四舍五入
+//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
 				vo.setSrkzl(vga);
 				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
 			}
@@ -342,7 +342,8 @@ public class MDUtils {
 							.div(count_LW);
 				}
 				// add by ouyangzhb 2011-07-28 需求调整，精度改为三位
-				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
+//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR); //wanglei 2013-12-19 恢复四舍五入
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
 				vo.setDef1(vga);
 				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
 			}
@@ -654,8 +655,8 @@ public class MDUtils {
 							.div(count_LW);
 				}
 				//add by ouyangzhb 2011-07-28 需求调整，精度改为三位
-//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);
-				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
+				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_HALF_UP);  //wanglei 2013-12-19 恢复为四舍五入
+//				vga = vga.setScale(MDConstants.ZL_XSW, UFDouble.ROUND_FLOOR);
 				vo.setSrkzl(vga);
 				count_ZL = count_ZL.add(vga, MDConstants.ZL_XSW);
 			}
