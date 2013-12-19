@@ -682,6 +682,7 @@ junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To2
 junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To25.java -text
 junjie/patches/modules/scmpub/classes/nc/vo/scm/ic/bill/InvVO.class -text
 junjie/patches/modules/scmpub/classes/nc/vo/scm/relacal/SCMRelationsCal.class -text
+junjie/patches/modules/so/META-INF/classes/nc/bs/pf/changedir/CHG30TO32.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/pub/action/N_30_OrderFinish.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/pub/action/N_30_SoBlankout.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.class -text
