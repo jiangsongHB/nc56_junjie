@@ -175,6 +175,7 @@ junjie/develop/proj/newmodules/cmp/.classpath -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cmp/.module_prj -text
 junjie/develop/proj/newmodules/cmp/.project -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cmp/META-INF/module.xml -text
+junjie/develop/proj/newmodules/cmp/src/client/nc/ui/arap/ref/PayStateRefModel.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/cmp/pub/DefaultListEventHandler.java -text
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/cmp/settlement/SettlementListEventHandler.java -text
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/gl/initcontrast/BankReceiptClientUI.java -text svneol=unset#text/plain
