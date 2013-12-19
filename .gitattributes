@@ -453,6 +453,9 @@ junjie/patches/modules/cmp/client/classes/nc/ui/cmp/pub/DefaultListEventHandler.
 junjie/patches/modules/cmp/client/classes/nc/ui/cmp/settlement/SettlementListEventHandler$Data.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/cmp/settlement/SettlementListEventHandler.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/gl/initcontrast/BankReceiptClientUI.class -text
+junjie/patches/modules/ct/client/classes/nc/ui/ct/pub/CtBaseUI$1.class -text
+junjie/patches/modules/ct/client/classes/nc/ui/ct/pub/CtBaseUI$FreshTsListener.class -text
+junjie/patches/modules/ct/client/classes/nc/ui/ct/pub/CtBaseUI.class -text
 junjie/patches/modules/dm/META-INF/classes/nc/bs/dm/dm220/action/DelivBillExchangeAction.class -text
 junjie/patches/modules/dm/META-INF/classes/nc/bs/dm/dm220/exchange/CustomerExchange.class -text
 junjie/patches/modules/dm/META-INF/classes/nc/bs/pf/changedir/CHG21TO4804.class -text
