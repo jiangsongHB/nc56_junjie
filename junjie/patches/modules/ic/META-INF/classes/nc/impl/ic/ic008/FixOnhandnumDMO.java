@@ -1079,7 +1079,7 @@ public class FixOnhandnumDMO extends nc.bs.pub.DataManageObject {
 	private void delMatchRecord(ConditionVO[] voaCond) throws Exception {
 		String sWhere = getMatchCondition(voaCond);
 		StringBuffer sDelBodySql = new StringBuffer(
-				"delete from ic_onhandnum_b where pk_onhandnum in (select pk_onhandnum from ic_onhandnum where 1=1 ");
+				"delete from ic_onhandnum_b where ic_onhandnum_b.pk_onhandnum is null or pk_onhandnum in (select pk_onhandnum from ic_onhandnum where 1=1 ");  //wanglei 2013-12-19 不得已而为之。
 		sDelBodySql.append(sWhere);
 		sDelBodySql.append(" )");
 		// 删除现存量从表纪录
