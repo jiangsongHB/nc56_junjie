@@ -419,6 +419,8 @@ junjie/develop/proj/newmodules/uapqe/src/client/nc/ui/pub/queryplugin/QEUserTemp
 junjie/develop/proj/newmodules/uapqe/src/client/nc/ui/reportquery/component/RQTable.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/uapqe/src/client/nc/ui/reportquery/component/table/AggregateTableModel.java -text svneol=unset#text/plain
 junjie/patches/modules/.project -text
+junjie/patches/modules/admin/META-INF/classes/nc/impl/ic/ic008/FixOnhandnumDMO$QueryType.class -text
+junjie/patches/modules/admin/META-INF/classes/nc/impl/ic/ic008/FixOnhandnumDMO.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$1.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$2.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL.class -text
