@@ -405,8 +405,29 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 	 * @return
 	 */
 	public String getHeadCondition() {
-		return "  (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0  " + 
-			"	and abs(nvl(fb.ntotalinvoicenumber,0))< abs(nvl(fb.dfshl,0)) and fb.isverifyfinished = 'N' ";
+		
+		String strHeadCondition = "  (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0  " + 
+				"	and abs(nvl(fb.ntotalinvoicenumber,0))< abs(nvl(fb.dfshl,0)) and fb.isverifyfinished = 'N' and exists ( " +
+				" select 1 from bd_invbasdoc where laborflag = 'Y' and pk_invbasdoc = fb.cinventoryid )" ;
+		IBillReferQuery queryCondition = getQueyDlg();
+		String qryWhere = queryCondition.getWhereSQL();
+		
+		if (qryWhere.contains("fb.hbbm")) {
+			String tmpWhere = qryWhere;
+			tmpWhere=tmpWhere.substring(tmpWhere.indexOf("fb.hbbm"));
+			if (tmpWhere.lastIndexOf(")") == tmpWhere.length()-1 )
+				tmpWhere = tmpWhere.substring(0, tmpWhere.length()-1);
+			String strSplit[] = tmpWhere.split(" ");
+			tmpWhere = " and ( ";
+			for (int i = 0 ; i< 3; i++){
+				tmpWhere = tmpWhere.concat(strSplit[i]);
+			}
+			tmpWhere = tmpWhere.concat("  and fb.dr = 0 ) ");
+			strHeadCondition = strHeadCondition.concat(tmpWhere);
+			//strBodyConditon.concat(tmpWhere.replaceAll("fb.", "arap_djfb."));
+		}
+		
+		return strHeadCondition;
 	}
 
 	/**
