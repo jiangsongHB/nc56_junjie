@@ -344,7 +344,7 @@ public class ArapForGYL {
 			/**add by ouyangzhb 2013-10-21 暂估应付的红冲方式（不需要分单）*/
 			DJZBVO[] vos  = null;
 			if(lylx == 3){
-				vos = seperateBillsForZGYF(lst, pk_corp, clrq);
+				vos = seperateBillsForZGYF(lst, pk_corp, clrq); 
 			}else{
 				vos = seperateBills(lst, pk_corp, clrq);
 			}
@@ -633,9 +633,11 @@ public class ArapForGYL {
 		DJZBVO[] apVOs = new DJZBVO[bills.size()];
 		bills.toArray(apVOs);
 		// 分单
-		DJZBVO[] ret = (DJZBVO[]) getSplitVOs(DJZBVO.class.getName(),
-				DJZBHeaderVO.class.getName(), DJZBItemVO.class.getName(),
-				apVOs, new String[] { }, new String[] { "ckdh" });
+//		DJZBVO[] ret = (DJZBVO[]) getSplitVOs(DJZBVO.class.getName(),   //wanglei 2013-12-20 不分单还调用他干嘛！
+//				DJZBHeaderVO.class.getName(), DJZBItemVO.class.getName(),
+//				apVOs, new String[] { }, new String[] { "ckdh" });
+		
+		DJZBVO[] ret = apVOs;
 		//
 		for (int i = 0; i < ret.length; i++) {
 			DJZBVO zb = ret[i];
