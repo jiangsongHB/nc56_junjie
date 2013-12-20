@@ -106,6 +106,7 @@ import nc.ui.scm.pub.print.ScmPrintTool;
 import nc.ui.scm.pub.query.SCMQueryConditionDlg;
 import nc.ui.scm.pub.report.BillRowNo;
 import nc.ui.scm.pub.sourceref.SourceRefDlg;
+import nc.ui.sourceref.arap.SourceBillDlgF1To25;
 import nc.vo.arap.global.ArapDjCalculator;
 import nc.vo.arap.pub.ArapConstant;
 import nc.vo.bd.b06.PsndocVO;
@@ -6787,11 +6788,11 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 					} else {
 						
 						/** add by ouyangzhb 2013-10-17 如果來源是应付单的，需要根据供应商合并单据 **/
-						if ("D1".equalsIgnoreCase(strUpBillType)) {
-							vos = (InvoiceVO[]) getCombineRetVoS();
-						} else {
+//						if ("D1".equalsIgnoreCase(strUpBillType)) {
+//							vos = (InvoiceVO[]) getCombineRetVoS();
+//						} else {
 							vos = (InvoiceVO[]) PfUtilClient.getRetVos();
-						}
+//						}
 						// vos = (InvoiceVO[]) PfUtilClient.getRetVos();
 						/** add by ouyangzhb 2013-10-17 如果來源是应付单的，需要根据供应商合并单据 **/	
 						
@@ -6808,7 +6809,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 																		 * "单据转换失败！"
 																		 */);
 							return;
-						} else {
+						} else {  
 							BillItem item = getBillListPanel()
 									.getBodyBillModel().getItemByKey(
 											"nplanprice");
@@ -6891,9 +6892,14 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 					if (btn.getParent() == m_btnInvBillNew) {
 						setInvVOs(vos);
 					} else if (btn.getParent() == btnBillAddContinue) {
-
-						AggregatedValueObject[] arySourceVOs = SourceRefDlg
-								.getRetsVos();
+						
+						AggregatedValueObject[] arySourceVOs = null;
+						if (!strUpBillType.equalsIgnoreCase("D1")) {  //wanglei 2013-12-20 
+							arySourceVOs = SourceRefDlg
+									.getRetsVos();
+						} else {
+							arySourceVOs = vos;
+						}
 
 						// 追加的表体数据
 						Vector<InvoiceItemVO> continueItemVO = new Vector<InvoiceItemVO>();
@@ -13838,7 +13844,8 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 				.getString_TrimZeroLenAsNull(getBillCardPanel().getBodyValueAt(
 						0, "cupsourcebilltype"));
 		if (!BillTypeConst.PO_ORDER.equalsIgnoreCase(sUpsourcebilltype)
-				&& !BillTypeConst.STORE_PO.equalsIgnoreCase(sUpsourcebilltype)) {
+				&& !BillTypeConst.STORE_PO.equalsIgnoreCase(sUpsourcebilltype)
+				&& !"D1".equalsIgnoreCase(sUpsourcebilltype)) {   //wanglei 2013-12-20 参照增行增加D1类型
 			return;
 		}
 		ButtonObject bo = new ButtonObject("btncontinue");
@@ -13875,7 +13882,10 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 						btn.setVisible(true);
 					}
 				}
-
+				//wanglei 2013-12-20 参照新增支持D1
+				if ("D1".equalsIgnoreCase(sUpsourcebilltype)) {
+						btn.setVisible(true);
+				}
 			}
 			for (int i = 0; i < intLen; i++) {
 				if (((ButtonObject) vecBtn.get(i)).isVisible()) {
