@@ -155,6 +155,13 @@ junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1003/AdditionalValueVO.cla
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1003/MyBillVO.class -text
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/BurrCoefficientVO.class -text
 junjie/develop/proj/modules/uap/out/public/nc/vo/bd/bd1005/MyBillVO.class -text
+junjie/develop/proj/newmodules/admin/.classpath -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/admin/.module_prj -text
+junjie/develop/proj/newmodules/admin/.project -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/admin/META-INF/module.xml -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/admin/out/private/nc/impl/ic/ic008/FixOnhandnumDMO$QueryType.class -text
+junjie/develop/proj/newmodules/admin/out/private/nc/impl/ic/ic008/FixOnhandnumDMO.class -text
+junjie/develop/proj/newmodules/admin/src/private/nc/impl/ic/ic008/FixOnhandnumDMO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/.classpath -text
 junjie/develop/proj/newmodules/arap/.module_prj -text
 junjie/develop/proj/newmodules/arap/.project -text svneol=unset#text/plain
