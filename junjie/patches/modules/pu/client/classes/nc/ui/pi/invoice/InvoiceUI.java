@@ -6903,6 +6903,16 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 
 						// 追加的表体数据
 						Vector<InvoiceItemVO> continueItemVO = new Vector<InvoiceItemVO>();
+						//wanglei 2013-12-21  先在这里处理一下当前的行。
+						if (getInvVOs() != null
+								&& getInvVOs()[getCurVOPos()] != null) {
+							InvoiceItemVO[] items = (InvoiceItemVO[]) getInvVOs()[getCurVOPos()]
+									.getChildrenVO();
+							for (int j = 0; j < items.length; j++) {// 界面上原来的行
+								continueItemVO.add(items[j]);
+							}
+						}
+							
 						if (arySourceVOs != null && arySourceVOs.length > 0) {
 
 							InvoiceHeaderVO voCur = getCurVOonCard()
@@ -6948,18 +6958,19 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 															newvo
 																	.getAttributeValue(headNotNullKeys[j]))) {
 										bRight = false;
+										MessageDialog.showErrorDlg(this, "参照增行错误", "表头项目：" + getBillCardPanel().getHeadItem(headNotNullKeys[j]).getName() + " 与新增参照行的值不一致。");
 										break;// 新表头与原表头必输项不一致则不能参照增行
 									}
 								}
 								if (bRight) {
 									InvoiceVO invoiceVO = (InvoiceVO) arySourceVOs[i];
-									if (getInvVOs() != null
-											&& getInvVOs()[getCurVOPos()] != null) {
-										InvoiceItemVO[] items = (InvoiceItemVO[]) getInvVOs()[getCurVOPos()]
-												.getChildrenVO();
-										for (int j = 0; j < items.length; j++) {// 界面上原来的行
-											continueItemVO.add(items[j]);
-										}
+//									if (getInvVOs() != null  //wanglei 2013-12-21 这里增加会重复行啊
+//											&& getInvVOs()[getCurVOPos()] != null) {
+//										InvoiceItemVO[] items = (InvoiceItemVO[]) getInvVOs()[getCurVOPos()]
+//												.getChildrenVO();
+//										for (int j = 0; j < items.length; j++) {// 界面上原来的行
+//											continueItemVO.add(items[j]);
+//										}
 										for (int jj = 0; jj < invoiceVO
 												.getChildrenVO().length; jj++) {// 新追加的行
 											((InvoiceItemVO[]) invoiceVO
@@ -6969,7 +6980,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 													.add(((InvoiceItemVO[]) invoiceVO
 															.getChildrenVO())[jj]);
 										}
-									}
+									//}
 								}
 							}
 
