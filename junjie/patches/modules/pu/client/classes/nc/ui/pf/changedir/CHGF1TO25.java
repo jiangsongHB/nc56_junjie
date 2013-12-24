@@ -72,7 +72,7 @@ public class CHGF1TO25 extends VOConversionUI {
 //"B_ninvoicenum->B_shlye",//发票数量 -> 数量余额//2010-11-12 MeiChao 注释掉
 "B_vmemo->B_zy",//备注 -> 摘要
 //"B_vdef18->B_zyx18",//是否为费用暂估的标识 使用自定义项18
-"H_cvendormangid->B_zyx19"//从应付单的自定义项中取出 客商管理id 使用应付单的自定义项19  //wanglei 2013-12-20 值不正确啊
+//"H_cvendormangid->B_zyx19"//从应付单的自定义项中取出 客商管理id 使用应付单的自定义项19  //wanglei 2013-12-20 值不正确啊
 				};
 	}
 
