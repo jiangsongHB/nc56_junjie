@@ -101,6 +101,7 @@ public class MDUtils {
 			// billname.put("4E","调拨入库单");
 			billname.put("4I", "其他出库单");
 			billname.put("4C", "销售出库单");
+			billname.put("40", "库存期初余额");
 			// billname.put("4Y","调拨出库单");
 		}
 		return billname.get(billtype);

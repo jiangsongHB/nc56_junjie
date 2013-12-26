@@ -2239,7 +2239,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 				e.printStackTrace();
 				showErrorMessage(e.getMessage());
 			}
-		} else if (getBillType().equals("45") || getBillType().equals("4A")) {
+		} else if (getBillType().equals("45") || getBillType().equals("4A") || getBillType().equals("40")) {
 			try {
 				if (BillMode.List == getM_iCurPanel())
 					throw new BusinessException("请在卡片显示下维护码单");
@@ -6022,7 +6022,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		// 加入字段编辑前校验，如果出入库单存货行已经有码单信息，则不允许直接修改存货行的实入（出）数量与辅数量。
 		// add by 阮睿 2010-10-13 -----begin
 		if (getBillType() == "4C" || getBillType() == "4I"
-				|| getBillType() == "45" || getBillType() == "4A") {
+				|| getBillType() == "45" || getBillType() == "4A" || getBillType() == "40") {
 			if (e.getKey().equals("ninnum")
 					|| e.getKey().equals("ninassistnum")
 					|| e.getKey().equals("noutnum")
@@ -8122,7 +8122,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					.getBillData().getBodyValueVOs("jj_scm_informationcost",
 							InformationCostVO.class.getName());
 			if (this.getBillType().equals("45")
-					|| this.getBillType().equals("4A")) {// 如果当前单据是采购入库单的话
+					|| this.getBillType().equals("4A") ) {// 如果当前单据是采购入库单的话
 				/**
 				 * 第一步获取当前订单中的存货数量总和
 				 */
@@ -11302,7 +11302,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 								InformationCostVO.class.getName());
 				GeneralBillItemVO[] voaItem = voUpdatedBill.getItemVOs();
 				if (this.getBillType().equals("45")
-						|| this.getBillType().equals("4A")) {// 如果当前单据是采购入库单/其他入库单的话
+						|| this.getBillType().equals("4A") ) {// 如果当前单据是采购入库单/其他入库单的话
 					/**
 					 * 第一步获取当前订单中的存货数量总和
 					 */
@@ -16484,7 +16484,7 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 					getBillCardPanel().updateUI();
 					getBillListPanel().updateUI();
 				} else if (getBillType().equals("45")
-						|| getBillType().equals("4A")) {
+						|| getBillType().equals("4A") || this.getBillType().equals("40")) {
 					MDioDialog dialog = new MDioDialog(this, false);
 					dialog.showModal();
 				}

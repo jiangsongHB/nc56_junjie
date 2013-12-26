@@ -235,6 +235,7 @@ junjie/develop/proj/newmodules/ic/META-INF/mdrkTools.upm -text
 junjie/develop/proj/newmodules/ic/META-INF/module.xml -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/auditdlg/ClientUIInAndOut.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic008/ClientUI.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic101/ClientUI.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic201/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic207/ClientUI.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/ic221/ClientUI.java -text
@@ -261,6 +262,7 @@ junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MDGbftdialog.java -te
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdGbPanel.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdProcessBean.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdczRef.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdczRefPane.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdwhDlg.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdwhPanel.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MyRowRenderer.java -text
