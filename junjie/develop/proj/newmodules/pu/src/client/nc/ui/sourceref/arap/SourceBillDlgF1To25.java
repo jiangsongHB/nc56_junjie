@@ -20,6 +20,7 @@ import nc.bs.logging.Logger;
 import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.ml.NCLangRes;
+import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
 import nc.ui.pub.beans.UIDialog;
@@ -406,7 +407,9 @@ BillEditListener, BillTableMouseListener, ListSelectionListener{
 	 */
 	public String getHeadCondition() {
 		
-		String strHeadCondition = "  (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0  " + 
+		String strDwbm = ClientEnvironment.getInstance().getCorporation().getPk_corp();
+		
+		String strHeadCondition = " zb.dwbm = '" + strDwbm + "' and   (zb.zyx19 is null or zb.zyx19<>'Y')  and zb.zgyf = '1' and zb.sxbz = 10 and zb.dr=0  " + 
 				"	and abs(nvl(fb.ntotalinvoicenumber,0))< abs(nvl(fb.dfshl,0)) and fb.isverifyfinished = 'N' and exists ( " +
 				" select 1 from bd_invbasdoc where laborflag = 'Y' and pk_invbasdoc = fb.cinventoryid )" ;
 		IBillReferQuery queryCondition = getQueyDlg();
