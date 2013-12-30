@@ -6791,7 +6791,8 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 //						if ("D1".equalsIgnoreCase(strUpBillType)) {
 //							vos = (InvoiceVO[]) getCombineRetVoS();
 //						} else {
-							vos = (InvoiceVO[]) PfUtilClient.getRetVos();
+							InvoiceVO[] invos = (InvoiceVO[]) PfUtilClient.getRetVos();
+							vos = CombineRVoS(invos);   //wanglei 2013-12-30 处理一下VO
 //						}
 						// vos = (InvoiceVO[]) PfUtilClient.getRetVos();
 						/** add by ouyangzhb 2013-10-17 如果來源是应付单的，需要根据供应商合并单据 **/	
@@ -14905,7 +14906,71 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 		return queryBS;
 	}
 	
+//wangei 2013-12-30
 	
+	public InvoiceVO[] CombineRVoS(InvoiceVO[] invos) {
+		InvoiceVO[] vos = null;
+		InvoiceVO[] retvos = invos;
+		if (retvos == null) {
+			return null;
+		}
+
+		/** 1、按供应商分组发票 **/
+		HashMap<String, ArrayList<InvoiceVO>> vogroup = new HashMap<String, ArrayList<InvoiceVO>>();
+		ArrayList<InvoiceVO> billvolist = null;
+		for (int i = 0; i < retvos.length; i++) {
+			InvoiceHeaderVO headvo = retvos[i].getHeadVO();
+			String cvendorid = headvo.getCvendorbaseid();
+			if (vogroup.containsKey(cvendorid)) {
+				billvolist = vogroup.get(cvendorid);
+				billvolist.add(retvos[i]);
+				vogroup.put(cvendorid, billvolist);
+			} else {
+				billvolist = new ArrayList<InvoiceVO>();
+				billvolist.add(retvos[i]);
+				vogroup.put(cvendorid, billvolist);
+			}
+		}
+		/** 2、把相同供应商的表头和表体组合在一起 **/
+		ArrayList<InvoiceItemVO> bodylist = null;
+		InvoiceItemVO[] itemvos = null;
+		InvoiceVO vo = null;
+		InvoiceHeaderVO headvo = null;
+		billvolist = new ArrayList<InvoiceVO>();
+		Iterator iter = vogroup.entrySet().iterator();
+		while (iter.hasNext()) {
+			bodylist = new ArrayList<InvoiceItemVO>();
+			vo = new InvoiceVO();
+			Map.Entry entry = (Map.Entry) iter.next();
+			Object key = entry.getKey();
+			ArrayList<InvoiceVO> val = (ArrayList<InvoiceVO>) entry.getValue();
+			// 构建表头
+			headvo = val.get(0).getHeadVO();
+			// 组合表体
+			for (int i = 0; i < val.size(); i++) {
+				InvoiceItemVO[] childvos = (InvoiceItemVO[]) val.get(i)
+						.getChildrenVO();
+				for (int j = 0; j < childvos.length; j++) {
+					bodylist.add(childvos[j]);
+				}
+			}
+			// 为billvo 设置组合后的表头、表体
+			if (bodylist != null && bodylist.size() > 0) {
+				itemvos = new InvoiceItemVO[bodylist.size()];
+				bodylist.toArray(itemvos);
+				vo.setParentVO(headvo);
+				vo.setChildrenVO(itemvos);
+				billvolist.add(vo);
+
+			}
+		}
+		// 获取组合后的vo
+		if (billvolist != null && billvolist.size() > 0) {
+			vos = new InvoiceVO[billvolist.size()];
+			billvolist.toArray(vos);
+		}
+		return vos;
+	}
 	/**
 	 * add by ouyangzhb 2013-10-16 根据供应商合并单据
 	 * @return
