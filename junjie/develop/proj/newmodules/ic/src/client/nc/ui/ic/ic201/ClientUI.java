@@ -1859,10 +1859,10 @@ public class ClientUI extends nc.ui.ic.pub.bill.GeneralBillClientUI {
 	 */
 	public void filterRef(String sCorpID) {
 		super.filterRef(sCorpID);
-		nc.ui.pub.bill.BillItem bi = getBillCardPanel().getHeadItem("cbizid");
-		RefFilter.filterPsnByDept(bi, null, null);
-		bi = getBillCardPanel().getHeadItem("cdptid");
-		RefFilter.filterDept(bi, null, null);
+//		nc.ui.pub.bill.BillItem bi = getBillCardPanel().getHeadItem("cbizid");
+//		RefFilter.filterPsnByDept(bi, getEnvironment().getCorpID(), null);  //wanglei 2013-01-08 这里为什么把公司过滤制空了呢？不解
+//		bi = getBillCardPanel().getHeadItem("cdptid");
+//		RefFilter.filterDept(bi, getEnvironment().getCorpID(), null); //wanglei 2013-01-08 这里为什么把公司过滤制空了呢？不解
 	}
 	/**
 	 *费用录入按钮的事件响应方法
