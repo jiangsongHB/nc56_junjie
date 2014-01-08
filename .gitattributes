@@ -429,9 +429,12 @@ junjie/develop/proj/newmodules/uapqe/src/client/nc/ui/reportquery/demo/DefaultQu
 junjie/patches/modules/.project -text
 junjie/patches/modules/admin/META-INF/classes/nc/impl/ic/ic008/FixOnhandnumDMO$QueryType.class -text
 junjie/patches/modules/admin/META-INF/classes/nc/impl/ic/ic008/FixOnhandnumDMO.class -text
+junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/cscreater/projection/ZeroEndMoneyProjectionCreater.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$1.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$2.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL.class -text
+junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/newlistquery/projection/EndBillBalMoneySumProjCreater.class -text
+junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/newlistquery/projection/EndDealMoneySumProjCreater.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/ApplayBillDMO.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBBO.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$1.class -text
@@ -462,6 +465,7 @@ junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$9.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO.class -text
 junjie/patches/modules/arap/classes/nc/vo/arap/verifynew/RBVerify.class -text
 junjie/patches/modules/arap/classes/nc/vo/verifynew/pub/FenPeiUtil.class -text
+junjie/patches/modules/arap/client/classes/nc/ui/arap/newlistquery/DataManagerList.class -text
 junjie/patches/modules/cc/META-INF/lib/cc.jar -text
 junjie/patches/modules/cdm/client/classes/nc/ui/fac/account/pub/RefTakenProccessor.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/arap/ref/PayStateRefModel.class -text
