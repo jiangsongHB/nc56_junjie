@@ -619,6 +619,7 @@ junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdProcessBean.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdProcessBean.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdczRef.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdczRef.java -text
+junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdczRefDlg.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdwhDlg.class -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdwhDlg.java -text
 junjie/patches/modules/ic/client/classes/nc/ui/ic/mdck/MdwhPanel.class -text

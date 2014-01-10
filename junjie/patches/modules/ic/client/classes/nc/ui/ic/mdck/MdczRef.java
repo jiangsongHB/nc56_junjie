@@ -6,6 +6,14 @@ public class MdczRef extends AbstractRefModel {
 
 	public MdczRef() {
 	}
+	
+	private String m_whsql = null;
+	
+	public MdczRef(String whsql) {  //wanglei 2014-01-09 增加初始化方法
+		m_whsql = whsql;
+		if (m_whsql != null)
+			this.setWherePart(m_whsql);
+	}
 
 	public String getTableName() {
 		String table = "(select ttt.* from (select t1.def4,t1.PK_MDXCL_B,"
@@ -76,4 +84,13 @@ public class MdczRef extends AbstractRefModel {
 		// TODO Auto-generated method stub
 		return "jbh";
 	}
+
+	/* (non-Javadoc)
+	 * @see nc.ui.bd.ref.AbstractRefModel#setRefQueryDlgClaseName(java.lang.String)
+	 */
+//	@Override
+//	public void setRefQueryDlgClaseName(String newRefQueryDlgClaseName) {
+//		// TODO Auto-generated method stub
+//		super.setRefQueryDlgClaseName("nc.ui.ic.mdck.MdczRefDlg");
+//	}
 }
