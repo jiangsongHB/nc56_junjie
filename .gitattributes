@@ -265,7 +265,8 @@ junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MDConstants.java -tex
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MDGbftdialog.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdGbPanel.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdProcessBean.java -text
-junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdczRef.java -text
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdczRef.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdczRefDlg.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdczRefPane.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdwhDlg.java -text
 junjie/develop/proj/newmodules/ic/src/client/nc/ui/ic/mdck/MdwhPanel.java -text
