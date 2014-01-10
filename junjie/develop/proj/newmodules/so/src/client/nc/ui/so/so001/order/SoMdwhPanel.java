@@ -5,22 +5,31 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.table.TableColumn;
 
 import nc.bs.framework.common.NCLocator;
 import nc.itf.gl.accbook.IBillModel;
 import nc.itf.uap.IVOPersistence;
 import nc.ui.ic.mdck.MdProcessBean;
+import nc.ui.ic.mdck.MdczRefDlg;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
 import nc.ui.pub.beans.UIPanel;
 import nc.ui.pub.beans.UIRefPane;
+import nc.ui.pub.beans.UITable;
+import nc.ui.pub.beans.UITextField;
 import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillEditListener2;
 import nc.ui.pub.bill.BillItem;
 import nc.ui.pub.bill.BillModel;
+import nc.ui.pub.bill.BillScrollPane;
 import nc.ui.so.so001.panel.SaleBillUI;
 import nc.ui.so.so001.revise.SaleOrderReviseUI;
 import nc.vo.fp.combase.pub01.IBillStatus;
@@ -34,7 +43,7 @@ import nc.vo.pub.lang.UFDouble;
 import nc.vo.so.so001.SaleorderBVO;
 import nc.vo.so.so001.SaleorderHVO;
 
-public class SoMdwhPanel extends UIPanel implements ActionListener,
+public class SoMdwhPanel extends UIPanel implements ActionListener, ChangeListener,
 		BillEditListener, BillEditListener2 {
 
 	SoMdwhDlg dlg = null;
@@ -385,7 +394,9 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 			//add by lumzh 2013-07-08 设置码单参照允许多选   
 			BillItem jbh = getOPBillCardPanel().getBodyItem("jbh");
 			UIRefPane jbhPa = (UIRefPane) jbh.getComponent();
-			String[] pks = jbhPa.getRefPKs();
+			nc.ui.ic.mdck.MdczRefDlg jbhref =  (MdczRefDlg) jbhPa.getRefUI();
+			String[] pks = jbhref.getRefPKs();
+			//String[] pks = jbhPa.getRefPKs();
 			int len = pks==null?0: pks.length;
 			for (int j = 0; j < len; j++) {
 				if (pks != null) {
@@ -474,6 +485,7 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 
 	}
 
+	
 	public boolean beforeEdit(BillEditEvent e) {
 		if (e.getKey().equals("jbh")) {
 			String fsjStr = getOPBillCardPanel().getHeadItem("fjs").getValue();
@@ -485,6 +497,32 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 					+ "' and cinventoryidb='" + bvo.getCinventoryid() + "'" 
 					+ " and cwarehouseid = '"+bvo.getCbodywarehouseid()+"'";//add by ouyangzhb 2013-05-30 码单锁定增加仓库条件
 			
+			//wanglei 2014-01-09  件编码参照过滤优化以及显示合计行处理
+			
+			int irow = this.getOPBillCardPanel().getBodyPanel().getTableModel().getRowCount();
+			ArrayList alpks = new ArrayList(); 
+			
+			for (int i = 0; i < irow; i++) {
+				
+				Object value  = null;
+				value = getOPBillCardPanel().getBodyPanel().getTableModel().getValueAt(i, "pk_mdxcl_b");
+				if (value != null) {
+					alpks.add(value.toString());
+				}
+			}
+			
+			String[] pk_mdxcls = (String[])alpks.toArray(new String[alpks.size()]);
+			
+			String strin = nc.bs.scm.pub.SqlMethod.formInSQL("pk_mdxcl_b", pk_mdxcls);
+			
+			if (strin != null)
+				sqlWhere = sqlWhere +  strin.replaceFirst(" in ", " not in ");
+			
+			nc.ui.ic.mdck.MdczRefDlg	jbhref = new nc.ui.ic.mdck.MdczRefDlg(this,"件编号参照",sqlWhere);
+			
+			jbhPa.setRefUI(jbhref);
+			
+			//wanglei 2014-01-09 用新的参照处理，用于显示合计行
 			/**
 			 * add by ouyangzhb 2013-04-27 码单的参照界面不需要有是否“非计算”条件的限制
 			if (fsjStr.equals("true"))
@@ -493,15 +531,16 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 				sqlWhere += " and def4='N'";	
 				
 			*/		
-			jbhPa.setWhereString(sqlWhere);
+			//jbhPa.setWhereString(sqlWhere);
 			//add by lumzh 2013-07-08 码单的参照允许多选
-			jbhPa.setMultiSelectedEnabled(true);
+			//jbhPa.setMultiSelectedEnabled(true);
 			//add by ouyangzhb 2013-04-28 清缓存
-			jbhPa.getRefModel().clearCacheData();
+			//jbhPa.getRefModel().clearCacheData();
 		}
 		return true;
 
 	}
+	
 
 	public void buttonState(boolean bolean_AddLine, boolean bolean_DelLine,
 			boolean bolean_Save, boolean bolean_Cancel) {
@@ -509,6 +548,13 @@ public class SoMdwhPanel extends UIPanel implements ActionListener,
 		getUIButtonDel().setEnabled(bolean_DelLine);
 		getUIButtonSave().setEnabled(bolean_Save);
 		getUIButtonCan().setEnabled(bolean_Cancel);
+	}
+
+
+
+	public void stateChanged(ChangeEvent arg0) {
+		// TODO Auto-generated method stub
+		this.getParent();
 	}
 
 }
