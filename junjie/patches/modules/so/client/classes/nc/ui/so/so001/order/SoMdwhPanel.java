@@ -511,12 +511,14 @@ public class SoMdwhPanel extends UIPanel implements ActionListener, ChangeListen
 				}
 			}
 			
-			String[] pk_mdxcls = (String[])alpks.toArray(new String[alpks.size()]);
+			if (alpks != null && alpks.size() > 0 ) {  //wanglei 2014-01-10 需要处理一下空行的情况。
+				String[] pk_mdxcls = (String[])alpks.toArray(new String[alpks.size()]);
 			
-			String strin = nc.bs.scm.pub.SqlMethod.formInSQL("pk_mdxcl_b", pk_mdxcls);
+				String strin = nc.bs.scm.pub.SqlMethod.formInSQL("pk_mdxcl_b", pk_mdxcls);
 			
-			if (strin != null)
+			
 				sqlWhere = sqlWhere +  strin.replaceFirst(" in ", " not in ");
+			}
 			
 			nc.ui.ic.mdck.MdczRefDlg	jbhref = new nc.ui.ic.mdck.MdczRefDlg(this,"件编号参照",sqlWhere);
 			
