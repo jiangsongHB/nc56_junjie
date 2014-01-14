@@ -13,7 +13,7 @@ public class ZeroEndMoneyProjectionCreater implements ProjectionCreater {
 				.add(Projections.sqlProjection("0.0").alias("qmybye"))
 				.add(Projections.sqlProjection("0.0").alias("qmfbye"))
 				.add(Projections.sqlProjection("0.0").alias("qmbbye"))
-				.add(Projections.sum(" case when (zb.zzzt='0 ' and zb.djdl='sk') then fb.dfybje when (zb.zzzt='0 ' and zb.djdl='fk') then fb.jfybje else 0 end ").alias("wdje"));  //wanglei 2014-01-07 
+				.add(Projections.sum("case when (zb.zzzt='0 ' and zb.djdl='sk') then fb.dfbbje when (zb.zzzt='0 ' and zb.djdl='fk') then fb.jfbbje else 0 end ").alias("wdje"));  //wanglei 2014-01-07 
 				//.add(Projections.sqlProjection("0.0 ").alias("qmwdye"));
 		return projectionList;
 	}
