@@ -82,7 +82,10 @@ public class MdczRefDlg extends nc.ui.pub.beans.UIDialog implements
 	private void loaddata(String whsql){
 		if (m_refModel == null)
 			m_refModel = new nc.ui.ic.mdck.MdczRef(whsql);
+		m_refModel.clearCacheData();  //wanglei 2014-01-14 加载前清一下参照缓存；
+			
 		m_tbpnl.setDataVector(m_refModel.getData());
+		
 		
 		//m_tbpnl.getBodyPanel().getTableModel().clearTotalModel();
 		
