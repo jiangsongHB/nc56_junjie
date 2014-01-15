@@ -170,6 +170,7 @@ junjie/develop/proj/newmodules/arap/META-INF/module.xml -text
 junjie/develop/proj/newmodules/arap/src/client/nc/ui/arap/newlistquery/DataManagerList.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/cscreater/projection/ZeroEndMoneyProjectionCreater.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/gyl/ArapForGYL.java -text
+junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/newlistquery/NewListQueryBO_New.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/newlistquery/projection/EndBillBalMoneySumProjCreater.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/newlistquery/projection/EndDealMoneySumProjCreater.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/ep/dj/ApplayBillDMO.java -text
