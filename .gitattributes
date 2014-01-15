@@ -435,6 +435,7 @@ junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/cscreater/projection/Zer
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$1.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL$2.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/gyl/ArapForGYL.class -text
+junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/newlistquery/NewListQueryBO_New.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/newlistquery/projection/EndBillBalMoneySumProjCreater.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/newlistquery/projection/EndDealMoneySumProjCreater.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/ApplayBillDMO.class -text
