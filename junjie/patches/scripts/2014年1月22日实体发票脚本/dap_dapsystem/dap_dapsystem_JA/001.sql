@@ -1,0 +1,1 @@
+insert into dap_dapsystem(DEF1,DEF2,DEF3,DR,FUNCODE,ISACCOUNT,ISITEM,MODULE,RESOURCEID,SYSTYPECODE,SYSTYPENAME,TS,USEBUSITYPE) values( null,null,null,null,'JA','N','N','ja',null,'JA','∑¢∆±π‹¿Ì','2014-01-15 08:39:33',4) ;
