@@ -107,7 +107,7 @@ public abstract class AbstractMyEventHandler
 			this.getBillUI().showWarningMessage("请先选择要核销的记录");
 			return;
 		}
-		if(checkmoney>new Double(money.toString())){
+		if(checkmoney>new Double(money.toString()==null?"0":money.toString())){
 			this.getBillUI().showWarningMessage("核销总金额大于本次结算金额，请检查");			
 			return;
 		}
@@ -166,7 +166,7 @@ public abstract class AbstractMyEventHandler
 		int rows=getBillCardPanelWrapper().getBillCardPanel().getBillTable().getRowCount();
 		Object money=getBillCardPanelWrapper().getBillCardPanel().getHeadItem("money").getValue();
 		
-		Double dmoney=new Double(money.toString());
+		Double dmoney=new Double(money.toString()==null?"0":money.toString());
 		
 		for(int i=0;i<rows;i++){
 			Object tempmoney=getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt( i, "tempmoney");

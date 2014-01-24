@@ -39,7 +39,7 @@
              public String def15;
              public String def18;
              public String def25;
-             public String def1;
+             public UFDate def1;
              public String def23;
              public String def19;
              public String def20;
@@ -514,7 +514,7 @@
 	   * 创建日期:2014-1-15
 	   * @return String
 	   */
-	 public String getDef1() {
+	 public UFDate getDef1() {
 		 return def1;
 	  }   
 	  
@@ -524,7 +524,7 @@
 	   * 创建日期:2014-1-15
 	   * @param newDef1 String
 	   */
-	public void setDef1(String newDef1) {
+	public void setDef1(UFDate newDef1) {
 		
 		def1 = newDef1;
 	 } 	  

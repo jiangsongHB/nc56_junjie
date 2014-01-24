@@ -56,6 +56,7 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 	 * 修改此方法初始化模板控件数据
 	 */
 	protected void initSelfData() {
+		getBillCardPanel().setTatolRowShow(true);
 		getBillCardPanel().setAutoExecHeadEditFormula(true);
 		getBillCardPanel().execHeadEditFormulas();
 		//表体数字为零时不显示空
@@ -91,10 +92,11 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 		JaEntityReceiptBVO vob= (JaEntityReceiptBVO) vobs[0];
 		//VJaCheckVO[] cvos;
 		try {
-			sql="select busstype,pk_custreceipt from ja_entity_receipt where pk_entity_receipt='"+vo.getPrimaryKey()+"' ";
+			sql="select busstype,pk_custorder,doreceiptdate from ja_entity_receipt where pk_entity_receipt='"+vo.getPrimaryKey()+"' ";
 			Object[] obj=(Object[]) iquery.executeQuery(sql, new ArrayProcessor());
-			sql="select * from v_ja_check where checktype='"+obj[0]+"' and def1='"+obj[1]+"' and pk_invdoc='"+vob.getPk_invdoc()+"' ";
-			//System.out.println(sql);
+			//自动过滤条件  订单客户、开票日期、销售类型[甲单]
+			sql="select * from v_ja_check where checktype='"+obj[0]+"' and def1='"+obj[1]+"' and def7<='"+obj[2]+"' and def6='甲单' and pk_invdoc='"+vob.getPk_invdoc()+"' ";
+			//System.out.println(sql +"=====");
 			ArrayList volist=(ArrayList) iquery.executeQuery(sql, new ArrayListProcessor());
 			ArrayList<Double> syssum=new ArrayList<Double>();
 			VJaCheckVO[] cvo=new VJaCheckVO[volist.size()];
@@ -124,7 +126,7 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 				if(sys_sum[0]==null){
 					sys_sum[0]=0;
 				}
-				System.out.println(sql +"     "+sys_sum[0]);
+				
 				//系统发票待核销=系统金额-系统发票累积核销金额
 				Double tempmoney= new Double(objs[18].toString())-(new Double(sys_sum[0].toString()));
 				syssum.add(tempmoney);
