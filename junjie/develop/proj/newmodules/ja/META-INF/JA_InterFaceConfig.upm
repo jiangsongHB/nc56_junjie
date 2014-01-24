@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="gb2312"?>
+<module name="WL_InterFaceConfig">
+	<public>	
+	    <component priority="0" singleton="true" remote="true" tx="NONE" supportAlias="true">
+			<interface>nc.vo.ja.pub.itf.IEntityReceipt</interface>
+			<implementation>nc.bs.pub.impl.EntityReceiptImpl</implementation>
+	    </component>	    
+	</public>
+</module>
