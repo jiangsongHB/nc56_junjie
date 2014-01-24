@@ -322,14 +322,6 @@ junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/checkreceipt/ClientUICheck
 junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/checkreceipt/ClientUICtrl.java -text
 junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/checkreceipt/MyDelegator.java -text
 junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/checkreceipt/MyEventHandler.java -text
-junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityreceiptck/AbstractClientUI.java -text
-junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityreceiptck/AbstractMyDelegator.java -text
-junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityreceiptck/AbstractMyEventHandler.java -text
-junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityreceiptck/ClientUI.java -text
-junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityreceiptck/ClientUICheckRule.java -text
-junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityreceiptck/ClientUICtrl.java -text
-junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityreceiptck/MyDelegator.java -text
-junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityreceiptck/MyEventHandler.java -text
 junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityrecrpit/AbstractClientUI.java -text
 junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityrecrpit/AbstractMyDelegator.java -text
 junjie/develop/proj/newmodules/ja/src/client/nc/ui/ja/entityrecrpit/AbstractMyEventHandler.java -text

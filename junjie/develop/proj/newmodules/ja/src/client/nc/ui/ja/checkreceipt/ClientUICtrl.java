@@ -48,7 +48,7 @@ public class ClientUICtrl implements ICardController,ISingleController {
 	}
 
 	public boolean isShowCardTotal() {
-		return false;
+		return true;
 	}
 
 	public String getBillType() {
