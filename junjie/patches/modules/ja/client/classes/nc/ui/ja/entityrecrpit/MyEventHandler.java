@@ -34,6 +34,7 @@ import nc.ui.pub.ButtonObject;
 	  @Override
 	protected void onBoSave() throws Exception {
 		// TODO Auto-generated method stub
+		 getBillCardPanelWrapper().getBillCardPanel().getBillData().dataNotNullValidate();
 		super.onBoSave();
 	}
 	  

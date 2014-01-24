@@ -61,13 +61,17 @@ public abstract class AbstractMyEventHandler
 					
 	}
 
-	private void onDefQuery() {
+	protected void onDefQuery() {
 		// TODO Auto-generated method stub
-		
+		System.out.println(this.getBillUI().getBillOperate());
 	}
 	//核销
 	protected void onDefCheck() throws BusinessException {
 		// TODO Auto-generated method stub
+		if(this.getBillUI().getBillOperate()==2){
+			this.getBillUI().showWarningMessage("本次核销已完成了");
+			return;
+		}
 		int rows=getBillCardPanelWrapper().getBillCardPanel().getBillTable().getRowCount();
 		Object money=getBillCardPanelWrapper().getBillCardPanel().getHeadItem("money").getValue();//(表体本次计算)核销总金额
 		
@@ -89,7 +93,7 @@ public abstract class AbstractMyEventHandler
 			if(ischoice){		
 				sum++;				
 				Object cj=getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "checkamount");//核销金额
-				Object pk=getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "def10");  //实体发票pk
+				Object pk=getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "def10");  //系统发票pk
 				
 				pklist.add(pk);
 				moneylist.add(cj);
@@ -133,6 +137,9 @@ public abstract class AbstractMyEventHandler
 			CkVO.setAttributeValue("def2", objs[21]);
 			CkVO.setAttributeValue("pk_entity_receipt", pk);
 			CkVO.setAttributeValue("def3", pkb);
+		
+			CkVO.setAttributeValue("def4", pklist.get(i));//系统发票pk
+			
 			//核销金额
 			CkVO.setAttributeValue("tax", moneylist.get(i));
 			
@@ -143,26 +150,42 @@ public abstract class AbstractMyEventHandler
 			//回写关联
 			IEntityReceipt ier=NCLocator.getInstance().lookup(IEntityReceipt.class);
 			try {
-				//ier.onCheck(CkVO);
+				ier.onCheck(CkVO);
 				getBillUI().setBillOperate(IBillOperate.OP_NOTEDIT);
-				this.getBillUI().showHintMessage("核销完成!");
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
+		this.getBillUI().showHintMessage("核销完成!");
 	}
 	//分配
 	protected void onDefAllot() {
 		// TODO Auto-generated method stub
+		int rows=getBillCardPanelWrapper().getBillCardPanel().getBillTable().getRowCount();
 		Object money=getBillCardPanelWrapper().getBillCardPanel().getHeadItem("money").getValue();
-		getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(money, 0, "checkamount");
-		getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt("Y", 0, "ischoice");
 		
+		Double dmoney=new Double(money.toString());
+		
+		for(int i=0;i<rows;i++){
+			Object tempmoney=getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt( i, "tempmoney");
+			Double dtempmoney=new Double(tempmoney.toString());
+			if(dtempmoney<=0d){
+				continue;
+			}
+			if(dmoney>dtempmoney){
+				getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(dtempmoney, i, "checkamount");				
+			}else{
+				getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(dmoney, i, "checkamount");				
+			}
+			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt("Y", i, "ischoice");
+			dmoney=dmoney-dtempmoney;
+			if(dmoney<=0d){
+				break;
+			}			
+		}
 		
 	}
-	
-		   	
 	
 }

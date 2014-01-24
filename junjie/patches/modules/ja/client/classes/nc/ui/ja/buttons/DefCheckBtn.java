@@ -25,7 +25,9 @@ public class DefCheckBtn {
 		btnVo.setBtnChinaName("ºËÏú");
 			
 		
-		//btnVo.setOperateStatus(new int[]{});			
+		/*btnVo.setOperateStatus(new int[]{
+				IBillOperate.OP_ADD
+		});	*/		
 		btnVo.setChildAry(new int[]{
 		      		                   
 		                });

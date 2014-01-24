@@ -26,7 +26,9 @@ public class DefAllotBtn {
 		btnVo.setBtnChinaName("·ÖÅä");
 			
 		
-		//btnVo.setOperateStatus(new int[]{});			
+		btnVo.setOperateStatus(new int[]{
+				IBillOperate.OP_ADD
+		});				
 		btnVo.setChildAry(new int[]{
 		      		                   
 		                });

@@ -33,7 +33,7 @@ public class ClientUICtrl implements ICardController,ISingleController {
 	 */
 	public int[] getCardButtonAry() {
 	        return new int[]{
-			//IBillButton.Query
+			IBillButton.Query,
 	        		IBillButton.SelAll,
 	    			IBillButton.SelNone,
 	    			ICustomizeButton.DefAllot,
@@ -107,7 +107,7 @@ public class ClientUICtrl implements ICardController,ISingleController {
 	 * @return boolean true:单表体，false:单表头
 	 */ 
 	public boolean isSingleDetail() {
-		return false; //单表头
+		return true; //单表头
 	}
 	
 }

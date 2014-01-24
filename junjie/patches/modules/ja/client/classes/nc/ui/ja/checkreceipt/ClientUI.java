@@ -7,11 +7,14 @@ import nc.itf.uap.IUAPQueryBS;
 import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.ArrayProcessor;
 import nc.jdbc.framework.processor.BeanProcessor;
+import nc.ui.pub.ButtonObject;
 import nc.ui.pub.bill.BillEditEvent;
+import nc.ui.pub.bill.BillModelCellEditableController;
 import nc.ui.pub.linkoperate.ILinkAdd;
 import nc.ui.pub.linkoperate.ILinkAddData;
 import nc.ui.trade.base.IBillOperate;
 import nc.ui.trade.bill.ICardController;
+import nc.ui.trade.button.IBillButton;
 import nc.ui.trade.card.BillCardUI;
 import nc.ui.trade.card.CardEventHandler;
 import nc.vo.ja.checkreceipt.MyBillVO;
@@ -23,6 +26,7 @@ import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.bill.BillRendererVO;
 import nc.vo.pub.lang.UFDouble;
+import nc.vo.trade.button.ButtonVO;
 
 
 /**
@@ -58,6 +62,12 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 		BillRendererVO voCell = new BillRendererVO();
 		voCell.setShowZeroLikeNull(false);
 		getBillCardPanel().getBodyPanel().setShowFlags(voCell);
+		 ButtonObject[] bto=this.getButtonManager().getButtonAry(new int[]{IBillButton.Query,IBillButton.SelAll,IBillButton.SelNone});
+		for(int i=0;i<bto.length;i++){
+		 bto[i].setEnabled(true);
+		 ButtonVO btnvo=(ButtonVO)bto[i].getData();
+		 btnvo.setOperateStatus(new int[]{IBillOperate.OP_ADD});
+		}
 	}
 
 	public void setDefaultData() throws Exception {
@@ -86,7 +96,7 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 			sql="select * from v_ja_check where checktype='"+obj[0]+"' and def1='"+obj[1]+"' and pk_invdoc='"+vob.getPk_invdoc()+"' ";
 			//System.out.println(sql);
 			ArrayList volist=(ArrayList) iquery.executeQuery(sql, new ArrayListProcessor());
-			
+			ArrayList<Double> syssum=new ArrayList<Double>();
 			VJaCheckVO[] cvo=new VJaCheckVO[volist.size()];
 			for(int i=0;i<volist.size();i++){
 				Object[] objs= (Object[]) volist.get(i);
@@ -103,23 +113,45 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 				v.setAttributeValue("amount", new UFDouble(objs[15].toString()));
 				v.setAttributeValue("taxamount", new UFDouble(objs[18].toString()));
 				v.setAttributeValue("def1", objs[20]);
-				v.setAttributeValue("def2", objs[21]);
+				v.setAttributeValue("def7", objs[26]);
 				v.setAttributeValue("def9", vo.getPrimaryKey());//实体发票主键
-				v.setAttributeValue("def10", objs[29]);//
+				v.setAttributeValue("def10", objs[29]);//系统发票主键
 				v.setAttributeValue("def8", vob.getPrimaryKey());//实体发票明细主键
+				//系统发票累积核销金额-----start
+				sql="select sum(tax)  from ja_entity_receipt_ck " +
+				"where def4='"+objs[29]+"'";
+				Object[] sys_sum= (Object[]) iquery.executeQuery(sql, new ArrayProcessor());
+				if(sys_sum[0]==null){
+					sys_sum[0]=0;
+				}
+				System.out.println(sql +"     "+sys_sum[0]);
+				//系统发票待核销=系统金额-系统发票累积核销金额
+				Double tempmoney= new Double(objs[18].toString())-(new Double(sys_sum[0].toString()));
+				syssum.add(tempmoney);
+				//----end
 				cvo[i]=v;
 			}
 			
 			billVO.setChildrenVO(cvo);
 			setBillOperate(IBillOperate.OP_ADD); 
+		   
 			getBillCardPanel().setBillValueVO(billVO);
 			getBillCardPanel().getBillModel().execLoadFormula();
 			getBillCardPanel().updateUI();
 			getBillCardPanel().updateValue();
+			//vob.totalamount --实体发票累积核销金额
 			UFDouble d=vob.totalamount==null?new UFDouble(0):vob.totalamount;
-			getBillCardPanel().setHeadItem("money", vob.taxamount.sub(d));
-			System.out.println(d);
-			getBillCardPanel().setHeadItem("yemoney", vob.taxamount.sub(d));
+			getBillCardPanel().setHeadItem("money", vob.taxamount.sub(d));//本次结算金额
+			
+			getBillCardPanel().setHeadItem("yemoney", vob.taxamount.sub(d));//本次结算总额[余额]
+			for(int i=0;i<volist.size();i++){
+				//系统发票待核销		new UFDouble(syssum.get(i).toString())	
+				getBillCardPanel().setBodyValueAt( syssum.get(i),i,"tempmoney");
+				//系统待核销为0，不能参与核销[禁勾选]
+				if(syssum.get(i)<=0d){
+					getBillCardPanel().setCellEditable(i, "ischoice", false);	
+				}
+			}
 			//getbillc
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -134,8 +166,8 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 		int row=getBillCardPanel().getBillTable().getSelectedRow();
 		if("ischoice".equals(code)){
 			Object obj=getBillCardPanel().getBodyValueAt(row, "ischoice");
-			if((Boolean) obj?true:false){
-				getBillCardPanel().getBodyItem("checkamount").setEdit(true);
+			if((Boolean) obj?true:false){				
+				getBillCardPanel().setCellEditable(row, "checkamount", true);				
 				getBillCardPanel().setBodyValueAt(getBillCardPanel().getBodyValueAt(row, "taxamount"), row, "checkamount");
 			}else{
 				getBillCardPanel().setBodyValueAt(null, row, "checkamount");
@@ -150,6 +182,6 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 			}
 		}
 	}
-	
+
 	
 }
