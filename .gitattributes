@@ -394,16 +394,30 @@ junjie/develop/proj/newmodules/scmpub/.classpath -text
 junjie/develop/proj/newmodules/scmpub/.module_prj -text
 junjie/develop/proj/newmodules/scmpub/.project -text
 junjie/develop/proj/newmodules/scmpub/META-INF/module.xml -text
+junjie/develop/proj/newmodules/scmpub/METADATA/taxinvoicetype.bmf -text
 junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scm/jjpanel/InfoCostPanel.java -text
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/TaxInvoiceTypeRefModel.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/AbstractClientUI.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/AbstractMyDelegator.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/ClientUI.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/ClientUICheckRule.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/ClientUICtrl.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/MyDelegator.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/MyEventHandler.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/command/SaveBoCommand.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/scmpub/src/private/nc/bs/scm/pub/ScmPubDMO.java -text
 junjie/develop/proj/newmodules/scmpub/src/private/nc/bs/scm/pub/ScmPubImpl.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/itf/scm/pub/IScmPub.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/ui/scm/pub/ScmPubHelper.java -text
+junjie/develop/proj/newmodules/scmpub/src/public/nc/ui/scmpub/taxinvoicetype/ClientUIGetter.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/ic/bill/InvVO.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InformationCostVO.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InformationCostVOMeta.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/jjvo/InvDetailVO.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scm/relacal/SCMRelationsCal.java -text
+junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scmpub/ITaxInvoiceApproveType.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scmpub/ITaxInvoiceDealType.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scmpub/TaxInvoiceTypeVO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/.classpath -text
 junjie/develop/proj/newmodules/so/.module_prj -text
 junjie/develop/proj/newmodules/so/.project -text
