@@ -422,6 +422,7 @@ junjie/develop/proj/newmodules/so/.classpath -text
 junjie/develop/proj/newmodules/so/.module_prj -text
 junjie/develop/proj/newmodules/so/.project -text
 junjie/develop/proj/newmodules/so/META-INF/module.xml -text
+junjie/develop/proj/newmodules/so/METADATA/taxinvoice.bmf -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/MdsdBean.class -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/MdsdBean.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/SaleOrderAdminUI.class -text
@@ -438,13 +439,40 @@ junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/revise/SaleOrderRevi
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceBtn.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SaleInvoiceUI.java -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so002/SalePrintData.java -text
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/AbstractClientUI.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/AbstractMyDelegator.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/ClientUI.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/ClientUICheckRule.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/ClientUICtrl.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/MyDelegator.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/MyEventHandler.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/VerifyDialog.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/VerifyPanel.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/VerifyQryDialog.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/VerifyQryPanel.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/command/SaveBoCommand.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/command/btDealBoCommand.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/command/btDealGpBoCommand.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/command/btRevDealBoCommand.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_30_OrderFinish.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_30_SoBlankout.java -text
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_APPROVE.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_DELETE.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_EDIT.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_SAVE.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_UNAPPROVE.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_WRITE.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/SaleStayOrderClose.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/JunJieSoDMO.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/SaleOrderDMO.java -text
 junjie/develop/proj/newmodules/so/src/public/nc/util/so/junjie/JunjiePubTool.java -text
+junjie/develop/proj/newmodules/so/src/public/nc/vo/so/SaleInvoiceBVOForVerify.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceBbVO.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceDealVO.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceHeaderVO.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceItemVO.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceVO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so5/.classpath -text
 junjie/develop/proj/newmodules/so5/.module_prj -text
 junjie/develop/proj/newmodules/so5/.project -text
