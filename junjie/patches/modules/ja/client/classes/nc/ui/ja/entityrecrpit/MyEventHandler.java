@@ -6,7 +6,9 @@ import nc.bs.framework.common.NCLocator;
 import nc.bs.pub.billcodemanage.BillcodeGenerater;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.workshop.plugins.formdev.IUAPBillQueryService;
+import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.BeanListProcessor;
+import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.trade.controller.IControllerBase;
 import nc.ui.trade.manage.BillManageUI;
 import nc.vo.pub.BusinessException;
@@ -32,6 +34,28 @@ import nc.ui.pub.ButtonObject;
 	
 	
 	  @Override
+	protected void onBoEdit() throws Exception {
+		// TODO Auto-generated method stub
+		  Object pk=getBillCardPanelWrapper().getBillCardPanel().getHeadItem("pk_entity_receipt").getValueObject();
+		  IUAPQueryBS iquery = NCLocator.getInstance().lookup(
+					IUAPQueryBS.class);
+		  String sql="select totalamount from ja_entity_receipt_b where pk_entity_receipt='"+pk+"'";
+		  ArrayList list=(ArrayList)iquery.executeQuery(sql, new ArrayListProcessor());
+		  if(list!=null){
+			  for (int j = 0; j < list.size(); j++) {
+				
+				  Object[] obj=(Object[]) list.get(j);
+				  if(obj[0]!=null){
+					  this.getBillUI().showWarningMessage("单据已做过核销操作，不能再修改");			
+					  return;
+				  }
+			  }
+		  }
+		super.onBoEdit();
+	}
+
+
+	@Override
 	protected void onBoSave() throws Exception {
 		// TODO Auto-generated method stub
 		 getBillCardPanelWrapper().getBillCardPanel().getBillData().dataNotNullValidate();

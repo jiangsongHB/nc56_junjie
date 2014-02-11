@@ -164,6 +164,13 @@ public abstract class AbstractMyEventHandler
 	protected void onDefAllot() {
 		// TODO Auto-generated method stub
 		int rows=getBillCardPanelWrapper().getBillCardPanel().getBillTable().getRowCount();
+		//--È«Ïû
+		for (int i = 0; i < rows; i++) {
+			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt("N", i, "ischoice");
+			getBillCardPanelWrapper().getBillCardPanel().setCellEditable(i, "checkamount", false);
+			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(null, i, "checkamount");
+		}
+		//---
 		Object money=getBillCardPanelWrapper().getBillCardPanel().getHeadItem("money").getValue();
 		
 		Double dmoney=new Double(money.toString()==null?"0":money.toString());

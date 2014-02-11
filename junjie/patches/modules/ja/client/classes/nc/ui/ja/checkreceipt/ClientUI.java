@@ -95,7 +95,7 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 			sql="select busstype,pk_custorder,doreceiptdate from ja_entity_receipt where pk_entity_receipt='"+vo.getPrimaryKey()+"' ";
 			Object[] obj=(Object[]) iquery.executeQuery(sql, new ArrayProcessor());
 			//自动过滤条件  订单客户、开票日期、销售类型[甲单]
-			sql="select * from v_ja_check where checktype='"+obj[0]+"' and def1='"+obj[1]+"' and def7<='"+obj[2]+"' and def6='甲单' and pk_invdoc='"+vob.getPk_invdoc()+"' ";
+			sql="select * from v_ja_check where checktype='"+obj[0]+"' and def1='"+obj[1]+"' and def7<='"+obj[2]+"' and def6='甲单'  ";
 			//System.out.println(sql +"=====");
 			ArrayList volist=(ArrayList) iquery.executeQuery(sql, new ArrayListProcessor());
 			ArrayList<Double> syssum=new ArrayList<Double>();
@@ -109,6 +109,7 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 				//v.setAttributeValue("checkamount",new UFDouble(objs[18].toString()));
 				v.setAttributeValue("checktype", objs[2]);
 				v.setAttributeValue("pk_invdoc", objs[4]);
+				v.setAttributeValue("invclassname", objs[5]);
 				v.setAttributeValue("pk_invcl", objs[6]);
 				v.setAttributeValue("count", new UFDouble((objs[13]==null?"0":objs[13]).toString()));
 				v.setAttributeValue("price", new UFDouble(objs[14].toString()));
@@ -170,7 +171,7 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 			Object obj=getBillCardPanel().getBodyValueAt(row, "ischoice");
 			if((Boolean) obj?true:false){				
 				getBillCardPanel().setCellEditable(row, "checkamount", true);				
-				getBillCardPanel().setBodyValueAt(getBillCardPanel().getBodyValueAt(row, "taxamount"), row, "checkamount");
+				getBillCardPanel().setBodyValueAt(getBillCardPanel().getBodyValueAt(row, "tempmoney"), row, "checkamount");
 			}else{
 				getBillCardPanel().setBodyValueAt(null, row, "checkamount");
 			}
