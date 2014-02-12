@@ -124,7 +124,7 @@ import nc.vo.pub.SuperVO;
 		for (int i = 0; i < rows; i++) {
 			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt("Y", i, "ischoice");
 			getBillCardPanelWrapper().getBillCardPanel().setCellEditable(i, "checkamount", true);				
-			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "taxamount"), i, "checkamount");
+			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "tempmoney"), i, "checkamount");
 		}
 	}
 
