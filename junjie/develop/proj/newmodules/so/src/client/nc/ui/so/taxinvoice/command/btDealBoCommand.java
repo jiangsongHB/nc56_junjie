@@ -29,6 +29,7 @@ public class btDealBoCommand extends AbstractUserDefBoCommand {
 			  	// TODO 请实现此按钮事件的逻辑
 	  	//throw new BusinessRuntimeException("未实现此按钮的事件处理逻辑,请到"+this.getClass().getName()+"中补充业务处理逻辑代码!");
 		((ClientUI)this.getBillUI()).showVerifyPanel();  //核销处理
+		this.getBillUI().getBufferData().refresh();
 
 	}
 	

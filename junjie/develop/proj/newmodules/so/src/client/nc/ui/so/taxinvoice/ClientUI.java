@@ -22,6 +22,7 @@ import nc.ui.pub.bill.BillTotalListener;
  
   
 import nc.ui.trade.bocommand.IUserDefButtonCommand;
+import nc.ui.pub.beans.MessageDialog;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -83,12 +84,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 		getBillListPanel().getBodyItem("ntaxrate").setDecimalDigits(2);
 		getBillListPanel().getHeadItem("nroe").setDecimalDigits(2);
 		
-		getBillListPanel().getHeadItem("nroe").setValue(new UFDouble(1.0));
-		getBillListPanel().getBodyItem("ntaxrate").setValue(new UFDouble(17.0));
-		
-		//getBillListPanel().getBodyScrollPane("body").setTatolRowShow(true); 
-
-		
+	
 	}
 
 	protected void setHeadSpecialData(CircularlyAccessibleValueObject vo,
@@ -112,11 +108,32 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 	/* 警告：此方法将重新生成。 */
 	public void showVerifyPanel() {
 		try {
+			
+			if(getBillCardPanel().getBillTable().getSelectedRow() == -1 ) {
+				MessageDialog.showErrorDlg(this,"错误", "核销处理需要选择表体行，请选择发票行！");
+				return;
+			}
+			
+			TaxInvoiceItemVO selvo = (TaxInvoiceItemVO) getBillCardPanel().getBillModel().getBodyValueRowVO(
+					getBillCardPanel().getBillTable().getSelectedRow(),
+					TaxInvoiceItemVO.class.getName());
+			
+			UFDouble ntotaldealmny =  selvo.getNtotaldealmny()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealmny() ;
+			UFDouble nmny = selvo.getNmny();
+			UFDouble ntotaldealnum = selvo.getNtotaldealnum()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealnum();
+			UFDouble nnumber = selvo.getNnumber();
+			
+			if (ntotaldealmny.compareTo(nmny) >= 0 && ntotaldealnum.compareTo(nnumber) >=0	){
+				MessageDialog.showErrorDlg(this,"错误", "本行发票已经核销完成，不能再进行核销！");
+				return;
+			}
+			
 			VerifyDialog dlg = new VerifyDialog((TaxInvoiceVO)this.getVOFromUI(), 
 					(TaxInvoiceItemVO) getBillCardPanel().getBillModel().getBodyValueRowVO(
 							getBillCardPanel().getBillTable().getSelectedRow(),
 							TaxInvoiceItemVO.class.getName()) );
 			dlg.showModal();
+			
 		} catch (Exception e) {
 			Logger.error(e.getMessage());
 		}
@@ -125,11 +142,18 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 	public void showVerifyQryPanel() {
 		// TODO Auto-generated method stub
 		try {
+			
+			if(getBillCardPanel().getBillTable().getSelectedRow() == -1 ) {
+				MessageDialog.showErrorDlg(this,"错误", "核销处理需要选择表体行，请选择发票行！");
+				return;
+			}
+			
 			VerifyQryDialog dlg = new VerifyQryDialog((TaxInvoiceVO)this.getVOFromUI(), 
 					(TaxInvoiceItemVO) getBillCardPanel().getBillModel().getBodyValueRowVO(
 							getBillCardPanel().getBillTable().getSelectedRow(),
 							TaxInvoiceItemVO.class.getName()));
 			dlg.showModal();
+			
 		} catch (Exception e) {
 			Logger.error(e.getMessage());
 		}
@@ -302,8 +326,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 		
 		getBillCardPanel().getHeadItem("dinvoicedate").setValue(ClientEnvironment.getInstance().getDate());
 		getBillCardPanel().getHeadItem("dreceivedate").setValue(ClientEnvironment.getInstance().getDate());
-		
-
+		getBillCardPanel().getHeadItem("nroe").setValue(new UFDouble(1));
 
 	}
 

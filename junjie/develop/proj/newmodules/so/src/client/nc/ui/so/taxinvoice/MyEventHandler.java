@@ -191,6 +191,7 @@ public class MyEventHandler
 		}
 		try {
 			command.execute(bo);
+			getBillUI().updateButtons();  //更新按钮状态；
 		} catch (BusinessException ex) {
 			onBusinessException(ex);
 		} catch (SQLException ex) {
@@ -206,7 +207,6 @@ public class MyEventHandler
 
 			if (checkAudit()) {
 				super.onBoAudit();
-				getBillUI().updateButtons();
 			}
 			else
 				MessageDialog.showErrorDlg(getBillUI(), "错误", "发票审核策略设置与发票核销记录不符，请检查！");
@@ -247,7 +247,9 @@ public class MyEventHandler
 		protected void onBoLineAdd() throws Exception {
 			// TODO Auto-generated method stub
 			super.onBoLineAdd();
-			getBillCardPanelWrapper().getBillCardPanel().getBodyItem("ntaxrate").setValue(new UFDouble(17.0));
+			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(new UFDouble(17.0), getBillCardPanelWrapper().getBillCardPanel()
+					.getBillTable().getSelectedRow(), "ntaxrate") ; 
+
 		}
 
 		@Override

@@ -183,135 +183,28 @@ BillEditListener, BillEditListener2 {
 	public void initData(){
 
 		QryInvoiceData();
+		updateHeadData();
 
 	}
 
-	private void QryInvoiceDataV1() {
+	private void updateHeadData() {
 		// TODO Auto-generated method stub
-		getVerifyCardPanel().getHeadItem("dealmny");
+		TaxInvoiceItemVO selvo = getTaxInvoiceItemVO();
+		UFDouble nmnybal = selvo.getNmny().sub(selvo.getNtotaldealmny()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealmny()) ;  //得到发票行的数量和金额余额
+		UFDouble nnumbal = selvo.getNnumber().sub(selvo.getNtotaldealnum()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealnum());
 		
-		boolean isfee = false; 
-		
-		String cinvoicetype = (String)taxInvoiceVO.getParentVO().getAttributeValue("cinvoicetype");
-		
-		nc.itf.uif.pub.IUifService srv =(nc.itf.uif.pub.IUifService)NCLocator.getInstance().lookup(nc.itf.uif.pub.IUifService.class.getName());
-		
-		SaleinvoiceVO[] invvos = null;
-		ArrayList<TaxInvoiceDealVO> alvos = new ArrayList();
-		TaxInvoiceDealVO vo = new TaxInvoiceDealVO();
-		try {
-			TaxInvoiceTypeVO taxInvTypeVo = (TaxInvoiceTypeVO) srv.queryByPrimaryKey(TaxInvoiceTypeVO.class, cinvoicetype);
-			
-			isfee = taxInvTypeVo.getIffee().booleanValue();
-			
-			//发票表头条件，状态，客户
-			String strWhere = " so_saleinvoice.creceiptcorpid = '" + taxInvoiceVO.getParentVO().getAttributeValue("cordermanid") + "' " +
-			" and ( so_saleinvoice.fstatus = " + BillStatus.AUDIT + " or so_saleinvoice.fstatus = " + BillStatus.FINISH + " ) " ;
-			
-			//strWhere += " and so_saleinvoice.dbilldate >= '2013-01-01' ";
-			
-			//发票表体条件，是否核销完成
-			strWhere += " and isnull(so_saleinvoice_b.dr,0) = 0 and (isnull(so_saleinvoice_b.ntotaldealnum,0) < so_saleinvoice_b.nnumber  " +   // 发票行条件
-					"or isnull(so_saleinvoice_b.ntotaldealmny,0) < so_saleinvoice_b.nsummny ) ";
-			
-			//费用发票条件
-			if (isfee){
-				strWhere += " and exists (" +
-				"select * from bd_invbasdoc where (isnull(discountflag,'N') = 'Y' or isnull(laborflag,'N') = 'Y') " +
-				" and  pk_invbasdoc = so_saleinvoice_b.cinvbasdocid ) ";
-			}else{
-				strWhere += " and exists (" +
-				"select * from bd_invbasdoc where (isnull(discountflag,'N') = 'N' and isnull(laborflag,'N') = 'N') " +
-				" and  pk_invbasdoc = so_saleinvoice_b.cinvbasdocid ) ";
-			}
-			
-			//预开票条件，处理发票日期
-			if (((UFBoolean)taxInvoiceVO.getParentVO().getAttributeValue("ispray")).booleanValue()){ //如果是预开票，则选择的发票日期范围在实际发票的日期之后
-				strWhere += " and so_saleinvoice.dbilldate >= '" + taxInvoiceVO.getParentVO().getAttributeValue("dinvoicedate") + "' " ;
-			}else{
-				strWhere += " and so_saleinvoice.dbilldate <= '" + taxInvoiceVO.getParentVO().getAttributeValue("dinvoicedate") + "' " ;
-			}
-			
-			ISaleinvoiceQuery query = NCLocator.getInstance().lookup(
-					ISaleinvoiceQuery.class);
-			invvos = query.queryBillDataByWhere(strWhere);
-			
-			if(invvos != null && invvos.length >0) {
-
-				for (int i =0 ; i< invvos.length ; i ++ ) {
-
-					SaleinvoiceBVO[] invbvo = invvos[i].getBodyVO();
-					UFDouble ntotaldealmny = new UFDouble(0.0);
-					UFDouble ntotaldealnum = new UFDouble(0.0);
-					UFDouble nmny = new UFDouble(0.0);
-					UFDouble nnum = new UFDouble(0.0);
-					
-					for (int j = 0 ; j < invbvo.length; j++){
-						//??不知道为什么会这样，字段串了
-//						ntotaldealmny = invbvo[j].getAttributeValue("pk_corp")==null? new UFDouble(0.0) : new UFDouble(invbvo[j].getAttributeValue("pk_corp").toString());
-//						ntotaldealnum = invbvo[j].getAttributeValue("scalefactor")==null? new UFDouble(0.0) : new UFDouble(invbvo[j].getAttributeValue("scalefactor").toString());
-//						ntotaldealmny = invbvo[j].getAttributeValue("ntotaldealmny")==null? new UFDouble(0.0) : new UFDouble(invbvo[j].getAttributeValue("ntotaldealmny").toString());
-//						ntotaldealnum = invbvo[j].getAttributeValue("ntotaldealnum")==null? new UFDouble(0.0) : new UFDouble(invbvo[j].getAttributeValue("ntotaldealnum").toString());
-						
-						FormulaParseFather f = new nc.ui.pub.formulaparse.FormulaParse();
-						//
-						String[] formulas = new String[]{
-	                       "ntotaldealmny->getColValue(\"so_saleinvoice_b\", \"ntotaldealmny\", \"cinvoice_bid\", cinvoice_bid)",
-	                       "ntotaldealnum->getColValue(\"so_saleinvoice_b\", \"ntotaldealnum\", \"cinvoice_bid\", cinvoice_bid)"
-	                       };
-						f.addVariable("cinvoice_bid", invbvo[j].getCsale_bid());
-
-						f.setExpressArray(formulas);
-						String[][] vOs = f.getValueSArray();
-						
-						ntotaldealmny = new UFDouble(vOs[0][0]==null? "0.0": vOs[0][0]);
-						ntotaldealnum = new UFDouble(vOs[1][0]==null? "0.0": vOs[0][0]);
-											
-						nmny = invbvo[j].getAttributeValue("nmny")==null? new UFDouble(0.0) : new UFDouble(invbvo[j].getAttributeValue("nmny").toString());
-						nnum = invbvo[j].getAttributeValue("nnumber")==null? new UFDouble(0.0) : new UFDouble(invbvo[j].getAttributeValue("nnumber").toString());
-						InvbasdocVO invinfovo = (InvbasdocVO) srv.queryByPrimaryKey(InvbasdocVO.class, invbvo[j].getCinvbasdocid().toString());
-						if ((ntotaldealmny.compareTo(nmny) != 0 || ntotaldealnum.compareTo(nnum) !=0 ) &&
-								(( isfee && (invinfovo.laborflag.booleanValue() || invinfovo.discountflag.booleanValue())) ||
-								( !isfee && (!invinfovo.laborflag.booleanValue() && !invinfovo.discountflag.booleanValue()) )
-								)) {
-							vo = new TaxInvoiceDealVO();
-							vo.setDbilldate(invvos[i].getHeadVO().getDbilldate()) ;
-							vo.setCsaleid(invvos[i].getHeadVO().getCsaleid());
-							vo.setPk_corp(invvos[i].getHeadVO().getPk_corp());
-							vo.setVreceiptcode(invvos[i].getHeadVO().getVreceiptcode());
-							
-							vo.setCinvoice_bid(invbvo[j].getCinvoice_bid());
-							vo.setNmny(nmny);
-							vo.setNnumber(nnum);
-							vo.setCinvbasdocid(invbvo[j].getCinvbasdocid());
-							vo.setNtotaldealmny(ntotaldealmny);
-							vo.setNtotaldealnum(ntotaldealnum);
-							vo.setCrowno(invbvo[j].getCrowno());
-							vo.setCtaxinvoiceid(taxInvoiceVO.getParentVO().getAttributeValue("ctaxinvoiceid").toString());
-							vo.setCtaxinvoice_bid(taxInvoiceItemVO.getCtaxinvoice_bid());
-							alvos.add(vo);
-						}
-					}
-				}
-				TaxInvoiceDealVO[] vos = new TaxInvoiceDealVO[alvos.size()];
-				alvos.toArray(vos);
-				getVerifyCardPanel().getBillModel().setBodyDataVO(vos);
-				getVerifyCardPanel().getBillModel().execLoadFormula();// 显示公式
-				//getVerifyCardPanel().startRowCardEdit();
-			}
-			
-		}catch (BusinessException e) {
-			e.printStackTrace();
-			MessageDialog
-					.showWarningDlg(this, "提示", "数据初始化出错：" + e.getMessage());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ArrayList<TaxInvoiceDealVO> alvos = getSelectedVOs();
+		UFDouble nmnydealsum  = getDealMnySum(alvos);
+		UFDouble nnumdealsum = getDealNumSum(alvos);
+		getVerifyCardPanel().getHeadItem("nmnybal").setValue(nmnybal.sub(nmnydealsum));
+		getVerifyCardPanel().getHeadItem("nnumbal").setValue(nnumbal.sub(nnumdealsum));
+		getVerifyCardPanel().getHeadItem("ctaxinvoice_bid").setValue(selvo.getCtaxinvoice_bid());
+		getVerifyCardPanel().execHeadLoadFormulas();   //执行一下公式，支持自定义公式应用。
 	}
+
 	private void QryInvoiceData() {
 		// TODO Auto-generated method stub
-		getVerifyCardPanel().getHeadItem("dealmny");
+		
 		
 		boolean isfee = false; 
 		
@@ -510,6 +403,8 @@ BillEditListener, BillEditListener2 {
 			ijVerifyCardPanel.getBodyItem("ndealmny").setDecimalDigits(2);
 			ijVerifyCardPanel.getBodyItem("nrewritemny").setDecimalDigits(2);
 			ijVerifyCardPanel.getBodyItem("ntotaldealmny").setDecimalDigits(2);
+			ijVerifyCardPanel.getHeadItem("nmnybal").setDecimalDigits(2);
+			ijVerifyCardPanel.getHeadItem("nnumbal").setDecimalDigits(4);  
 
 		}
 		return ijVerifyCardPanel;
@@ -524,12 +419,12 @@ BillEditListener, BillEditListener2 {
 			UFDouble ndealnum = e.getValue() == null? new UFDouble(0.0): new UFDouble(e.getValue().toString());
 			if (ndealnum.compareTo(nNumber.sub(nTotalDealNum)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次核销数量不能大于发票行的未核销数量,请重新输入。");
-				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "ndealnum");
+				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
 				return;
 			}
-			getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
-			getVerifyCardPanel().getBillModel().updateValue();
-			getVerifyCardPanel().getBillModel().setValueAt(e.getValue(), irow, "nrewritenum");
+			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
+			//getVerifyCardPanel().getBillModel().updateValue();
+			getVerifyCardPanel().getBillModel().setValueAt(e.getOldValue(), irow, "nrewritenum");
 		}
 		if(e.getKey().equalsIgnoreCase("nrewritenum")){
 			UFDouble nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
@@ -538,9 +433,10 @@ BillEditListener, BillEditListener2 {
 			if (nrewrietnum.compareTo(nNumber.sub(nTotalDealNum)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次回写数量不能大于发票行的未核销数量,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "nrewritenum");
+				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
 			}
-			getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
-			getVerifyCardPanel().getBillModel().updateValue();
+			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
+			//getVerifyCardPanel().getBillModel().updateValue();
 		}
 		if(e.getKey().equalsIgnoreCase("ndealmny")){
 			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
@@ -549,9 +445,10 @@ BillEditListener, BillEditListener2 {
 			if (ndealnum.compareTo(nMny.sub(nTotalDealMny)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次核销金额不能大于发票行的未核销金额,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "ndealmny");
+				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
 			}
-			getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
-			getVerifyCardPanel().getBillModel().updateValue();
+			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
+			//getVerifyCardPanel().getBillModel().updateValue();
 			getVerifyCardPanel().getBillModel().setValueAt(e.getValue(), irow, "nrewritemny");
 		}
 		if(e.getKey().equalsIgnoreCase("nrewritemny")){
@@ -561,11 +458,13 @@ BillEditListener, BillEditListener2 {
 			if (nrewrietmny.compareTo(nNumber.sub(nTotalDealNum)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次回写金额不能大于发票行的未核销数量,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "nrewritemny");
+				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
 			}
-			getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
-			getVerifyCardPanel().getBillModel().updateValue();
+			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
+			//getVerifyCardPanel().getBillModel().updateValue();
 		}
 		//checkValue();
+		updateHeadData();
 	}
 
 
@@ -578,36 +477,84 @@ BillEditListener, BillEditListener2 {
 		UFDouble nTotalDealMny = new UFDouble(0.0);
 		UFDouble ndealnum = new UFDouble(0.0);
 		UFDouble ndealmny = new UFDouble(0.0);
-		UFDouble nrewrietnum = new UFDouble(0.0);
-		UFDouble nrewrietmny =  new UFDouble(0.0);
+		UFDouble nrewritenum = new UFDouble(0.0);
+		UFDouble nrewritemny =  new UFDouble(0.0);
+		UFDouble nmnybal = new UFDouble(getVerifyCardPanel().getHeadItem("nmnybal").getValue());
+		UFDouble nnumbal = new UFDouble(getVerifyCardPanel().getHeadItem("nnumbal").getValue());
+
 		if (e.isSelectState()) {
 			nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
 			nTotalDealNum = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum").toString());
 			nMny = getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"nmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"nmny").toString());
 			nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"ntotaldealmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"ntotaldealmny").toString());
-			ndealnum = nNumber.sub(nTotalDealNum);
-			ndealmny = nMny.sub(nTotalDealMny);
-			nrewrietnum = ndealnum;
-			nrewrietmny =  ndealmny;
+			ndealnum = (nNumber.sub(nTotalDealNum)).compareTo(nnumbal) > 0 ? nnumbal: nNumber.sub(nTotalDealNum);  //取当前行与核销余额的最小值
+			ndealmny = (nMny.sub(nTotalDealMny)).compareTo(nmnybal) > 0 ? nmnybal : nMny.sub(nTotalDealMny);
+			nrewritenum = ndealnum;
+			nrewritemny =  ndealmny;
 		} else{
 			ndealnum = new UFDouble(0.0);
 			ndealmny = new UFDouble(0.0);
-			nrewrietnum = ndealnum;
-			nrewrietmny =  ndealmny;
+			nrewritenum = ndealnum;
+			nrewritemny =  ndealmny;
 		}
+
 		getVerifyCardPanel().setBodyValueAt(ndealnum, irow, "ndealnum");
 		getVerifyCardPanel().setBodyValueAt(ndealmny, irow, "ndealmny");
-		getVerifyCardPanel().setBodyValueAt(nrewrietnum, irow, "nrewritenum");
-		getVerifyCardPanel().setBodyValueAt(nrewrietmny, irow, "nrewritemny");
+		getVerifyCardPanel().setBodyValueAt(nrewritenum, irow, "nrewritenum");
+		getVerifyCardPanel().setBodyValueAt(nrewritemny, irow, "nrewritemny");
 		
+		if (!checkDealVO() && e.isSelectState()){
+			MessageDialog.showWarningDlg(this, "警告", "选择本行后，累计的核销处理数量和金额超过了发票行的未核销余额，本行核销数据被清零，请手工调整！");
+			ndealnum = new UFDouble(0.0);
+			ndealmny = new UFDouble(0.0);
+			nrewritenum = ndealnum;
+			nrewritemny =  ndealmny;
+			getVerifyCardPanel().setBodyValueAt(ndealnum, irow, "ndealnum");
+			getVerifyCardPanel().setBodyValueAt(ndealmny, irow, "ndealmny");
+			getVerifyCardPanel().setBodyValueAt(nrewritenum, irow, "nrewritenum");
+			getVerifyCardPanel().setBodyValueAt(nrewritemny, irow, "nrewritemny");
+		}
+		updateHeadData();
 	}
 	
-	private void checkValue() {
+	private boolean checkDealVO() {
 		// TODO Auto-generated method stub
 		
+		ArrayList<TaxInvoiceDealVO> alvos = getSelectedVOs();
+		TaxInvoiceItemVO selvo = getTaxInvoiceItemVO();
+		UFDouble nmnybal = selvo.getNmny().sub(selvo.getNtotaldealmny()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealmny()) ;  //得到发票行的数量和金额余额
+		UFDouble nnumbal = selvo.getNnumber().sub(selvo.getNtotaldealnum()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealnum());
+		
+		UFDouble nmnydealsum = getDealMnySum(alvos);
+		UFDouble nnumdealsum = getDealNumSum(alvos);
+		
+		if(nmnydealsum.compareTo(nmnybal) >0 || nnumdealsum.compareTo(nnumbal) >0 )  //核销的合计数量或金额超过了发票行的核销余额
+			return false;
+		
+		return true;
 	}
 
 	
+	private UFDouble getDealNumSum(ArrayList<TaxInvoiceDealVO> alvos) {
+		// TODO Auto-generated method stub
+		UFDouble nnumdealsum = UFDouble.ZERO_DBL;
+		
+		for (int i = 0; i<alvos.size(); i++ ){
+			nnumdealsum = nnumdealsum.add(alvos.get(i).getNdealnum()==null?UFDouble.ZERO_DBL:alvos.get(i).getNdealnum() );
+		}
+			
+		return nnumdealsum;
+	}
+
+	private UFDouble getDealMnySum(ArrayList<TaxInvoiceDealVO> alvos) {
+		// TODO Auto-generated method stub
+		UFDouble nmnydealsum = UFDouble.ZERO_DBL;
+		for (int i = 0; i<alvos.size(); i++ ){
+			nmnydealsum = nmnydealsum.add(alvos.get(i).getNdealmny()==null?UFDouble.ZERO_DBL:alvos.get(i).getNdealmny() );
+		}
+		return nmnydealsum;
+	}
+
 	public void bodyRowChange(BillEditEvent e) {
 		// TODO Auto-generated method stub
 	
@@ -636,9 +583,8 @@ BillEditListener, BillEditListener2 {
 			onBtnSave();
 		}
 	}
-
-	private void onBtnSave() {
-		// TODO Auto-generated method stub
+	private ArrayList<TaxInvoiceDealVO> getSelectedVOs(){ 
+		
 		ArrayList<TaxInvoiceDealVO> alvos = new ArrayList();
 		TaxInvoiceDealVO vo = null;
 		for (int i=0 ; i<getVerifyCardPanel().getBillTable().getRowCount(); i++){
@@ -648,14 +594,32 @@ BillEditListener, BillEditListener2 {
 			}
 		}
 		
-		if (alvos ==null || alvos.size() == 0 )
+		return alvos;
+	}
+	
+
+	private void onBtnSave() {
+		// TODO Auto-generated method stub
+
+		ArrayList<TaxInvoiceDealVO> alvos = getSelectedVOs();
+		if (!checkDealVO()){
+			MessageDialog.showErrorDlg(this, "错误", "本次发票核销的合计数量或金额超过了发票行的未核销余额，不能保存核销结果，请调整！");
 			return;
+		}
+		UFDouble nmnybal = getVerifyCardPanel().getHeadItem("nmnybal").getValue()==null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nmnybal").getValue().toString());  //得到发票行的数量和金额余额
+		UFDouble nnumbal = getVerifyCardPanel().getHeadItem("nnumbal").getValue()==null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nnumbal").getValue().toString());
 		
+		if(nmnybal.compareTo(UFDouble.ZERO_DBL) != 0 || 
+				nnumbal.compareTo(UFDouble.ZERO_DBL) != 0	) {
+			if ( MessageDialog.showYesNoDlg(this, "提示", "当前发票行还有未核销完成的数量或金额余额，是否继续保存本次核销结果？") != MessageDialog.ID_YES)  //这里友好提示一下，选择是的话就继续保存
+				return;
+		}
+		//这里还不能作为一个事务进行处理，可能存在回写数据不完整情况
 		saveDealData(alvos);
 		reWriteTaxInvoice(alvos);
 		reWriteSaleInvoice(alvos);
 		
-		ijVerifyDialog.closeOK();
+		getIjVerifyDialog().closeOK();
 		
 	}
 
@@ -706,16 +670,16 @@ BillEditListener, BillEditListener2 {
 			ndealnum = ndealnum.add(alvos.get(i).getNdealnum());
 			ndealmny = ndealmny.add(alvos.get(i).getNdealmny());
 		}
-		taxInvoiceItemVO.setCtaxinvoiceid(taxInvoiceVO.getParentVO().getAttributeValue("ctaxinvoiceid").toString());
-		taxInvoiceItemVO.setNtotaldealmny(taxInvoiceItemVO.getNtotaldealmny()==null?ndealmny: taxInvoiceItemVO.getNtotaldealmny().add(ndealmny));
-		taxInvoiceItemVO.setNtotaldealnum(taxInvoiceItemVO.getNtotaldealnum()==null?ndealnum: taxInvoiceItemVO.getNtotaldealnum().add(ndealnum));
-		taxInvoiceItemVO.setStatus(VOStatus.UPDATED);
+		getTaxInvoiceItemVO().setCtaxinvoiceid(getTaxInvoiceVO().getParentVO().getAttributeValue("ctaxinvoiceid").toString());
+		getTaxInvoiceItemVO().setNtotaldealmny(getTaxInvoiceItemVO().getNtotaldealmny()==null?ndealmny: getTaxInvoiceItemVO().getNtotaldealmny().add(ndealmny));
+		getTaxInvoiceItemVO().setNtotaldealnum(getTaxInvoiceItemVO().getNtotaldealnum()==null?ndealnum: getTaxInvoiceItemVO().getNtotaldealnum().add(ndealnum));
+		getTaxInvoiceItemVO().setStatus(VOStatus.UPDATED);
 		
 		IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
 		.getInstance().lookup(IVOPersistence.class.getName());
 		
 		try {
-			iVOPersistence.updateVO(taxInvoiceItemVO);
+			iVOPersistence.updateVO(getTaxInvoiceItemVO());
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -763,6 +727,16 @@ BillEditListener, BillEditListener2 {
 
 	private void onBtnClear() {
 		// TODO Auto-generated method stub
+		for (int i=0; i < getVerifyCardPanel().getBillTable().getRowCount(); i++) {
+			if (getVerifyCardPanel().getBillModel().getRowState(i) == BillModel.SELECTED) {
+				getVerifyCardPanel().getBillModel().setValueAt(null, i, "ndealnum");
+				getVerifyCardPanel().getBillModel().setValueAt(null, i, "ndealmny");
+				getVerifyCardPanel().getBillModel().setValueAt(null, i, "nrewritenum");
+				getVerifyCardPanel().getBillModel().setValueAt(null, i, "nrewritemny");	
+				getVerifyCardPanel().getBillModel().setRowState(i, BillModel.UNSTATE);
+			}
+		}
+		//getVerifyCardPanel().getBillModel().updateValue();
 	}
 
 	public TaxInvoiceVO getTaxInvoiceVO() {
@@ -788,8 +762,5 @@ BillEditListener, BillEditListener2 {
 	public void setTaxInvoiceItemVO(TaxInvoiceItemVO taxInvoiceItemVO) {
 		this.taxInvoiceItemVO = taxInvoiceItemVO;
 	}
-
-
-
 
 }
