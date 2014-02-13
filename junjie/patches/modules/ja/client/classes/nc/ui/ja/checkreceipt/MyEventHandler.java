@@ -122,6 +122,10 @@ import nc.vo.pub.SuperVO;
 		// TODO Auto-generated method stub
 		int rows=getBillCardPanelWrapper().getBillCardPanel().getRowCount();
 		for (int i = 0; i < rows; i++) {
+			Object obj=getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "tempmoney");
+			if(new Double(obj.toString())<=0d){
+				continue;
+			}
 			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt("Y", i, "ischoice");
 			getBillCardPanelWrapper().getBillCardPanel().setCellEditable(i, "checkamount", true);				
 			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(getBillCardPanelWrapper().getBillCardPanel().getBodyValueAt(i, "tempmoney"), i, "checkamount");

@@ -9,10 +9,14 @@ import nc.itf.uap.workshop.plugins.formdev.IUAPBillQueryService;
 import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
+import nc.ui.trade.base.IBillOperate;
 import nc.ui.trade.controller.IControllerBase;
 import nc.ui.trade.manage.BillManageUI;
+import nc.vo.ja.entityreceiptck.JaEntityReceiptCkVO;
+import nc.vo.ja.pub.itf.IEntityReceipt;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.BusinessRuntimeException;
+import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.SuperVO;
 import nc.vo.pub.ValidationException;
 import nc.ui.pub.ButtonObject;
@@ -36,23 +40,79 @@ import nc.ui.pub.ButtonObject;
 	  @Override
 	protected void onBoEdit() throws Exception {
 		// TODO Auto-generated method stub
-		  Object pk=getBillCardPanelWrapper().getBillCardPanel().getHeadItem("pk_entity_receipt").getValueObject();
+		  onBoCard();
+		  onBoRefresh();
+		  boolean flag=getBillCardPanelWrapper().getBillCardPanel().getBodyPanel("ja_entity_receipt_b").isShowing();
+		  boolean ischeck= isCheckedBill();
+		  
+		  if(flag){	
+			  getBillCardPanelWrapper().getBillCardPanel().getBillModel("ja_entity_receipt_b").setEnabledAllItems(true);
+			  if(ischeck){
+				  this.getBillUI().showWarningMessage("单据已做过核销操作，不能再修改");	
+				  return;
+			  }
+			  getBillUI().setBillOperate(3);
+		  }else{		
+			  if(ischeck){				
+				  getBillCardPanelWrapper().getBillCardPanel().getBillModel("ja_entity_receipt_b").setEnabledAllItems(false);
+			  }
+			  getBillUI().setBillOperate(3);
+		  }
+		//super.onBoEdit();
+	}
+	 //单据是否做过核销
+	private boolean isCheckedBill() throws Exception {
+		 Object pk=getBillCardPanelWrapper().getBillCardPanel().getHeadItem("pk_entity_receipt").getValueObject();
 		  IUAPQueryBS iquery = NCLocator.getInstance().lookup(
-					IUAPQueryBS.class);
-		  String sql="select totalamount from ja_entity_receipt_b where pk_entity_receipt='"+pk+"'";
+				  IUAPQueryBS.class);
+		  String sql="select totalamount from ja_entity_receipt_b where pk_entity_receipt='"+pk+"' and nvl(dr,0)=0";
 		  ArrayList list=(ArrayList)iquery.executeQuery(sql, new ArrayListProcessor());
 		  if(list!=null){
 			  for (int j = 0; j < list.size(); j++) {
-				
+				  
 				  Object[] obj=(Object[]) list.get(j);
-				  if(obj[0]!=null){
-					  this.getBillUI().showWarningMessage("单据已做过核销操作，不能再修改");			
-					  return;
+				  if(obj[0]!=null&&new Double(obj[0].toString())>0d){
+					  		
+					 return true;
 				  }
 			  }
 		  }
-		super.onBoEdit();
+		  return false;
+	}  
+
+	@Override
+	protected void onBoLineDel() throws Exception {
+		// TODO Auto-generated method stub
+		boolean flag=getBillCardPanelWrapper().getBillCardPanel().getBodyPanel("ja_entity_receipt_b").isShowing();
+		if(flag){
+			super.onBoLineDel();
+		}else{
+			//表ja_entity_receipt_ck.def3 -- 实体发票明细pk
+			//1获取要删除的核销记录的金额及所对应的实体发票明细pk
+			CircularlyAccessibleValueObject[] vos=getBillCardPanelWrapper().getSelectedBodyVOs();
+			if(vos==null){
+				this.getBillUI().showWarningMessage("选择所删除的核销记录");	
+				  return;
+			}
+			
+			int show=this.getBillUI().showOkCancelMessage("删除后不可撤销，确认删除?");
+			if(show==1){
+				for (int i = 0; i < vos.length; i++) {
+					JaEntityReceiptCkVO CkVO=new JaEntityReceiptCkVO();
+					CkVO.setAttributeValue("def3", vos[i].getAttributeValue("def3"));
+					CkVO.setAttributeValue("tax", vos[i].getAttributeValue("tax"));
+					//2数据库进行加法，把核销的金额加回，根据实体发票明细pk
+					IEntityReceipt ier=NCLocator.getInstance().lookup(IEntityReceipt.class);
+					ier.onUnCheck(CkVO);
+				}
+				super.onBoLineDel();
+				super.onBoSave();
+			}
+		}
+		
 	}
+
+
 
 
 	@Override
@@ -83,7 +143,7 @@ import nc.ui.pub.ButtonObject;
 
 		// SuperVO[] queryVos = queryHeadVOs(strWhere.toString());
 		SuperVO[] queryVos = null;
-		System.out.println(strWhere);
+		//System.out.println(strWhere);
 		
 		StringBuffer strSql = new StringBuffer();
 		String str1="ja_entity_receipt_b";

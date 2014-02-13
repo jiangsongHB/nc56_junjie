@@ -122,7 +122,7 @@ public class ClientUI extends AbstractClientUI implements ILinkAdd{
 				v.setAttributeValue("def8", vob.getPrimaryKey());//实体发票明细主键
 				//系统发票累积核销金额-----start
 				sql="select sum(tax)  from ja_entity_receipt_ck " +
-				"where def4='"+objs[29]+"'";
+				"where def4='"+objs[29]+"' and nvl(dr,0)=0";
 				Object[] sys_sum= (Object[]) iquery.executeQuery(sql, new ArrayProcessor());
 				if(sys_sum[0]==null){
 					sys_sum[0]=0;
