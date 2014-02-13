@@ -1,0 +1,2 @@
+insert into pub_query_templet(DESCRIBE,DR,FIXCONDITION,ID,METACLASS,MODEL_CODE,MODEL_NAME,NODE_CODE,PK_CORP,RESID,TS) values( null,null,null,'0001ZZ100000000191YI','8d41bd65-af14-4369-85a8-c42675ba5bc5','32H','税务发票主表','pending','@@@@',null,'2014-01-25 14:18:13') ;
+insert into pub_query_templet(DESCRIBE,DR,FIXCONDITION,ID,METACLASS,MODEL_CODE,MODEL_NAME,NODE_CODE,PK_CORP,RESID,TS) values( null,null,null,'1004ZZ1000000005HKO4','82268ae2-d696-47c0-ba6b-3a326456dcef','taxinvoice','税务发票类型','pending','@@@@',null,'2014-01-25 09:19:44') ;
