@@ -3,6 +3,7 @@ package nc.ui.so.taxinvoice;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -256,9 +257,10 @@ BillEditListener, BillEditListener2 {
 	private UIButton getUIButtonDel() {
 		if (UIButtonDel == null) {
 			UIButtonDel = new UIButton();
-			UIButtonDel.setBounds(new Rectangle(352, 4, 75, 20));
+//			UIButtonDel.setBounds(new Rectangle(432, 4, 75, 20));
+			UIButtonDel.setPreferredSize(new Dimension(70, 20));
 			UIButtonDel.setText("删  除");
-			UIButtonDel.setToolTipText("<HTML><B>删除分配的核销数据</B></HTML>");
+//			UIButtonDel.setToolTipText("<HTML><B>删除分配的核销数据</B></HTML>");
 		}
 		return UIButtonDel;
 	}
@@ -271,9 +273,10 @@ BillEditListener, BillEditListener2 {
 	private UIButton getUIButtonEdit() {
 		if (UIButtonEdit == null) {
 			UIButtonEdit = new UIButton();
-			UIButtonEdit.setBounds(new Rectangle(432, 4, 75, 20));
+//			UIButtonEdit.setBounds(new Rectangle(432, 4, 75, 20));
+			UIButtonEdit.setPreferredSize(new Dimension(70, 20));
 			UIButtonEdit.setText("编  辑");
-			UIButtonEdit.setToolTipText("<HTML><B>修改核销数据</B></HTML>");
+//			UIButtonEdit.setToolTipText("<HTML><B>修改核销数据</B></HTML>");
 		}
 		return UIButtonEdit;
 	}
@@ -286,9 +289,10 @@ BillEditListener, BillEditListener2 {
 	private UIButton getUIButtonSave() {
 		if (UIButtonSave == null) {
 			UIButtonSave = new UIButton();
-			UIButtonSave.setBounds(new Rectangle(512, 4, 75, 20));
+//			UIButtonSave.setBounds(new Rectangle(512, 4, 75, 20));
+			UIButtonSave.setPreferredSize(new Dimension(70, 20));
 			UIButtonSave.setText("保  存");
-			UIButtonSave.setToolTipText("<HTML><B>保存核销结果</B></HTML>");
+//			UIButtonSave.setToolTipText("<HTML><B>保存核销结果</B></HTML>");
 		}
 		return UIButtonSave;
 	}
@@ -301,9 +305,10 @@ BillEditListener, BillEditListener2 {
 	private UIButton getUIButtonCan() {
 		if (UIButtonCan == null) {
 			UIButtonCan = new UIButton();
-			UIButtonCan.setBounds(new Rectangle(592, 4, 75, 20));
+//			UIButtonCan.setBounds(new Rectangle(592, 4, 75, 20));
+			UIButtonCan.setPreferredSize(new Dimension(70, 20));
 			UIButtonCan.setText("关  闭");
-			UIButtonCan.setToolTipText("<HTML><B>关闭核销窗口(CTRL + X)</B></HTML>");
+//			UIButtonCan.setToolTipText("<HTML><B>关闭核销窗口(CTRL + X)</B></HTML>");
 		}
 		return UIButtonCan;
 	}
@@ -315,12 +320,12 @@ BillEditListener, BillEditListener2 {
 	private UIPanel getUIPanel() {
 		if (UIPanel == null) {
 			UIPanel = new UIPanel();
-			UIPanel.setLayout(null);
-			UIPanel.setPreferredSize(new Dimension(1024, 50));
-			UIPanel.add(getUIButtonDel(), null);
+			UIPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+//			UIPanel.setPreferredSize(new Dimension(1024, 50));
+			UIPanel.add(getUIButtonDel());
 			//UIPanel.add(getUIButtonEdit(), null);  //暂时不支持在这里修改了，允许删除核销记录
-			UIPanel.add(getUIButtonSave(), null);
-			UIPanel.add(getUIButtonCan(), null);
+			UIPanel.add(getUIButtonSave());
+			UIPanel.add(getUIButtonCan());
 		}
 		return UIPanel;
 	}

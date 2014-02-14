@@ -18,9 +18,8 @@ import nc.vo.pub.lang.*;
  */
 @SuppressWarnings("serial")
 public class TaxInvoiceItemVO extends SuperVO {
-	private java.lang.String ctaxinvoiceid;
 	private java.lang.String ctaxinvoice_bid;
-	private nc.vo.so.TaxInvoiceBbVO[] cdealitems;
+	private java.lang.String ctaxinvoiceid;
 	private java.lang.String cinvname;
 	private java.lang.String cinvclassid;
 	private java.lang.String cinventoryid;
@@ -54,9 +53,8 @@ public class TaxInvoiceItemVO extends SuperVO {
 	private java.lang.Integer dr;
 	private nc.vo.pub.lang.UFDateTime ts;
 
-	public static final String CTAXINVOICEID = "ctaxinvoiceid";
 	public static final String CTAXINVOICE_BID = "ctaxinvoice_bid";
-	public static final String CDEALITEMS = "cdealitems";
+	public static final String CTAXINVOICEID = "ctaxinvoiceid";
 	public static final String CINVNAME = "cinvname";
 	public static final String CINVCLASSID = "cinvclassid";
 	public static final String CINVENTORYID = "cinventoryid";
@@ -89,22 +87,6 @@ public class TaxInvoiceItemVO extends SuperVO {
 	public static final String CROWNO = "crowno";
 			
 	/**
-	 * 属性ctaxinvoiceid的Getter方法.
-	 * 创建日期:2014-01-21 12:15:25
-	 * @return java.lang.String
-	 */
-	public java.lang.String getCtaxinvoiceid () {
-		return ctaxinvoiceid;
-	}   
-	/**
-	 * 属性ctaxinvoiceid的Setter方法.
-	 * 创建日期:2014-01-21 12:15:25
-	 * @param newCtaxinvoiceid java.lang.String
-	 */
-	public void setCtaxinvoiceid (java.lang.String newCtaxinvoiceid ) {
-	 	this.ctaxinvoiceid = newCtaxinvoiceid;
-	} 	  
-	/**
 	 * 属性ctaxinvoice_bid的Getter方法.
 	 * 创建日期:2014-01-21 12:15:25
 	 * @return java.lang.String
@@ -119,22 +101,6 @@ public class TaxInvoiceItemVO extends SuperVO {
 	 */
 	public void setCtaxinvoice_bid (java.lang.String newCtaxinvoice_bid ) {
 	 	this.ctaxinvoice_bid = newCtaxinvoice_bid;
-	} 	  
-	/**
-	 * 属性cdealitems的Getter方法.
-	 * 创建日期:2014-01-21 12:15:25
-	 * @return nc.vo.so.TaxInvoiceBbVO[]
-	 */
-	public nc.vo.so.TaxInvoiceBbVO[] getCdealitems () {
-		return cdealitems;
-	}   
-	/**
-	 * 属性cdealitems的Setter方法.
-	 * 创建日期:2014-01-21 12:15:25
-	 * @param newCdealitems nc.vo.so.TaxInvoiceBbVO[]
-	 */
-	public void setCdealitems (nc.vo.so.TaxInvoiceBbVO[] newCdealitems ) {
-	 	this.cdealitems = newCdealitems;
 	} 	  
 	/**
 	 * 属性cinvname的Getter方法.
@@ -656,7 +622,7 @@ public class TaxInvoiceItemVO extends SuperVO {
 	  * @return java.lang.String
 	  */
 	public java.lang.String getParentPKFieldName() {
-		return "ctaxinvoiceid";
+	    return null;
 	}   
     
 	/**
@@ -686,5 +652,17 @@ public class TaxInvoiceItemVO extends SuperVO {
 	  */
      public TaxInvoiceItemVO() {
 		super();	
+	}
+	/**
+	 * @return the ctaxinvoiceid
+	 */
+	public java.lang.String getCtaxinvoiceid() {
+		return ctaxinvoiceid;
+	}
+	/**
+	 * @param ctaxinvoiceid the ctaxinvoiceid to set
+	 */
+	public void setCtaxinvoiceid(java.lang.String ctaxinvoiceid) {
+		this.ctaxinvoiceid = ctaxinvoiceid;
 	}    
 } 

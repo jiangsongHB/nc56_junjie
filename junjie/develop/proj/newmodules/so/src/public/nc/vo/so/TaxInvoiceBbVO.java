@@ -18,7 +18,6 @@ import nc.vo.pub.lang.*;
  */
 @SuppressWarnings("serial")
 public class TaxInvoiceBbVO extends SuperVO {
-	private java.lang.String ctaxinvoice_bid;
 	private java.lang.String ctaxinvoice_bbid;
 	private java.lang.String csourcebilltype = "32";
 	private java.lang.String csourcebillid;
@@ -30,10 +29,10 @@ public class TaxInvoiceBbVO extends SuperVO {
 	private nc.vo.pub.lang.UFDouble nwriteinvoicenum;
 	private nc.vo.pub.lang.UFDouble nwriteinvoicemny;
 	private java.lang.String ctaxinvoiceid;
+	private java.lang.String ctaxinvoice_bid;
 	private java.lang.Integer dr;
 	private nc.vo.pub.lang.UFDateTime ts;
 
-	public static final String CTAXINVOICE_BID = "ctaxinvoice_bid";
 	public static final String CTAXINVOICE_BBID = "ctaxinvoice_bbid";
 	public static final String CSOURCEBILLTYPE = "csourcebilltype";
 	public static final String CSOURCEBILLID = "csourcebillid";
@@ -45,23 +44,8 @@ public class TaxInvoiceBbVO extends SuperVO {
 	public static final String NWRITEINVOICENUM = "nwriteinvoicenum";
 	public static final String NWRITEINVOICEMNY = "nwriteinvoicemny";
 	public static final String CTAXINVOICEID = "ctaxinvoiceid";
+	public static final String CTAXINVOICE_BID = "ctaxinvoice_bid";
 			
-	/**
-	 * 属性ctaxinvoice_bid的Getter方法.
-	 * 创建日期:2014-01-21 12:53:17
-	 * @return java.lang.String
-	 */
-	public java.lang.String getCtaxinvoice_bid () {
-		return ctaxinvoice_bid;
-	}   
-	/**
-	 * 属性ctaxinvoice_bid的Setter方法.
-	 * 创建日期:2014-01-21 12:53:17
-	 * @param newCtaxinvoice_bid java.lang.String
-	 */
-	public void setCtaxinvoice_bid (java.lang.String newCtaxinvoice_bid ) {
-	 	this.ctaxinvoice_bid = newCtaxinvoice_bid;
-	} 	  
 	/**
 	 * 属性ctaxinvoice_bbid的Getter方法.
 	 * 创建日期:2014-01-21 12:53:17
@@ -239,6 +223,22 @@ public class TaxInvoiceBbVO extends SuperVO {
 	 	this.ctaxinvoiceid = newCtaxinvoiceid;
 	} 	  
 	/**
+	 * 属性ctaxinvoice_bid的Getter方法.
+	 * 创建日期:2014-01-21 12:53:17
+	 * @return java.lang.String
+	 */
+	public java.lang.String getCtaxinvoice_bid () {
+		return ctaxinvoice_bid;
+	}   
+	/**
+	 * 属性ctaxinvoice_bid的Setter方法.
+	 * 创建日期:2014-01-21 12:53:17
+	 * @param newCtaxinvoice_bid java.lang.String
+	 */
+	public void setCtaxinvoice_bid (java.lang.String newCtaxinvoice_bid ) {
+	 	this.ctaxinvoice_bid = newCtaxinvoice_bid;
+	} 	  
+	/**
 	 * 属性dr的Getter方法.
 	 * 创建日期:2014-01-21 12:53:17
 	 * @return java.lang.Integer
@@ -278,7 +278,7 @@ public class TaxInvoiceBbVO extends SuperVO {
 	  * @return java.lang.String
 	  */
 	public java.lang.String getParentPKFieldName() {
-		return "ctaxinvoice_bid";
+	    return null;
 	}   
     
 	/**

@@ -1,10 +1,14 @@
 package nc.ui.so.taxinvoice;
 
 import java.awt.Container;
+
+import nc.ui.ml.NCLangRes;
 import nc.ui.trade.businessaction.IPFACTION;
 import nc.ui.trade.check.BeforeActionCHK;
+import nc.vo.pf.pub.IDapType;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.trade.checkrule.CheckRule;
+import nc.vo.trade.checkrule.CompareRule;
 import nc.vo.trade.checkrule.ICheckRule;
 import nc.vo.trade.checkrule.ICheckRules;
 import nc.vo.trade.checkrule.ICheckRules2;
@@ -34,7 +38,9 @@ public class ClientUICheckRule extends BeforeActionCHK  implements ICheckRules,I
 	 * 返回表头唯一规则，仅用于后台检查。
 	 */
 	public IUniqueRule[] getHeadUniqueRules() { 
-		return null;
+		return new IUniqueRule[]{
+				new UniqueRule("",new String[]{"vinvoiceno"})
+			};
 	}
 
 	/**
@@ -81,6 +87,7 @@ public class ClientUICheckRule extends BeforeActionCHK  implements ICheckRules,I
 		return new CheckRule[]{
 				new CheckRule("发票项目", "cinvname", false, null, null),
 	            new CheckRule("价税合计", "nsummny", false, null, null),
+	            new CheckRule("数量", "nnumber", false, null, null),
 	        };
 	}
 
@@ -97,7 +104,7 @@ public class ClientUICheckRule extends BeforeActionCHK  implements ICheckRules,I
 	}
 
 	public ICompareRule[] getItemCompareRules(String tablecode) {
-		return null;
+        return null;
 	}
 
 	public String[] getItemIntegerField(String tablecode) {

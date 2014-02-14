@@ -1,10 +1,18 @@
 package nc.ui.so.taxinvoice.command;
 
+import nc.ui.so.taxinvoice.ClientUICheckRule;
 import nc.ui.trade.bocommand.IButtonCommand;
 import nc.ui.pub.bill.BillData;
 import nc.ui.pub.ButtonObject;
 import nc.ui.pub.ClientEnvironment;
+import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.VOStatus;
+import nc.vo.pub.lang.UFDouble;
+import nc.vo.so.TaxInvoiceBbVO;
+import nc.vo.so.TaxInvoiceHeaderVO;
+import nc.vo.so.TaxInvoiceItemVO;
+import nc.vo.so.TaxInvoiceVO;
+import nc.vo.trade.checkrule.VOChecker;
 /**
  * <b> 带单据模板校验功能的保存操作 </b><br>
  *
@@ -28,6 +36,21 @@ public class SaveBoCommand extends nc.ui.trade.manage.ManageEventHandler impleme
 		BillData data = getBillCardPanelWrapper().getBillCardPanel().getBillData();
 		if(data != null)
 			data.dataNotNullValidate();
+		ClientUICheckRule check = new ClientUICheckRule();
+		
+		AggregatedValueObject vo = getBillCardPanelWrapper().getBillCardPanel().getBillValueVO(TaxInvoiceVO.class.getName(), TaxInvoiceHeaderVO.class.getName(), TaxInvoiceItemVO.class.getName());
+		
+		if(!VOChecker.check(vo,check ))
+			throw new nc.vo.pub.BusinessException(VOChecker.getErrorMessage());
+		
+		TaxInvoiceItemVO[] vos = (TaxInvoiceItemVO[])vo.getChildrenVO();
+		for (int i=0; i<vos.length; i ++) {
+			if (vos[i].getNnumber() == null || vos[i].getNnumber().compareTo(UFDouble.ZERO_DBL) == 0 ||
+					vos[i].getNsummny() == null || vos[i].getNsummny().compareTo(UFDouble.ZERO_DBL)	== 0) {
+				throw new nc.vo.pub.BusinessException("发票行的数量，价税合计不能为空或零！");
+			}
+		}
+		
 		if(data.getBillstatus() == VOStatus.NEW) {
 			data.getTailItem("dcreatedate").setValue(ClientEnvironment.getInstance().getServerTime().getDate());
 		}
@@ -36,8 +59,6 @@ public class SaveBoCommand extends nc.ui.trade.manage.ManageEventHandler impleme
 			data.getTailItem("cmodifier").setValue(ClientEnvironment.getInstance().getUser().getPrimaryKey());
 		}
 		super.onBoSave();
-		
-		 
 	}
 }
  

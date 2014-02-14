@@ -474,6 +474,9 @@ junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceDealVO.java -tex
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceHeaderVO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceItemVO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceVO.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/test/nc/md/model/access/AbstractAttributeAccessor.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/test/nc/md/model/access/javamap/AggVOStyle.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/test/nc/vo/ml/AbstractNCLangRes.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so5/.classpath -text
 junjie/develop/proj/newmodules/so5/.module_prj -text
 junjie/develop/proj/newmodules/so5/.project -text

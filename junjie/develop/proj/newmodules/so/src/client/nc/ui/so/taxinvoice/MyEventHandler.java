@@ -102,13 +102,19 @@ public class MyEventHandler
 		  	 onBoCommand(command,bo);
 		  else
 		   	 super.onButton(bo);
-		  
+
 		  setUserButtonStatus();
 	 }
 	 
 	 private void setUserButtonStatus() {
 		// TODO Auto-generated method stub
-		try {
+		try { 
+			if (((ClientUI)getBillUI()).isListPanelSelected()) {
+				setStrShowState(strPanelList);
+			}else
+			{
+				setStrShowState(strPanelCard);
+			}
 			if (getBillUI().getBillOperate() == IBillOperate.OP_ADD ||
 					getBillUI().getBillOperate() == IBillOperate.OP_INIT ||
 					getBillUI().getBillOperate() == IBillOperate.OP_REFADD ||
@@ -191,7 +197,7 @@ public class MyEventHandler
 		}
 		try {
 			command.execute(bo);
-			getBillUI().updateButtons();  //更新按钮状态；
+			setUserButtonStatus();  //更新按钮状态；
 		} catch (BusinessException ex) {
 			onBusinessException(ex);
 		} catch (SQLException ex) {
@@ -258,7 +264,7 @@ public class MyEventHandler
 			super.onBoCard();
 			  //user code 
 			
-			setStrShowState(strPanelCard);
+//			setStrShowState(strPanelCard);
 			  
 			setUserButtonStatus();
 		}
@@ -268,9 +274,19 @@ public class MyEventHandler
 			// TODO Auto-generated method stub
 			super.onBoReturn();
 			
-			setStrShowState(strPanelList);
+//			setStrShowState(strPanelList);
 			
 			setUserButtonStatus();
+		}
+
+		/* (non-Javadoc)
+		 * @see nc.ui.trade.manage.ManageEventHandler#onBoAdd(nc.ui.pub.ButtonObject)
+		 */
+		@Override
+		public void onBoAdd(ButtonObject bo) throws Exception {
+			// TODO Auto-generated method stub
+			super.onBoAdd(bo);
+//			setStrShowState(strPanelCard);
 		}
 
 }
