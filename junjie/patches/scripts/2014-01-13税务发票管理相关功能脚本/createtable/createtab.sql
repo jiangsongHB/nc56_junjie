@@ -1,3 +1,15 @@
+--2014-02-14 补充脚本
+--增加模块信息
+Insert into dap_dapsystem (DEF1,DEF2,DEF3,DR,FUNCODE,ISACCOUNT,ISITEM,MODULE,RESOURCEID,SYSTYPECODE,SYSTYPENAME,TS,USEBUSITYPE) values (null,null,null,null,null,'N','N','soh',null,'soh','销售管理二次开发','2014-01-22 20:23:25',null);
+
+--销售发票表体增加核销累计数据
+alter table so_saleinvoice_b
+add (
+ntotaldealmny decimal(20,8),   --累计核销金额
+ntotaldealnum decimal(20,8)    --累计核销数量
+);
+
+
 -- 发票类型定义表
 
   CREATE TABLE BD_TAXINVOICETYPE

@@ -34,6 +34,7 @@ public class VerifyDialog extends UIDialog implements ActionListener {
 		// dialogµÄ¹ö¶¯Ìõ
 		this.setContentPane(getVerifyPanel());
 		this.setSize(1024, 700);
+		this.setResizable(true);
 	}
 
 	public VerifyPanel getVerifyPanel() {

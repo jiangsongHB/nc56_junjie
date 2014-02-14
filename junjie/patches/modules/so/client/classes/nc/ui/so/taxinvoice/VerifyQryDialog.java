@@ -35,6 +35,7 @@ public class VerifyQryDialog extends UIDialog implements ActionListener {
 		// dialogµÄ¹ö¶¯Ìõ
 		this.setContentPane(getVerifyQryPanel());
 		this.setSize(1024, 700);
+		this.setResizable(true);
 	}
 
 	public VerifyQryPanel getVerifyQryPanel() {
