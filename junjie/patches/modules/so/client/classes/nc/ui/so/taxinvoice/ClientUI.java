@@ -23,6 +23,7 @@ import nc.ui.pub.bill.BillTotalListener;
   
 import nc.ui.trade.bocommand.IUserDefButtonCommand;
 import nc.ui.pub.beans.MessageDialog;
+import nc.ui.querytemplate.IBillReferQuery;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -50,8 +51,8 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
  public class ClientUI extends AbstractClientUI implements BillTotalListener {
 	 
 	private List<String> pricefld = Arrays.asList( new String[]{"nprice","ntaxprice","ncurprice","ncurtaxprice"});
-	private List<String> mnyfld = Arrays.asList(new String[]{"nmny","ntaxman","nsummny","ncurmny","ncurtaxmny","ncursummny"});
-	private List<String> numfld = Arrays.asList( new String[]{"nnumber"});
+	private List<String> mnyfld = Arrays.asList(new String[]{"nmny","ntaxman","nsummny","ncurmny","ncurtaxmny","ncursummny","ntotaldealmny"});
+	private List<String> numfld = Arrays.asList( new String[]{"nnumber","ntotaldealnum"});
        
 	protected ManageEventHandler createEventHandler() {
 		return new MyEventHandler(this, getUIControl());
@@ -59,32 +60,6 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
        
 	public void setBodySpecialData(CircularlyAccessibleValueObject[] vos)
 			throws Exception {
-		
-		for (int i = 0 ; i < numfld.size(); i++){
-			getBillCardPanel().getBodyItem(numfld.get(i)).setDecimalDigits(4);
-			getBillListPanel().getBodyItem(numfld.get(i)).setDecimalDigits(4);
-		}
-		
-		for (int i = 0 ; i < mnyfld.size(); i++){
-			getBillCardPanel().getBodyItem(mnyfld.get(i)).setDecimalDigits(2);
-			getBillListPanel().getBodyItem(mnyfld.get(i)).setDecimalDigits(2);
-		}
-		
-		for (int i = 0 ; i < pricefld.size(); i++){
-			getBillCardPanel().getBodyItem(pricefld.get(i)).setDecimalDigits(6);
-			getBillListPanel().getBodyItem(pricefld.get(i)).setDecimalDigits(6);
-		}
-		
-		getBillCardPanel().getBodyItem("ntaxrate").setDecimalDigits(2);
-		getBillCardPanel().getHeadItem("nroe").setDecimalDigits(2);
-		
-		getBillCardPanel().getHeadItem("nroe").setValue(new UFDouble(1.0));
-		getBillCardPanel().getBodyItem("ntaxrate").setValue(new UFDouble(17.0));
-		
-		getBillListPanel().getBodyItem("ntaxrate").setDecimalDigits(2);
-		getBillListPanel().getHeadItem("nroe").setDecimalDigits(2);
-		
-	
 	}
 
 	protected void setHeadSpecialData(CircularlyAccessibleValueObject vo,
@@ -94,11 +69,8 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 			throws Exception {	}
 
 	protected void initSelfData() {	
-		getBillCardPanel().getBillModel().addTotalListener(this);
-		
-
-
-		
+		//getBillCardPanel().getBillModel().addTotalListener(this);
+		setDigits();
 	}
 	/**
 	 * 返回 VerifyPanel 特性值。
@@ -119,7 +91,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 					TaxInvoiceItemVO.class.getName());
 			
 			UFDouble ntotaldealmny =  selvo.getNtotaldealmny()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealmny() ;
-			UFDouble nmny = selvo.getNmny();
+			UFDouble nmny = selvo.getNsummny();
 			UFDouble ntotaldealnum = selvo.getNtotaldealnum()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealnum();
 			UFDouble nnumber = selvo.getNnumber();
 			
@@ -328,6 +300,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 		getBillCardPanel().getHeadItem("dreceivedate").setValue(ClientEnvironment.getInstance().getDate());
 		getBillCardPanel().getHeadItem("nroe").setValue(new UFDouble(1));
 
+
 	}
 
 	public UFDouble calcurateTotal(String key) {
@@ -340,6 +313,104 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 		// TODO Auto-generated method stub
 		return false;
 		//return super.isSaveAndCommitTogether();
+	}
+
+	/* (non-Javadoc)
+	 * @see nc.ui.trade.manage.BillManageUI#loadListHeadData(java.lang.String, nc.ui.querytemplate.IBillReferQuery)
+	 */
+	@Override
+	public void loadListHeadData(String strWhere, IBillReferQuery qryCondition)
+			throws Exception {
+		// TODO Auto-generated method stub
+		super.loadListHeadData(strWhere, qryCondition);
+		//setDigits();
+	}
+
+	private void setDigits() {
+		// TODO Auto-generated method stub
+		 setPricefld( Arrays.asList( new String[]{"nprice","ntaxprice","ncurprice","ncurtaxprice"}));
+		 setMnyfld(Arrays.asList(new String[]{"nmny","ntaxman","nsummny","ncurmny","ncurtaxmny","ncursummny","ntotaldealmny"}));
+		 setNumfld(Arrays.asList( new String[]{"nnumber","ntotaldealnum"}));
+		
+		//if (isListPanelSelected()) {
+			for (int i = 0 ; i < numfld.size(); i++){
+				getBillListPanel().getBodyItem(numfld.get(i)).setDecimalDigits(4);
+			}
+			
+			for (int i = 0 ; i < mnyfld.size(); i++){
+				getBillListPanel().getBodyItem(mnyfld.get(i)).setDecimalDigits(2);
+			}
+			
+			for (int i = 0 ; i < pricefld.size(); i++){
+				getBillListPanel().getBodyItem(pricefld.get(i)).setDecimalDigits(6);
+			}
+			
+			getBillListPanel().getBodyItem("ntaxrate").setDecimalDigits(2);
+			
+			getBillListPanel().getHeadItem("nroe").setValue(new UFDouble(1.0));
+			
+			getBillListPanel().getBodyItem("ntaxrate").setDecimalDigits(2);
+			
+		//} else
+		//{
+			for (int i = 0 ; i < numfld.size(); i++){
+				getBillCardPanel().getBodyItem(numfld.get(i)).setDecimalDigits(4);
+			}
+			
+			for (int i = 0 ; i < mnyfld.size(); i++){
+				getBillCardPanel().getBodyItem(mnyfld.get(i)).setDecimalDigits(2);
+			}
+			
+			for (int i = 0 ; i < pricefld.size(); i++){
+				getBillCardPanel().getBodyItem(pricefld.get(i)).setDecimalDigits(6);
+			}
+			
+			getBillCardPanel().getBodyItem("ntaxrate").setDecimalDigits(2);
+			getBillCardPanel().getHeadItem("nroe").setDecimalDigits(2);
+
+		//}
+	}
+
+	/**
+	 * @return the pricefld
+	 */
+	public List<String> getPricefld() {
+		return pricefld;
+	}
+
+	/**
+	 * @param pricefld the pricefld to set
+	 */
+	public void setPricefld(List<String> pricefld) {
+		this.pricefld = pricefld;
+	}
+
+	/**
+	 * @return the mnyfld
+	 */
+	public List<String> getMnyfld() {
+		return mnyfld;
+	}
+
+	/**
+	 * @param mnyfld the mnyfld to set
+	 */
+	public void setMnyfld(List<String> mnyfld) {
+		this.mnyfld = mnyfld;
+	}
+
+	/**
+	 * @return the numfld
+	 */
+	public List<String> getNumfld() {
+		return numfld;
+	}
+
+	/**
+	 * @param numfld the numfld to set
+	 */
+	public void setNumfld(List<String> numfld) {
+		this.numfld = numfld;
 	}
 
 

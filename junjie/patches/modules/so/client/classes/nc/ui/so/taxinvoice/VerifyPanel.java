@@ -3,11 +3,14 @@ package nc.ui.so.taxinvoice;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
 import javax.swing.event.ChangeEvent;
@@ -26,6 +29,7 @@ import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
+import nc.ui.pub.beans.UIDialog;
 import nc.ui.pub.beans.UIPanel;
 import nc.ui.pub.bill.BillCardPanel;
 import nc.ui.pub.bill.BillEditEvent;
@@ -38,7 +42,9 @@ import nc.ui.pub.bill.BillTableSelectionEvent;
 import nc.ui.pub.bill.BillTotalListener;
 import nc.ui.pub.bill.IBillModelRowStateChangeEventListener;
 import nc.ui.pub.bill.RowStateChangeEvent;
+import nc.ui.pub.component.ButtonPanel;
 import nc.ui.pub.querymodel.SWTUtil;
+import nc.ui.querytemplate.QueryConditionDLG;
 import nc.ui.scm.pattern.tool.InvInfoTool;
 import nc.ui.scm.so.SaleBillType;
 import nc.ui.so.so002.SaleInvoiceQuery;
@@ -48,6 +54,7 @@ import nc.ui.so.so002.pf.SaleInvoiceBillRefListPanel;
 import nc.ui.so.so042.SaleIncomeDetailBO_Client;
 import nc.ui.trade.base.IBillConst;
 import nc.ui.trade.business.HYPubBO_Client;
+import nc.ui.trade.query.HYQueryConditionDLG;
 import nc.uif.pub.exception.UifException;
 import nc.vo.bd.invdoc.InvbasdocVO;
 import nc.vo.pi.InvoiceVO;
@@ -58,6 +65,7 @@ import nc.vo.pub.formulaset.FormulaParseFather;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDouble;
+import nc.vo.querytemplate.TemplateInfo;
 import nc.vo.scm.pub.IBillCode;
 import nc.vo.scmpub.TaxInvoiceTypeVO;
 import nc.vo.so.SaleInvoiceBVOForVerify;
@@ -71,19 +79,21 @@ import nc.vo.so.so002.SaleinvoiceBVOMeta;
 import nc.vo.so.so002.SaleinvoiceVO;
 import nc.vo.trade.pub.IBillStatus;
 
-public class VerifyPanel extends UIPanel implements ActionListener,IBillModelRowStateChangeEventListener,
-BillEditListener, BillEditListener2 {
+public class VerifyPanel extends UIPanel implements ActionListener,IBillModelRowStateChangeEventListener, 
+BillEditListener, BillEditListener2, MouseListener {
 
-	private nc.ui.pub.bill.BillCardPanel ivjPanel = null;
+	//private nc.ui.pub.bill.BillCardPanel ivjPanel = null;
 	private UIButton UIButtonDistr;
 	private UIButton UIButtonClear;
 	private UIButton UIButtonSave;
 	private UIButton UIButtonCan;
+	private UIButton UIButtonQry;
 	private UIPanel UIPanel;
 	private BillCardPanel ijVerifyCardPanel;
 	private TaxInvoiceVO taxInvoiceVO; 
 	private TaxInvoiceItemVO taxInvoiceItemVO; 
 	private VerifyDialog ijVerifyDialog;
+	private HYQueryConditionDLG ijSaleInvoiceQryDLG;
 	
 	public VerifyPanel() {
 		super();
@@ -114,13 +124,13 @@ BillEditListener, BillEditListener2 {
 		super(p0);
 	}
 	
-	public nc.ui.pub.bill.BillCardPanel getIvjPanel() {
-		return ivjPanel;
-	}
-
-	public void setIvjPanel(nc.ui.pub.bill.BillCardPanel ivjDocPanel) {
-		this.ivjPanel = ivjDocPanel;
-	}
+//	public nc.ui.pub.bill.BillCardPanel getIvjPanel() {
+//		return ivjPanel;
+//	}
+//
+//	public void setIvjPanel(nc.ui.pub.bill.BillCardPanel ivjDocPanel) {
+//		this.ivjPanel = ivjDocPanel;
+//	}
 	/**
 	 * 初始化类。
 	 */
@@ -147,6 +157,7 @@ BillEditListener, BillEditListener2 {
 		getUIButtonClear().addActionListener(this);
 		getUIButtonSave().addActionListener(this);
 		getUIButtonCan().addActionListener(this);
+		getUIButtonQry().addActionListener(this);
 	}
 
 	/**
@@ -181,8 +192,8 @@ BillEditListener, BillEditListener2 {
 	}
 
 	public void initData(){
-
-		QryInvoiceData();
+		String sql = null;
+		QryInvoiceData(sql);
 		updateHeadData();
 
 	}
@@ -202,7 +213,7 @@ BillEditListener, BillEditListener2 {
 		getVerifyCardPanel().execHeadLoadFormulas();   //执行一下公式，支持自定义公式应用。
 	}
 
-	private void QryInvoiceData() {
+	private void QryInvoiceData(String othersql) {
 		// TODO Auto-generated method stub
 		
 		
@@ -220,7 +231,7 @@ BillEditListener, BillEditListener2 {
 			isfee = taxInvTypeVo.getIffee().booleanValue();
 			
 			String sql = "select so_saleinvoice.dbilldate, so_saleinvoice.csaleid, so_saleinvoice.pk_corp,  " +
-					"so_saleinvoice.vreceiptcode, so_saleinvoice_b.cinvoice_bid, so_saleinvoice_b.nmny ,  " +
+					"so_saleinvoice.vreceiptcode, so_saleinvoice_b.cinvoice_bid, so_saleinvoice_b.nsummny ,  " +  //应当取价税合计
 					"so_saleinvoice_b.nnumber,  so_saleinvoice_b.cinvbasdocid, isnull(so_saleinvoice_b.ntotaldealnum,0),  " +
 					"isnull(so_saleinvoice_b.ntotaldealmny,0), so_saleinvoice_b.crowno " +
 					"from so_saleinvoice inner join so_saleinvoice_b on so_saleinvoice.csaleid = so_saleinvoice_b.csaleid " +
@@ -237,14 +248,16 @@ BillEditListener, BillEditListener2 {
 					"or isnull(so_saleinvoice_b.ntotaldealmny,0) < so_saleinvoice_b.nsummny ) ";
 			
 			//费用发票条件
-			if (isfee){
-				strWhere += " and exists (" +
-				"select * from bd_invbasdoc where (isnull(discountflag,'N') = 'Y' or isnull(laborflag,'N') = 'Y') " +
-				" and  pk_invbasdoc = so_saleinvoice_b.cinvbasdocid ) ";
-			}else{
-				strWhere += " and exists (" +
-				"select * from bd_invbasdoc where (isnull(discountflag,'N') = 'N' and isnull(laborflag,'N') = 'N') " +
-				" and  pk_invbasdoc = so_saleinvoice_b.cinvbasdocid ) ";
+			if (othersql == null || othersql.length() == 0) {  //允许覆盖的查询条件
+				if (isfee){
+					strWhere += " and exists (" +
+					"select * from bd_invbasdoc where (isnull(discountflag,'N') = 'Y' or isnull(laborflag,'N') = 'Y') " +
+					" and  pk_invbasdoc = so_saleinvoice_b.cinvbasdocid ) ";
+				}else{
+					strWhere += " and exists (" +
+					"select * from bd_invbasdoc where (isnull(discountflag,'N') = 'N' and isnull(laborflag,'N') = 'N') " +
+					" and  pk_invbasdoc = so_saleinvoice_b.cinvbasdocid ) ";
+				}
 			}
 			
 			//预开票条件，处理发票日期
@@ -253,6 +266,9 @@ BillEditListener, BillEditListener2 {
 			}else{
 				strWhere += " and so_saleinvoice.dbilldate <= '" + taxInvoiceVO.getParentVO().getAttributeValue("dinvoicedate") + "' " ;
 			}
+			
+			if (othersql != null )
+				strWhere += " and (" + othersql + ") "; 
 			
 			String strOrder = " order by so_saleinvoice.dbilldate , so_saleinvoice.vreceiptcode, so_saleinvoice_b.crowno ";
 			
@@ -284,6 +300,7 @@ BillEditListener, BillEditListener2 {
 				alvos.add(vo);
 			}
 			alvos.toArray(vos);
+			getVerifyCardPanel().getBillModel().clearBodyData();
 			getVerifyCardPanel().getBillModel().setBodyDataVO(vos);
 			getVerifyCardPanel().getBillModel().execLoadFormula();// 显示公式
 			//getVerifyCardPanel().startRowCardEdit();
@@ -313,9 +330,10 @@ BillEditListener, BillEditListener2 {
 	private UIButton getUIButtonDistr() {
 		if (UIButtonDistr == null) {
 			UIButtonDistr = new UIButton();
-			UIButtonDistr.setBounds(new Rectangle(352, 4, 75, 20));
+//			UIButtonDistr.setBounds(new Rectangle(352, 4, 75, 20));
+			UIButtonDistr.setPreferredSize(new Dimension(70, 20));
 			UIButtonDistr.setText("分  配");
-			UIButtonDistr.setToolTipText("<HTML><B>自动分配待核销数据</B></HTML>");
+//			UIButtonDistr.setToolTipText("<HTML><B>自动分配待核销数据</B></HTML>");
 		}
 		return UIButtonDistr;
 	}
@@ -328,9 +346,10 @@ BillEditListener, BillEditListener2 {
 	private UIButton getUIButtonClear() {
 		if (UIButtonClear == null) {
 			UIButtonClear = new UIButton();
-			UIButtonClear.setBounds(new Rectangle(432, 4, 75, 20));
+//			UIButtonClear.setBounds(new Rectangle(432, 4, 75, 20));
+			UIButtonClear.setPreferredSize(new Dimension(70, 20));
 			UIButtonClear.setText("清  空");
-			UIButtonClear.setToolTipText("<HTML><B>清空本次核销数据</B></HTML>");
+//			UIButtonClear.setToolTipText("<HTML><B>清空本次核销数据</B></HTML>");
 		}
 		return UIButtonClear;
 	}
@@ -343,9 +362,10 @@ BillEditListener, BillEditListener2 {
 	private UIButton getUIButtonSave() {
 		if (UIButtonSave == null) {
 			UIButtonSave = new UIButton();
-			UIButtonSave.setBounds(new Rectangle(512, 4, 75, 20));
+//			UIButtonSave.setBounds(new Rectangle(512, 4, 75, 20));
+			UIButtonSave.setPreferredSize(new Dimension(70, 20));
 			UIButtonSave.setText("保  存");
-			UIButtonSave.setToolTipText("<HTML><B>保存核销结果</B></HTML>");
+//			UIButtonSave.setToolTipText("<HTML><B>保存核销结果</B></HTML>");
 		}
 		return UIButtonSave;
 	}
@@ -355,12 +375,29 @@ BillEditListener, BillEditListener2 {
 	 * 
 	 * @return nc.ui.pub.beans.UIButton
 	 */
+	private UIButton getUIButtonQry() {
+		if (UIButtonQry == null) {
+			UIButtonQry = new UIButton();
+//			UIButtonQry.setBounds(new Rectangle(272, 4, 75, 20));
+			UIButtonQry.setPreferredSize(new Dimension(70, 20));
+			UIButtonQry.setText("查  询");
+//			UIButtonQry.setToolTipText("<HTML>查询虚拟发票</HTML>");
+		}
+		return UIButtonQry;
+	}
+	
+	/**
+	 * This method initializes UIButtonCan
+	 * 
+	 * @return nc.ui.pub.beans.UIButton
+	 */
 	private UIButton getUIButtonCan() {
 		if (UIButtonCan == null) {
 			UIButtonCan = new UIButton();
-			UIButtonCan.setBounds(new Rectangle(592, 4, 75, 20));
+//			UIButtonCan.setBounds(new Rectangle(592, 4, 75, 20));
+			UIButtonCan.setPreferredSize(new Dimension(70, 20));
 			UIButtonCan.setText("关  闭");
-			UIButtonCan.setToolTipText("<HTML><B>关闭核销窗口(CTRL + X)</B></HTML>");
+//			UIButtonCan.setToolTipText("<HTML><B>关闭核销窗口(CTRL + X)</B></HTML>");
 		}
 		return UIButtonCan;
 	}
@@ -372,12 +409,14 @@ BillEditListener, BillEditListener2 {
 	private UIPanel getUIPanel() {
 		if (UIPanel == null) {
 			UIPanel = new UIPanel();
-			UIPanel.setLayout(null);
-			UIPanel.setPreferredSize(new Dimension(1024, 50));
-			UIPanel.add(getUIButtonDistr(), null);
-			UIPanel.add(getUIButtonClear(), null);
-			UIPanel.add(getUIButtonSave(), null);
-			UIPanel.add(getUIButtonCan(), null);
+			UIPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+//			UIPanel.setPreferredSize(new Dimension(1024, 50));
+			UIPanel.add(getUIButtonQry());			
+			UIPanel.add(getUIButtonDistr());
+			UIPanel.add(getUIButtonClear());
+			UIPanel.add(getUIButtonSave());
+			UIPanel.add(getUIButtonCan());
+
 		}
 		return UIPanel;
 	}
@@ -394,6 +433,7 @@ BillEditListener, BillEditListener2 {
 			ijVerifyCardPanel.getBillTable().setRowSelectionAllowed(true);
 			ijVerifyCardPanel.setBodyMultiSelect(true);
 			ijVerifyCardPanel.addEditListener(this);
+			ijVerifyCardPanel.addMouseListener(this);
 			ijVerifyCardPanel.getBillModel().addRowStateChangeEventListener(this);
 			ijVerifyCardPanel.getBodyItem("ndealnum").setDecimalDigits(4);
 			ijVerifyCardPanel.getBodyItem("nnumber").setDecimalDigits(4);
@@ -420,11 +460,12 @@ BillEditListener, BillEditListener2 {
 			if (ndealnum.compareTo(nNumber.sub(nTotalDealNum)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次核销数量不能大于发票行的未核销数量,请重新输入。");
 				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
+				getVerifyCardPanel().getBillModel().setValueAt(e.getOldValue(), irow, "ndealnum");
 				return;
 			}
 			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
 			//getVerifyCardPanel().getBillModel().updateValue();
-			getVerifyCardPanel().getBillModel().setValueAt(e.getOldValue(), irow, "nrewritenum");
+			getVerifyCardPanel().getBillModel().setValueAt(e.getValue(), irow, "nrewritenum");
 		}
 		if(e.getKey().equalsIgnoreCase("nrewritenum")){
 			UFDouble nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
@@ -433,6 +474,7 @@ BillEditListener, BillEditListener2 {
 			if (nrewrietnum.compareTo(nNumber.sub(nTotalDealNum)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次回写数量不能大于发票行的未核销数量,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "nrewritenum");
+				return;
 				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
 			}
 			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
@@ -441,10 +483,11 @@ BillEditListener, BillEditListener2 {
 		if(e.getKey().equalsIgnoreCase("ndealmny")){
 			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
 			UFDouble nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny").toString());
-			UFDouble ndealnum = e.getValue() == null? new UFDouble(0.0): new UFDouble(e.getValue().toString());
-			if (ndealnum.compareTo(nMny.sub(nTotalDealMny)) > 0 ) {
+			UFDouble ndealmny = e.getValue() == null? new UFDouble(0.0): new UFDouble(e.getValue().toString());
+			if (ndealmny.compareTo(nMny.sub(nTotalDealMny)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次核销金额不能大于发票行的未核销金额,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "ndealmny");
+				return;
 				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
 			}
 			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
@@ -452,10 +495,10 @@ BillEditListener, BillEditListener2 {
 			getVerifyCardPanel().getBillModel().setValueAt(e.getValue(), irow, "nrewritemny");
 		}
 		if(e.getKey().equalsIgnoreCase("nrewritemny")){
-			UFDouble nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
-			UFDouble nTotalDealNum = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum").toString());
+			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
+			UFDouble nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny").toString());
 			UFDouble nrewrietmny = e.getValue() == null? new UFDouble(0.0): new UFDouble(e.getValue().toString());
-			if (nrewrietmny.compareTo(nNumber.sub(nTotalDealNum)) > 0 ) {
+			if (nrewrietmny.compareTo(nMny.sub(nTotalDealMny)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次回写金额不能大于发票行的未核销数量,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "nrewritemny");
 				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
@@ -522,9 +565,11 @@ BillEditListener, BillEditListener2 {
 		
 		ArrayList<TaxInvoiceDealVO> alvos = getSelectedVOs();
 		TaxInvoiceItemVO selvo = getTaxInvoiceItemVO();
-		UFDouble nmnybal = selvo.getNmny().sub(selvo.getNtotaldealmny()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealmny()) ;  //得到发票行的数量和金额余额
+		UFDouble nmnybal = selvo.getNsummny().sub(selvo.getNtotaldealmny()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealmny()) ;  //得到发票行的数量和金额余额
 		UFDouble nnumbal = selvo.getNnumber().sub(selvo.getNtotaldealnum()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealnum());
-		
+//		UFDouble nmnybal = getVerifyCardPanel().getHeadItem("nmnybal").getValue()==null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nmnybal").getValue().toString());  //得到发票行的数量和金额余额
+//		UFDouble nnumbal = getVerifyCardPanel().getHeadItem("nnumbal").getValue()==null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nnumbal").getValue().toString());
+
 		UFDouble nmnydealsum = getDealMnySum(alvos);
 		UFDouble nnumdealsum = getDealNumSum(alvos);
 		
@@ -582,7 +627,35 @@ BillEditListener, BillEditListener2 {
 		if (e.getSource().equals(getUIButtonSave())) {
 			onBtnSave();
 		}
+		if (e.getSource().equals(getUIButtonQry())) {
+			onBtnQry();
+		}
 	}
+	private void onBtnQry() {
+		// TODO Auto-generated method stub
+		HYQueryConditionDLG qryDLG = getIjSaleInvoiceQryDLG() ;
+		if (qryDLG == null) {
+			TemplateInfo tempinfo = new TemplateInfo();
+			tempinfo.setPk_Org(ClientEnvironment.getInstance().getCorporation().getPk_corp());
+			tempinfo.setCurrentCorpPk(ClientEnvironment.getInstance().getCorporation().getPk_corp());
+			tempinfo.setFunNode("40060502");
+			tempinfo.setUserid(ClientEnvironment.getInstance().getUser().getPrimaryKey());
+			//tempinfo.setBusiType("");
+			tempinfo.setNodekey("DEAL");
+			qryDLG = new HYQueryConditionDLG(this, tempinfo);
+			setIjSaleInvoiceQryDLG(qryDLG);
+		}
+		
+		qryDLG.show();
+		
+		if(qryDLG.getResult() == UIDialog.ID_OK) {
+			String sql = qryDLG.getWhereSQL();
+			QryInvoiceData(sql);
+		} else{
+			qryDLG.destroy();
+		}
+	}
+
 	private ArrayList<TaxInvoiceDealVO> getSelectedVOs(){ 
 		
 		ArrayList<TaxInvoiceDealVO> alvos = new ArrayList();
@@ -590,7 +663,12 @@ BillEditListener, BillEditListener2 {
 		for (int i=0 ; i<getVerifyCardPanel().getBillTable().getRowCount(); i++){
 			if (getVerifyCardPanel().getBillModel().getRowState(i) == BillModel.SELECTED) {
 				vo = (TaxInvoiceDealVO)getVerifyCardPanel().getBillModel().getBodyValueRowVO(i, TaxInvoiceDealVO.class.getName());
-				alvos.add(vo);
+				if(vo.getNdealmny().compareTo(UFDouble.ZERO_DBL) != 0 ||     //2014-01-14 过滤掉全为0的行
+						vo.getNdealnum().compareTo(UFDouble.ZERO_DBL) != 0 ||
+								vo.getNrewritenum().compareTo(UFDouble.ZERO_DBL) != 0 ||
+										vo.getNrewritenum().compareTo(UFDouble.ZERO_DBL) != 0) {
+					alvos.add(vo);
+				}
 			}
 		}
 		
@@ -630,21 +708,23 @@ BillEditListener, BillEditListener2 {
 		
 		ArrayList<TaxInvoiceBbVO> albbvos = new ArrayList();
 		for (int i= 0 ; i < alvos.size(); i++){
-			TaxInvoiceBbVO bbvo = new TaxInvoiceBbVO();
-			bbvo.setCdealoper(ClientEnvironment.getInstance().getUser().getPrimaryKey());
-			bbvo.setCsourcebillid(alvos.get(i).getCsaleid());
-			bbvo.setCsourcebilltype(SaleBillType.SaleInvoice);
-			bbvo.setCsourcebillrowid(alvos.get(i).getCinvoice_bid());
-			bbvo.setCtaxinvoiceid(alvos.get(i).getCtaxinvoiceid());
-			bbvo.setCtaxinvoice_bid(alvos.get(i).getCtaxinvoice_bid());
-			bbvo.setDdealdate(ClientEnvironment.getInstance().getDate());
-			bbvo.setNdealmny(alvos.get(i).getNdealmny());
-			bbvo.setNdealnum(alvos.get(i).getNdealnum());
-			bbvo.setNwriteinvoicemny(alvos.get(i).getNrewritemny());
-			bbvo.setNwriteinvoicenum(alvos.get(i).getNrewritenum());
-			bbvo.setDr(0);
-			bbvo.setStatus(VOStatus.NEW);
-			albbvos.add(bbvo);
+
+				TaxInvoiceBbVO bbvo = new TaxInvoiceBbVO();
+				bbvo.setCdealoper(ClientEnvironment.getInstance().getUser().getPrimaryKey());
+				bbvo.setCsourcebillid(alvos.get(i).getCsaleid());
+				bbvo.setCsourcebilltype(SaleBillType.SaleInvoice);
+				bbvo.setCsourcebillrowid(alvos.get(i).getCinvoice_bid());
+				bbvo.setCtaxinvoiceid(alvos.get(i).getCtaxinvoiceid());
+				bbvo.setCtaxinvoice_bid(alvos.get(i).getCtaxinvoice_bid());
+				bbvo.setDdealdate(ClientEnvironment.getInstance().getDate());
+				bbvo.setNdealmny(alvos.get(i).getNdealmny());
+				bbvo.setNdealnum(alvos.get(i).getNdealnum());
+				bbvo.setNwriteinvoicemny(alvos.get(i).getNrewritemny());
+				bbvo.setNwriteinvoicenum(alvos.get(i).getNrewritenum());
+				bbvo.setDr(0);
+				bbvo.setStatus(VOStatus.NEW);
+				albbvos.add(bbvo);
+
 		}
 
 		IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
@@ -761,6 +841,46 @@ BillEditListener, BillEditListener2 {
 
 	public void setTaxInvoiceItemVO(TaxInvoiceItemVO taxInvoiceItemVO) {
 		this.taxInvoiceItemVO = taxInvoiceItemVO;
+	}
+
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		e.getClickCount();
+		return;
+	}
+
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * @return the ijSaleInvoiceQryDLG
+	 */
+	public HYQueryConditionDLG getIjSaleInvoiceQryDLG() {
+		return ijSaleInvoiceQryDLG;
+	}
+
+	/**
+	 * @param ijSaleInvoiceQryDLG the ijSaleInvoiceQryDLG to set
+	 */
+	public void setIjSaleInvoiceQryDLG(HYQueryConditionDLG ijSaleInvoiceQryDLG) {
+		this.ijSaleInvoiceQryDLG = ijSaleInvoiceQryDLG;
 	}
 
 }
