@@ -190,7 +190,7 @@ BillEditListener, BillEditListener2 {
 	private void updateHeadData() {
 		// TODO Auto-generated method stub
 		TaxInvoiceItemVO selvo = getTaxInvoiceItemVO();
-		UFDouble nmnybal = selvo.getNmny().sub(selvo.getNtotaldealmny()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealmny()) ;  //得到发票行的数量和金额余额
+		UFDouble nmnybal = selvo.getNsummny().sub(selvo.getNtotaldealmny()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealmny()) ;  //得到发票行的数量和金额余额
 		UFDouble nnumbal = selvo.getNnumber().sub(selvo.getNtotaldealnum()==null? UFDouble.ZERO_DBL:selvo.getNtotaldealnum());
 		
 		ArrayList<TaxInvoiceDealVO> alvos = getSelectedVOs();
