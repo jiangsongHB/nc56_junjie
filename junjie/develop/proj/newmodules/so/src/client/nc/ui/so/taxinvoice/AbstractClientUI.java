@@ -81,7 +81,8 @@ import nc.ui.pub.ButtonObject;
 	 * 注册前台校验类
 	 */
 	public Object getUserObject() {
-		return new ClientUICheckRule();
+		//return new ClientUICheckRule();  //这里要这样调整一下。 2014-02-14 保存时会报找不到类错误
+		return new ClientUIGetter();
 	}
 	
 	public void doQueryAction(ILinkQueryData querydata) {

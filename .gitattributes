@@ -466,6 +466,7 @@ junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/RemainO
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/SaleStayOrderClose.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/JunJieSoDMO.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/SaleOrderDMO.java -text
+junjie/develop/proj/newmodules/so/src/public/nc/ui/so/taxinvoice/ClientUIGetter.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/public/nc/util/so/junjie/JunjiePubTool.java -text
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/SaleInvoiceBVOForVerify.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceBbVO.java -text svneol=unset#text/plain
