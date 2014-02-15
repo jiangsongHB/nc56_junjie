@@ -464,6 +464,7 @@ junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_UNAPPROVE.j
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_WRITE.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/SaleStayOrderClose.java -text
+junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/pub/CheckApproveDMO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/JunJieSoDMO.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/SaleOrderDMO.java -text
 junjie/develop/proj/newmodules/so/src/public/nc/ui/so/taxinvoice/ClientUIGetter.java -text svneol=unset#text/plain
