@@ -147,6 +147,11 @@ public class MyEventHandler
 					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 				}
 			}
+			if (checkDeal()) {
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(false); //如果已经核销，不能删除，修改
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(false);
+			}
+			
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -171,7 +176,8 @@ public class MyEventHandler
 						.getChildrenVO();
 				for (int i = 0; i < taxinvitemvo.length; i++) {
 					UFDouble totaldealmny = taxinvitemvo[i].getNtotaldealmny()==null? UFDouble.ZERO_DBL: taxinvitemvo[i].getNtotaldealmny();
-					if (totaldealmny.compareTo(new UFDouble(0.0)) == 0) {
+					UFDouble totaldealnmb = taxinvitemvo[i].getNtotaldealnum()==null? UFDouble.ZERO_DBL: taxinvitemvo[i].getNtotaldealnum();
+					if (!totaldealmny.equals(UFDouble.ZERO_DBL) || !totaldealnmb.equals(UFDouble.ZERO_DBL)) {
 						ibhasdeal = true;
 						break;
 					}
@@ -287,6 +293,17 @@ public class MyEventHandler
 			// TODO Auto-generated method stub
 			super.onBoAdd(bo);
 //			setStrShowState(strPanelCard);
+		}
+
+		/* (non-Javadoc)
+		 * @see nc.ui.trade.manage.ManageEventHandler#onBoDel()
+		 */
+		@Override
+		protected void onBoDel() throws Exception {
+			// TODO Auto-generated method stub
+			if (checkDeal() ) 
+				MessageDialog.showErrorDlg(getBillUI(), "错误", "当前发票已经存在核销记录，不能删除，请检查！");
+			super.onBoDel();
 		}
 
 }

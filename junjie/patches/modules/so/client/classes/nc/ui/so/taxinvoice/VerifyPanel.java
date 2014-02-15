@@ -454,9 +454,9 @@ BillEditListener, BillEditListener2, MouseListener {
 		// TODO Auto-generated method stub
 		int irow = e.getRow();
 		if(e.getKey().equalsIgnoreCase("ndealnum")){
-			UFDouble nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
-			UFDouble nTotalDealNum = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum").toString());
-			UFDouble ndealnum = e.getValue() == null? new UFDouble(0.0): new UFDouble(e.getValue().toString());
+			UFDouble nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
+			UFDouble nTotalDealNum = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum")==null? UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum").toString());
+			UFDouble ndealnum = e.getValue() == null?  UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString());
 			if (ndealnum.compareTo(nNumber.sub(nTotalDealNum)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次核销数量不能大于发票行的未核销数量,请重新输入。");
 				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
@@ -468,9 +468,9 @@ BillEditListener, BillEditListener2, MouseListener {
 			getVerifyCardPanel().getBillModel().setValueAt(e.getValue(), irow, "nrewritenum");
 		}
 		if(e.getKey().equalsIgnoreCase("nrewritenum")){
-			UFDouble nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
-			UFDouble nTotalDealNum = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum").toString());
-			UFDouble nrewrietnum = e.getValue() == null? new UFDouble(0.0): new UFDouble(e.getValue().toString());
+			UFDouble nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
+			UFDouble nTotalDealNum = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum").toString());
+			UFDouble nrewrietnum = e.getValue() == null?  UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString());
 			if (nrewrietnum.compareTo(nNumber.sub(nTotalDealNum)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次回写数量不能大于发票行的未核销数量,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "nrewritenum");
@@ -481,9 +481,9 @@ BillEditListener, BillEditListener2, MouseListener {
 			//getVerifyCardPanel().getBillModel().updateValue();
 		}
 		if(e.getKey().equalsIgnoreCase("ndealmny")){
-			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
-			UFDouble nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny").toString());
-			UFDouble ndealmny = e.getValue() == null? new UFDouble(0.0): new UFDouble(e.getValue().toString());
+			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
+			UFDouble nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny").toString());
+			UFDouble ndealmny = e.getValue() == null?  UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString());
 			if (ndealmny.compareTo(nMny.sub(nTotalDealMny)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次核销金额不能大于发票行的未核销金额,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "ndealmny");
@@ -495,9 +495,9 @@ BillEditListener, BillEditListener2, MouseListener {
 			getVerifyCardPanel().getBillModel().setValueAt(e.getValue(), irow, "nrewritemny");
 		}
 		if(e.getKey().equalsIgnoreCase("nrewritemny")){
-			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
-			UFDouble nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny").toString());
-			UFDouble nrewrietmny = e.getValue() == null? new UFDouble(0.0): new UFDouble(e.getValue().toString());
+			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null? UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
+			UFDouble nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny").toString());
+			UFDouble nrewrietmny = e.getValue() == null?  UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString());
 			if (nrewrietmny.compareTo(nMny.sub(nTotalDealMny)) > 0 ) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次回写金额不能大于发票行的未核销数量,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "nrewritemny");
@@ -514,29 +514,29 @@ BillEditListener, BillEditListener2, MouseListener {
 	public void valueChanged(RowStateChangeEvent e) {   
 		// TODO Auto-generated method stub
 		int irow = e.getRow();
-		UFDouble nNumber = new UFDouble(0.0);
-		UFDouble nTotalDealNum = new UFDouble(0.0);
-		UFDouble nMny = new UFDouble(0.0);
-		UFDouble nTotalDealMny = new UFDouble(0.0);
-		UFDouble ndealnum = new UFDouble(0.0);
-		UFDouble ndealmny = new UFDouble(0.0);
-		UFDouble nrewritenum = new UFDouble(0.0);
-		UFDouble nrewritemny =  new UFDouble(0.0);
-		UFDouble nmnybal = new UFDouble(getVerifyCardPanel().getHeadItem("nmnybal").getValue());
+		UFDouble nNumber =  UFDouble.ZERO_DBL;
+		UFDouble nTotalDealNum =  UFDouble.ZERO_DBL;
+		UFDouble nMny =  UFDouble.ZERO_DBL;
+		UFDouble nTotalDealMny =  UFDouble.ZERO_DBL;
+		UFDouble ndealnum =  UFDouble.ZERO_DBL;
+		UFDouble ndealmny =  UFDouble.ZERO_DBL;
+		UFDouble nrewritenum =  UFDouble.ZERO_DBL;
+		UFDouble nrewritemny =   UFDouble.ZERO_DBL;
+		UFDouble nmnybal =  new UFDouble(getVerifyCardPanel().getHeadItem("nmnybal").getValue());
 		UFDouble nnumbal = new UFDouble(getVerifyCardPanel().getHeadItem("nnumbal").getValue());
 
 		if (e.isSelectState()) {
-			nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
-			nTotalDealNum = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum").toString());
-			nMny = getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"nmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"nmny").toString());
-			nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"ntotaldealmny")==null? new UFDouble(0.0) : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"ntotaldealmny").toString());
+			nNumber = getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nnumber").toString());
+			nTotalDealNum = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealnum").toString());
+			nMny = getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"nmny")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"nmny").toString());
+			nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"ntotaldealmny")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(e.getRow(),"ntotaldealmny").toString());
 			ndealnum = (nNumber.sub(nTotalDealNum)).compareTo(nnumbal) > 0 ? nnumbal: nNumber.sub(nTotalDealNum);  //取当前行与核销余额的最小值
 			ndealmny = (nMny.sub(nTotalDealMny)).compareTo(nmnybal) > 0 ? nmnybal : nMny.sub(nTotalDealMny);
 			nrewritenum = ndealnum;
 			nrewritemny =  ndealmny;
 		} else{
-			ndealnum = new UFDouble(0.0);
-			ndealmny = new UFDouble(0.0);
+			ndealnum = UFDouble.ZERO_DBL;
+			ndealmny = UFDouble.ZERO_DBL;
 			nrewritenum = ndealnum;
 			nrewritemny =  ndealmny;
 		}
@@ -548,8 +548,8 @@ BillEditListener, BillEditListener2, MouseListener {
 		
 		if (!checkDealVO() && e.isSelectState()){
 			MessageDialog.showWarningDlg(this, "警告", "选择本行后，累计的核销处理数量和金额超过了发票行的未核销余额，本行核销数据被清零，请手工调整！");
-			ndealnum = new UFDouble(0.0);
-			ndealmny = new UFDouble(0.0);
+			ndealnum =  UFDouble.ZERO_DBL;
+			ndealmny =  UFDouble.ZERO_DBL;
 			nrewritenum = ndealnum;
 			nrewritemny =  ndealmny;
 			getVerifyCardPanel().setBodyValueAt(ndealnum, irow, "ndealnum");
@@ -744,8 +744,8 @@ BillEditListener, BillEditListener2, MouseListener {
 		if (alvos ==null || alvos.size() == 0)
 			return;
 		
-		UFDouble ndealnum = new UFDouble(0.0);
-		UFDouble ndealmny = new UFDouble(0.0);
+		UFDouble ndealnum =  UFDouble.ZERO_DBL;
+		UFDouble ndealmny =  UFDouble.ZERO_DBL;
 		for (int i= 0 ; i < alvos.size(); i++){
 			ndealnum = ndealnum.add(alvos.get(i).getNdealnum());
 			ndealmny = ndealmny.add(alvos.get(i).getNdealmny());
@@ -779,8 +779,8 @@ BillEditListener, BillEditListener2, MouseListener {
 			SaleInvoiceBVOForVerify vo = new SaleInvoiceBVOForVerify();
 			vo.setCsaleid(alvos.get(i).getCsaleid());
 			vo.setCinvoice_bid(alvos.get(i).getCinvoice_bid());
-			vo.setNtotaldealnum(alvos.get(i).getNrewritenum());
-			vo.setNtotaldealmny(alvos.get(i).getNrewritemny());
+			vo.setNtotaldealnum(alvos.get(i).getNrewritenum().add(alvos.get(i).getNtotaldealnum()));  //2014-01-15 低级错误啊 wanglei
+			vo.setNtotaldealmny(alvos.get(i).getNrewritemny().add(alvos.get(i).getNtotaldealmny()));
 			albvos.add(vo);
 		}
 		try {
@@ -797,6 +797,26 @@ BillEditListener, BillEditListener2, MouseListener {
 
 	private void onBtnDistr() {
 		// TODO Auto-generated method stub
+		UFDouble nmnybal = getVerifyCardPanel().getHeadItem("nmnybal").getValue()==null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nmnybal").getValue().toString());  //得到发票行的数量和金额余额
+		UFDouble nnumbal = getVerifyCardPanel().getHeadItem("nnumbal").getValue()==null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nnumbal").getValue().toString());
+
+		if (nmnybal.equals(UFDouble.ZERO_DBL) && nnumbal.equals(UFDouble.ZERO_DBL)) {
+			MessageDialog.showErrorDlg(this, "提示", "本次发票核销的核销余额已经为零，没有可以继续核销的数据！");
+			return;
+		}
+		for (int i=0; i < getVerifyCardPanel().getBillTable().getRowCount(); i++) {
+			getVerifyCardPanel().getBillModel().setRowState(i, BillModel.SELECTED);
+			TaxInvoiceDealVO vo = (TaxInvoiceDealVO)getVerifyCardPanel().getBillModel().getBodyValueRowVO(i, TaxInvoiceDealVO.class.getName());
+			if(vo.getNdealmny().compareTo(UFDouble.ZERO_DBL) == 0 ||     //2014-01-14 过滤掉全为0的行
+					vo.getNdealnum().compareTo(UFDouble.ZERO_DBL) == 0 ||
+							vo.getNrewritenum().compareTo(UFDouble.ZERO_DBL) == 0 ||
+									vo.getNrewritenum().compareTo(UFDouble.ZERO_DBL) == 0) {
+				getVerifyCardPanel().getBillModel().setRowState(i, BillModel.UNSTATE);
+				getVerifyCardPanel().updateUI();
+				return;
+			}
+		}
+		
 		
 	}
 
