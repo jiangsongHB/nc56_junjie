@@ -1,3 +1,8 @@
+--2014-02-14 销售发票检查函数，用于发票弃审等检查发票是否已经核销，已经核销的返回true，未核销的返回false
+--配置检查函数时配置右值 = false为正确的检查方法
+
+Insert into pub_function (CLASSNAME,DR,FUNCTIONNOTE,ISCOMP,METHOD,PARAMETER,PK_BILLTYPE,PK_FUNCTION,RETURNTYPE,TS) values ('nc.impl.scm.so.pub.CheckApproveDMO',null,'检查是否已经核销',null,'isHasDeal','nc.vo.pub.AggregatedValueObject:01','32','1004ZZ1000000005IJDQ','BOOLEAN','2014-02-15 12:44:57');
+
 --2014-02-14 补充脚本
 --增加模块信息
 Insert into dap_dapsystem (DEF1,DEF2,DEF3,DR,FUNCODE,ISACCOUNT,ISITEM,MODULE,RESOURCEID,SYSTYPECODE,SYSTYPENAME,TS,USEBUSITYPE) values (null,null,null,null,null,'N','N','soh',null,'soh','销售管理二次开发','2014-01-22 20:23:25',null);
