@@ -80,6 +80,10 @@ public class MyEventHandler
 		   for(IUserDefButtonCommand cmd : bos)
 			   addBoCommand(cmd.getButtonVO().getBtnNo(), cmd);
 		}
+		
+		if (((ClientUI)getBillUI()).isSaveAndCommitTogether()) {
+			getButtonManager().getButton(nc.ui.trade.button.IBillButton.Commit).setVisible(false);  //2014-02-16 自动提交的话，这里就不显示这个按钮了 
+		}
 	} 
 
 	
@@ -121,14 +125,17 @@ public class MyEventHandler
 					(getBillUI().getBillOperate() == IBillOperate.OP_NOTEDIT  &&   getStrShowState() == strPanelList )) {
 				getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealGpBoCommand.BUTTON_NO).setEnabled(false);
 			}
+			
+			int iapprovetype = Integer.parseInt(getBillCardPanelWrapper().getBillCardPanel().getHeadItem("iapprovetype").getValue());
+			TaxInvoiceVO taxinvvo = (TaxInvoiceVO) getBillCardPanelWrapper().getBillVOFromUI();
+			int ibillstate = ((TaxInvoiceHeaderVO)taxinvvo.getParentVO()).getIbillstatus();
+			
 			if (getBillUI().getBillOperate() == IBillOperate.OP_NOTEDIT && getStrShowState() == strPanelCard) {
 				getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealGpBoCommand.BUTTON_NO).setEnabled(true);
 				//getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
-				int iapprovetype = Integer.parseInt(getBillCardPanelWrapper().getBillCardPanel().getHeadItem("iapprovetype").getValue());
-				TaxInvoiceVO taxinvvo = (TaxInvoiceVO) getBillCardPanelWrapper().getBillVOFromUI();
-				int ibillstate = ((TaxInvoiceHeaderVO)taxinvvo.getParentVO()).getIbillstatus();
+
 				if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT){
-					if ( ibillstate == BillStatus.FREEZE || ibillstate == BillStatus.FREE){
+					if ( ibillstate == IBillStatus.FREEZE || ibillstate == IBillStatus.FREE || ibillstate == IBillStatus.COMMIT){
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 					}else{
@@ -136,7 +143,7 @@ public class MyEventHandler
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 					}
 				}else{
-					if (ibillstate == BillStatus.AUDIT || ibillstate == BillStatus.AUDITING ){
+					if (ibillstate == IBillStatus.CHECKPASS || ibillstate == IBillStatus.CHECKGOING ){
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 					}else{
@@ -147,10 +154,18 @@ public class MyEventHandler
 					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 				}
 			}
+			
+			if(((ClientUI)getBillUI()).isSaveAndCommitTogether()) {
+				if ( ibillstate == IBillStatus.COMMIT ){
+					getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(true);
+					getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(true);
+				}
+			}
 			if (checkDeal()) {
 				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(false); //如果已经核销，不能删除，修改
 				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(false);
 			}
+
 			
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
@@ -304,6 +319,28 @@ public class MyEventHandler
 			if (checkDeal() ) 
 				MessageDialog.showErrorDlg(getBillUI(), "错误", "当前发票已经存在核销记录，不能删除，请检查！");
 			super.onBoDel();
+			
+			getBillUI().getBufferData().removeCurrentRow();    //2014-02-16 删除后自动刷新界面。
+			getBillUI().getBufferData().refresh();
+		}
+
+		/* (non-Javadoc)
+		 * @see nc.ui.trade.manage.ManageEventHandler#onBoCancelAudit()
+		 */
+		@Override
+		protected void onBoCancelAudit() throws Exception {
+			// TODO Auto-generated method stub
+			super.onBoCancelAudit();
+			
+		}
+
+		/* (non-Javadoc)
+		 * @see nc.ui.trade.manage.ManageEventHandler#onBoRefresh()
+		 */
+		@Override
+		protected void onBoRefresh() throws Exception {
+			// TODO Auto-generated method stub
+			super.onBoRefresh();
 		}
 
 }
