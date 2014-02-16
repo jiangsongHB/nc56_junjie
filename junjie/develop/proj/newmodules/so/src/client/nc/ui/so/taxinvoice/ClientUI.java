@@ -311,7 +311,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 	@Override
 	public boolean isSaveAndCommitTogether() {
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 		//return super.isSaveAndCommitTogether();
 	}
 
