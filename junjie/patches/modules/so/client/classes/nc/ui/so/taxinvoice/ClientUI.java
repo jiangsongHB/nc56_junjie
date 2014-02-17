@@ -315,7 +315,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 	public boolean isSaveAndCommitTogether() {
 		// TODO Auto-generated method stub
 		return true;
-		//return super.isSaveAndCommitTogether();
+		//return super.isSaveAndCommitTogether();  
 	}
 
 	/* (non-Javadoc)
@@ -496,6 +496,10 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 			if (checkDeal()) {
 				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(false); //如果已经核销，不能删除，修改
 				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(false);
+			}
+			//2014-02-17 处理一下审核按钮；
+			if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT && checkDeal() && (ibillstate == IBillStatus.FREE  || ibillstate == IBillStatus.COMMIT)){
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Audit).setEnabled(true);
 			}
 //
 //			if (isListPanelSelected()) {
