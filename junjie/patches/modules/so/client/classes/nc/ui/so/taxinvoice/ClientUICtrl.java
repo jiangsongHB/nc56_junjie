@@ -120,7 +120,7 @@ public class ClientUICtrl extends AbstractManageController {
 	}
 
 	public Boolean isEditInGoing() throws Exception {
-		return null;
+		return false;
 	}
 
 	public boolean isExistBillStatus() {

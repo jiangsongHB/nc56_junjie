@@ -871,6 +871,9 @@ junjie/patches/modules/so/META-INF/classes/nc/bs/so/backtask/soremain/SaleStayOr
 junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/pub/CheckApproveDMO.class -text
 junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/so001/JunJieSoDMO.class -text
 junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/so001/SaleOrderDMO.class -text
+junjie/patches/modules/so/META-INF/classes/nc/impl/so/taxinvoice/TaxInvoiceDMO.class -text
+junjie/patches/modules/so/META-INF/classes/nc/impl/so/taxinvoice/TaxInvoiceImp.class -text
+junjie/patches/modules/so/classes/nc/itf/so/taxinvoice/ITaxInvoice.class -text
 junjie/patches/modules/so/classes/nc/ui/so/taxinvoice/ClientUIGetter.class -text
 junjie/patches/modules/so/classes/nc/util/so/junjie/JunjiePubTool.class -text
 junjie/patches/modules/so/classes/nc/vo/so/SaleInvoiceBVOForVerify.class -text

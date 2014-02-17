@@ -7,6 +7,7 @@ import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -18,6 +19,7 @@ import com.sun.org.apache.bcel.internal.verifier.structurals.ExceptionHandlers;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
 import nc.bs.scm.pub.smart.SmartDMO;
+import nc.itf.so.taxinvoice.ITaxInvoice;
 import nc.itf.uap.IVOPersistence;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
@@ -389,11 +391,27 @@ BillEditListener, BillEditListener2 {
 		// TODO Auto-generated method stub
 		ArrayList<TaxInvoiceBbVO> alvos = getAlDelvos();
 		
-		reWriteTaxInvoice(alvos);
-		reWriteSaleInvoice(alvos);
+//		reWriteTaxInvoice(alvos);
+//		reWriteSaleInvoice(alvos);
+//		
+//		DeleteDealData(alvos);
+		//2014-02-16 使用新的更新方法，放在一个事务中处理更新，保证数据一致性。
+		if (alvos.size() ==0) {
+			return;
+		}
+		TaxInvoiceBbVO[] dealvos = new TaxInvoiceBbVO[alvos.size()] ;
 		
-		DeleteDealData(alvos);
-		
+		ITaxInvoice isrv =(ITaxInvoice) NCLocator.getInstance().lookup(ITaxInvoice.class.getName());
+		try {
+			isrv.deleteDeal(alvos.toArray(dealvos));
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//2014-02-16 end
 		getIjVerifyQryDialog().closeOK();
 	}
 	
