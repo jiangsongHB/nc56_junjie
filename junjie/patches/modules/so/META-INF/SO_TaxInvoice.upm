@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="gb2312"?>
-<module name="SCM_SO_EJB">
+<module name="SO_TAXINVOICE_EJB">
   <public>
     <component priority="0" singleton="true" remote="true" tx="NONE" supportAlias="true">
       <interface>nc.itf.so.taxinvoice.ITaxInvoice</interface>
