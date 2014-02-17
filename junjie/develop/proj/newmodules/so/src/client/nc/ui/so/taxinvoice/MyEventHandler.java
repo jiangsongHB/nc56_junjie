@@ -15,6 +15,7 @@ import nc.ui.trade.bill.BillTemplateWrapper;
 import nc.ui.trade.bocommand.IButtonCommand;
 import nc.ui.trade.bocommand.MetaDataPrintBoCommand;
 import nc.ui.trade.bocommand.IUserDefButtonCommand; 
+import nc.ui.scm.pub.report.BillRowNo;
 import nc.ui.so.taxinvoice.command.SaveBoCommand;
 import nc.ui.trade.button.IBillButton;
 import nc.ui.trade.manage.ManageEventHandler;
@@ -159,6 +160,9 @@ public class MyEventHandler
 			super.onBoLineAdd();
 			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(new UFDouble(17.0), getBillCardPanelWrapper().getBillCardPanel()
 					.getBillTable().getSelectedRow(), "ntaxrate") ; 
+			
+			BillRowNo.addLineRowNo(getBillCardPanelWrapper().getBillCardPanel(), "",  //自动行号处理；
+					"crowno");
 
 		}
 
