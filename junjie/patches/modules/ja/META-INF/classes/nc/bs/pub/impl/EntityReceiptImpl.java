@@ -29,7 +29,7 @@ public class EntityReceiptImpl implements IEntityReceipt{
 			//vo.getAttributeValue("def3");//实体发票明细主键
 			//vo.getAttributeValue("tax");//核销金额
 			String sql="update ja_entity_receipt_b set totalamount=totalamount-"+new UFDouble(vo.getAttributeValue("tax").toString()) +
-					",taxamount=taxamount+"+new UFDouble(vo.getAttributeValue("tax").toString())+" where pk_entityreceipt_b ='"+vo.getAttributeValue("def3")+"' ";
+					" where pk_entityreceipt_b ='"+vo.getAttributeValue("def3")+"' ";
 			dao.executeUpdate(sql);
 		}
 	}
