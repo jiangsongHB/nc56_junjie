@@ -160,7 +160,7 @@ BillEditListener, BillEditListener2, MouseListener {
 		getUIButtonSave().addActionListener(this);
 		getUIButtonCan().addActionListener(this);
 		getUIButtonQry().addActionListener(this);
-		getUIButtonQryLink().addActionListener(this);
+//		getUIButtonQryLink().addActionListener(this);
 	}
 
 	/**
@@ -435,7 +435,7 @@ BillEditListener, BillEditListener2, MouseListener {
 			UIPanel.add(getUIButtonClear());
 			UIPanel.add(getUIButtonSave());
 			UIPanel.add(getUIButtonCan());
-			UIPanel.add(getUIButtonQryLink());
+//			UIPanel.add(getUIButtonQryLink());
 		}
 		return UIPanel;
 	}
@@ -670,9 +670,9 @@ BillEditListener, BillEditListener2, MouseListener {
 		if(qryDLG.getResult() == UIDialog.ID_OK) {
 			String sql = qryDLG.getWhereSQL();
 			QryInvoiceData(sql);
-		} else{
-			qryDLG.destroy();
-		}
+		} //else{
+		qryDLG.hide();
+		//}
 	}
 
 	private ArrayList<TaxInvoiceDealVO> getSelectedVOs(){ 
