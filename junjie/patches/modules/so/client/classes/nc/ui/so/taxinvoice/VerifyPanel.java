@@ -248,7 +248,7 @@ BillEditListener, BillEditListener2, MouseListener {
 			
 			//发票表体条件，是否核销完成
 			strWhere += " and isnull(so_saleinvoice_b.dr,0) = 0 and (isnull(so_saleinvoice_b.ntotaldealnum,0) < so_saleinvoice_b.nnumber  " +   // 发票行条件
-					"or isnull(so_saleinvoice_b.ntotaldealmny,0) < so_saleinvoice_b.nsummny ) ";
+					"or isnull(so_saleinvoice_b.ntotaldealmny,0) < so_saleinvoice_b.nsummny ) and isnull(blargessflag,'N') = 'N' ";  //2014-01-17 增加非赠品条件
 			
 			//费用发票条件
 			if (othersql == null || othersql.length() == 0) {  //允许覆盖的查询条件
