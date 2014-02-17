@@ -36,6 +36,10 @@ try{
  Object retObj=null;
  //####重要说明：生成的业务组件方法尽量不要进行修改####
  //方法说明:提交单据，更新单据为提交态
+ //方法说明:自动产生单据号并赋值到单据VO中
+	runClass("nc.bs.pub.billcodemanage.BillcodeGeneratorByMeta", "generaterBillCode", "nc.vo.pub.AggregatedValueObject:01",vo,m_keyHas,m_methodReturnHas);
+//##################################################
+
  retObj=runClass("nc.bs.trade.comsave.BillSave", "saveBill", "nc.vo.pub.AggregatedValueObject:01",vo,m_keyHas,m_methodReturnHas);  //这里要根据Client设置中的是否自动提交，把SAVE动作移过来
 
  retObj=runClass("nc.bs.trade.business.HYPubBO", "commitBill", "nc.vo.pub.AggregatedValueObject:01",vo,m_keyHas,m_methodReturnHas);
