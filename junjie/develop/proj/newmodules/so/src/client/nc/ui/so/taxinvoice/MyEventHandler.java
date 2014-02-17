@@ -48,10 +48,10 @@ public class MyEventHandler
 
 	private Map<Integer, IButtonCommand> commands = new HashMap<Integer, IButtonCommand>();
 
-	private  final static String strPanelCard = "卡片";
-	private final static String strPanelList = "列表";
+//	private  final static String strPanelCard = "卡片";
+//	private final static String strPanelList = "列表";
 	
-	private String strShowState = strPanelList; 
+//	private String strShowState = strPanelList; 
 
 	public MyEventHandler(nc.ui.trade.manage.BillManageUI billUI, IControllerBase control){
 		super(billUI,control);
@@ -80,10 +80,10 @@ public class MyEventHandler
 		   for(IUserDefButtonCommand cmd : bos)
 			   addBoCommand(cmd.getButtonVO().getBtnNo(), cmd);
 		}
-		
-		if (((ClientUI)getBillUI()).isSaveAndCommitTogether()) {
-			getButtonManager().getButton(nc.ui.trade.button.IBillButton.Commit).setVisible(false);  //2014-02-16 自动提交的话，这里就不显示这个按钮了 
-		}
+//		
+//		if (((ClientUI)getBillUI()).isSaveAndCommitTogether()) {
+//			getButtonManager().getButton(nc.ui.trade.button.IBillButton.Commit).setVisible(false);  //2014-02-16 自动提交的话，这里就不显示这个按钮了 
+//		}
 	} 
 
 	
@@ -107,107 +107,12 @@ public class MyEventHandler
 		  else
 		   	 super.onButton(bo);
 
-		  setUserButtonStatus();
+//		  setUserButtonStatus();
 	 }
 	 
-	 private void setUserButtonStatus() {
-		// TODO Auto-generated method stub
-		try { 
-			if (((ClientUI)getBillUI()).isListPanelSelected()) {
-				setStrShowState(strPanelList);
-			}else
-			{
-				setStrShowState(strPanelCard);
-			}
-			if (getBillUI().getBillOperate() == IBillOperate.OP_ADD ||
-					getBillUI().getBillOperate() == IBillOperate.OP_INIT ||
-					getBillUI().getBillOperate() == IBillOperate.OP_REFADD ||
-					(getBillUI().getBillOperate() == IBillOperate.OP_NOTEDIT  &&   getStrShowState() == strPanelList )) {
-				getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealGpBoCommand.BUTTON_NO).setEnabled(false);
-			}
-			
-			int iapprovetype = Integer.parseInt(getBillCardPanelWrapper().getBillCardPanel().getHeadItem("iapprovetype").getValue());
-			TaxInvoiceVO taxinvvo = (TaxInvoiceVO) getBillCardPanelWrapper().getBillVOFromUI();
-			int ibillstate = ((TaxInvoiceHeaderVO)taxinvvo.getParentVO()).getIbillstatus();
-			
-			if (getBillUI().getBillOperate() == IBillOperate.OP_NOTEDIT && getStrShowState() == strPanelCard) {
-				getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealGpBoCommand.BUTTON_NO).setEnabled(true);
-				//getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 
-				if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT){
-					if ( ibillstate == IBillStatus.FREEZE || ibillstate == IBillStatus.FREE || ibillstate == IBillStatus.COMMIT){
-						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
-						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
-					}else{
-						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(false);
-						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
-					}
-				}else{
-					if (ibillstate == IBillStatus.CHECKPASS || ibillstate == IBillStatus.CHECKGOING ){
-						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
-						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
-					}else{
-						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(false);
-						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
-					}
-					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
-					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
-				}
-			}
-			
-			if(((ClientUI)getBillUI()).isSaveAndCommitTogether()) {
-				if ( ibillstate == IBillStatus.COMMIT ){
-					getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(true);
-					getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(true);
-				}
-			}
-			if (checkDeal()) {
-				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(false); //如果已经核销，不能删除，修改
-				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(false);
-			}
 
-			
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		getBillUI().updateButtons();
 
-	}
-
-	private boolean checkDeal() {
-		// TODO Auto-generated method stub
-		boolean ibhasdeal = false;
-
-			try {
-				TaxInvoiceVO taxinvvo = (TaxInvoiceVO) getBillCardPanelWrapper()
-						.getBillVOFromUI();
-				if (null == taxinvvo)
-					return false;
-				TaxInvoiceItemVO[] taxinvitemvo = (TaxInvoiceItemVO[]) taxinvvo
-						.getChildrenVO();
-				for (int i = 0; i < taxinvitemvo.length; i++) {
-					UFDouble totaldealmny = taxinvitemvo[i].getNtotaldealmny()==null? UFDouble.ZERO_DBL: taxinvitemvo[i].getNtotaldealmny();
-					UFDouble totaldealnmb = taxinvitemvo[i].getNtotaldealnum()==null? UFDouble.ZERO_DBL: taxinvitemvo[i].getNtotaldealnum();
-					if (!totaldealmny.equals(UFDouble.ZERO_DBL) || !totaldealnmb.equals(UFDouble.ZERO_DBL)) {
-						ibhasdeal = true;
-						break;
-					}
-				}
-			} catch (NumberFormatException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		return 	ibhasdeal;
-
-	}
 
 	private void onBoCommand(IButtonCommand command, ButtonObject bo){
 	 
@@ -218,7 +123,7 @@ public class MyEventHandler
 		}
 		try {
 			command.execute(bo);
-			setUserButtonStatus();  //更新按钮状态；
+//			setUserButtonStatus();  //更新按钮状态；
 		} catch (BusinessException ex) {
 			onBusinessException(ex);
 		} catch (SQLException ex) {
@@ -232,43 +137,21 @@ public class MyEventHandler
 		public void onBoAudit() throws Exception {
 			// TODO Auto-generated method stub
 
-			if (checkAudit()) {
+			if (((ClientUI)getBillUI()).checkAudit()) {
 				super.onBoAudit();
 			}
 			else
 				MessageDialog.showErrorDlg(getBillUI(), "错误", "发票审核策略设置与发票核销记录不符，请检查！");
 		}
 
-		private boolean checkAudit() {
-		// TODO Auto-generated method stub
 
-			boolean ibhasdeal = checkDeal();
-			//从模板上获得核销策略（最好是从VO）
-			int iapprovetype = Integer.parseInt(getBillCardPanelWrapper().getBillCardPanel().getHeadItem("iapprovetype").getValue());
-			
-			if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT) 
-			{
-				if (!ibhasdeal)
-					return false;
-				else
-					return true;
-					
-			}else //审核后核销
-			{
-				if (!ibhasdeal)
-					return true;
-				else
-					return false;
-			}
-	}
-
-		public String getStrShowState() {
-			return strShowState;
-		}
-
-		public void setStrShowState(String strShowState) {
-			this.strShowState = strShowState;
-		}
+//		public String getStrShowState() {
+//			return strShowState;
+//		}
+//
+//		public void setStrShowState(String strShowState) {
+//			this.strShowState = strShowState;
+//		}
 
 		@Override
 		protected void onBoLineAdd() throws Exception {
@@ -287,7 +170,7 @@ public class MyEventHandler
 			
 //			setStrShowState(strPanelCard);
 			  
-			setUserButtonStatus();
+//			setUserButtonStatus();
 		}
 
 		@Override
@@ -297,7 +180,7 @@ public class MyEventHandler
 			
 //			setStrShowState(strPanelList);
 			
-			setUserButtonStatus();
+//			setUserButtonStatus();
 		}
 
 		/* (non-Javadoc)
@@ -316,7 +199,7 @@ public class MyEventHandler
 		@Override
 		protected void onBoDel() throws Exception {
 			// TODO Auto-generated method stub
-			if (checkDeal() ) 
+			if (((ClientUI)getBillUI()).checkDeal() ) 
 				MessageDialog.showErrorDlg(getBillUI(), "错误", "当前发票已经存在核销记录，不能删除，请检查！");
 			super.onBoDel();
 			

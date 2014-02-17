@@ -52,7 +52,7 @@ try{
 * 备注：平台编写原始脚本
 */
 public String getCodeRemark(){
-	return "	//####本脚本必须含有返回值,返回DLG和PNL的组件不允许有返回值####\n Object retObj=null;\n //####重要说明：生成的业务组件方法尽量不要进行修改####\n //方法说明:提交单据，更新单据为提交态\n retObj=runClassCom@\"nc.bs.trade.business.HYPubBO\", \"commitBill\", \"nc.vo.pub.AggregatedValueObject:01\"@;\n //##################################################\n	return retObj;\n";}
+	return "	//####本脚本必须含有返回值,返回DLG和PNL的组件不允许有返回值####\n Object retObj=null;\n //####重要说明：生成的业务组件方法尽量不要进行修改####\n //方法说明:提交单据，更新单据为提交态\n retObj=runClass(\"nc.bs.trade.comsave.BillSave\", \"saveBill\", \"nc.vo.pub.AggregatedValueObject:01\",vo,m_keyHas,m_methodReturnHas);  //这里要根据Client设置中的是否自动提交，把SAVE动作移过来 \n retObj=runClassCom@\"nc.bs.trade.business.HYPubBO\", \"commitBill\", \"nc.vo.pub.AggregatedValueObject:01\"@;\n //##################################################\n	return retObj;\n";}
 /*
 * 备注：设置脚本变量的HAS
 */

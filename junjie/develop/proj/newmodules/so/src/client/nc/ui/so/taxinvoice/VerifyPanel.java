@@ -11,6 +11,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.swing.event.ChangeEvent;
@@ -22,6 +23,7 @@ import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
 import nc.bs.scm.pub.smart.SmartDMO;
 import nc.itf.scm.so.so002.ISaleinvoiceQuery;
+import nc.itf.so.taxinvoice.ITaxInvoice;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.IVOPersistence;
 import nc.jdbc.framework.mapping.IMappingMeta;
@@ -158,6 +160,7 @@ BillEditListener, BillEditListener2, MouseListener {
 		getUIButtonSave().addActionListener(this);
 		getUIButtonCan().addActionListener(this);
 		getUIButtonQry().addActionListener(this);
+		getUIButtonQryLink().addActionListener(this);
 	}
 
 	/**
@@ -391,6 +394,22 @@ BillEditListener, BillEditListener2, MouseListener {
 	 * 
 	 * @return nc.ui.pub.beans.UIButton
 	 */
+	private UIButton getUIButtonQryLink() {
+		if (UIButtonQry == null) {
+			UIButtonQry = new UIButton();
+//			UIButtonQry.setBounds(new Rectangle(272, 4, 75, 20));
+			UIButtonQry.setPreferredSize(new Dimension(70, 20));
+			UIButtonQry.setText("联查");
+//			UIButtonQry.setToolTipText("<HTML>查询虚拟发票</HTML>");
+		}
+		return UIButtonQry;
+	}
+	
+	/**
+	 * This method initializes UIButtonCan
+	 * 
+	 * @return nc.ui.pub.beans.UIButton
+	 */
 	private UIButton getUIButtonCan() {
 		if (UIButtonCan == null) {
 			UIButtonCan = new UIButton();
@@ -416,7 +435,7 @@ BillEditListener, BillEditListener2, MouseListener {
 			UIPanel.add(getUIButtonClear());
 			UIPanel.add(getUIButtonSave());
 			UIPanel.add(getUIButtonCan());
-
+			UIPanel.add(getUIButtonQryLink());
 		}
 		return UIPanel;
 	}
@@ -694,8 +713,8 @@ BillEditListener, BillEditListener2, MouseListener {
 		}
 		//这里还不能作为一个事务进行处理，可能存在回写数据不完整情况
 		saveDealData(alvos);
-		reWriteTaxInvoice(alvos);
-		reWriteSaleInvoice(alvos);
+//		reWriteTaxInvoice(alvos);
+//		reWriteSaleInvoice(alvos);
 		
 		getIjVerifyDialog().closeOK();
 		
@@ -727,16 +746,33 @@ BillEditListener, BillEditListener2, MouseListener {
 
 		}
 
-		IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
-		.getInstance().lookup(IVOPersistence.class.getName());
+//		IVOPersistence iVOPersistence = (IVOPersistence) NCLocator
+//		.getInstance().lookup(IVOPersistence.class.getName());
+//		
+//		TaxInvoiceBbVO[] bbvos = new TaxInvoiceBbVO[albbvos.size()];
+//		try {
+//			iVOPersistence.insertVOArray(albbvos.toArray(bbvos));
+//		} catch (BusinessException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		//2014-02-16 使用新的更新方法，放在一个事务中处理更新，保证数据一致性。
+		if (albbvos.size() ==0) {
+			return;
+		}
+		TaxInvoiceBbVO[] dealvos = new TaxInvoiceBbVO[albbvos.size()] ;
 		
-		TaxInvoiceBbVO[] bbvos = new TaxInvoiceBbVO[albbvos.size()];
+		ITaxInvoice isrv =(ITaxInvoice) NCLocator.getInstance().lookup(ITaxInvoice.class.getName());
 		try {
-			iVOPersistence.insertVOArray(albbvos.toArray(bbvos));
+			isrv.saveDeal(albbvos.toArray(dealvos));
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		//2014-02-16 end
 	}
 
 	private void reWriteTaxInvoice(ArrayList<TaxInvoiceDealVO> alvos) {

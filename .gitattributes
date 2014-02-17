@@ -421,6 +421,7 @@ junjie/develop/proj/newmodules/scmpub/src/public/nc/vo/scmpub/TaxInvoiceTypeVO.j
 junjie/develop/proj/newmodules/so/.classpath -text
 junjie/develop/proj/newmodules/so/.module_prj -text
 junjie/develop/proj/newmodules/so/.project -text
+junjie/develop/proj/newmodules/so/META-INF/SO_TaxInvoice.upm -text
 junjie/develop/proj/newmodules/so/META-INF/module.xml -text
 junjie/develop/proj/newmodules/so/METADATA/taxinvoice.bmf -text
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/so001/order/MdsdBean.class -text
@@ -467,6 +468,9 @@ junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/SaleSta
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/pub/CheckApproveDMO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/JunJieSoDMO.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/so001/SaleOrderDMO.java -text
+junjie/develop/proj/newmodules/so/src/private/nc/impl/so/taxinvoice/TaxInvoiceDMO.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/impl/so/taxinvoice/TaxInvoiceImp.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/public/nc/itf/so/taxinvoice/ITaxInvoice.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/public/nc/ui/so/taxinvoice/ClientUIGetter.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/public/nc/util/so/junjie/JunjiePubTool.java -text
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/SaleInvoiceBVOForVerify.java -text svneol=unset#text/plain

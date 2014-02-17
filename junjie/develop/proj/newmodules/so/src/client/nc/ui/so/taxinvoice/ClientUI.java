@@ -8,6 +8,8 @@ import nc.ui.pub.ClientEnvironment;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.formulaset.FormulaParseFather;
 import nc.vo.pub.lang.UFDouble;
+import nc.vo.scmpub.ITaxInvoiceApproveType;
+import nc.vo.so.TaxInvoiceHeaderVO;
 import nc.vo.so.TaxInvoiceItemVO;
 import nc.vo.so.TaxInvoiceVO;
 import nc.vo.trade.field.IBillField;
@@ -21,6 +23,7 @@ import nc.ui.pub.bill.BillScrollPane;
 import nc.ui.pub.bill.BillTotalListener;
  
   
+import nc.ui.trade.base.IBillOperate;
 import nc.ui.trade.bocommand.IUserDefButtonCommand;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.querytemplate.IBillReferQuery;
@@ -413,9 +416,141 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 		this.numfld = numfld;
 	}
 
+	public boolean checkAudit() {
+	// TODO Auto-generated method stub
 
+		boolean ibhasdeal = checkDeal();
+		//从模板上获得核销策略（最好是从VO）
+		int iapprovetype = Integer.parseInt(getBillCardPanel().getHeadItem("iapprovetype").getValue());
+		
+		if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT) 
+		{
+			if (!ibhasdeal)
+				return false;
+			else
+				return true;
+				
+		}else //审核后核销
+		{
+			if (!ibhasdeal)
+				return true;
+			else
+				return false;
+		}
+	}
 
+	 private void setUserButtonStatus() {
+		// TODO Auto-generated method stub
+		try { 
+//			if (((ClientUI)getBillUI()).isListPanelSelected()) {
+//				setStrShowState(strPanelList);
+//			}else
+//			{
+//				setStrShowState(strPanelCard);
+//			}
+			if (getBillOperate() == IBillOperate.OP_ADD ||
+					getBillOperate() == IBillOperate.OP_INIT ||
+					getBillOperate() == IBillOperate.OP_REFADD ||
+					getBillOperate() == IBillOperate.OP_NOTEDIT  &&   isListPanelSelected() ) {
+				getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealGpBoCommand.BUTTON_NO).setEnabled(false);
+			}
+			
+			int iapprovetype = Integer.parseInt(getBillCardPanel().getHeadItem("iapprovetype").getValue());
+			TaxInvoiceVO taxinvvo = (TaxInvoiceVO) getVOFromUI();
+			int ibillstate = ((TaxInvoiceHeaderVO)taxinvvo.getParentVO()).getIbillstatus();
+			
+			if (getBillOperate() == IBillOperate.OP_NOTEDIT && !isListPanelSelected()) {
+				getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealGpBoCommand.BUTTON_NO).setEnabled(true);
+				//getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 
+				if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT){
+					if ( ibillstate == IBillStatus.FREEZE || ibillstate == IBillStatus.FREE || ibillstate == IBillStatus.COMMIT){
+						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
+						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
+					}else{
+						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(false);
+						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
+					}
+				}else{
+					if (ibillstate == IBillStatus.CHECKPASS || ibillstate == IBillStatus.CHECKGOING ){
+						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
+						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
+					}else{
+						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(false);
+						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
+					}
+					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
+					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
+				}
+			}
+			
+//			if(((ClientUI)getBillUI()).isSaveAndCommitTogether()) {
+//				if ( ibillstate == IBillStatus.COMMIT || ibillstate == IBillStatus.FREE){
+//					getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(true);
+//					getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(true);
+//				}
+//			}
+			if (isSaveAndCommitTogether()) {
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Commit).setVisible(false);  //2014-02-16 自动提交的话，这里就不显示这个按钮了 
+			}
+			if (checkDeal()) {
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(false); //如果已经核销，不能删除，修改
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(false);
+			}
+//
+//			if (isListPanelSelected()) {
+//				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Del).setEnabled(false); //列表下禁用删除
+//			}
+			
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		getBillUI().updateButtons();
 
+	}
+
+		public boolean checkDeal() {
+			// TODO Auto-generated method stub
+			boolean ibhasdeal = false;
+
+				try {
+					TaxInvoiceVO taxinvvo = (TaxInvoiceVO) getVOFromUI();
+					if (null == taxinvvo)
+						return false;
+					TaxInvoiceItemVO[] taxinvitemvo = (TaxInvoiceItemVO[]) taxinvvo
+							.getChildrenVO();
+					for (int i = 0; i < taxinvitemvo.length; i++) {
+						UFDouble totaldealmny = taxinvitemvo[i].getNtotaldealmny()==null? UFDouble.ZERO_DBL: taxinvitemvo[i].getNtotaldealmny();
+						UFDouble totaldealnmb = taxinvitemvo[i].getNtotaldealnum()==null? UFDouble.ZERO_DBL: taxinvitemvo[i].getNtotaldealnum();
+						if (!totaldealmny.equals(UFDouble.ZERO_DBL) || !totaldealnmb.equals(UFDouble.ZERO_DBL)) {
+							ibhasdeal = true;
+							break;
+						}
+					}
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			return 	ibhasdeal;
+
+		}
+
+		/* (non-Javadoc)
+		 * @see nc.ui.pub.ToftPanel#updateButtons()
+		 */
+		@Override
+		public void updateButtons() {
+			// TODO Auto-generated method stub
+			setUserButtonStatus();
+			super.updateButtons();
+		}
 
 }
