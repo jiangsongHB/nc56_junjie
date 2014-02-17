@@ -423,16 +423,16 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 		//从模板上获得核销策略（最好是从VO）
 		int iapprovetype = Integer.parseInt(getBillCardPanel().getHeadItem("iapprovetype").getValue());
 		
-		if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT) 
+		if (iapprovetype == ITaxInvoiceApproveType.DEAL_AFTER_AUDIT) 
 		{
 			if (!ibhasdeal)
-				return false;
-			else
 				return true;
+			else
+				return false;
 				
 		}else //审核后核销
 		{
-			if (!ibhasdeal)
+			if (ibhasdeal)
 				return true;
 			else
 				return false;
@@ -448,6 +448,9 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 //			{
 //				setStrShowState(strPanelCard);
 //			}
+			if (getBillOperate() == IBillOperate.OP_INIT ) {
+				return;
+			}
 			if (getBillOperate() == IBillOperate.OP_ADD ||
 					getBillOperate() == IBillOperate.OP_INIT ||
 					getBillOperate() == IBillOperate.OP_REFADD ||
@@ -455,7 +458,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 				getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealGpBoCommand.BUTTON_NO).setEnabled(false);
 			}
 			
-			int iapprovetype = Integer.parseInt(getBillCardPanel().getHeadItem("iapprovetype").getValue());
+			int iapprovetype = Integer.parseInt(getBillCardPanel().getHeadItem("iapprovetype").getValue()==null?  "1" : getBillCardPanel().getHeadItem("iapprovetype").getValue() );
 			TaxInvoiceVO taxinvvo = (TaxInvoiceVO) getVOFromUI();
 			int ibillstate = ((TaxInvoiceHeaderVO)taxinvvo.getParentVO()).getIbillstatus();
 			
@@ -463,8 +466,8 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 				getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealGpBoCommand.BUTTON_NO).setEnabled(true);
 				//getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 
-				if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT){
-					if ( ibillstate == IBillStatus.FREEZE || ibillstate == IBillStatus.FREE || ibillstate == IBillStatus.COMMIT){
+				if (iapprovetype == ITaxInvoiceApproveType.DEAL_AFTER_AUDIT){  //核销前审核
+					if ( ibillstate == IBillStatus.CHECKPASS ){
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 					}else{
@@ -472,15 +475,15 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 					}
 				}else{
-					if (ibillstate == IBillStatus.CHECKPASS || ibillstate == IBillStatus.CHECKGOING ){
+					if (ibillstate == IBillStatus.FREE || ibillstate == IBillStatus.CHECKGOING  || ibillstate == IBillStatus.COMMIT ){
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 					}else{
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(false);
 						getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 					}
-					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
-					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
+//					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btDealBoCommand.BUTTON_NO).setEnabled(true);
+//					getButtonManager().getButton(nc.ui.so.taxinvoice.command.btRevDealBoCommand.BUTTON_NO).setEnabled(true);
 				}
 			}
 			
@@ -498,8 +501,21 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Edit).setEnabled(false);
 			}
 			//2014-02-17 处理一下审核按钮；
-			if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT && checkDeal() && (ibillstate == IBillStatus.FREE  || ibillstate == IBillStatus.COMMIT)){
+			if (iapprovetype == ITaxInvoiceApproveType.DEAL_BEFORE_AUDIT ){
+				if( checkDeal() && (ibillstate == IBillStatus.FREE  || ibillstate == IBillStatus.COMMIT)){
+
 				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Audit).setEnabled(true);
+				}else{
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Audit).setEnabled(false);
+			}
+			}
+			
+			if (iapprovetype == ITaxInvoiceApproveType.DEAL_AFTER_AUDIT){
+				if( !checkDeal() && (ibillstate == IBillStatus.FREE  || ibillstate == IBillStatus.COMMIT)){
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Audit).setEnabled(true);
+			}else{
+				getButtonManager().getButton(nc.ui.trade.button.IBillButton.Audit).setEnabled(false);
+			}
 			}
 //
 //			if (isListPanelSelected()) {
