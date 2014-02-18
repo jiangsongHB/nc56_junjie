@@ -842,6 +842,9 @@ junjie/patches/modules/pu/client/classes/nc/ui/rc/receive/ArriveUI.java -text
 junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To25$HeadRowStateListener.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To25.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/sourceref/arap/SourceBillDlgF1To25.java -text
+junjie/patches/modules/scmpub/classes/nc/bs/scm/sourcebill/SCMDefaultDatafinder$1.class -text
+junjie/patches/modules/scmpub/classes/nc/bs/scm/sourcebill/SCMDefaultDatafinder$2.class -text
+junjie/patches/modules/scmpub/classes/nc/bs/scm/sourcebill/SCMDefaultDatafinder.class -text
 junjie/patches/modules/scmpub/classes/nc/ui/scmpub/taxinvoicetype/ClientUIGetter.class -text
 junjie/patches/modules/scmpub/classes/nc/vo/scm/ic/bill/InvVO.class -text
 junjie/patches/modules/scmpub/classes/nc/vo/scm/relacal/SCMRelationsCal.class -text
