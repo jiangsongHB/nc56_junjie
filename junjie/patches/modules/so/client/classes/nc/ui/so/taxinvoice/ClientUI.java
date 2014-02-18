@@ -26,6 +26,9 @@ import nc.ui.pub.bill.BillTotalListener;
 import nc.ui.trade.base.IBillOperate;
 import nc.ui.trade.bocommand.IUserDefButtonCommand;
 import nc.ui.pub.beans.MessageDialog;
+import nc.ui.pub.linkoperate.ILinkMaintain;
+import nc.ui.pub.linkoperate.ILinkQuery;
+import nc.ui.pub.linkoperate.ILinkQueryData;
 import nc.ui.querytemplate.IBillReferQuery;
 
 import java.awt.event.MouseEvent;
@@ -51,7 +54,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
  * @author author
  * @version tempProject version
  */
- public class ClientUI extends AbstractClientUI implements BillTotalListener {
+ public class ClientUI extends AbstractClientUI implements BillTotalListener, ILinkQuery, ILinkMaintain {
 	 
 	private List<String> pricefld = Arrays.asList( new String[]{"nprice","ntaxprice","ncurprice","ncurtaxprice"});
 	private List<String> mnyfld = Arrays.asList(new String[]{"nmny","ntaxman","nsummny","ncurmny","ncurtaxmny","ncursummny","ntotaldealmny"});
@@ -146,7 +149,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 		if (e.getKey().equalsIgnoreCase("cinvoicemamid")){
 			String cinvoicemamid = ((UIRefPane)getBillCardPanel().getHeadItem("cinvoicemamid").getComponent()).getRefPK();
 			((UIRefPane)getBillCardPanel().getHeadItem("cordermanid").getComponent()).setPK(cinvoicemamid) ;
-			((UIRefPane)getBillCardPanel().getHeadItem("cservicemanid").getComponent()).setPK(cinvoicemamid) ;
+			//((UIRefPane)getBillCardPanel().getHeadItem("cservicemanid").getComponent()).setPK(cinvoicemamid) ; //取消这里默认设置
 		}
 	}
 
@@ -571,6 +574,17 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 			// TODO Auto-generated method stub
 			setUserButtonStatus();
 			super.updateButtons();
+		}
+
+		/* (non-Javadoc)
+		 * @see nc.ui.so.taxinvoice.AbstractClientUI#doQueryAction(nc.ui.pub.linkoperate.ILinkQueryData)
+		 */
+		@Override
+		public void doQueryAction(ILinkQueryData querydata) {
+			// TODO Auto-generated method stub
+
+			super.doQueryAction(querydata);
+			setUserButtonStatus();
 		}
 
 }
