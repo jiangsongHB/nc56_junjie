@@ -407,6 +407,7 @@ junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/MyE
 junjie/develop/proj/newmodules/scmpub/src/client/nc/ui/scmpub/taxinvoicetype/command/SaveBoCommand.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/scmpub/src/private/nc/bs/scm/pub/ScmPubDMO.java -text
 junjie/develop/proj/newmodules/scmpub/src/private/nc/bs/scm/pub/ScmPubImpl.java -text
+junjie/develop/proj/newmodules/scmpub/src/public/nc/bs/scm/sourcebill/SCMDefaultDatafinder.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/scmpub/src/public/nc/itf/scm/pub/IScmPub.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/ui/scm/pub/ScmPubHelper.java -text
 junjie/develop/proj/newmodules/scmpub/src/public/nc/ui/scmpub/taxinvoicetype/ClientUIGetter.java -text svneol=unset#text/plain
