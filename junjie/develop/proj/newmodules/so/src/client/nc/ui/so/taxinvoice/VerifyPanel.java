@@ -708,9 +708,13 @@ BillEditListener, BillEditListener2, MouseListener {
 		UFDouble nmnybal = getVerifyCardPanel().getHeadItem("nmnybal").getValue()==null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nmnybal").getValue().toString());  //得到发票行的数量和金额余额
 		UFDouble nnumbal = getVerifyCardPanel().getHeadItem("nnumbal").getValue()==null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nnumbal").getValue().toString());
 		
-		if(nmnybal.compareTo(UFDouble.ZERO_DBL) != 0 || 
-				nnumbal.compareTo(UFDouble.ZERO_DBL) != 0	) {
-			if ( MessageDialog.showYesNoDlg(this, "提示", "当前发票行还有未核销完成的数量或金额余额，是否继续保存本次核销结果？") != MessageDialog.ID_YES)  //这里友好提示一下，选择是的话就继续保存
+//		if(nmnybal.compareTo(UFDouble.ZERO_DBL) != 0 || 
+//				nnumbal.compareTo(UFDouble.ZERO_DBL) != 0	) {
+//			if ( MessageDialog.showYesNoDlg(this, "提示", "当前发票行还有未核销完成的数量或金额余额，是否继续保存本次核销结果？") != MessageDialog.ID_YES)  //这里友好提示一下，选择是的话就继续保存
+//				return;
+//		}
+		if(nmnybal.compareTo(UFDouble.ZERO_DBL) != 0 	) {
+			if ( MessageDialog.showYesNoDlg(this, "提示", "当前发票行还有未核销完成的金额余额，是否继续保存本次核销结果？") != MessageDialog.ID_YES)  //这里友好提示一下，选择是的话就继续保存
 				return;
 		}
 		//这里还不能作为一个事务进行处理，可能存在回写数据不完整情况
