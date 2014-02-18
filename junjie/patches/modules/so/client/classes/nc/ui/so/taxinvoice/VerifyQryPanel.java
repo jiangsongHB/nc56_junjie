@@ -18,9 +18,11 @@ import com.sun.org.apache.bcel.internal.verifier.structurals.ExceptionHandlers;
 
 import nc.bs.framework.common.NCLocator;
 import nc.bs.logging.Logger;
+import nc.bs.pf.pub.PfDataCache;
 import nc.bs.scm.pub.smart.SmartDMO;
 import nc.itf.so.taxinvoice.ITaxInvoice;
 import nc.itf.uap.IVOPersistence;
+import nc.ui.pf.pub.PfUIDataCache;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.ui.pub.beans.UIButton;
@@ -33,6 +35,7 @@ import nc.ui.pub.bill.BillModel;
 import nc.ui.pub.bill.BillStatus;
 import nc.ui.pub.bill.IBillModelRowStateChangeEventListener;
 import nc.ui.pub.bill.RowStateChangeEvent;
+import nc.ui.pub.msg.PfLinkData;
 import nc.ui.pub.querymodel.SWTUtil;
 import nc.ui.scm.pattern.tool.InvInfoTool;
 import nc.ui.scm.so.SaleBillType;
@@ -41,12 +44,15 @@ import nc.ui.so.so002.SaleInvoiceTools;
 import nc.ui.so.so002.SaleinvoiceBO_Client;
 import nc.ui.so.so002.pf.SaleInvoiceBillRefListPanel;
 import nc.ui.so.so042.SaleIncomeDetailBO_Client;
+import nc.ui.uap.sf.SFClientUtil;
 import nc.uif.pub.exception.UifException;
 import nc.vo.bd.invdoc.InvbasdocVO;
+import nc.vo.ep.dj.DJZBVO;
 import nc.vo.pi.InvoiceVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.VOStatus;
+import nc.vo.pub.billtype.BilltypeVO;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.scmpub.TaxInvoiceTypeVO;
@@ -56,6 +62,7 @@ import nc.vo.so.TaxInvoiceDealVO;
 import nc.vo.so.TaxInvoiceHeaderVO;
 import nc.vo.so.TaxInvoiceItemVO;
 import nc.vo.so.TaxInvoiceVO;
+import nc.vo.so.so001.SaleOrderVO;
 import nc.vo.so.so002.SaleVO;
 import nc.vo.so.so002.SaleinvoiceBVO;
 import nc.vo.so.so002.SaleinvoiceVO;
@@ -69,6 +76,7 @@ BillEditListener, BillEditListener2 {
 	private UIButton UIButtonEdit;
 	private UIButton UIButtonSave;
 	private UIButton UIButtonCan;
+	private UIButton UIButtonQryLink;
 	private UIPanel UIPanel;
 	private BillCardPanel ijVerifyCardPanel;
 	private TaxInvoiceVO taxInvoiceVO; 
@@ -144,6 +152,7 @@ BillEditListener, BillEditListener2 {
 //		getUIButtonEdit().addActionListener(this);
 		getUIButtonSave().addActionListener(this);
 		getUIButtonCan().addActionListener(this);
+		getUIButtonQryLink().addActionListener(this);
 	}
 
 	private ArrayList<TaxInvoiceDealVO> getDealVOs(){ 
@@ -267,6 +276,17 @@ BillEditListener, BillEditListener2 {
 		return UIButtonDel;
 	}
 
+	private UIButton getUIButtonQryLink() {
+		if (UIButtonQryLink == null) {
+			UIButtonQryLink = new UIButton();
+//			UIButtonDel.setBounds(new Rectangle(432, 4, 75, 20));
+			UIButtonQryLink.setPreferredSize(new Dimension(70, 20));
+			UIButtonQryLink.setText("联  查");
+//			UIButtonDel.setToolTipText("<HTML><B>删除分配的核销数据</B></HTML>");
+		}
+		return UIButtonQryLink;
+	}
+
 	/**
 	 * This method initializes UIButtonDel
 	 * 
@@ -328,6 +348,7 @@ BillEditListener, BillEditListener2 {
 			//UIPanel.add(getUIButtonEdit(), null);  //暂时不支持在这里修改了，允许删除核销记录
 			UIPanel.add(getUIButtonSave());
 			UIPanel.add(getUIButtonCan());
+			UIPanel.add(getUIButtonQryLink()); //增加联查发票
 		}
 		return UIPanel;
 	}
@@ -385,6 +406,31 @@ BillEditListener, BillEditListener2 {
 		if (e.getSource().equals(getUIButtonSave())) {
 			onBtnSave();
 		}
+		if (e.getSource().equals(getUIButtonQryLink())) {
+			onBtnQryLink();
+		}
+	}
+
+	private void onBtnQryLink() {
+		// TODO Auto-generated method stub
+		
+		int row = getVerifyCardPanel().getBillTable().getSelectedRow();
+		if (row < 0 ){
+			return;
+		}
+
+		TaxInvoiceBbVO vo = (TaxInvoiceBbVO)getVerifyCardPanel().getBillModel().getBodyValueRowVO(
+				row, TaxInvoiceBbVO.class.getName());
+		
+		PfLinkData linkData = new PfLinkData();
+
+		linkData.setBillID(vo.getCsourcebillid());
+		linkData.setBillType(vo.getCsourcebilltype());
+		
+		BilltypeVO billtypevo = PfDataCache.getBillType(vo.getCsourcebilltype());
+		String sFunCode = billtypevo.getNodecode();
+		
+		SFClientUtil.openLinkedQueryDialog(sFunCode, this, linkData,null);
 	}
 
 	private void onBtnSave() {
@@ -616,7 +662,7 @@ BillEditListener, BillEditListener2 {
 		}
 		
 		getUIButtonDel().setEnabled(hasselectrow);
-		
+		getUIButtonQryLink().setEnabled(hasselectrow);  //如果是多行，只联查所选择的第一行的发票。
 	}
 
 	/**
