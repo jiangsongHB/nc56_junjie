@@ -250,7 +250,7 @@ BillEditListener, BillEditListener2, MouseListener {
 //			strWhere += " and isnull(so_saleinvoice_b.dr,0) = 0 and (isnull(so_saleinvoice_b.ntotaldealnum,0) < so_saleinvoice_b.nnumber  " +   // 发票行条件
 //					"or isnull(so_saleinvoice_b.ntotaldealmny,0) < so_saleinvoice_b.nsummny ) and isnull(blargessflag,'N') = 'N' ";  //2014-01-17 增加非赠品条件
 			strWhere += " and isnull(so_saleinvoice_b.dr,0) = 0 " +   // 发票行条件 ,取消数量核销限制，只处理金额部分 2014-02-18 wanglei 
-					"or isnull(so_saleinvoice_b.ntotaldealmny,0) < so_saleinvoice_b.nsummny ) and isnull(blargessflag,'N') = 'N' ";  //2014-01-17 增加非赠品条件
+					" and isnull(so_saleinvoice_b.ntotaldealmny,0) < so_saleinvoice_b.nsummny  and isnull(blargessflag,'N') = 'N' ";  //2014-01-17 增加非赠品条件
 			
 			//费用发票条件
 			if (othersql == null || othersql.length() == 0) {  //允许覆盖的查询条件
