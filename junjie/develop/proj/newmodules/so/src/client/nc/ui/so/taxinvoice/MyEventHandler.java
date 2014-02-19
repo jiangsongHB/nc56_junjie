@@ -158,7 +158,9 @@ public class MyEventHandler
 		protected void onBoLineAdd() throws Exception {
 			// TODO Auto-generated method stub
 			super.onBoLineAdd();
-			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(new UFDouble(17.0), getBillCardPanelWrapper().getBillCardPanel()
+			//取表头的税率项目
+			UFDouble ntaxrate = getBillCardPanelWrapper().getBillCardPanel().getHeadItem("ntaxrate") == null? UFDouble.ZERO_DBL: new UFDouble(getBillCardPanelWrapper().getBillCardPanel().getHeadItem("ntaxrate").getValue().toString());
+			getBillCardPanelWrapper().getBillCardPanel().setBodyValueAt(ntaxrate, getBillCardPanelWrapper().getBillCardPanel()
 					.getBillTable().getSelectedRow(), "ntaxrate") ; 
 			
 			BillRowNo.addLineRowNo(getBillCardPanelWrapper().getBillCardPanel(), "",  //自动行号处理；
