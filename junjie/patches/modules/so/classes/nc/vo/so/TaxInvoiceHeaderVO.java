@@ -55,6 +55,7 @@ public class TaxInvoiceHeaderVO extends SuperVO {
 	private java.lang.String vdef9;
 	private java.lang.String vdef10;
 	private java.lang.String vapprovnote;
+	private nc.vo.pub.lang.UFDouble ntaxrate;
 	private java.lang.Integer dr;
 	private nc.vo.pub.lang.UFDateTime ts;
 
@@ -95,6 +96,7 @@ public class TaxInvoiceHeaderVO extends SuperVO {
 	public static final String VDEF9 = "vdef9";
 	public static final String VDEF10 = "vdef10";
 	public static final String VAPPROVNOTE = "vapprovnote";
+	public static final String NTAXRATE = "ntaxrate";
 			
 	/**
 	 * 属性ctaxinvoiceid的Getter方法.
@@ -687,6 +689,22 @@ public class TaxInvoiceHeaderVO extends SuperVO {
 	 */
 	public void setVapprovnote (java.lang.String newVapprovnote ) {
 	 	this.vapprovnote = newVapprovnote;
+	} 	  
+	/**
+	 * 属性ntaxrate的Getter方法.
+	 * 创建日期:2014-01-21 12:14:31
+	 * @return nc.vo.pub.lang.UFDouble
+	 */
+	public nc.vo.pub.lang.UFDouble getNtaxrate () {
+		return ntaxrate;
+	}   
+	/**
+	 * 属性ntaxrate的Setter方法.
+	 * 创建日期:2014-01-21 12:14:31
+	 * @param newNtaxrate nc.vo.pub.lang.UFDouble
+	 */
+	public void setNtaxrate (nc.vo.pub.lang.UFDouble newNtaxrate ) {
+	 	this.ntaxrate = newNtaxrate;
 	} 	  
 	/**
 	 * 属性dr的Getter方法.

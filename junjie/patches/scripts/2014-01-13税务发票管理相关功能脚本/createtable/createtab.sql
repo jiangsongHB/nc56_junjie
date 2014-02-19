@@ -1,3 +1,7 @@
+--2014-02-19 税务发票类型增加默认税率项目，税务发票主表增加整单税率项目
+alter table bd_taxinvoicetype add (ntaxrate number(28,8) );
+alter table so_taxinvoice add (ntaxrate number(28,8) );
+
 --2014-02-14 销售发票检查函数，用于发票弃审等检查发票是否已经核销，已经核销的返回true，未核销的返回false
 --配置检查函数时配置右值 = false为正确的检查方法
 

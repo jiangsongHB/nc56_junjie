@@ -151,6 +151,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 			((UIRefPane)getBillCardPanel().getHeadItem("cordermanid").getComponent()).setPK(cinvoicemamid) ;
 			//((UIRefPane)getBillCardPanel().getHeadItem("cservicemanid").getComponent()).setPK(cinvoicemamid) ; //取消这里默认设置
 		}
+		
 	}
 
 	private void recalculatebody(int irow,String key) {
@@ -372,6 +373,7 @@ import nc.ui.so.taxinvoice.command.btDealGpBoCommand;
 			}
 			
 			getBillCardPanel().getBodyItem("ntaxrate").setDecimalDigits(2);
+			getBillCardPanel().getHeadItem("ntaxrate").setDecimalDigits(2);
 			getBillCardPanel().getHeadItem("nroe").setDecimalDigits(2);
 
 		//}

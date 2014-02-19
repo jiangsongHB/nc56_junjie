@@ -33,6 +33,7 @@ public class TaxInvoiceTypeVO extends SuperVO {
 	private nc.vo.pub.lang.UFBoolean isseal;
 	private java.lang.Integer iapprovetype = 1;
 	private java.lang.Integer idealtype;
+	private nc.vo.pub.lang.UFDouble ntaxrate;
 	private java.lang.Integer dr;
 	private nc.vo.pub.lang.UFDateTime ts;
 
@@ -51,6 +52,7 @@ public class TaxInvoiceTypeVO extends SuperVO {
 	public static final String ISSEAL = "isseal";
 	public static final String IAPPROVETYPE = "iapprovetype";
 	public static final String IDEALTYPE = "idealtype";
+	public static final String NTAXRATE = "ntaxrate";
 			
 	/**
 	 * 属性pk_taxinvoicetype的Getter方法.
@@ -291,6 +293,22 @@ public class TaxInvoiceTypeVO extends SuperVO {
 	 */
 	public void setIdealtype (java.lang.Integer newIdealtype ) {
 	 	this.idealtype = newIdealtype;
+	} 	  
+	/**
+	 * 属性ntaxrate的Getter方法.
+	 * 创建日期:2014-01-25 00:46:04
+	 * @return nc.vo.pub.lang.UFDouble
+	 */
+	public nc.vo.pub.lang.UFDouble getNtaxrate () {
+		return ntaxrate;
+	}   
+	/**
+	 * 属性ntaxrate的Setter方法.
+	 * 创建日期:2014-01-25 00:46:04
+	 * @param newNtaxrate nc.vo.pub.lang.UFDouble
+	 */
+	public void setNtaxrate (nc.vo.pub.lang.UFDouble newNtaxrate ) {
+	 	this.ntaxrate = newNtaxrate;
 	} 	  
 	/**
 	 * 属性dr的Getter方法.
