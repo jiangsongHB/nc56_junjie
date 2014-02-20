@@ -32,11 +32,11 @@ public class SaveBoCommand extends nc.ui.trade.manage.ManageEventHandler impleme
 			data.dataNotNullValidate(); 
 		
 		if(data.getBillstatus() == VOStatus.NEW) {
-			data.getHeadItem("creationtime").setValue(ClientEnvironment.getInstance().getServerTime().getDate());
+			data.getBodyItem("creationtime").setValue(ClientEnvironment.getInstance().getServerTime().getDate());
 		}
 		if(data.getBillstatus() == VOStatus.UPDATED)  {
-			data.getHeadItem("modifiedtime").setValue(ClientEnvironment.getInstance().getServerTime().getDate());
-			data.getHeadItem("modifier").setValue(ClientEnvironment.getInstance().getUser().getPrimaryKey());
+			data.getBodyItem("modifiedtime").setValue(ClientEnvironment.getInstance().getServerTime().getDate());
+			data.getBodyItem("modifier").setValue(ClientEnvironment.getInstance().getUser().getPrimaryKey());
 		}
 		super.onBoSave();
 		 

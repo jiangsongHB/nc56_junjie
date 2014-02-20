@@ -72,7 +72,11 @@ public class ClientUICheckRule extends BeforeActionCHK  implements ICheckRules,I
 	}
 
 	public ICheckRule[] getItemCheckRules(String tablecode) {
-		return null;
+		return new CheckRule[]{
+				new CheckRule("±àÂë", "code", false, null, null),
+	            new CheckRule("Ãû³Æ", "name", false, null, null),
+	            new CheckRule("Ë°ÂÊ", "ntaxrate", false, null, null),
+	        };
 	}
 
 	public ICompareRule[] getHeadCompareRules() {

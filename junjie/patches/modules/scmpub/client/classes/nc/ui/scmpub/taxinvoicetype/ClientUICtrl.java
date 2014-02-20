@@ -32,16 +32,17 @@ public class ClientUICtrl extends AbstractManageController implements ISingleCon
 	public int[] getCardButtonAry() {
 	
         return new int[]{
-			nc.ui.trade.button.IBillButton.Brow,
+			//nc.ui.trade.button.IBillButton.Brow,
 			nc.ui.trade.button.IBillButton.Add,
 			nc.ui.trade.button.IBillButton.Edit,
 			nc.ui.trade.button.IBillButton.Delete,
 			nc.ui.trade.button.IBillButton.Line,
 			nc.ui.trade.button.IBillButton.Save,
+			nc.ui.trade.button.IBillButton.Query,
 			nc.ui.trade.button.IBillButton.Cancel,
 			nc.ui.trade.button.IBillButton.Refresh,
 			nc.ui.trade.button.IBillButton.Print,
-			nc.ui.trade.button.IBillButton.Return,
+			//nc.ui.trade.button.IBillButton.Return,
 			nc.ui.trade.button.IBillButton.File
              };
   
@@ -50,14 +51,17 @@ public class ClientUICtrl extends AbstractManageController implements ISingleCon
 	public int[] getListButtonAry() {		
 	
         return new int[]{
-			nc.ui.trade.button.IBillButton.Add,
-			nc.ui.trade.button.IBillButton.Edit,
-			nc.ui.trade.button.IBillButton.Delete,
-			nc.ui.trade.button.IBillButton.Query,
-			nc.ui.trade.button.IBillButton.Refresh,
-			nc.ui.trade.button.IBillButton.Print,
-			nc.ui.trade.button.IBillButton.Card,
-			nc.ui.trade.button.IBillButton.File
+    			nc.ui.trade.button.IBillButton.Add,
+    			nc.ui.trade.button.IBillButton.Edit,
+    			nc.ui.trade.button.IBillButton.Delete,
+    			nc.ui.trade.button.IBillButton.Line,
+    			nc.ui.trade.button.IBillButton.Save,
+    			nc.ui.trade.button.IBillButton.Query,
+    			nc.ui.trade.button.IBillButton.Cancel,
+    			nc.ui.trade.button.IBillButton.Refresh,
+    			nc.ui.trade.button.IBillButton.Print,
+    			//nc.ui.trade.button.IBillButton.Return,
+    			nc.ui.trade.button.IBillButton.File
         
         };
 	
@@ -140,6 +144,6 @@ public class ClientUICtrl extends AbstractManageController implements ISingleCon
 	 * @return boolean true:单表体，false:单表头
 	 */ 
 	public boolean isSingleDetail() {
-		return false; //单表头
+		return true; //单表体
 	}
 }
