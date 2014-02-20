@@ -49,8 +49,8 @@ import java.util.List;
 		}
 
 	public void setDefaultData() throws Exception {
-		getBillCardPanel().getHeadItem("pk_corp").setValue(ClientEnvironment.getInstance().getCorporation().getPk_corp());
-		getBillCardPanel().getHeadItem("creator").setValue(ClientEnvironment.getInstance().getUser().getPrimaryKey());
+		getBillCardPanel().getBodyItem("pk_corp").setDefaultValue(ClientEnvironment.getInstance().getCorporation().getPk_corp());
+		getBillCardPanel().getBodyItem("creator").setDefaultValue(ClientEnvironment.getInstance().getUser().getPrimaryKey());
 	}
 	
 	private void setNoEditItems() {
@@ -59,7 +59,7 @@ import java.util.List;
 				"modifier","modifiedtime","approver","approvedtime"};
 		
 		for (int i = 0 ; i < snoedititems.length; i++ ){
-			getBillCardPanel().getHeadItem(snoedititems[i]).setEdit(false);
+			getBillCardPanel().getBodyItem(snoedititems[i]).setEdit(false);
 		}
 	}
 

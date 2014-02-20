@@ -14,6 +14,7 @@ import nc.ui.scmpub.taxinvoicetype.command.SaveBoCommand;
 import nc.ui.trade.button.IBillButton;
 import nc.ui.trade.manage.ManageEventHandler;
 import nc.vo.pub.BusinessException;
+import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.ui.trade.base.IBillOperate;
 
 import nc.ui.trade.controller.IControllerBase;
@@ -99,6 +100,26 @@ public class MyEventHandler
 			getBillUI().showErrorMessage(e.getMessage());
 			Logger.error(e.getMessage());
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see nc.ui.trade.manage.ManageEventHandler#onBoEdit()
+	 */
+	@Override
+	protected void onBoEdit() throws Exception {
+		// TODO Auto-generated method stub
+		super.onBoEdit();
+		//getBillUI().setBillOperate(IBillOperate.OP_EDIT);
+	}
+
+	/* (non-Javadoc)
+	 * @see nc.ui.trade.bill.BillEventHandler#processNewBodyVO(nc.vo.pub.CircularlyAccessibleValueObject)
+	 */
+	@Override
+	protected CircularlyAccessibleValueObject processNewBodyVO(
+			CircularlyAccessibleValueObject newBodyVO) {
+		// TODO Auto-generated method stub
+		return super.processNewBodyVO(newBodyVO);
 	}
 
 
