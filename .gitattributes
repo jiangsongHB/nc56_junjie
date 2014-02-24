@@ -937,6 +937,7 @@ junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.cl
 junjie/patches/modules/uap/META-INF/classes/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text
 junjie/patches/modules/uap/META-INF/classes/nc/impl/uap/bd/corp/CorpImpl$1.class -text
 junjie/patches/modules/uap/META-INF/classes/nc/impl/uap/bd/corp/CorpImpl.class -text
+junjie/patches/modules/uap/META-INF/classes/nc/md/persist/designer/SQLGenerator.class -text
 junjie/patches/modules/uap/classes/nc/itf/uap/pub/jj/IJJUAPService.class -text
 junjie/patches/modules/uap/classes/nc/itf/uap/pub/jj/IJJUAPService.java -text
 junjie/patches/modules/uap/classes/nc/ui/bd/ref/busi/InvmandocDefaultRefModel.class -text
