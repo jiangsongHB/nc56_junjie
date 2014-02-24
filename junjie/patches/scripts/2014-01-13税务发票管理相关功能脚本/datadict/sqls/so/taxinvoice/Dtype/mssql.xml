@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='gb2312'?>
+<module datatype='MSSQL7'>
+<row><objtype>CHAR</objtype><objcode>C</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>VARCHAR</objtype><objcode>VC</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>SMALLINT</objtype><objcode>SI</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>INT</objtype><objcode>I</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>FLOAT</objtype><objcode>FL</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>DECIMAL</objtype><objcode>NUM</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>NUMERIC</objtype><objcode>NUM</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>DATETIME</objtype><objcode>DATE</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>TEXT</objtype><objcode>TX</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>IMAGE</objtype><objcode>IMG</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>NTEXT</objtype><objcode>IMG</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>TIMESTAMP</objtype><objcode>TS</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+</module>  

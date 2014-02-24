@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='gb2312'?>
+<module datatype='ORA817'>
+<row><objtype>CHAR</objtype><objcode>C</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>VARCHAR2</objtype><objcode>VC</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>NUMBER</objtype><objcode>SI</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>NUMBER</objtype><objcode>I</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>FLOAT</objtype><objcode>FL</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>NUMBER</objtype><objcode>NUM</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>DATE</objtype><objcode>DATE</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>CLOB</objtype><objcode>TX</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>BLOB</objtype><objcode>IMG</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>TIMESTAMP</objtype><objcode>TS</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+</module>

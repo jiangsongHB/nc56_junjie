@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='gb2312'?>
+<module datatype='DB2V7'>
+<row><objtype>CHAR</objtype><objcode>C</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>VARCHAR</objtype><objcode>VC</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>SMALLINT</objtype><objcode>SI</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>INTEGER</objtype><objcode>I</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>FLOAT</objtype><objcode>FL</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>DECIMAL</objtype><objcode>NUM</objcode><objscale>TRUE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>TIMESTAMP</objtype><objcode>DATE</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+<row><objtype>CLOB</objtype><objcode>TX</objcode><objscale>TRUE</objscale><objdefault>2M</objdefault></row>
+<row><objtype>BLOB</objtype><objcode>IMG</objcode><objscale>TRUE</objscale><objdefault>128M</objdefault></row>
+<row><objtype>TIMESTAMP</objtype><objcode>TS</objcode><objscale>FALSE</objscale><objdefault>NULL</objdefault></row>
+</module>
