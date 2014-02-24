@@ -509,6 +509,7 @@ junjie/develop/proj/newmodules/uap/src/client/nc/ui/pub/beans/UITable.java -text
 junjie/develop/proj/newmodules/uap/src/private/nc/bs/pub/pf/PfUtilDMO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/uap/src/private/nc/bs/uap/pub/jj/JJUAPServiceImpl.java -text
 junjie/develop/proj/newmodules/uap/src/private/nc/impl/uap/bd/corp/CorpImpl.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/uap/src/private/nc/md/persist/designer/SQLGenerator.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/uap/src/public/nc/itf/uap/pub/jj/IJJUAPService.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/ui/bd/ref/busi/InvmandocDefaultRefModel.java -text
 junjie/develop/proj/newmodules/uap/src/public/nc/vo/bd/bd1001/AdjustmentCoefficientVO.java -text
