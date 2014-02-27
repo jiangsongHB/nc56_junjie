@@ -505,15 +505,22 @@ BillEditListener, BillEditListener2, MouseListener {
 			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
 			UFDouble nTotalDealMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny")==null?  UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"ntotaldealmny").toString());
 			UFDouble ndealmny = e.getValue() == null?  UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString());
-			if (ndealmny.compareTo(nMny.sub(nTotalDealMny)) > 0 ) {
+//			if (ndealmny.compareTo(nMny.sub(nTotalDealMny)) > 0 ) {   //2014-02-27 调整判断，编辑核销金额的时候，根据表头的余额和本行的发票余额处理回写字段的值
+//				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次核销金额不能大于发票行的未核销金额,请重新输入。");
+//				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "ndealmny");
+//				return;
+//				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
+//			}
+			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
+			//getVerifyCardPanel().getBillModel().updateValue();
+			UFDouble oldndealmny = e.getOldValue() == null?  UFDouble.ZERO_DBL: new UFDouble(e.getOldValue().toString());
+			UFDouble nmnybal = getVerifyCardPanel().getHeadItem("nmnybal").getValue() == null? UFDouble.ZERO_DBL: new UFDouble(getVerifyCardPanel().getHeadItem("nmnybal").getValue().toString());
+			if ((ndealmny.sub(oldndealmny)).compareTo(nmnybal) > 0) {
 				MessageDialog.showErrorDlg(this, "输入错误", "第 " + irow + " 行数据，本次核销金额不能大于发票行的未核销金额,请重新输入。");
 				getVerifyCardPanel().setBodyValueAt(e.getOldValue(), irow, "ndealmny");
 				return;
-				//getVerifyCardPanel().getBodyItem("").getComponent().requestFocus();
 			}
-			//getVerifyCardPanel().getBillModel().setRowState(irow, BillModel.SELECTED);
-			//getVerifyCardPanel().getBillModel().updateValue();
-			getVerifyCardPanel().getBillModel().setValueAt(e.getValue(), irow, "nrewritemny");
+			getVerifyCardPanel().getBillModel().setValueAt(ndealmny.compareTo(nMny.sub(nTotalDealMny)) > 0 ? nMny.sub(nTotalDealMny):ndealmny , irow, "nrewritemny");
 		}
 		if(e.getKey().equalsIgnoreCase("nrewritemny")){
 			UFDouble nMny = getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny")==null? UFDouble.ZERO_DBL : new UFDouble(getVerifyCardPanel().getBillModel().getValueAt(irow,"nmny").toString());
