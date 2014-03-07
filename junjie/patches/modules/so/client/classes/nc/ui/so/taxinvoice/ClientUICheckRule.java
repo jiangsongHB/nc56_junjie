@@ -39,7 +39,7 @@ public class ClientUICheckRule extends BeforeActionCHK  implements ICheckRules,I
 	 */
 	public IUniqueRule[] getHeadUniqueRules() { 
 		return new IUniqueRule[]{
-				new UniqueRule("",new String[]{"vinvoiceno"})
+				new UniqueRule("发票号不能重复，请检查。",new String[]{"vinvoiceno"})
 			};
 	}
 

@@ -43,6 +43,8 @@ public class SaveBoCommand extends nc.ui.trade.manage.ManageEventHandler impleme
 		if(!VOChecker.check(vo,check ))
 			throw new nc.vo.pub.BusinessException(VOChecker.getErrorMessage());
 		
+		VOChecker.checkBack(vo,check ); //2014-03-07 wanglei 后台校验，检查表头重复
+		
 		TaxInvoiceItemVO[] vos = (TaxInvoiceItemVO[])vo.getChildrenVO();
 		for (int i=0; i<vos.length; i ++) {
 			if (vos[i].getNnumber() == null || vos[i].getNnumber().compareTo(UFDouble.ZERO_DBL) == 0 ||
@@ -53,12 +55,18 @@ public class SaveBoCommand extends nc.ui.trade.manage.ManageEventHandler impleme
 		
 		if(data.getBillstatus() == VOStatus.NEW) {
 			data.getTailItem("dcreatedate").setValue(ClientEnvironment.getInstance().getServerTime().getDate());
+			checkInvoiceNO((TaxInvoiceVO)vo);
 		}
 		if(data.getBillstatus() == VOStatus.UPDATED)  {
 			data.getTailItem("dmodifydate").setValue(ClientEnvironment.getInstance().getServerTime().getDate());
 			data.getTailItem("cmodifier").setValue(ClientEnvironment.getInstance().getUser().getPrimaryKey());
 		}
 		super.onBoSave();
+	}
+
+	private void checkInvoiceNO(TaxInvoiceVO vo) {
+		// TODO Auto-generated method stub
+		
 	}
 }
  
