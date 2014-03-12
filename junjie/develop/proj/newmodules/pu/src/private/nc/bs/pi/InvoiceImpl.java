@@ -7463,13 +7463,13 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 		if (invvo == null) {
 			return;
 		}
-		InvoiceItemVO[] itemvo = (InvoiceItemVO[]) invvo.getChildrenVO();
+		InvoiceItemVO[] itemvo = (InvoiceItemVO[]) invvo.getBodyVO();   //2014-03-12 获取全部VO行
 		for (int j = 0; j < itemvo.length; j++) {
 			String updatesql = "";
 			String querysql = "";
 			String invoice_bid = itemvo[j].getCinvoice_bid();
 			String sourcebillrowid = itemvo[j].getCupsourcebillrowid();
-			if (invoice_bid != null) {
+			if (invoice_bid != null ) {
 
 				// 查询累计开票数量是否超出原有数量
 				querysql = "select (abs(nvl(fb.dfshl,0)) - abs(isnull(fb.ntotalinvoicenumber,0) + '"
@@ -7480,12 +7480,22 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 						+ sourcebillrowid + "' ";
 
 				// ntotalinvoicenumber 后臺新增字段
-				updatesql = "update arap_djfb  fb set fb.ntotalinvoicenumber = isnull(fb.ntotalinvoicenumber,0) + '"
-						+ itemvo[j].getNinvoicenum()
-						+ "'-(select isnull(ninvoicenum,0) from po_invoice_b b where b.cinvoice_bid='"
-						+ invoice_bid
-						+ "') where fb.fb_oid='"
-						+ sourcebillrowid + "'";
+				if (itemvo[j].getStatus() == VOStatus.UPDATED) {
+					updatesql = "update arap_djfb  fb set fb.ntotalinvoicenumber = isnull(fb.ntotalinvoicenumber,0) + '"
+							+ itemvo[j].getNinvoicenum()
+							+ "'-(select isnull(ninvoicenum,0) from po_invoice_b b where b.cinvoice_bid='"
+							+ invoice_bid
+							+ "') where fb.fb_oid='"
+							+ sourcebillrowid + "'";
+				} else if ( itemvo[j].getStatus() == VOStatus.DELETED) {
+					updatesql = "update arap_djfb  fb set fb.ntotalinvoicenumber = isnull(fb.ntotalinvoicenumber,0) - "
+							+ itemvo[j].getNinvoicenum()
+							+ " where fb.fb_oid='"
+							+ sourcebillrowid + "'";
+				} else if ( itemvo[j].getStatus() == VOStatus.UNCHANGED) {
+					continue;
+				}
+				
 			} else {
 
 				// 查询语句
