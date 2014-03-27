@@ -1,0 +1,15 @@
+--¼¯ÍÅNC_FI_ARAP-NC5.6-Special-20110718-203250725 ²¹¶¡½Å±¾
+create table arap_djfb_0927
+as
+select *
+from arap_djfb 
+where isverifyfinished='Y' and verifyfinisheddate<(select max(clb.clrq)
+from arap_djclb clb
+where clb.fb_oid=arap_djfb.fb_oid and clb.dr=0) and dr=0;
+update arap_djfb set verifyfinisheddate=(select max(clb.clrq)
+from arap_djclb clb
+where clb.fb_oid=arap_djfb.fb_oid and dr=0)
+where isverifyfinished='Y' and verifyfinisheddate<(select max(clb.clrq)
+from arap_djclb clb
+where clb.fb_oid=arap_djfb.fb_oid and clb.dr=0) and dr=0;
+commit;
