@@ -173,6 +173,7 @@ junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/gyl/ArapForGYL.java -
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/newlistquery/NewListQueryBO_New.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/newlistquery/projection/EndBillBalMoneySumProjCreater.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/newlistquery/projection/EndDealMoneySumProjCreater.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/arap/src/private/nc/bs/arap/verify/VerifyDMO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/ep/dj/ApplayBillDMO.java -text
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/ep/dj/DJZBBO.java -text
 junjie/develop/proj/newmodules/arap/src/private/nc/bs/ep/dj/DJZBDAO.java -text
