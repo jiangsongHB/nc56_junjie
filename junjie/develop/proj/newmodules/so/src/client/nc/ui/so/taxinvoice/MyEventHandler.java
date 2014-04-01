@@ -34,7 +34,7 @@ import nc.vo.so.TaxInvoiceItemVO;
 import nc.vo.so.TaxInvoiceVO;
 import nc.vo.trade.button.ButtonVO;
 import nc.vo.trade.pub.IBillStatus;
-import nc.vo.wa.wa_001_03.TaxgroupHeaderVO;
+
 
 /** 
   *

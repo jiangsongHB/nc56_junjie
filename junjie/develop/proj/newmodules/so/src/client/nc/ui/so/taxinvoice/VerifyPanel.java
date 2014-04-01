@@ -249,7 +249,7 @@ BillEditListener, BillEditListener2, MouseListener {
 //					"or isnull(so_saleinvoice_b.ntotaldealmny,0) < so_saleinvoice_b.nsummny ) and isnull(blargessflag,'N') = 'N' ";  //2014-01-17 增加非赠品条件
 			strWhere += " and isnull(so_saleinvoice_b.dr,0) = 0 " +   // 发票行条件 ,取消数量核销限制，只处理金额部分 2014-02-18 wanglei 
 					" and abs(isnull(so_saleinvoice_b.ntotaldealmny,0)) < abs(so_saleinvoice_b.nsummny)  and isnull(blargessflag,'N') = 'N' ";  //2014-01-17 增加非赠品条件
-			
+//            		" and (isnull(so_saleinvoice_b.ntotaldealmny,0)) - (isnull(so_saleinvoice_b.nsummny,0)) <> 0  and isnull(blargessflag,'N') = 'N' ";  //2014-01-17 增加非赠品条件,2014-04-01 易明   改取绝对值小于 为 绝对值是否相等			
 			//费用发票条件
 			if (othersql == null || othersql.length() == 0) {  //允许覆盖的查询条件
 				if (isfee){
