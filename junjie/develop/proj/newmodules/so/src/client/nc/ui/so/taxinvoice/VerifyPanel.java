@@ -262,14 +262,14 @@ BillEditListener, BillEditListener2, MouseListener {
 					" and  pk_invbasdoc = so_saleinvoice_b.cinvbasdocid ) ";
 				}
 			}
-			
+/*********************************不需根据预开票过滤，20140401 易明			
 			//预开票条件，处理发票日期
 			if (((UFBoolean)taxInvoiceVO.getParentVO().getAttributeValue("ispray")).booleanValue()){ //如果是预开票，则选择的发票日期范围在实际发票的日期之后
 				strWhere += " and so_saleinvoice.dbilldate >= '" + taxInvoiceVO.getParentVO().getAttributeValue("dinvoicedate") + "' " ;
 			}else{
 				strWhere += " and so_saleinvoice.dbilldate <= '" + taxInvoiceVO.getParentVO().getAttributeValue("dinvoicedate") + "' " ;
 			}
-			
+*********************************/			
 			if (othersql != null )
 				strWhere += " and (" + othersql + ") "; 
 			
