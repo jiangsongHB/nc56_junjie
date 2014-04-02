@@ -528,7 +528,7 @@ public class MdProcessBean {
 			UFDouble d12 = voMap.get("def1")==null?UFDouble.ZERO_DBL:new UFDouble((BigDecimal) voMap.get("def1"));
 			UFDouble d2 = new UFDouble((BigDecimal) voMap.get("srkzs"));
 			// Èë¿â
-			if (billType.equals("45") || billType.equals("4A")) {
+			if (billType.equals("45") || billType.equals("4A") || billType.equals("40") ) {
 				if (sfth == true) {
 					vo.setNinspacenum(new UFDouble(-d12.doubleValue()));
 					vo.setNinspaceassistnum(new UFDouble(-d2.doubleValue()));
