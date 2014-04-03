@@ -23,6 +23,7 @@ import nc.bs.ic.pub.ModuleEnable;
 import nc.bs.ic.pub.bill.GeneralSqlString;
 import nc.bs.ic.pub.check.CheckDMO;
 import nc.bs.ic.pub.vmi.ICSmartToolsDmo;
+import nc.bs.pub.billcodemanage.BillcodeGenerater;
 import nc.bs.scm.pub.bill.SQLUtil;
 import nc.bs.scm.pub.smart.SmartDMO;
 import nc.itf.arap.pub.IArapBillPublic;
@@ -58,6 +59,7 @@ import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDateTime;
 import nc.vo.pub.lang.UFDouble;
+import nc.vo.scm.bd.FreeItemVO;
 import nc.vo.scm.constant.ScmConst;
 import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.session.ClientLink;
@@ -1983,8 +1985,11 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 			changeBillHead.setTlastmaketime(new UFDateTime(new Date())
 					.toString());
 			changeBillHead.setTmaketime(new UFDateTime(new Date()).toString());
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
-			changeBillHead.setVbillcode("I9" + sdf.format(new Date()));
+			//wanglei 2014-04-03 根据单据号规则返回单据号
+//			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+//			changeBillHead.setVbillcode("I9" + sdf.format(new Date()));
+			changeBillHead.setVbillcode(null);
+			//
 			// 调整单表体
 			for (int i = 0; i < changeBillBody.length; i++) {
 				changeBillBody[i] = new BillItemVO();
