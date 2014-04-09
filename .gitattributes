@@ -877,6 +877,7 @@ junjie/patches/modules/so/META-INF/classes/nc/bs/pub/action/N_32H_WRITE.class -t
 junjie/patches/modules/so/META-INF/classes/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/so/backtask/soremain/SaleStayOrderClose.class -text
 junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/pub/CheckApproveDMO.class -text
+junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/pub/CreditControlDMO.class -text
 junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/so001/JunJieSoDMO.class -text
 junjie/patches/modules/so/META-INF/classes/nc/impl/scm/so/so001/SaleOrderDMO.class -text
 junjie/patches/modules/so/META-INF/classes/nc/impl/so/taxinvoice/TaxInvoiceDMO.class -text
