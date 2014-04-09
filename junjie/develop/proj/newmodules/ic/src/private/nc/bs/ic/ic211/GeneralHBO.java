@@ -32,10 +32,14 @@ import nc.itf.ic.service.IIC211GeneralH;
 import nc.itf.scm.so.so012.IReturnRedSquare;
 import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.pf.IPFConfig;
+import nc.itf.uif.pub.IUifService;
 import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
+import nc.uif.pub.exception.UifException;
+import nc.vo.bd.invdoc.InvclVO;
+import nc.vo.bd.invdoc.InvbasdocVO;
 import nc.vo.ep.dj.DJZBHeaderVO;
 import nc.vo.ep.dj.DJZBItemVO;
 import nc.vo.ep.dj.DJZBVO;
@@ -54,6 +58,7 @@ import nc.vo.ic.pub.bill.QryConditionVO;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
 import nc.vo.pub.ProductCode;
+import nc.vo.pub.SuperVO;
 import nc.vo.pub.VOStatus;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
@@ -1945,6 +1950,7 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 			// 初始化库存调整单VO
 			BillVO changeBillVO = new BillVO();
 			BillHeaderVO changeBillHead = new BillHeaderVO();
+			generalBody = filterBody(generalBody);  //wanglei 2014-04-09 根据存货属性过滤入库单表体行
 			BillItemVO[] changeBillBody = new BillItemVO[generalBody.length];
 			// 初始化存货核算IA接口
 			IBill iBill = (IBill) NCLocator.getInstance().lookup(
@@ -1988,7 +1994,9 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 			//wanglei 2014-04-03 根据单据号规则返回单据号
 //			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
 //			changeBillHead.setVbillcode("I9" + sdf.format(new Date()));
+			
 			changeBillHead.setVbillcode(null);
+		
 			//
 			// 调整单表体
 			for (int i = 0; i < changeBillBody.length; i++) {
@@ -2058,6 +2066,31 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 
 		}
 	}
+
+private GeneralBillItemVO[] filterBody(GeneralBillItemVO[] generalBody) throws BusinessException {
+	// TODO Auto-generated method stub
+	ArrayList al = new ArrayList();
+	IUifService srv = (IUifService) NCLocator.getInstance().lookup(IUifService.class.getName());
+	for (int i =0 ; i < generalBody.length; i++ ){
+		try {
+			InvbasdocVO invbasvo = (InvbasdocVO) srv.queryByPrimaryKey(InvbasdocVO.class, generalBody[i].getCinvbasid());
+			InvclVO invclvo = (InvclVO) srv.queryByPrimaryKey(InvclVO.class, invbasvo.getPk_invcl() );
+			if (invclvo.getAveragecost() == null || invclvo.getAveragecost() == UFDouble.ZERO_DBL)
+				al.add(generalBody[i]);
+		} catch (UifException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	
+	if(al.size() == 0)
+		throw new BusinessException("入库单表体行全部为指定成本单价的存货，不能执行费用分摊，请调整！"); ;
+			
+	GeneralBillItemVO[] bvos = new GeneralBillItemVO[al.size()];
+	al.toArray(bvos);
+	return bvos;
+}
   
 	
 }
