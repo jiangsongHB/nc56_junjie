@@ -942,6 +942,124 @@ public class CreditControlDMO extends nc.bs.pub.DataManageObject implements ICre
 
 	}
 
+	//wanglei 2011-10-28 返回订单行中订单净价/询到净价最小值
+	public UFDouble examMinPriceRateForApprove(AggregatedValueObject vo)
+	throws nc.vo.pub.BusinessException {
+		SaleOrderVO ordvo = (SaleOrderVO)vo;
+		if(ordvo.getAllSaleOrderVO()!=null)
+			ordvo = ordvo.getAllSaleOrderVO();
+
+		//计算价格比例：订单含税净价/询价的含税价*扣率
+		SaleorderBVO[] bvos = ordvo.getBodyVOs();
+		//存储表体每一行的函数计算结果
+		UFDouble[] dpricerates = new UFDouble[bvos.length];
+		
+		//计算表体每一行的函数计算结果，并返回计算结果
+		dpricerates = examPriceRate_process2(ordvo,bvos);
+		
+		UFDouble dpricerate = dpricerates==null? new UFDouble(UFDouble.ZERO_DBL): dpricerates[0] ;
+		for (int i = 0 ; i < dpricerates.length; i++){
+			if (dpricerate.compareTo(dpricerates[i]) < 0)
+				continue;
+			else
+				dpricerate = dpricerates[i];
+		}
+		return dpricerate.setScale(2, UFDouble.ROUND_HALF_UP);
+	}
+	//end
+	
+	private UFDouble[] examPriceRate_process2(SaleOrderVO ordvo,SaleorderBVO[] bvos) throws BusinessException{
+		// 获取系统参数SA02：基价是否含税
+		String paras[] = { "SA02" };
+//		String[] comnames = { "nc.bs.pub.para.SysInitDMO",
+//				"nc.bs.pub.para.SysInitDMO", "nc.bs.pub.para.SysInitDMO" };
+//		String[] funnames = { "queryBatchParaValues", "getParaBoolean",
+//				"getPkValue" };
+		// 系统参数
+		ArrayList paramObjlist = new ArrayList();
+		Object[] paramObjs = new Object[] { ordvo.getPk_corp(), paras };
+		paramObjlist.add(paramObjs);
+//		java.util.Hashtable para = null;
+//		try {
+			//2008-04-25 修改BY zhangcheng 
+			UFBoolean SA02  =	new nc.bs.pub.para.SysInitDMO().getParaBoolean(ordvo.getPk_corp(), "SA02"); 
+//			
+//			Object[] retObjs = nc.ui.so.so001.panel.bom.BillTools
+//					.batchRemoteCallQueryX(comnames, funnames, paramObjlist);
+//			para = (Hashtable)retObjs[0];
+//		} catch (Exception e) {
+//			throw new BusinessException("获取系统参数SA02失败！", e);
+//		}
+//		UFBoolean SA02 = getParaBoolean(para, "SA02");
+		
+		//存储表体每一行的函数计算结果
+		UFDouble[] dpricerates = new UFDouble[bvos.length];
+		//订单净价
+		UFDouble order_netprice = null;
+		//订单数量
+		UFDouble orderNumber = null;
+		//询到净价
+		UFDouble qt_netprice = null;
+		//报价计量单位数量
+		UFDouble quoteNumber = null;
+		
+		/*//单品折扣
+		UFDouble ndiscountrate = null;
+		//整单折扣
+		UFDouble nheaddiscountrate = null;
+		nheaddiscountrate = ordvo.getHeadVO().getNdiscountrate()==null?
+				SoVoConst.duf1:ordvo.getHeadVO().getNdiscountrate();
+		UFDouble uf100 = new UFDouble(100);*/
+		
+		//返回结果
+//		UFDouble retd = null;
+		UFBoolean blargessflag = null,laborflag = null, discountflag = null;
+		for(int i=0,loop=bvos.length;i<loop;i++){
+			blargessflag = bvos[i].getBlargessflag();
+			//赠品不参加检查
+			if(blargessflag!=null && blargessflag.booleanValue())
+				continue;
+			//是否劳务类存货，不参加检查
+			laborflag = bvos[i].getLaborflag();
+			if(laborflag!=null && laborflag.booleanValue())
+				continue;
+			//存货折扣属性，不参加检查
+			discountflag = bvos[i].getDiscountflag();
+			if(discountflag!=null && discountflag.booleanValue())
+				continue;
+			//询到净价=(基价含税？询价含税净价：询价无税净价)
+			qt_netprice = SA02.booleanValue() ? bvos[i].getNqttaxnetprc() : bvos[i].getNqtorgnetprc();
+			if(qt_netprice==null)
+				continue;
+			orderNumber = bvos[i].getNnumber();
+			if (orderNumber == null)
+				orderNumber = UFDouble.ONE_DBL;
+			//订单净价=(基价含税？原币含税净价：原币无税净价)
+			order_netprice = SA02.booleanValue() ? bvos[i].getNoriginalcurtaxnetprice() 
+					: bvos[i].getNoriginalcurnetprice();
+			if (order_netprice == null)
+				continue;
+			quoteNumber = bvos[i].getNquoteunitnum();
+			if (quoteNumber == null)
+				quoteNumber = UFDouble.ONE_DBL;
+			
+			//整单折扣
+			/*if(bvos[i].getNdiscountrate()==null)
+				ndiscountrate = nheaddiscountrate;
+			else
+				ndiscountrate = bvos[i].getNdiscountrate();
+			if(bvos[i].getNitemdiscountrate()==null)
+				ndiscountrate = ndiscountrate.div(uf100);
+			else
+				ndiscountrate = ndiscountrate.multiply(bvos[i].getNitemdiscountrate().div(uf100)).div(uf100);*/
+			
+			// 订单含税净价/询价的含税价
+			// 当订单主单位和报价计量单位不一致时，“主单位含税净价/报价含税价格”是没有意义的
+			// 这里用“(主单位含税净价*主数量)/(报价含税价格*报价单位数量)”来代替
+			dpricerates[i] = (order_netprice.sub(qt_netprice)).multiply(100).div(qt_netprice,2,UFDouble.ROUND_HALF_UP);
+		}
+		return dpricerates;
+	}
 	/**
 	 *  订单净价/询到净价：订单最终价格与询到价格的比率
 	 *  v5.3此函数由"订单含税净价/询价的含税价*扣率"更名为"订单净价/询到净价"；取数规则调整；
