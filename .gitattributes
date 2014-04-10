@@ -934,6 +934,7 @@ junjie/patches/modules/so/client/classes/nc/ui/so/taxinvoice/command/btDealGpBoC
 junjie/patches/modules/so/client/classes/nc/ui/so/taxinvoice/command/btRevDealBoCommand.class -text
 junjie/patches/modules/so5/META-INF/classes/nc/bs/so/so144/ApplyDMO.class -text
 junjie/patches/modules/so6/META-INF/classes/nc/bs/so/so120/CreditMny.class -text
+junjie/patches/modules/so6/META-INF/classes/nc/bs/so/so120/ReCaculateARCond.class -text
 junjie/patches/modules/uap/META-INF/JJ_queryservice.upm -text
 junjie/patches/modules/uap/META-INF/classes/nc/bs/pub/pf/PfUtilDMO$1.class -text
 junjie/patches/modules/uap/META-INF/classes/nc/bs/pub/pf/PfUtilDMO$2.class -text
