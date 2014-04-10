@@ -496,6 +496,7 @@ junjie/develop/proj/newmodules/so6/.module_prj -text
 junjie/develop/proj/newmodules/so6/.project -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so6/META-INF/module.xml -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so6/src/private/nc/bs/so/so120/CreditMny.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so6/src/private/nc/bs/so/so120/ReCaculateARCond.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/uap/.classpath -text
 junjie/develop/proj/newmodules/uap/.module_prj -text
 junjie/develop/proj/newmodules/uap/.project -text
