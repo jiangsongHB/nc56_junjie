@@ -4,14 +4,20 @@ import nc.ui.pub.change.PfChangeBO_Client;
 import nc.vo.pub.pf.PfUtilActionVO;
 import nc.bs.pub.compiler.*;
 import nc.vo.pub.compiler.PfParameterVO;
+import nc.vo.pub.formulaset.FormulaParseFather;
+
 import java.math.*;
 import java.util.*;
+
 import nc.vo.pub.lang.*;
 import nc.bs.pub.pf.PfUtilTools;
+import nc.bs.scm.pub.BillRowNoDMO;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
 import nc.vo.so.credit.CreditUtil;
 import nc.vo.so.so001.SaleOrderVO;
+import nc.vo.so.so001.SaleorderBVO;
+import nc.vo.so.so001.SaleorderHVO;
 import nc.vo.so.so002.SaleVO;
 import nc.vo.so.so002.SaleinvoiceBVO;
 import nc.vo.so.so002.SaleinvoiceVO;
@@ -42,31 +48,118 @@ try{
 	//####本脚本必须含有返回值,返回DLG和PNL的组件不允许有返回值####
 //*************从平台取得由该动作传入的入口参数。本方法取得需要保存的VO。***********
 	
-	nc.vo.so.so001.SaleOrderVO inObject = null ;
-	nc.vo.pub.AggregatedValueObject invo1=(nc.vo.pub.AggregatedValueObject)getVo();
-	nc.vo.ic.pub.bill.GeneralBillVO invo=(nc.vo.ic.pub.bill.GeneralBillVO)invo1;
+//	nc.vo.so.so001.SaleOrderVO inObject = null ;
+//	nc.vo.pub.AggregatedValueObject invo1=(nc.vo.pub.AggregatedValueObject)getVo();
+//	nc.vo.ic.pub.bill.GeneralBillVO invo=(nc.vo.ic.pub.bill.GeneralBillVO)invo1;
+//	setParameter("GeneralBillVO",invo);
+//	inObject =  (SaleOrderVO) runClass(
+//			"nc.bs.ic.ic211.GeneralHBO",
+//			"findOrderVO",
+//			"&GeneralBillVO:nc.vo.ic.pub.bill.GeneralBillVO",
+//			vo, m_keyHas,m_methodReturnHas);
+//	
+//	if(inObject!=null){
+//		
+//	}
+//	// 2,数据合法，把数据转换为发票。
+//	nc.vo.so.so001.SaleOrderVO inVO = (nc.vo.so.so001.SaleOrderVO) inObject;
+//	nc.vo.so.so002.SaleinvoiceVO outVO = (nc.vo.so.so002.SaleinvoiceVO) changeData(
+//			inVO, "30", "32");
+////	nc.vo.so.so002.SaleinvoiceVO outVO =(SaleinvoiceVO) PfUtilTools.runChangeData( "30", "32",inVO,null);
+	
+	//wanglei 2014-04-13 考虑信用处理，调整为从出库交换
+	
+	nc.vo.so.so001.SaleOrderVO ordObject = null ;
+	nc.vo.pub.AggregatedValueObject invo=(nc.vo.pub.AggregatedValueObject)getVo();
+	nc.vo.ic.pub.bill.GeneralBillVO invVO=(nc.vo.ic.pub.bill.GeneralBillVO)invo;
+	
+	//处理出库单交换到发票
+	nc.vo.so.so002.SaleinvoiceVO outVO1 = (nc.vo.so.so002.SaleinvoiceVO) changeData(
+			invVO, "4C", "32");
+	
+	//获得上游订单VO
 	setParameter("GeneralBillVO",invo);
-	inObject =  (SaleOrderVO) runClass(
+	ordObject =  (SaleOrderVO) runClass(
 			"nc.bs.ic.ic211.GeneralHBO",
 			"findOrderVO",
 			"&GeneralBillVO:nc.vo.ic.pub.bill.GeneralBillVO",
 			vo, m_keyHas,m_methodReturnHas);
 	
-	if(inObject!=null){
+	nc.vo.so.so002.SaleinvoiceVO outVO2 = null;
+	if(ordObject!=null){
+		nc.vo.so.so001.SaleOrderVO inOrdVO = (nc.vo.so.so001.SaleOrderVO) ordObject;
+		nc.vo.so.so001.SaleorderBVO[] inOrdBdVO = inOrdVO.getBodyVOs();
+		//根据上游订单设置一下表头（这里只支持一对一的订单处理）
+		outVO1.getHeadVO().setCreceiptcorpid(inOrdVO.getHeadVO().getCreceiptcorpid());
+		outVO1.getHeadVO().setCcustbaseid(inOrdVO.getHeadVO().getCcustbasid());
+		outVO1.getHeadVO().setCreceiptcustomerid(inOrdVO.getHeadVO().getCreceiptcustomerid());
+		outVO1.getHeadVO().setCsalecorpid(inOrdVO.getHeadVO().getCsalecorpid());
+		outVO1.getHeadVO().setVprintcustname(inOrdVO.getHeadVO().getCccustomername());
+		outVO1.getHeadVO().setCdeptid(inOrdVO.getHeadVO().getCdeptid());
+		outVO1.getHeadVO().setCemployeeid(inOrdVO.getHeadVO().getCemployeeid());
+		outVO1.getHeadVO().setCcurrencyid(inOrdVO.getHeadVO().getCcurrencytypeid());
+		outVO1.getHeadVO().setCreceiptcorpid(inOrdVO.getHeadVO().getCreceiptcorpid());
+		outVO1.getHeadVO().setCtermprotocolid(inOrdVO.getHeadVO().getCtermprotocolid());
 		
+		FormulaParseFather f = new nc.bs.pub.formulaparse.FormulaParse();
+		String[] formulas = new String[]{
+				"custname->getColValue(\"bd_cubasdoc\", \"custname\", \"pk_cubasdoc\", getColValue(\"bd_cumandoc\",\"pk_cubasdoc\",\"pk_cumandoc\",ccustomerid))",
+            };
+		f.addVariable("ccustomerid", inOrdVO.getHeadVO().getCreceiptcorpid());
+		f.setExpressArray(formulas);
+		String[][] vOs = f.getValueSArray();
+		
+		outVO1.getHeadVO().setVprintcustname(vOs[0][0]); 
+		//end;
+		
+		ArrayList<nc.vo.so.so001.SaleorderBVO> al = new ArrayList();
+		for (int i = 0;i<inOrdBdVO.length; i++ ){
+			//只处理订单中的费用和折扣类型
+			if ((inOrdBdVO[i].getLaborflag() != null ||inOrdBdVO[i].getDiscountflag() != null) &&   
+					(inOrdBdVO[i].getLaborflag().booleanValue() || inOrdBdVO[i].getDiscountflag().booleanValue())){
+				al.add(inOrdBdVO[i]);
+			}
+		}
+		if (al.size() >0) {
+			//转单
+			inOrdVO.setChildrenVO(al.toArray(new SaleorderBVO[al.size()]));
+			outVO2 = (nc.vo.so.so002.SaleinvoiceVO) changeData(
+				inOrdVO, "30", "32");
+		}
 	}
+	
+	//合并来源订单的VO和出库的VO，暂时不考虑分单问题了，简化处理
+	
+	nc.vo.so.so002.SaleinvoiceVO outVO = outVO1;
+	if (outVO2 != null){
+		ArrayList<SaleinvoiceBVO> al = new ArrayList();
+		SaleinvoiceBVO[] bvo1 = outVO.getBodyVO();
+		for (int i = 0 ; i< bvo1.length; i++){
+			al.add(bvo1[i]);
+		}
+		SaleinvoiceBVO[] bvo2 = outVO2.getBodyVO();
+		for (int i = 0 ; i< bvo2.length; i++){
+			al.add(bvo2[i]);
+		}
+		outVO.setChildrenVO(al.toArray(new SaleinvoiceBVO[al.size()]));
+	}
+	
+	BillRowNoDMO.setVORowNoByRule(outVO.getChildrenVO(), "32", "crowno");
+	//end 2014-04-13
+	
 	// 2,数据合法，把数据转换为发票。
-	nc.vo.so.so001.SaleOrderVO inVO = (nc.vo.so.so001.SaleOrderVO) inObject;
-	nc.vo.so.so002.SaleinvoiceVO outVO = (nc.vo.so.so002.SaleinvoiceVO) changeData(
-			inVO, "30", "32");
+	//nc.vo.so.so001.SaleOrderVO inOrdVO = (nc.vo.so.so001.SaleOrderVO) ordObject;
+	//nc.vo.so.so002.SaleinvoiceVO outVO2 = (nc.vo.so.so002.SaleinvoiceVO) changeData(
+	//		inOrdVO, "30", "32");
 //	nc.vo.so.so002.SaleinvoiceVO outVO =(SaleinvoiceVO) PfUtilTools.runChangeData( "30", "32",inVO,null);
+	
 	
 	
 	//add by ouyangzhb 2013-01-24 增加表头合计
 	setInvoiceHeadMny(outVO);
 	
-	inObject = null;
-	inVO = null;
+//	inObject = null;
+//	inVO = null;
 	Object retObj = null;
 	// ####################################################################################################
 	// ##该组件为单动作处理开始,必须修改参数,如果不置入参数值，系统默认为null##

@@ -1711,6 +1711,7 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 			SaleorderBVO[] costvo = new SaleorderBVO[costvolist.size()];
 			costvolist.toArray(costvo);
 			for(int a=0;a<costvo.length;a++){
+				costvo[a].setLaborflag(UFBoolean.TRUE);//wangei 2014-04-13 设置一下劳务类型，便于后续处理。
 				childvos.add(costvo[a]);
 			}
 		}
