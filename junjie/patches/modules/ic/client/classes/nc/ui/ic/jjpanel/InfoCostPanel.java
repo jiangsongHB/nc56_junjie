@@ -17,9 +17,11 @@ import nc.ui.pub.beans.UIDialog;
 import nc.ui.pub.beans.UIDialogListener;
 import nc.ui.pub.beans.UIRefPane;
 import nc.ui.pub.bill.BillCardPanel;
+import nc.ui.pub.bill.BillData;
 import nc.ui.pub.bill.BillEditEvent;
 import nc.ui.pub.bill.BillEditListener;
 import nc.ui.pub.bill.BillItem;
+import nc.ui.pub.bill.BillListData;
 import nc.ui.pub.bill.BillListPanel;
 import nc.ui.pub.bill.BillModel;
 import nc.ui.pub.bill.BillScrollPane;
@@ -30,6 +32,7 @@ import nc.vo.ml.IProductCode;
 import nc.vo.pub.AggregatedValueObject;
 import nc.vo.pub.BusinessException;
 import nc.vo.pub.CircularlyAccessibleValueObject;
+import nc.vo.pub.NullFieldException;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.ic.jjvo.InformationCostVO;
@@ -350,7 +353,9 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		if (billListPanel == null) {
 			billListPanel = new BillListPanel();
 			// 加载模板
-			billListPanel.loadTemplet("0001ZZ10000000001TLB");		
+			//billListPanel.loadTemplet("0001ZZ10000000001TLB");
+			billListPanel.loadTemplet("HJ1001", null, ClientEnvironment.getInstance().getUser().getPrimaryKey(),
+					ClientEnvironment.getInstance().getCorporation().getPk_corp());  //wanglei 2014-04-20 调整调用模板方式
 			//billListPanel.getHeadBillModel().setEnabledAllItems(true);
 			billListPanel.addEditListener(this);
 		}
@@ -374,7 +379,13 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		}
 		// 确定按钮动作
 		else if (e.getSource() == this.getBtnOK()) {
+
+			if (!checkNotNullItems()){
+				return;
+			}
+				//wanglei 2014-04-20 增加非空校验
 			icvos = (InformationCostVO[])getBillListPanel().getHeadBillModel().getBodyValueVOs(InformationCostVO.class.getName());
+			
 			if( icvos == null || icvos.length == 0){
 				this.m_closeMark = true;
 				this.closeOK();
@@ -414,6 +425,40 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 
 	}
 
+	private boolean checkNotNullItems()  {
+		// TODO Auto-generated method stub
+        StringBuffer message = null;
+        BillItem[] headtailitems = getBillListPanel().getBillListData().getHeadItems();
+        if (headtailitems != null) {
+        	for (int j = 0; j<getBillListPanel().getHeadBillModel().getRowCount(); j++) {
+	            for (int i = 0; i < headtailitems.length; i++) {
+	                if (headtailitems[i].isNull())
+	                    if (isNULL(getBillListPanel().getBillListData().getHeadBillModel().getValueAt(j, headtailitems[i].getKey()))) {
+	                        if(message == null)
+	                            message = new StringBuffer();
+	                        message.append("第").append(j+1).append("行:");
+	                        message.append("[");
+	                        message.append(headtailitems[i].getName());
+	                        message.append("]");
+	                        message.append(",");
+	                    }
+	            }
+	            //message.append("\n\r");        	
+	            }
+        }
+        if (message != null){
+        	message.append("\n\r");
+        	MessageDialog.showErrorDlg(this, "错误", message.append(" 不允许为空，请检查！").toString());
+        	return false;
+        }
+        return true;
+	}
+	
+    private boolean isNULL(Object o) {
+        if (o == null || o.toString().trim().equals(""))
+            return true;
+        return false;
+    }
 	/**
 	 * @function 关闭标志
 	 * 
