@@ -9157,16 +9157,27 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 				} catch (DAOException e) {
 					Logger.debug(e);
 				}
-				newVO.setM_ntaxmoney(vo.getNoriginalcurmny());
-				newVO.setNtotalmoney(vo.getNoriginalcurmny());
-				newVO.setNcbtotalmoney(vo.getNoriginalcurmny());
-				newVO.setNcbtaxprice(vo.getNoriginalcurprice());
-				newVO.setNzgyfnotaxmoney(vo.getNoriginalcurmny());
+//				newVO.setM_ntaxmoney(vo.getNoriginalcurmny());   //wanglei 2014-04-20 有点乱。。。
+//				newVO.setNtotalmoney(vo.getNoriginalcurmny());
+//				newVO.setNcbtotalmoney(vo.getNoriginalcurmny());
+//				newVO.setNcbtaxprice(vo.getNoriginalcurprice());
+//				newVO.setNzgyfnotaxmoney(vo.getNoriginalcurmny());
+//				newVO.setNzgyfnotaxprice(vo.getNoriginalcurprice());
+//				newVO.setNdiscountrate(null);
+//				newVO.setNoriginalnetprice(vo.getNoriginalcurprice());
+//				newVO.setNorgnettaxprice(vo.getNoriginalcurprice());
+//				newVO.setNoriginalcurmny(vo.getNoriginalcurmny());
+//				newVO.setNoriginaltaxpricemny(vo.getNoriginalcurmny());
+				newVO.setM_ntaxmoney(vo.getNsummny().sub(vo.getNmny()));
+				newVO.setNtotalmoney(vo.getNoriginalcursummny());
+				newVO.setNcbtotalmoney(vo.getNsummny());
+				newVO.setNcbtaxprice(vo.getNtaxprice());
+				newVO.setNzgyfnotaxmoney(vo.getNmny());
 				newVO.setNzgyfnotaxprice(vo.getNoriginalcurprice());
 				newVO.setNdiscountrate(null);
 				newVO.setNoriginalnetprice(vo.getNoriginalcurprice());
-				newVO.setNorgnettaxprice(vo.getNoriginalcurprice());
-				newVO.setNoriginalcurmny(vo.getNoriginalcurmny());
+				newVO.setNorgnettaxprice(vo.getNtaxprice());
+				newVO.setNoriginalcurmny(vo.getNmny());
 				newVO.setNoriginaltaxpricemny(vo.getNoriginalcurmny());
 				newVO.setNfeemny(null);
 				newVO.setCfeeid(null);
@@ -9177,7 +9188,7 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 				newVO.setNinassistnum(null);
 				newVO.setCbaseid(pk_invbasdoc);
 				newVO.setCmangid(pk_invmandoc);
-				newVO.setNtaxrate(null);
+				newVO.setNtaxrate(vo.getNtaxrate());  //wanglei 2014-04-20 
 				newVO.setVuserdef18("tureFree");// 添加是否为费用暂估的标志 by 付世超
 												// 2010-10-26
 				esvos.add(newVO);

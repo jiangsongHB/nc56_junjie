@@ -449,7 +449,18 @@ public class InformationCostVOMeta extends SmartVOMeta{
 			sm.setPersistence(true);
 			columns.put(sm.getName(), sm);
 			
-			
+			//税率  //wanglei 2014-04-20 增加税率字段
+			sm = new SmartFieldMeta();
+			sm.setType(SmartFieldMeta.JAVATYPE_UFDOUBLE);
+			sm.setDbType(java.sql.Types.NUMERIC);
+			sm.setName("ntaxrate");
+			sm.setColumn("ntaxrate");
+			sm.setColumnDef(null);
+			sm.setAllowNull(true);
+			sm.setPrecision(8);
+			sm.setLength(20);
+			sm.setPersistence(true);
+			columns.put(sm.getName(), sm);
 			setColumns(columns);
 
 		}

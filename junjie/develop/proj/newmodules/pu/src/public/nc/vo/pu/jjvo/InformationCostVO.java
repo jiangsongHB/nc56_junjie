@@ -21,7 +21,14 @@ public  class InformationCostVO extends SmartVO {
 	 * 字段详细信息请参考nc.vo.pu.jjvo.InformationCostVOMeta.java
 	 */
 	
-	
+	//税率  //wanglei 2014-04-20 增加税率字段 （这个类怎么还弄两套呢）
+	public  UFDouble getNtaxrate(){
+		return  (UFDouble)getAttributeValue("ntaxrate");
+	}
+	public void setNtaxrate(UFDouble ntaxrate){
+		setAttributeValue("ntaxrate", ntaxrate);
+	}
+	//end 
 
 	public  UFBoolean getIsmny(){
 		return  (UFBoolean)getAttributeValue("ismny");
