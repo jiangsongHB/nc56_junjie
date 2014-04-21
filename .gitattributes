@@ -463,6 +463,8 @@ junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/command/SaveBoC
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/command/btDealBoCommand.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/command/btDealGpBoCommand.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/client/nc/ui/so/taxinvoice/command/btRevDealBoCommand.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pf/changedir/CHG30TO32.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pf/changedir/CHG4CTO32.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_30_OrderFinish.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_30_SoBlankout.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_APPROVE.java -text svneol=unset#text/plain
@@ -471,6 +473,7 @@ junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_EDIT.java -
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_SAVE.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_UNAPPROVE.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32H_WRITE.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/private/nc/bs/pub/action/N_32_APPROVE.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/RemainOvertimeCheckTask.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/bs/so/backtask/soremain/SaleStayOrderClose.java -text
 junjie/develop/proj/newmodules/so/src/private/nc/impl/scm/so/pub/CheckApproveDMO.java -text svneol=unset#text/plain
@@ -488,6 +491,7 @@ junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceDealVO.java -tex
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceHeaderVO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceItemVO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/public/nc/vo/so/TaxInvoiceVO.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so/src/public/nc/vo/so/so002/OutToInvoiceChangeVO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/test/nc/md/model/access/AbstractAttributeAccessor.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/test/nc/md/model/access/javamap/AggVOStyle.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/test/nc/vo/ml/AbstractNCLangRes.java -text svneol=unset#text/plain
