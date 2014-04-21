@@ -877,6 +877,7 @@ junjie/patches/modules/scmpub/client/classes/nc/ui/scmpub/taxinvoicetype/MyDeleg
 junjie/patches/modules/scmpub/client/classes/nc/ui/scmpub/taxinvoicetype/MyEventHandler.class -text
 junjie/patches/modules/scmpub/client/classes/nc/ui/scmpub/taxinvoicetype/command/SaveBoCommand.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/pf/changedir/CHG30TO32.class -text
+junjie/patches/modules/so/META-INF/classes/nc/bs/pf/changedir/CHG4CTO32.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/pub/action/N_30_OrderFinish.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/pub/action/N_30_SoBlankout.class -text
 junjie/patches/modules/so/META-INF/classes/nc/bs/pub/action/N_32H_APPROVE.class -text

@@ -101,7 +101,11 @@ public class CHG30TO32 extends VOConversion {
         "B_nsubquoteprice->B_nqtprc", 
         "B_nsubquotetaxnetprice->B_nqttaxnetprc",
         "B_nsubquotetaxprice->B_nqttaxprc",
-
+        
+        //wanglei 2014-04-12
+        "B_nsubcursummny->B_noriginalcursummny",
+        "B_nsubsummny->B_nsummny",
+        //end
         "B_cquoteunitid->B_cquoteunitid", 
         "B_nquoteunitrate->B_nqtscalefactor", 
         "B_vfree2->B_vfree2", "B_vfree3->B_vfree3", "B_vfree4->B_vfree4",
@@ -117,9 +121,7 @@ public class CHG30TO32 extends VOConversion {
         "B_cupreceipttype->H_creceipttype",
         "B_cupsourcebillcode->H_vreceiptcode",
         "B_vupsourcerowno->B_crowno",
-        //wanglei 2013-12-19
-        "B_crowno->B_crowno",
-        //end
+
         "B_cupsourcebillid->H_csaleid",
         "B_cupsourcebillbodyid->B_corder_bid",
         
