@@ -856,7 +856,7 @@ public class MDioDialog extends UIDialog implements ActionListener,
 						.getItemValue(getGenSelectRowID(), "cgeneralbid"),null);
 			}
 			UFDouble sum_sssl = new UFDouble(0);
-			UFDouble sum_factoryWeight=new UFDouble(0);
+			UFDouble sum_factoryWeight=new UFDouble(0); 
 			for (int i = 0; i < mdvos.length; i++) {
 				sum_sssl = sum_sssl.add(mdvos[i].getSrkzl());
 				sum_factoryWeight=sum_factoryWeight.add(mdvos[i].getDef1()==null?new UFDouble(0):mdvos[i].getDef1());//MeiChao 2010-12-13
@@ -946,6 +946,11 @@ public class MDioDialog extends UIDialog implements ActionListener,
 			getBillCardPanel().getBillModel().setValueAt(0, i - 1, "djfx");
 		}
 
+		//wanglei 2014-03-28 单独处理一下期初单据
+			if(ui.getBillType().equalsIgnoreCase("40")){
+				rk = UFBoolean.TRUE;
+			}
+		//end
 		// 设置 码单出入库方向
 		if (rk.booleanValue()) {
 			getBillCardPanel().getBillModel().setValueAt(0, i - 1, "crkfx");
