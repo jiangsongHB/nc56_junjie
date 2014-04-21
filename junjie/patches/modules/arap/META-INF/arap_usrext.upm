@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="gb2312"?>
+<module name="arapUsrExtEJB">
+  <public>
+  	<component priority="0" singleton="true" supportAlias="true" remote="true" tx="CMT">
+  	  <interface>nc.itf.arap.report.IExtInfo</interface>
+      <implementation>nc.impl.arap.report.ExtInfoImpl</implementation>
+    </component>
+    
+   </public>
+</module>
+
