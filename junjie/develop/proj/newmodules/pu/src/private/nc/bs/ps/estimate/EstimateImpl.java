@@ -9168,17 +9168,22 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 //				newVO.setNorgnettaxprice(vo.getNoriginalcurprice());
 //				newVO.setNoriginalcurmny(vo.getNoriginalcurmny());
 //				newVO.setNoriginaltaxpricemny(vo.getNoriginalcurmny());
-				newVO.setM_ntaxmoney(vo.getNsummny().sub(vo.getNmny()));
+				//newVO.setn
+				newVO.setNorgtaxmoney(vo.getNoriginalcursummny().sub(vo.getNoriginalcurmny()));
+				newVO.setNtaxmoney(vo.getNsummny().sub(vo.getNmny()));
 				newVO.setNtotalmoney(vo.getNoriginalcursummny());
 				newVO.setNcbtotalmoney(vo.getNsummny());
 				newVO.setNcbtaxprice(vo.getNtaxprice());
+				newVO.setNtaxprice(vo.getNoriginalcurprice());
+				newVO.setNnetprice(vo.getNoriginalcurprice());
+				newVO.setNnettaxprice(vo.getNoriginalcurprice());
 				newVO.setNzgyfnotaxmoney(vo.getNmny());
 				newVO.setNzgyfnotaxprice(vo.getNoriginalcurprice());
-				newVO.setNdiscountrate(null);
+				newVO.setNdiscountrate(new UFDouble(100));
 				newVO.setNoriginalnetprice(vo.getNoriginalcurprice());
-				newVO.setNorgnettaxprice(vo.getNtaxprice());
+				newVO.setNorgnettaxprice(vo.getNoriginalcurprice());
 				newVO.setNoriginalcurmny(vo.getNmny());
-				newVO.setNoriginaltaxpricemny(vo.getNoriginalcurmny());
+				newVO.setNoriginaltaxpricemny(vo.getNoriginalcursummny());
 				newVO.setNfeemny(null);
 				newVO.setCfeeid(null);
 				// newVO.setPk_invoicecorp(vo.getCcostunitid());
