@@ -9174,14 +9174,14 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 				newVO.setNtotalmoney(vo.getNoriginalcursummny());
 				newVO.setNcbtotalmoney(vo.getNsummny());
 				newVO.setNcbtaxprice(vo.getNtaxprice());
-				newVO.setNtaxprice(vo.getNoriginalcurprice());
+				newVO.setNtaxprice(vo.getNtaxprice());
 				newVO.setNnetprice(vo.getNoriginalcurprice());
-				newVO.setNnettaxprice(vo.getNoriginalcurprice());
+				newVO.setNnettaxprice(vo.getNtaxprice());
 				newVO.setNzgyfnotaxmoney(vo.getNmny());
 				newVO.setNzgyfnotaxprice(vo.getNoriginalcurprice());
 				newVO.setNdiscountrate(new UFDouble(100));
 				newVO.setNoriginalnetprice(vo.getNoriginalcurprice());
-				newVO.setNorgnettaxprice(vo.getNoriginalcurprice());
+				newVO.setNorgnettaxprice(vo.getNtaxprice());
 				newVO.setNoriginalcurmny(vo.getNmny());
 				newVO.setNoriginaltaxpricemny(vo.getNoriginalcursummny());
 				newVO.setNfeemny(null);
