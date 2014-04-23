@@ -493,7 +493,8 @@ public class ArapForGYL {
 						newItem.setDfshl(adjust.getShl().multiply(
 								ArapConstant.INT_NEGATIVE_ONE).sub(sumYE));
 					}
-					newItem.setYbye(newItem.getDfshl().multiply(newItem.getDj()));
+					//newItem.setYbye(newItem.getDfshl().multiply(newItem.getDj()));
+					newItem.setYbye(newItem.getDfshl().multiply(newItem.getHsdj()));  //wanglei 2014-04-23 根据含税单价计算余额
 					newItem.setDj(null);
 					newItem.setHsdj(null);
 					newItem.setDfybje(newItem.getYbye());
