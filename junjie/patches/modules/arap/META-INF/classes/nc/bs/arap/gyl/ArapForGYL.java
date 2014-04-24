@@ -494,7 +494,9 @@ public class ArapForGYL {
 								ArapConstant.INT_NEGATIVE_ONE).sub(sumYE));
 					}
 					//newItem.setYbye(newItem.getDfshl().multiply(newItem.getDj()));
-					newItem.setYbye(newItem.getDfshl().multiply(newItem.getHsdj()));  //wanglei 2014-04-23 根据含税单价计算余额
+					//newItem.setYbye(newItem.getDfshl().multiply(newItem.getHsdj()));  //wanglei 2014-04-23 根据含税单价计算余额
+					newItem.setYbye(newItem.getYbye().multiply(
+							ArapConstant.INT_NEGATIVE_ONE));   //wanglei 2014-04-23 数量冲销完，直接取余额冲掉不完事？
 					newItem.setDj(null);
 					newItem.setHsdj(null);
 					newItem.setDfybje(newItem.getYbye());
@@ -579,11 +581,23 @@ public class ArapForGYL {
 					temp[0].setFbye(temp[0].getJffbje());
 					temp[0].setBbye(temp[0].getJfbbje());
 				} else {
+					//wangeli 2014-04-23 保存一下原始的金额和数量
+					UFDouble dfybje = temp[0].getDfybje(); 
+					UFDouble dfshl = temp[0].getDfshl();
+					//end
 					temp[0].setDfshl(tzshl);
 					temp[0] = ArapDjCalculator.getInstance().calculateVO(
 							temp[0], "dfshl", clrq,
 							((DJZBHeaderVO) source.getParentVO()).getDjdl(),
 							this.getParam(pk_corp, ly));
+					//wanglei 2014-04-23 骏杰历史数据错误，导致的问题，根据数量金额重新计算冲销的金额
+					temp[0].setDfybje(tzshl.multiply(dfybje.div(dfybje)).setScale(2, UFDouble.ROUND_HALF_UP).multiply(
+							ArapConstant.INT_NEGATIVE_ONE));
+					temp[0] = ArapDjCalculator.getInstance().calculateVO(
+							temp[0], "dfybje", clrq,
+							((DJZBHeaderVO) source.getParentVO()).getDjdl(),
+							this.getParam(pk_corp, ly));
+					//end
 					temp[0].setYbye(temp[0].getDfybje());
 					temp[0].setFbye(temp[0].getDffbje());
 					temp[0].setBbye(temp[0].getDfbbje());

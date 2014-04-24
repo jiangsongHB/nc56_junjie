@@ -6878,7 +6878,17 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 //	        "naccumwashnum"
 //	      }, saVmiHid, "dr=0");
 //	    }
+	    
+	    //wanglei 2014-04-24 根据费用发票找到上游的暂估应付
+	    HashMap htAccumWashNum = new HashMap();
+	    if (saGeneralBid != null && saGeneralBid.length > 0) {
+	      htAccumWashNum = dmo.queryArrayValues("arap_djfb", "fb_oid", new String[] {
+	        "shlye"
+	      }, saGeneralBid, "dr=0");
+	    }
+	    //end
 	    // 根据 实收数量 ==? （累计回冲数量 + 本次回冲数量）来组织 是否最后一次冲减
+	    
 	    String strGeneralBid = null;
 	    String strInvoiceHid = null;
 	    String strAuditPsnId = null;
@@ -6985,7 +6995,8 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	      }
 
 //	      washVO[i].setIsdone(ufbLast[i]);
-	      washVO[i].setIsdone(UFBoolean.TRUE);
+	      //washVO[i].setIsdone(UFBoolean.TRUE);
+	      washVO[i].setIsdone(washVO[i].getShl().equals((UFDouble)htAccumWashNum.get(washVO[i].getDdhh()))? UFBoolean.TRUE : UFBoolean.FALSE);  //wanglei 2014-04-24 根据是否最后一次冲销设置标志
 	    }
 	    //
 	    String strClbh = invoiceDMO.updateClbh(washVO, unitCode, null, false);
