@@ -1071,10 +1071,12 @@ public class SourceRefDlgStoreToPi extends SourceRefDlg {
                     .multiply(
                     		voaInvItem[j].getNoriginalcurprice() == null ? nc.vo.scm.pu.VariableConst.ZERO : voaInvItem[j].getNoriginalcurprice()));
                 voaInvItem[j].setNtaxrate(body.getNtaxrate());
+//                voaInvItem[j].setNoriginaltaxmny(voaInvItem[j].getNinvoicenum().multiply(voaInvItem[j].getNoriginalcurprice())
+//                    .sub(
+//                        voaInvItem[j].getNinvoicenum().multiply(
+//                        		voaInvItem[j].getNoriginalcurprice() == null ? nc.vo.scm.pu.VariableConst.ZERO : voaInvItem[j].getNoriginalcurprice())));
                 voaInvItem[j].setNoriginaltaxmny(voaInvItem[j].getNinvoicenum().multiply(voaInvItem[j].getNoriginalcurprice())
-                    .sub(
-                        voaInvItem[j].getNinvoicenum().multiply(
-                        		voaInvItem[j].getNoriginalcurprice() == null ? nc.vo.scm.pu.VariableConst.ZERO : voaInvItem[j].getNoriginalcurprice())));
+                    .multiply(body.getNtaxrate()).div(new UFDouble(100.00)));
                 voaInvItem[j].setNoriginalsummny(voaInvItem[j].getNoriginalcurmny() == null
                     && voaInvItem[j].getNoriginaltaxmny() == null ? null : voaInvItem[j].getNoriginalcurmny().add(
                     voaInvItem[j].getNoriginaltaxmny()));
