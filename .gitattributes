@@ -592,6 +592,7 @@ junjie/patches/modules/arap/client/classes/nc/ui/arap/ageanalyse/AgeAnalyseYSPan
 junjie/patches/modules/arap/client/classes/nc/ui/arap/ageanalyse/AgeAnalyseYSPane$MySwingWork.class -text
 junjie/patches/modules/arap/client/classes/nc/ui/arap/ageanalyse/AgeAnalyseYSPane.class -text
 junjie/patches/modules/arap/client/classes/nc/ui/arap/newlistquery/DataManagerList.class -text
+junjie/patches/modules/arap/client/classes/nc/ui/arap/pub/ReportTools.class -text
 junjie/patches/modules/cc/META-INF/lib/cc.jar -text
 junjie/patches/modules/cdm/client/classes/nc/ui/fac/account/pub/RefTakenProccessor.class -text
 junjie/patches/modules/cmp/client/classes/nc/ui/arap/ref/PayStateRefModel.class -text
