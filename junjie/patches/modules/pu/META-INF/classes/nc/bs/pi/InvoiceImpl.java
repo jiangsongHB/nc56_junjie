@@ -6996,7 +6996,15 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 
 //	      washVO[i].setIsdone(ufbLast[i]);
 	      //washVO[i].setIsdone(UFBoolean.TRUE);
-	      washVO[i].setIsdone(washVO[i].getShl().equals((UFDouble)htAccumWashNum.get(washVO[i].getDdhh()))? UFBoolean.TRUE : UFBoolean.FALSE);  //wanglei 2014-04-24 根据是否最后一次冲销设置标志
+	      objTemp = htAccumWashNum.get(washVO[i].getDdhh());
+	      UFDouble tmpNum = UFDouble.ZERO_DBL;
+	      if (objTemp != null) {
+	        oaTemp = (Object[]) objTemp;
+	        if (oaTemp.length > 0 && oaTemp[0] != null) {
+	        	tmpNum = (new UFDouble(oaTemp[0].toString()));
+	        }
+	      }
+	      washVO[i].setIsdone(washVO[i].getShl().equals(tmpNum)? UFBoolean.TRUE : UFBoolean.FALSE);  //wanglei 2014-04-24 根据是否最后一次冲销设置标志
 	    }
 	    //
 	    String strClbh = invoiceDMO.updateClbh(washVO, unitCode, null, false);
