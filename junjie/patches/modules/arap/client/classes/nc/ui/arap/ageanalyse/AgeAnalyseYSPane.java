@@ -1270,8 +1270,8 @@ private void addExtInfo(Object[] oBodyData) throws DAOException, InstantiationEx
 		((ClientVO[])oBodyData[0])[i].addField("ext_yqje", IBillItem.DECIMAL, bbye.sub(bbye0));
 		((ClientVO[])oBodyData[0])[i].addField("ext_ywy", IBillItem.STRING, extinfo.get("ywymc"));
 		((ClientVO[])oBodyData[0])[i].addField("ext_ywbm", IBillItem.STRING, extinfo.get("bmmc"));
-		//((ClientVO[])oBodyData[0])[i].addField("ext_djrq", IBillItem.STRING,"");
-		((ClientVO[])oBodyData[0])[i].addField("ext_djrq", IBillItem.STRING, srv.qryBusiDatebyCust(pk_org, (String)((ClientVO[])oBodyData[0])[i].getAttributeValue("fb_hbbm")));
+		((ClientVO[])oBodyData[0])[i].addField("ext_djrq", IBillItem.STRING,extinfo.get("djrq"));
+		//((ClientVO[])oBodyData[0])[i].addField("ext_djrq", IBillItem.STRING, srv.qryBusiDatebyCust(pk_org, (String)((ClientVO[])oBodyData[0])[i].getAttributeValue("fb_hbbm")));
 	}
 }
 	//	[0]= QryObjVO  (ฑ๊สถ=4679)
