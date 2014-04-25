@@ -376,6 +376,7 @@ junjie/develop/proj/newmodules/pu/src/client/nc/ui/pu/jjpanel/InvDetailDialog.ja
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/pu/jjpanel/InvDetailDialog421.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/rc/receive/ArriveUI.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/sourceref/arap/SourceBillDlgF1To25.java -text
+junjie/develop/proj/newmodules/pu/src/client/nc/ui/sourceref/pi/SourceRefDlgStoreToPi.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pi/InvoiceDMO.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pi/InvoiceImpl.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/estimate/EstimateImpl.java -text
