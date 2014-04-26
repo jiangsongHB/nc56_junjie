@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -453,7 +455,9 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 		}
 		EstimateVO VO[] = new EstimateVO[v1.size()];
 		v1.copyInto(VO);
-
+		//wanglei 2014-04-26 
+		HashMap<String, String> hbill = new HashMap();
+		//
 		if (VO != null && VO.length > 0) {
 			v1 = new Vector();
 			for (int i = 0; i < VO.length; i++) {
@@ -467,8 +471,33 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 				tempVO.setChildrenVO(new DJZBItemVO[] { bodyVO });
 
 				v1.addElement(tempVO);
+				hbill.put(VO[i].getCgeneralhid(), VO[i].getCgeneralhid()); //wanglei 2014-04-26
 			}
-
+			//wanglei  2014-04-26 
+			Iterator<String> it = hbill.keySet().iterator();
+			while (it.hasNext()) {
+				String hid = it.next();
+				InformationCostVO[] infovos = null;
+				AdapterPuToMm query = new AdapterPuToMm();
+				try {
+					infovos = (InformationCostVO[]) query.querySmartVOs(
+							InformationCostVO.class, null, " dr = 0 and cbillid = '" + hid + "'");
+				} catch (Exception e) {
+					Logger.debug(e);
+				}	
+				
+				for (int j = 0 ; j < infovos.length ; j ++ ) {
+					DJZBItemVO bodyVO = new DJZBItemVO();
+					bodyVO.setDdlx(hid); // 上层单据ID
+					bodyVO.setDdhh(infovos[j].getPk_informantioncost()); // 上层单据行ID(暂传“上层单据ID”)
+					DJZBVO tempVO = new DJZBVO();
+					tempVO.setParentVO(new DJZBHeaderVO());
+					tempVO.setChildrenVO(new DJZBItemVO[] { bodyVO });
+					v1.addElement(tempVO);
+				}
+			}
+			//end
+			
 			DJZBVO apVOs[] = new DJZBVO[v1.size()];
 			v1.copyInto(apVOs);
 
@@ -9196,6 +9225,12 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 				newVO.setNtaxrate(vo.getNtaxrate());  //wanglei 2014-04-20 
 				newVO.setVuserdef18("tureFree");// 添加是否为费用暂估的标志 by 付世超
 												// 2010-10-26
+				
+				//wanglei 2014-04-26 重置一下来源行信息，取费用信息的行id
+				//newVO.setM_pk_costinfo(vo.getPk_informantioncost()); 
+				newVO.setCgeneralbid(vo.getPk_informantioncost());
+				//end
+				
 				esvos.add(newVO);
 			}
 
@@ -9467,6 +9502,8 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 				bodyVO[0].setKslb(VOs[i].getIdiscounttaxtype());
 				// 税率
 				bodyVO[0].setSl(VOs[i].getNtaxrate());
+				//wanglei 2014-04-26   交换费用行
+				//bodyVO[0].setPk_costinfo(VOs[i].getM_pk_costinfo());
 				// bodyVO[0].setYwybm(VOs[i].getCoperatorid());// 业务员
 				v2.addElement(bodyVO[0]);
 			}

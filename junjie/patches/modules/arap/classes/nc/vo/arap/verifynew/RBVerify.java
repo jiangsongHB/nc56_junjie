@@ -241,11 +241,11 @@ public void setM_rulevo(DefaultVerifyRuleVO m_rulevo) {
 				for(int i =0; i< jf.size();i++){
 					VerifyVO vo =(VerifyVO)jf.elementAt(i);	
 					
-					//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销
-					String djpk=vo.getM_djzfpk();
-					
-					//add by ouyangzhb 2013-11-01 获取表体主键，用来比较核销的下游行
-					String djfbpk=vo.getM_djfbPk();
+//					//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销
+//					String djpk=vo.getM_djzfpk();
+//					
+//					//add by ouyangzhb 2013-11-01 获取表体主键，用来比较核销的下游行
+//					String djfbpk=vo.getM_djfbPk();
 					
 					if(ArapCommonTool.isZero(vo.getM_jsybje()))
 						continue;
@@ -254,27 +254,27 @@ public void setM_rulevo(DefaultVerifyRuleVO m_rulevo) {
 						if(ArapCommonTool.isZero(vo2.getM_jsybje()))
 							continue;
 							
-						//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销
-						String djpk2=vo2.getM_djzfpk();
-						if(djpk == djpk2){
-							continue;
-						}
-						//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销end 
-						//add by ouyangzhb 2013-11-01 如果来源是暂估应付回冲的，所核销的单据必须是有上下游关系的单据才能核销
-						IUAPQueryBS bsQuery = NCLocator.getInstance().lookup(IUAPQueryBS.class);
-						if(vo2.getZgyf() == 2){
-							String sql = "select fb.ddhh from arap_djfb fb where fb.fb_oid='"+vo2.getM_djfbPk()+"'";
-				    		try {
-								HashMap<String, String> map = (HashMap<String, String>) bsQuery.executeQuery(sql, new MapProcessor());
-								String djpk3 = map.get("ddhh");
-								if(djpk3 != null &&  !djfbpk.equals(djpk3)){
-									continue ;
-								}
-							} catch (BusinessException e) {
-								e.printStackTrace();
-							}
-						}
-						//add by ouyangzhb 2013-11-01 如果来源是暂估应付回冲的，所核销的单据必须是有上下游关系的单据才能核销
+//						//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销
+//						String djpk2=vo2.getM_djzfpk();
+//						if(djpk == djpk2){
+//							continue;
+//						}
+//						//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销end 
+//						//add by ouyangzhb 2013-11-01 如果来源是暂估应付回冲的，所核销的单据必须是有上下游关系的单据才能核销
+//						IUAPQueryBS bsQuery = NCLocator.getInstance().lookup(IUAPQueryBS.class);
+//						if(vo2.getZgyf() == 2){
+//							String sql = "select fb.ddhh from arap_djfb fb where fb.fb_oid='"+vo2.getM_djfbPk()+"'";
+//				    		try {
+//								HashMap<String, String> map = (HashMap<String, String>) bsQuery.executeQuery(sql, new MapProcessor());
+//								String djpk3 = map.get("ddhh");
+//								if(djpk3 != null &&  !djfbpk.equals(djpk3)){
+//									continue ;
+//								}
+//							} catch (BusinessException e) {
+//								e.printStackTrace();
+//							}
+//						}
+//						//add by ouyangzhb 2013-11-01 如果来源是暂估应付回冲的，所核销的单据必须是有上下游关系的单据才能核销
 				
 						
 						doBusiness(vo, vo2);
@@ -371,8 +371,8 @@ public void setM_rulevo(DefaultVerifyRuleVO m_rulevo) {
 				for(int i =0; i< jf.size();i++){
 					VerifyVO vo =(VerifyVO)jf.elementAt(i);
 					
-					//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销
-					String djpk=vo.getM_djzfpk();
+//					//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销
+//					String djpk=vo.getM_djzfpk();
 					
 					if(ArapCommonTool.isZero(vo.getM_jsybje()))
 						continue;
@@ -381,12 +381,12 @@ public void setM_rulevo(DefaultVerifyRuleVO m_rulevo) {
 						if(ArapCommonTool.isZero(vo2.getM_jsybje()))
 							continue;
 							
-						//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销
-						String djpk2=vo2.getM_djzfpk();
-						if(djpk == djpk2){
-							continue;
-						}
-						//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销end 
+//						//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销
+//						String djpk2=vo2.getM_djzfpk();
+//						if(djpk == djpk2){
+//							continue;
+//						}
+//						//add by ouyangzhb 2013-10-29 获取核销单据主表主键，如果来源是同一张单的，则不需要进行核销end 
 						
 						doBusiness(vo, vo2);
 						if(ArapCommonTool.isZero(vo.getM_jsybje()))
