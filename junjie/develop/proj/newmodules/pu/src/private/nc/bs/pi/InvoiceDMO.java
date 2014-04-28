@@ -8764,7 +8764,7 @@ public void updateItems(InvoiceItemVO[] invoiceItems) throws java.sql.SQLExcepti
       		//
       		IAdjuestVO tempVO = new IAdjuestVO();
       		tempVO.setCinvoice_bid(bodyVO.getCinvoice_bid());
-	       if(bodyVO.getCsourcebillrowid() == null ){
+	       if(bodyVO.getCupsourcebillrowid() == null ){  //wanglei 2014-04-28 如果是自制的入库单，没有订单信息，仍然需要回冲。
 	    	   continue;
 	       }
           tempVO.setDdhh(bodyVO.getCupsourcebillrowid());
