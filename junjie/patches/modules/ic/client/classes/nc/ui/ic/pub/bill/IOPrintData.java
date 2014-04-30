@@ -244,7 +244,7 @@ public class IOPrintData implements IDataSource {
 			 * add by ouyangzhb 2012-04-09 采购入库单的费用信息折行打印，分单双行打印
 			 */
 			InformationCostVO[] inforcost = (InformationCostVO[]) this.m_pnlCard
-					.getBillData().getBodyValueChangeVOs(
+					.getBillData().getBodyValueVOs(
 							"jj_scm_informationcost",
 							InformationCostVO.class.getName());
 
@@ -261,17 +261,22 @@ public class IOPrintData implements IDataSource {
 					
 				}
 				//处理可能取到的数据为负数的情况！add by zhang xiao wei 2013-08-15
-				if (inforcost[0].getNnumber() != null
-						&& inforcost[0].getNnumber().compareTo(
-								UFDouble.ZERO_DBL) != 0
-						&& sumnum.compareTo(UFDouble.ZERO_DBL) == 0) {
-					if (inforcost[0].getNnumber().compareTo(UFDouble.ZERO_DBL) > 0) {
-						sumnum = inforcost[0].getNnumber();
-					} else {
-						sumnum = new UFDouble(Math.abs(inforcost[0]
-								.getNnumber().toDouble()));
-					}
-
+//				if (inforcost[0].getNnumber() != null
+//						&& inforcost[0].getNnumber().compareTo(
+//								UFDouble.ZERO_DBL) != 0
+//						&& sumnum.compareTo(UFDouble.ZERO_DBL) == 0) {
+//					if (inforcost[0].getNnumber().compareTo(UFDouble.ZERO_DBL) > 0) {
+//						sumnum = inforcost[0].getNnumber();
+//					} else {
+//						sumnum = new UFDouble(Math.abs(inforcost[0]
+//								.getNnumber().toDouble()));
+//					}
+//
+//				}
+				//wanglei 2014-04-30 取出入库单的数量作为计算的依据
+				GeneralBillItemVO[] items = (GeneralBillItemVO[])this.m_pnlCard.getBillModel().getBodyValueVOs(GeneralBillItemVO.class.getName());
+				for (int i = 0 ; i < items.length; i++) {
+					sumnum = sumnum.add(items[i].getNinnum());
 				}
 			//end 
 				costprice = sumcostmny.div(sumnum);
