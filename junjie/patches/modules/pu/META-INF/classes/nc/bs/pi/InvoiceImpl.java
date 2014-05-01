@@ -14,6 +14,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -6884,7 +6885,7 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	    if (saGeneralBid != null && saGeneralBid.length > 0) {
 	      htAccumWashNum = dmo.queryArrayValues("arap_djfb", "fb_oid", new String[] {
 	        "shlye"
-	      }, saGeneralBid, "dr=0");
+	      }, saGeneralBid, " dr=0 and bbye <> 0.0 ");   //wanglei 2014-04-30 排除已经冲减完成的行
 	    }
 	    //end
 	    // 根据 实收数量 ==? （累计回冲数量 + 本次回冲数量）来组织 是否最后一次冲减
@@ -7012,9 +7013,46 @@ public void adjustForFeeZGYF(InvoiceVO[] voaInv) throws BusinessException {
 	     * 调用应付提供的保存+冲减方法冲减暂估应付 后两个参数: lylx (来源类型 0 订单行ID 1 出库单行ID 2 发票行ID ly: 0 销售
 	     * 1 采购
 	     */
+	    //wanglei 2014-04-30  根据发票的csourcebillrowid 拆分成两种处理方式
+	    ArrayList<IAdjuestVO> alinv1 = new ArrayList<IAdjuestVO>();
+	    ArrayList<IAdjuestVO> alinv2 = new ArrayList<IAdjuestVO>();
+	    ArrayList<String> alBid = new ArrayList<String>();
+	    HashMap<String,String> htSoureBillRow = new HashMap();
+	    HashMap<String,IAdjuestVO> htWastVO = new HashMap();
+	    if(washVO!= null && washVO.length > 0 ){
+	    	for (int i =0 ; i<washVO.length ; i++){
+	    		alBid.add(washVO[i].getCinvoice_bid());
+	    		htWastVO.put(washVO[i].getCinvoice_bid(), washVO[i]);
+	    	}
+	    	String[] sbid = new String[alBid.size()];
+	    	alBid.toArray(sbid);
+	    	htSoureBillRow = dmo.queryArrayValues("po_invoice_b", "cinvoice_bid", new String[] {
+	    	        "csourcebillrowid"
+	    	      }, sbid, " dr=0 ");
+	    }
 	    
+	    Iterator<String> it = htSoureBillRow.keySet().iterator();
+		while (it.hasNext()) {
+			String invBid = it.next();
+			objTemp = htSoureBillRow.get(invBid);
+			oaTemp = (Object[])objTemp;
+			if (oaTemp.length > 0 && oaTemp[0] != null )
+			{
+				alinv1.add(htWastVO.get(invBid));
+			}else{
+				alinv2.add(htWastVO.get(invBid));
+			}
+		}
+	    IAdjuestVO[] washVO1 = new IAdjuestVO[alinv1.size()];
+	    IAdjuestVO[] washVO2 = new IAdjuestVO[alinv2.size()];
+	    
+	    alinv1.toArray(washVO1);
+	    alinv2.toArray(washVO2);
 	    //add by ouyangzhb 2011-05-09 把lylx和ly 设为3，后面的程序会为这两个值设置相应的处理代码
-	    iArap.Adjuest(washVO, strClbh, strAuditPsnId, ufdatAuditDate.toString(), unitCode, 3, 3);
+	    if (washVO1 != null && washVO1.length > 0)
+	    	iArap.Adjuest(washVO1, strClbh, strAuditPsnId, ufdatAuditDate.toString(), unitCode, 3, 3);
+	    if (washVO2 != null && washVO2.length > 0)
+	    	iArap.Adjuest(washVO2, strClbh, strAuditPsnId, ufdatAuditDate.toString(), unitCode, 4, 4);
 	    //
 	    // 回写ic_general_bb3上的暂估应付累计回冲数量
 //	    String[] saDdhhBB3 = null;

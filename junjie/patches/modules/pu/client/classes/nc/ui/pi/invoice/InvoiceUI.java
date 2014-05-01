@@ -5299,12 +5299,12 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 						.compareTo(nc.vo.scm.pu.BillStatus.AUDITED) == 0
 						|| iBillStatus
 								.compareTo(nc.vo.scm.pu.BillStatus.AUDITING) == 0) {
-					// add by zhang xiao wei 2013-09-04
-					DJZBVO[] billvo = getBillVO(proceVOs);
-					if (billvo != null) {
-						insertYSData(billvo);
-					}
-					// end
+//					// add by zhang xiao wei 2013-09-04
+//					DJZBVO[] billvo = getBillVO(proceVOs);
+//					if (billvo != null) {
+//						insertYSData(billvo);
+//					}
+//					// end
 					showHintMessage(nc.ui.ml.NCLangRes.getInstance()
 							.getStrByID("SCMCOMMON", "UPPSCMCommon-000236")/*
 																			 * @res
@@ -14135,12 +14135,12 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 			boolean bSucced = PfUtilClient.isSuccess();
 			if (bSucced) {
 
-				// add by zhang xiao wei 2013-09-30
-				ArrayList<DJZBVO> listvo = getDjzbvo(voaInvoice);
-				IUpdateArap updatearap = (IUpdateArap) NCLocator.getInstance()
-						.lookup(IUpdateArap.class.getName());
-				updatearap.deleteArap(listvo);
-				// end
+//				// add by zhang xiao wei 2013-09-30
+//				ArrayList<DJZBVO> listvo = getDjzbvo(voaInvoice);
+//				IUpdateArap updatearap = (IUpdateArap) NCLocator.getInstance()
+//						.lookup(IUpdateArap.class.getName());
+//				updatearap.deleteArap(listvo);
+//				// end
 				cinvoiceid = new String[voaInvoice.length];
 				for (int i = 0; i < voaInvoice.length; i++) {
 					cinvoiceid[i] = voaInvoice[i].getHeadVO().getPrimaryKey();

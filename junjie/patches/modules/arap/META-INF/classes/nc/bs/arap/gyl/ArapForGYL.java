@@ -260,10 +260,10 @@ public class ArapForGYL {
 						.toArray(new String[] {}), ly);
 			}
 			//add by ouyangzhb 为lylx为3 时 设置查询条件
-		else if (lylx == 3) {// 发票行id////通过发票暂沽，暂时不会执行此分支
-			cache = new DJZBBO().getDJByXXID("fb_oid", keys
-					.toArray(new String[] {}), ly);
-		}
+			else if (lylx == 3 || lylx == 4 ) {// 发票行id////通过发票暂沽，暂时不会执行此分支  //wanglei 2014-04-30
+				cache = new DJZBBO().getDJByXXID("fb_oid", keys
+						.toArray(new String[] {}), ly);
+			}
 			SystemProfile.getInstance().log("arapforgyl adjuest query end");
 
 			for (int i = 0; i < vo.length; i++)// 对应的每个行id生成一个djzbvo，然后将所有的djzbvo合并成一个vo
@@ -310,7 +310,7 @@ public class ArapForGYL {
 				bz = ((DJZBItemVO) djvo[0].getChildrenVO()[0]).getBzbm();
 				
 				/**add by ouyangzhb 2013-10-21 */
-				if(lylx == 3){
+				if(lylx == 3 || lylx == 4){  //wanglei 2014-04-30
 					temp = this.getNewDJForZGYF(djvo, vo[i], clbh, clrq, ly, pk_corp);
 				}else{
 					temp = this.getNewDJ(djvo, vo[i], clbh, clrq, ly, pk_corp);
@@ -343,7 +343,7 @@ public class ArapForGYL {
 			
 			/**add by ouyangzhb 2013-10-21 暂估应付的红冲方式（不需要分单）*/
 			DJZBVO[] vos  = null;
-			if(lylx == 3){
+			if(lylx == 3 || lylx == 4){ 
 				vos = seperateBillsForZGYF(lst, pk_corp, clrq); 
 			}else{
 				vos = seperateBills(lst, pk_corp, clrq);
@@ -512,9 +512,9 @@ public class ArapForGYL {
 					newItem.setBbye(newItem.getDfbbje());
 					newItem.setShlye(newItem.getDfshl());
 				newItem.setSl(sl);
-				ybje.add(newItem.getYbye());
-				fbje.add(newItem.getFbye());
-				bbje.add(newItem.getBbye());
+				ybje = ybje.add(newItem.getYbye());
+				fbje = fbje.add(newItem.getFbye());
+				bbje = bbje.add(newItem.getBbye());
 
 			}
 			temp = new DJZBItemVO[con.size()];
@@ -527,7 +527,7 @@ public class ArapForGYL {
 			header.setBbje(bbje);
 			zbvo.setParentVO(header);
 			zbvo.setChildrenVO(temp);
-			result.put(zbvo, new UFBoolean(true));// 生成的DJZBVO为key，是否需要红冲为value
+			result.put(zbvo, new UFBoolean(true));// 生成的DJZBVO为key，是否需要红冲为value  //wanglei 2014-04-30
 		} else {
 			UFDouble tzshl = adjust.getShl().multiply(-1);// 调整数量
 
@@ -2297,8 +2297,9 @@ public class ArapForGYL {
 				// add by ouyangzhb 2011-05-09 增加发票的来源单据ID
 			}else if (lylx == 3){
 				fb = "fb.ckdid";
+			}else if (lylx == 4){  //wanglei 2014-04-30  手工暂估应付只能根据客商信息核销
+				fb = "fb.hbbm";
 			}
-
 			List<String> fbids = new ArrayList<String>();
 			for (int i = 0; i < vo.length; i++) {
 				fbids.add(vo[i].getDdhh());
@@ -2310,7 +2311,16 @@ public class ArapForGYL {
 				.getInStr(null, fbids.toArray(new String[] {}));
 				String sql = "select ckdid  from arap_djfb where fb_oid "+inStr1+" and dr=0 ";
 				inStr = " fb.ckdid in ("+sql+")" ;
-			}else{
+			} else if (lylx == 4){  //wanglei 2014-04-30
+				String inStr1 = SqlUtils
+				.getInStr(null, fbids.toArray(new String[] {}));
+				String sql = "select fb_oid from arap_djfb where (fb_oid "+inStr1+" or ddhh " + inStr1 +")  and dr=0 ";
+//				String sql = "select fb_oid from arap_djfb where ( ddhh " + inStr1 +")  and dr=0 ";
+				inStr = " fb.fb_oid in ("+sql+")" ;
+//				inStr = SqlUtils
+//				.getInStr(fb, fbids.toArray(new String[] {}));
+			}
+			else{
 				inStr = SqlUtils
 				.getInStr(fb, fbids.toArray(new String[] {}));
 			}
