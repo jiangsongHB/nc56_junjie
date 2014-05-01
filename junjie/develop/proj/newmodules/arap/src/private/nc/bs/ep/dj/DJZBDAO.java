@@ -3931,6 +3931,7 @@ public class DJZBDAO {
         case 1: lybz=4;break;
         case 2: lybz=16;break;
         case 3: lybz=4;break;//add by ouyangzhb 2011-05-09
+        case 4: lybz=1;break;//wanglei 2014-04-30
       }
 
       String inStr = SqlUtils.getInStr("fb."+key, values);
