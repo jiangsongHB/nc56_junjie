@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import nc.bs.arap.change.PubchangeBO;
 import nc.bs.dao.BaseDAO;
 import nc.bs.framework.common.NCLocator;
 import nc.bs.ic.ic621.MemosetupDMO;
@@ -31,6 +32,7 @@ import nc.itf.ia.bill.IBill;
 import nc.itf.ic.service.IIC211GeneralH;
 import nc.itf.scm.so.so012.IReturnRedSquare;
 import nc.itf.uap.IUAPQueryBS;
+import nc.itf.uap.busibean.ISysInitQry;
 import nc.itf.uap.pf.IPFConfig;
 import nc.itf.uif.pub.IUifService;
 import nc.jdbc.framework.processor.BeanListProcessor;
@@ -38,6 +40,7 @@ import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.uif.pub.exception.UifException;
+import nc.vo.arap.global.ArapDjCalculator;
 import nc.vo.bd.invdoc.InvclVO;
 import nc.vo.bd.invdoc.InvbasdocVO;
 import nc.vo.ep.dj.DJZBHeaderVO;
@@ -66,10 +69,12 @@ import nc.vo.pub.lang.UFDateTime;
 import nc.vo.pub.lang.UFDouble;
 import nc.vo.scm.bd.FreeItemVO;
 import nc.vo.scm.constant.ScmConst;
+import nc.vo.scm.pu.RelationsCalVO;
 import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.session.ClientLink;
 import nc.vo.scm.pub.smart.SmartFieldMeta;
 import nc.vo.scm.so.RushLinkQueryVO;
+import nc.vo.so.pub.ConstVO;
 import nc.vo.so.so001.SaleOrderVO;
 import nc.vo.so.so001.SaleorderBVO;
 import nc.vo.so.so001.SaleorderHVO;
@@ -1747,6 +1752,14 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 		if (billVOs == null || billVOs.length == 0) {
 			return;
 		}
+		//wanglei 2014-05-05 调整为按参数取值
+		String sArapBill = ((ISysInitQry) NCLocator.getInstance().lookup(
+				ISysInitQry.class.getName()))
+				.getPkValue(cl.getCorp(), "IC_USR101");  //其他入库单费用暂估生成应付单单据类型编码
+		String sBusiType = ((ISysInitQry) NCLocator.getInstance().lookup(
+				ISysInitQry.class.getName()))
+				.getPkValue(cl.getCorp(), "IC_USR102");  //其他入库单费用暂估生成应付单单据业务流程
+		//end
 		for (int z = 0; z < billVOs.length; z++) {
 
 			/** 1、获取单据对应的费用信息 */
@@ -1803,8 +1816,11 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 				for (int j = 0; j < oneCustomerExpense.size(); j++) {// 遍历某客商下的费用列表
 					InformationCostVO oneExpense = oneCustomerExpense.get(j);// 获取某客商下的一个费用VO
 					DJZBItemVO body = new DJZBItemVO();// 实例化一个暂估应付单表体VO
+					//wanglei 2014-05-04 
+					body.setCkdid(oneExpense.getPk_informantioncost());  //设置关联像，用于后续核销处理
+					//end
 					body.setBbhl(new UFDouble(1.0));// 本币汇率
-					body.setBbye(new UFDouble(oneExpense.getNoriginalcurmny()));// 本币余额--无税金额
+					body.setBbye(new UFDouble(oneExpense.getNsummny()));// 本币余额--无税金额
 					// body.setBilldate(new UFDate());//日期
 					body.setBilldate(cl.getLogonDate());// add by ouyangzhb
 														// 2012-10-18
@@ -1824,20 +1840,20 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					body.setDeptid(generalHead.getCdptid());// 部门pk-其他入库单中的部门PK
 					body
 							.setDfbbje(new UFDouble(oneExpense
-									.getNoriginalcurmny()));// 贷方本币金额--无税金额
-					body.setDfbbsj(new UFDouble(new Double(0.0)));// 贷方本币税金--0
+									.getNsummny()));// 贷方本币金额--无税金额
+					body.setDfbbsj(new UFDouble(oneExpense.getNsummny().sub(oneExpense.getNmny())));// 贷方本币税金--0
 					body.setDfbbwsje(new UFDouble(oneExpense
-							.getNoriginalcurmny()));// 贷方本币无税金额--无税金额
+							.getNmny()));// 贷方本币无税金额--无税金额
 					body.setDfshl(new UFDouble(oneExpense.getNnumber()));// 贷方数量--数量
 					body
 							.setDfybje(new UFDouble(oneExpense
 									.getNoriginalcurmny()));// 贷方原币金额--无税金额
-					body.setDfybsj(new UFDouble(new Double(0.0)));// 贷方原币税金--0
+					body.setDfybsj(new UFDouble(oneExpense.getNoriginalcursummny().sub(oneExpense.getNoriginalcurmny())));// 贷方原币税金--0
 					body.setDfybwsje(new UFDouble(oneExpense
 							.getNoriginalcurmny()));// 贷方原币无税金额--无税金额
 					body.setDj(new UFDouble(oneExpense.getNoriginalcurprice()));// 单价--单价
-					body.setDjdl("yf");// 单据大类--yf
-					body.setDjlxbm("D1");// 单据类型编码--D1
+					body.setDjdl(ScmConst.ARAP_yf);// 单据大类--yf
+					body.setDjlxbm(sArapBill);// 单据类型编码--D1
 					body.setDr(0);
 					body.setDwbm(cl.getCorp());// 公司pk--当前登陆公司id
 					body.setFbye(new UFDouble(new Double(0.0)));// 辅币余额--0
@@ -1854,24 +1870,24 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 									.getNoriginalcurprice()));// 含税单价--单价
 					body.setIsSFKXYChanged(new UFBoolean(false));// 收付款协议是否发生变化--N
 					body.setIsverifyfinished(new UFBoolean(false));// 是否核销完成--N
-					body.setJsfsbm("4A");// 上层来源单据类型--4A 其他入库单
+					body.setJsfsbm(ScmConst.m_otherIn);// 上层来源单据类型--4A 其他入库单
 					body.setKslb(1);// 扣税类别--1
 					body.setOld_flag(new UFBoolean(false));
 					body.setOld_sys_flag(new UFBoolean(false));
 					body.setPausetransact(new UFBoolean(false));// 挂起标志--N
-					body.setPh("4A");// 源头单据类型--4A
+					body.setPh(ScmConst.m_otherIn);// 源头单据类型--4A
 					body.setpjdirection("none");// 票据方向--none
 					// body.setQxrq(new UFDate());//起效日期--当前日期
 					body.setQxrq(cl.getLogonDate());
 					body.setSfbz("3");// 收付标志--"3"
 					body.setShlye(new UFDouble(oneExpense.getNnumber()));// 数量余额--数量
-					body.setSl(new UFDouble(new Double(0.0)));// 税率--0
+					body.setSl(oneExpense.getNtaxrate());// 税率--0
 					body.setVerifyfinisheddate(new UFDate("3000-01-01"));// 核销完成日期--默认3000-01-01
 					body.setWldx(1);// 往来对象标志--1
 					body.setXgbh(-1);// 并帐标志 --- -1
 					body.setXyzh(generalHead.getPrimaryKey());// 源头单据id--其他入库单id
-					body.setYbye(new UFDouble(oneExpense.getNoriginalcurmny()));// 原币余额--无税金额
-					body.setYwbm("0001AA10000000006MFZ");// 单据类型PK--固定0001AA10000000006MFZ
+					body.setYbye(new UFDouble(oneExpense.getNoriginalcursummny()));// 原币余额--无税金额
+					body.setYwbm(new PubchangeBO().getdjlx(body.getDwbm(), body.getDjlxbm()));// 单据类型PK--固定0001AA10000000006MFZ
 					body.setYwybm(generalHead.getCbizid());// 业务员PK--其他入库单业务员id
 					body.setCkdh(generalHead.getVbillcode());//lumzh 2013-07-08增加出库单号
 					/*** 特殊标志: 自定义项18 19 */
@@ -1881,14 +1897,27 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					body.setZyx19(body.getHbbm());// 2010-11-07 "客商管理ID" 启用于:
 													// 暂估处理 ,See:EstimateImpl
 													// 约9423行 用于生成采购发票时的处理
+					
+					//wanglei 2014-05-05 重新计算各项的值
+					try {
+						body = ArapDjCalculator.getInstance().calculateVO(
+								body, "dfybje", cl.getLogonDate().toString(),
+								body.getDjdl(),
+								this.getParam(cl.getCorp(), 3));
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					//end
+					
 					oneExpenseSummny += body.getDfbbje().toDouble();// 累加贷方本币金额
 					bodyVOs[j] = body;
 				}
 				head.setBbje(new UFDouble(oneExpenseSummny));// 本币金额--表体累加金额
-				head.setDjdl("yf");// 单据大类--yf
+				head.setDjdl(ScmConst.ARAP_yf);// 单据大类--yf
 				head.setDjkjnd(cl.getAccountYear());// 会计年度--当前系统的会计年度
 				head.setDjkjqj(cl.getAccountMonth());// 会计期间--当前系统会计期间
-				head.setDjlxbm("D1");// 单据类型编码--D1
+				head.setDjlxbm(sArapBill);// 单据类型编码--D1
 				head.setDjrq(cl.getLogonDate());
 				head.setDjzt(2);// 单据状态--1 表示已保存 2表示已生效
 				head.setDr(0);
@@ -1919,19 +1948,20 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 				head.setSxkjqj(cl.getAccountMonth());// 生效会计期间
 				head.setSxr(cl.getUser());// 生效人
 				head.setSxrq(cl.getLogonDate());// 生效日期
-				String queryBusitype = "select t.pk_busitype from bd_busitype t where t.busicode='arap' and t.businame='收付通用流程'";
-				Object busitype = null;
-				if (generalHead.getCbiztypeid() == null) {
-					// 如果当前其他入库单的销售类型字段为空,那么开始查询通用收付流程的业务类型编码.
-					busitype = dao.executeQuery(queryBusitype,
-							new ColumnProcessor());
-
-				}
-				head.setXslxbm(generalHead.getCbiztypeid() == null ? busitype == null ? "00011110000000002RGT"
-								: busitype.toString()
-								: generalHead.getCbiztypeid());// 销售类型编码--其他入库单的业务类型(业务流程)编码
+				//String queryBusitype = "select t.pk_busitype from bd_busitype t where t.busicode='arap' and t.businame='收付通用流程'";
+//				Object busitype = null;
+//				if (generalHead.getCbiztypeid() == null) {
+//					// 如果当前其他入库单的销售类型字段为空,那么开始查询通用收付流程的业务类型编码.
+//					busitype = dao.executeQuery(queryBusitype,
+//							new ColumnProcessor());
+//
+//				}
+//				head.setXslxbm(generalHead.getCbiztypeid() == null ? busitype == null ? "00011110000000002RGT"
+//								: busitype.toString()
+//								: generalHead.getCbiztypeid());// 销售类型编码--其他入库单的业务类型(业务流程)编码
+				head.setXslxbm(sBusiType);// 销售类型编码--其他入库单的业务类型(业务流程)编码
 				head.setYbje(new UFDouble(oneExpenseSummny));// 本币金额--表体累加金额
-				head.setYwbm("0001AA10000000006MFZ");// 单据类型--默认0001AA10000000006MFZ
+				head.setYwbm(new PubchangeBO().getdjlx(head.getDwbm(), head.getDjlxbm()));// 单据类型--默认0001AA10000000006MFZ  //wanglei 2014-05-05 根据单据类型查找
 				head.setZgyf(1);// 暂估应付标志--1表示暂估应付 0表示非暂估应付
 				head.setZzzt(0);// 支付状态--0
 				head.setZyx20("Y");// 2010-11-07 MeiChao
@@ -1946,7 +1976,7 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					.lookup(IArapBillPublic.class.getName());
 			DJZBVO[] apVOs = new DJZBVO[estimationTempVOs.size()];
 			iARAP.saveArapBills(estimationTempVOs.toArray(apVOs));
-
+			
 			/** 4、 开始组织存货核算的库存调整单VO */
 			// 初始化库存调整单VO
 			BillVO changeBillVO = new BillVO();
@@ -1978,11 +2008,11 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 			changeBillHead.setBestimateflag(new UFBoolean(false));
 			changeBillHead.setBoutestimate(new UFBoolean(false));
 			changeBillHead.setBwithdrawalflag(new UFBoolean(false));
-			changeBillHead.setCbilltypecode("I9");// 单据类型
+			changeBillHead.setCbilltypecode(ConstVO.m_sBillRKTZD);// 单据类型
 			changeBillHead.setClastoperatorid(cl.getUser());// 最后修改人
 			changeBillHead.setCoperatorid(cl.getUser());// 操作员
 			changeBillHead.setCrdcenterid(generalHead.getPk_calbody());// 库存组织
-			changeBillHead.setCsourcemodulename("IC");// 来源模块
+			changeBillHead.setCsourcemodulename(ScmConst.m_sModuleIC);// 来源模块
 			// changeBillHead.setDbilldate(new UFDate());
 			changeBillHead.setDbilldate(cl.getLogonDate());
 			changeBillHead.setDr(0);
@@ -2010,13 +2040,13 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 				changeBillBody[i].setBtransferincometax(new UFBoolean(false));
 				changeBillBody[i].setCadjustbillid(null);// 调整对象单据id
 				changeBillBody[i].setCadjustbillitemid(null);// 调整对象单据体id
-				changeBillBody[i].setCbilltypecode("I9");
+				changeBillBody[i].setCbilltypecode(ConstVO.m_sBillRKTZD);
 				changeBillBody[i].setCfirstbillid(null);// 源头单据id
 				changeBillBody[i].setCfirstbillitemid(null);// 源头单据体id
-				changeBillBody[i].setCfirstbilltypecode("4A");// 源头单据类型"其他入库单"
+				changeBillBody[i].setCfirstbilltypecode(ScmConst.m_otherIn);// 源头单据类型"其他入库单"
 				changeBillBody[i].setCicbillcode(generalHead.getVbillcode());// 上层来源单据编号,其他入库单编号
 				changeBillBody[i].setCicbillid(generalHead.getCgeneralhid());// 上层来源单据id,其他入库单id
-				changeBillBody[i].setCicbilltype("4A");// 上层来源单据类型 25
+				changeBillBody[i].setCicbilltype(ScmConst.m_otherIn);// 上层来源单据类型 25
 				changeBillBody[i].setCicitemid(generalBody[i].getCgeneralbid());// 上层来源单据体id--其他入库单表体id
 				changeBillBody[i].setCvendorbasid(generalBody[i]
 						.getPk_cubasdoc());// 供应商基本档案id,取库存表体对应字段
@@ -2067,6 +2097,44 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 
 		}
 	}
+  
+  //wanglei 2014-05-05 
+	private int[] getParam(String pk_corp, int pzglh) throws Exception {
+		if (pzglh == 0) {
+			if (((ISysInitQry) NCLocator.getInstance().lookup(
+					ISysInitQry.class.getName()))
+					.getParaString(pk_corp, "AR21").equals("含税价格优先"))/*
+																	 * -=notranslate
+																	 * =-
+																	 */
+			{
+				return new int[] { RelationsCalVO.TAXPRICE_PRIOR_TO_PRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			} else {
+				return new int[] { RelationsCalVO.PRICE_PRIOR_TO_TAXPRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			}
+
+		} else {
+			if (((ISysInitQry) NCLocator.getInstance().lookup(
+					ISysInitQry.class.getName()))
+					.getParaString(pk_corp, "AP21").equals("含税价格优先"))/*
+																	 * -=notranslate
+																	 * =-
+																	 */
+			{
+				return new int[] { RelationsCalVO.TAXPRICE_PRIOR_TO_PRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			} else {
+				return new int[] { RelationsCalVO.PRICE_PRIOR_TO_TAXPRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			}
+		}
+
+	}
+  
+  //end
+  
 
 private GeneralBillItemVO[] filterBody(GeneralBillItemVO[] generalBody) throws BusinessException {
 	// TODO Auto-generated method stub
