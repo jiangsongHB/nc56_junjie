@@ -1852,6 +1852,7 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					body.setDfybwsje(new UFDouble(oneExpense
 							.getNoriginalcurmny()));// 贷方原币无税金额--无税金额
 					body.setDj(new UFDouble(oneExpense.getNoriginalcurprice()));// 单价--单价
+					body.setHsdj(new UFDouble(oneExpense.getNoriginalcurtaxprice()));// 单价--单价
 					body.setDjdl(ScmConst.ARAP_yf);// 单据大类--yf
 					body.setDjlxbm(sArapBill);// 单据类型编码--D1
 					body.setDr(0);
@@ -1865,9 +1866,9 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					Object cubasid = dao.executeQuery(queryCustomerBasSQL,
 							new ColumnProcessor());
 					body.setHbbm(cubasid == null ? null : cubasid.toString());// 伙伴编码--客商管理id
-					body
-							.setHsdj(new UFDouble(oneExpense
-									.getNoriginalcurprice()));// 含税单价--单价
+//					body
+//							.setHsdj(new UFDouble(oneExpense
+//									.getNoriginalcurprice()));// 含税单价--单价
 					body.setIsSFKXYChanged(new UFBoolean(false));// 收付款协议是否发生变化--N
 					body.setIsverifyfinished(new UFBoolean(false));// 是否核销完成--N
 					body.setJsfsbm(ScmConst.m_otherIn);// 上层来源单据类型--4A 其他入库单
