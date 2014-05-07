@@ -1847,7 +1847,7 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					body.setDfshl(new UFDouble(oneExpense.getNnumber()));// 贷方数量--数量
 					body
 							.setDfybje(new UFDouble(oneExpense
-									.getNoriginalcurmny()));// 贷方原币金额--无税金额
+									.getNoriginalcursummny()));// 贷方原币金额--无税金额
 					body.setDfybsj(new UFDouble(oneExpense.getNoriginalcursummny().sub(oneExpense.getNoriginalcurmny())));// 贷方原币税金--0
 					body.setDfybwsje(new UFDouble(oneExpense
 							.getNoriginalcurmny()));// 贷方原币无税金额--无税金额
