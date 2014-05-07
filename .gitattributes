@@ -557,6 +557,7 @@ junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/newlistquery/NewListQuer
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/newlistquery/projection/EndBillBalMoneySumProjCreater.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/newlistquery/projection/EndDealMoneySumProjCreater.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/arap/verify/VerifyDMO.class -text
+junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/ApplayBillBO.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/ApplayBillDMO.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBBO.class -text
 junjie/patches/modules/arap/META-INF/classes/nc/bs/ep/dj/DJZBDAO$1.class -text
