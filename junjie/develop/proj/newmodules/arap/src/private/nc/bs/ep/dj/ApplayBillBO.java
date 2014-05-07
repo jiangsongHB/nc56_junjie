@@ -48,6 +48,7 @@ import nc.vo.pub.ExAggregatedVO;
 import nc.vo.pub.lang.UFBoolean;
 import nc.vo.pub.lang.UFDate;
 import nc.vo.pub.lang.UFDateTime;
+import nc.vo.pub.lang.UFDouble;
 
 public class ApplayBillBO  {
 	ApplayBillDAO dao=new ApplayBillDAO();
@@ -2079,6 +2080,21 @@ public class ApplayBillBO  {
 			throw ExceptionHandler.handleException(this.getClass(), e);
 		}
 		DJZBItemVO[] items = (DJZBItemVO[]) dj.getChildrenVO(); //单据表体
+		//wanglei 2014-05-07 弃审单据检查
+		try {
+			if (head.getDjdl().equalsIgnoreCase("yf") && head.getZgyf().intValue() == 1) { // 只判断暂估应付的
+				for (int i = 0; i < items.length; i++) {
+					if (items[i].getZyx17() != null
+							&& !new UFDouble(items[i].getZyx17())
+									.equals(UFDouble.ZERO_DBL)) {
+						throw ExceptionHandler.createException("单据已经生成下游发票，不能弃审");
+					}
+				}
+			}
+		} catch (Exception e1) {
+			throw ExceptionHandler.handleException(this.getClass(), e1);
+		}
+		//end
 		//cf2002-01-14 add
 		//查询单据表体
 		if (items == null) {
