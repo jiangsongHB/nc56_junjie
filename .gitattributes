@@ -247,6 +247,7 @@ junjie/develop/proj/newmodules/gl/.classpath -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/gl/.module_prj -text
 junjie/develop/proj/newmodules/gl/.project -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/gl/META-INF/module.xml -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/gl/src/private/nc/bs/glcom/ass/FreevalueBO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/ic/.classpath -text
 junjie/develop/proj/newmodules/ic/.module_prj -text
 junjie/develop/proj/newmodules/ic/.project -text
