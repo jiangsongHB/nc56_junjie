@@ -641,6 +641,8 @@ junjie/patches/modules/dm/client/classes/nc/ui/scm/pattern/listcard/ListCardButt
 junjie/patches/modules/fbm/META-INF/classes/nc/bs/pub/action/N_36GM_APPROVE.class -text
 junjie/patches/modules/fbm/META-INF/lib/fbm.jar -text
 junjie/patches/modules/fbm/client/classes/nc/ui/fbm/invoice/InvoiceEventHandler.class -text
+junjie/patches/modules/gl/META-INF/classes/nc/bs/glcom/ass/FreevalueBO$1.class -text
+junjie/patches/modules/gl/META-INF/classes/nc/bs/glcom/ass/FreevalueBO.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/ic211/GeneralHBO.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/ic211/GeneralHDMO.class -text
 junjie/patches/modules/ic/META-INF/classes/nc/bs/ic/ic261/SpecialHDMO.class -text
