@@ -968,6 +968,9 @@ junjie/patches/modules/so/client/classes/nc/ui/so/taxinvoice/command/SaveBoComma
 junjie/patches/modules/so/client/classes/nc/ui/so/taxinvoice/command/btDealBoCommand.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/taxinvoice/command/btDealGpBoCommand.class -text
 junjie/patches/modules/so/client/classes/nc/ui/so/taxinvoice/command/btRevDealBoCommand.class -text
+junjie/patches/modules/so2/client/classes/nc/ui/sp/sp002/AdjustPriceUI$1.class -text
+junjie/patches/modules/so2/client/classes/nc/ui/sp/sp002/AdjustPriceUI$2.class -text
+junjie/patches/modules/so2/client/classes/nc/ui/sp/sp002/AdjustPriceUI.class -text
 junjie/patches/modules/so5/META-INF/classes/nc/bs/so/so144/ApplyDMO.class -text
 junjie/patches/modules/so6/META-INF/classes/nc/bs/so/so120/CreditMny.class -text
 junjie/patches/modules/so6/META-INF/classes/nc/bs/so/so120/ReCaculateARCond.class -text
