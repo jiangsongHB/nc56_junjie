@@ -598,7 +598,9 @@ public boolean afterInventoryMutiEdit(nc.ui.pub.bill.BillEditEvent e) {
 					             "size->getColValue(bd_invbasdoc,invspec,pk_invbasdoc,cinvbasdocid)",
 					             "type->getColValue(bd_invbasdoc,invtype,pk_invbasdoc,cinvbasdocid)",
 					             "cunitid->getColValue(bd_invbasdoc,pk_measdoc,pk_invbasdoc,cinvbasdocid)",
-					             "unit->getColValue(bd_measdoc,measname,pk_measdoc,cunitid)"};
+					             "unit->getColValue(bd_measdoc,measname,pk_measdoc,cunitid)",
+					             "height->getColValue(bd_invbasdoc,height,pk_invbasdoc,cinvbasdocid);",  //wanglei 2014-05-12 增加公式
+					             "graphid->getColValue(bd_invbasdoc,graphid,pk_invbasdoc,cinvbasdocid);"};
 			getBillCardPanel().getBillModel().execFormulas(formulas, newRows[0], newRows[newRows.length - 1]);
 //			ClientCacheHelper.getColValueBatch(getBillCardPanel(),newRows,
 //				new String[]{"name","size","type"},"bd_invbasdoc","pk_invbasdoc",new String[]{"invname","invspec","invtype"},"cinventoryid");
@@ -616,7 +618,9 @@ public boolean afterInventoryMutiEdit(nc.ui.pub.bill.BillEditEvent e) {
 		                         "size->getColValue(bd_invbasdoc,invspec,pk_invbasdoc,cinvbasdocid)",
 		                         "type->getColValue(bd_invbasdoc,invtype,pk_invbasdoc,cinvbasdocid)",
 		                         "cunitid->getColValue(bd_invbasdoc,pk_measdoc,pk_invbasdoc,cinvbasdocid)",
-					             "unit->getColValue(bd_measdoc,measname,pk_measdoc,cunitid)"};
+					             "unit->getColValue(bd_measdoc,measname,pk_measdoc,cunitid)",
+					             "height->getColValue(bd_invbasdoc,height,pk_invbasdoc,cinvbasdocid);",  //wanglei 2014-05-12 增加公式
+					             "graphid->getColValue(bd_invbasdoc,graphid,pk_invbasdoc,cinvbasdocid);"};
 			getBillCardPanel().getBillModel().execFormulas(formulas, newRows[0], newRows[newRows.length - 1]);
 			/***********一次性批量执行公式**************/
 //			ClientCacheHelper.getColValueBatch(getBillCardPanel(),newRows,
