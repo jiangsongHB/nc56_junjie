@@ -1805,6 +1805,9 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 			GeneralBillVO voAudit = billVOs[z];
 			GeneralBillHeaderVO generalHead = voAudit.getHeaderVO();// 其他入库单表头
 			GeneralBillItemVO[] generalBody = voAudit.getItemVOs();// 其他入库单表体
+			//wanglei 2014-05-12
+			Double iaAdjustAmount = 0.0;
+			//end
 			for (int i = 0; i < pk_cumandocArray.length; i++) {
 				DJZBVO oneAPVO = new DJZBVO();// 实例化一个应付单VO
 				DJZBHeaderVO head = new DJZBHeaderVO();// 实例化一个暂估应付单表头VO.
@@ -1912,6 +1915,9 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					//end
 					
 					oneExpenseSummny += body.getDfbbje().toDouble();// 累加贷方本币金额
+					//wanglei 2014-05-12
+					iaAdjustAmount += body.getDfybwsje().toDouble();
+					//end 
 					bodyVOs[j] = body;
 				}
 				head.setBbje(new UFDouble(oneExpenseSummny));// 本币金额--表体累加金额
@@ -1989,13 +1995,13 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 					IBill.class.getName());
 
 			// 调整总金额
-			Double iaAdjustAmount = 0.0;
-			for (int i = 0; i < estimationTempVOs.size(); i++) {// 计算调整总金额
-				iaAdjustAmount += ((DJZBHeaderVO) estimationTempVOs.get(i)
-						.getParentVO()).getBbje() == null ? 0.0
-						: ((DJZBHeaderVO) estimationTempVOs.get(i)
-								.getParentVO()).getBbje().toDouble();
-			}
+//			Double iaAdjustAmount = 0.0;   //wanglei 2014-05-12 调整到前面去执行累计
+//			for (int i = 0; i < estimationTempVOs.size(); i++) {// 计算调整总金额
+//				iaAdjustAmount += ((DJZBHeaderVO) estimationTempVOs.get(i)
+//						.getParentVO()).getBbje() == null ? 0.0
+//						: ((DJZBHeaderVO) estimationTempVOs.get(i)
+//								.getParentVO()).getBbje().toDouble();
+//			}
 			// 存货总数量
 			Double invSUM = 0.0;
 			for (int i = 0; i < generalBody.length; i++) {// 计算存货总金额
