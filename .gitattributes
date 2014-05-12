@@ -504,6 +504,11 @@ junjie/develop/proj/newmodules/so/src/public/nc/vo/so/so002/OutToInvoiceChangeVO
 junjie/develop/proj/newmodules/so/src/test/nc/md/model/access/AbstractAttributeAccessor.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/test/nc/md/model/access/javamap/AggVOStyle.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so/src/test/nc/vo/ml/AbstractNCLangRes.java -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so2/.classpath -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so2/.module_prj -text
+junjie/develop/proj/newmodules/so2/.project -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so2/META-INF/module.xml -text svneol=unset#text/plain
+junjie/develop/proj/newmodules/so2/src/client/nc/ui/sp/sp002/AdjustPriceUI.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/so5/.classpath -text
 junjie/develop/proj/newmodules/so5/.module_prj -text
 junjie/develop/proj/newmodules/so5/.project -text
