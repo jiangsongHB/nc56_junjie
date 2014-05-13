@@ -1886,29 +1886,6 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 				GeneralBillItemVO[] itemvos = voAudit.getItemVOs();
 //		      二次开发扩展
 		        getClientUI().getPluginProxy().beforeAction(nc.vo.scm.plugin.Action.UNAUDIT, new GeneralBillVO[]{voAudit});
-		        /**
-		         * <<签字校验后,签字执行前>>运行此段代码
-				 * 2010-11-07 MeiChao 在其他入库单取消签字的时候,对其可能产生的下游单据进行查询.校验
-				 * 如果其下游单据已审核,那么不允许签字,否则删除其下游单据.
-				 */
-				//首先判断是否其他入库单,如果不是,则不执行以下校验.
-				//首先判断当前取消签字的单据是否存在费用信息,如果没有,则直接跳出.
-				//如果当前单据存在费用信息,则尝试查询其下游单据的状态.
-				//如果无下游单据,或下游单据为已处理状态,那么不允许签字.
-				//如果下游单据为签字后的初始状态,那么删除.
-				if("4A".equals(this.getBillType())){//是否其他入库单
-					if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&
-							this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName())!=null
-							){//是否有表体费用数据
-						//执行其他入库单取消签字时的下游单据处理
-						if(!this.rollbackAudit(voAudit.getHeaderVO().getCgeneralhid())){
-							MessageDialog.showErrorDlg(this.getClientUI(), "错误", "下游单据已生效或异常,取消签字失败!");
-							return;
-						}
-					}
-				}	
-		        
-		        
 		        
 		        while (true) {
 					try {
@@ -1921,6 +1898,27 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						alRet = (ArrayList) nc.ui.pub.pf.PfUtilClient
 								.processAction("CANCELSIGN", getBillType(),
 										getEnvironment().getLogDate(), voAudit);
+				        /**
+				         * <<签字校验后,签字执行前>>运行此段代码
+						 * 2010-11-07 MeiChao 在其他入库单取消签字的时候,对其可能产生的下游单据进行查询.校验
+						 * 如果其下游单据已审核,那么不允许签字,否则删除其下游单据.
+						 */
+						//首先判断是否其他入库单,如果不是,则不执行以下校验.
+						//首先判断当前取消签字的单据是否存在费用信息,如果没有,则直接跳出.
+						//如果当前单据存在费用信息,则尝试查询其下游单据的状态.
+						//如果无下游单据,或下游单据为已处理状态,那么不允许签字.
+						//如果下游单据为签字后的初始状态,那么删除.
+						if("4A".equals(this.getBillType())){//是否其他入库单
+							if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&
+									this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName())!=null
+									){//是否有表体费用数据
+								//执行其他入库单取消签字时的下游单据处理
+								if(!this.rollbackAudit(voAudit.getHeaderVO().getCgeneralhid())){
+									MessageDialog.showErrorDlg(this.getClientUI(), "错误", "下游单据已生效或异常,取消签字失败!");
+									return;
+								}
+							}
+						}	
 						break;
 
 					} catch (Exception ee1) {
@@ -6848,6 +6846,9 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 		}
 		//应付单PK组合
 		StringBuffer pkForAP=new StringBuffer("");
+		//wanglei 2014-05-13 调整回退处理逻辑
+		ArrayList<String> alaps = new ArrayList<String>();
+		ArrayList<String> alias = new ArrayList<String>();
 		//处理结果集
 		if (checkAPResult == null || checkAPResult.size() == 0) {
 			//没有下游暂估应付单,表示之前有生成失败,或已删除.
@@ -6867,10 +6868,14 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					pkForAP.append(((Object[])checkAPResult.get(i))[1].toString());
 					pkForAP.append("'");
 					if(i<checkAPResult.size()-1){
-					pkForAP.append(",");
+						pkForAP.append(",");
 					}
+					//wanglei 2014-05-13
+					alaps.add(((Object[])checkAPResult.get(i))[1].toString());
+					
 				}
 			}
+
 		}
 		/**
 		 * 对应库存调整单
@@ -6918,6 +6923,7 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 					if(i<iaResult.size()-1){
 						pkForIA.append(",");
 					}
+					alias.add(((Object[])iaResult.get(i))[1].toString());
 				}
 			}
 		}
@@ -6929,7 +6935,13 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 		nc.itf.ic.pub.IGeneralBill iGeneralBill = (nc.itf.ic.pub.IGeneralBill) NCLocator.getInstance().lookup(
 				nc.itf.ic.pub.IGeneralBill.class.getName());//获取库存管理接口
 		try {
-			iGeneralBill.rollbackICtoAPandIA(generalbillid, pkForAP.toString(), pkForIA.toString());
+//			iGeneralBill.rollbackICtoAPandIA(generalbillid, pkForAP.toString(), pkForIA.toString());
+			
+			//wanglei 2014-05-13 
+			String[] appks = new String[alaps.size()];
+			String[] iapks = new String[alias.size()];
+			alaps.toArray(appks);
+			iGeneralBill.rollbackICtoAPandIA(generalbillid, appks, iapks);
 		} catch (BusinessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
