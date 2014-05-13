@@ -21,13 +21,20 @@ import nc.bs.ml.NCLangResOnserver;
 import nc.bs.pu.pr.PraybillDMO;
 import nc.bs.pub.SystemException;
 import nc.bs.scm.pub.smart.SmartDMO;
+import nc.itf.arap.pub.IArapBillPublic;
+import nc.itf.ia.api.IBillAPI;
+import nc.itf.ia.bill.IBillQuery;
+import nc.itf.ia.service.IIAService;
 import nc.itf.ic.pub.IGeneralBill;
 import nc.itf.uap.bd.storvscost.IStorVSCostQry;
 import nc.itf.uap.querytemplate.IQueryTemplate;
 import nc.ui.bd.ref.AbstractRefModel;
 import nc.ui.bd.ref.RefPubUtil;
+import nc.ui.ia.bill.IABillCardPanel;
+import nc.vo.arap.global.ResMessage;
 import nc.vo.bd.b06.PsndocVO;
 import nc.vo.bd.datapower.StringUtil;
+import nc.vo.ep.dj.DJZBVO;
 import nc.vo.ic.ic001.BatchcodeVO;
 import nc.vo.ic.ic700.ICDataSet;
 import nc.vo.ic.ic700.WastageBillBVO;
@@ -49,6 +56,7 @@ import nc.vo.pub.template.ITemplateStyle;
 import nc.vo.scm.ic.bill.WhVO;
 import nc.vo.scm.pu.VariableConst;
 import nc.vo.scm.pub.SCMEnv;
+import nc.vo.scm.pub.session.ClientLink;
 import nc.vo.scm.pub.smart.SmartFieldMeta;
 import nc.vo.scm.pub.smart.SmartVO;
 import nc.vo.sm.nodepower.OrgnizeTypeVO;
@@ -1202,18 +1210,34 @@ public class GeneralBillImpl implements IGeneralBill {
 	 * 2010-11-07 MeiChao
 	 * 其他入库单取消签字时,将对应的暂估应付单,库存调整单作废
 	 */
-	public boolean rollbackICtoAPandIA(String generalPK, String APpks,String IApks)
+	public boolean rollbackICtoAPandIA(String generalPK, String[] APpks,String[] IApks)
 			throws BusinessException {
 		try{
-		BaseDAO dao = new BaseDAO();
-		String deleteAPhead="update arap_djzb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
-		String deleteAPbody="update arap_djfb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
-		String deleteIAhead="update ia_bill t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
-		String deleteIAbody="update ia_bill_b t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
-		dao.executeUpdate(deleteAPhead);
-		dao.executeUpdate(deleteAPbody);
-		dao.executeUpdate(deleteIAhead);
-		dao.executeUpdate(deleteIAbody);
+			
+//		BaseDAO dao = new BaseDAO();
+//		String deleteAPhead="update arap_djzb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
+//		String deleteAPbody="update arap_djfb t set dr=1 where t.vouchid in ("+APpks+") and t.dr=0";
+//		String deleteIAhead="update ia_bill t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
+//		String deleteIAbody="update ia_bill_b t set t.dr=1 where t.cbillid in ("+IApks+") and t.dr=0";
+//		dao.executeUpdate(deleteAPhead);
+//		dao.executeUpdate(deleteAPbody);
+//		dao.executeUpdate(deleteIAhead);
+//		dao.executeUpdate(deleteIAbody);
+			
+		IArapBillPublic arapsrv = (IArapBillPublic) NCLocator.getInstance().lookup(IArapBillPublic.class.getName());
+		DJZBVO[] djzbvo = arapsrv.findArapBillByPKs(APpks);
+		for (int i=0; i<djzbvo.length; i++) {
+			ResMessage resmsg =  arapsrv.unAuditOneArapBill(djzbvo[i]);
+			arapsrv.deleteArapBill(resmsg.djzbvo);
+		}
+		
+		IBillAPI iasrv = (IBillAPI) NCLocator.getInstance().lookup(IBillAPI.class.getName());
+		
+	    ClientLink cl = new ClientLink(null, null, null, null, null, null, null,
+	            null, null, false, null, null, null);
+		
+		iasrv.apiDelete(IApks, cl);
+
 		}catch (Exception e){
 			Logger.debug("其他入库单取消签字时,作废下游单据出错!");
 			e.printStackTrace();

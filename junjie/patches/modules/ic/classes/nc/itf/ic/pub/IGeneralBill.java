@@ -136,7 +136,7 @@ public interface IGeneralBill {
 	 * 
 	 * 
 	 */
-	public abstract boolean rollbackICtoAPandIA(String generalPk, String APpks,String IApks) throws BusinessException;
+	public abstract boolean rollbackICtoAPandIA(String generalPk, String[] appks,String[] IApks) throws BusinessException;
 	
 	
 	
