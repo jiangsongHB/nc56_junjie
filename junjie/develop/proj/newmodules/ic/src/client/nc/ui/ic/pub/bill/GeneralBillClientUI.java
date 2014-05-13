@@ -11421,6 +11421,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 						SCMEnv.out(e);
 					}
 				}
+				else{  //wanglei 2014-05-13 空的也要处理一下
+					JJIcScmPubHelper.updateSmartVOs(null, cbillid);
+				}
 
 				// 二次开发扩展
 				getPluginProxy().afterAction(nc.vo.scm.plugin.Action.SAVE,

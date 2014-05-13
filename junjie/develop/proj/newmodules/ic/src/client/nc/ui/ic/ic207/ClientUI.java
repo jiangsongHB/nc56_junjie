@@ -1111,9 +1111,14 @@ private void onBoExpenseInput() {
 			// 当费用录入界面的vo数组不为空时,将vo存到费用录入页签上
 					getBillCardPanel().getBillData().setBodyValueVO(
 						"jj_scm_informationcost", infoCostVOs);
-				getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
+					getBillCardPanel().getBillData().updateValue();
+					getBillCardPanel().getBillModel("jj_scm_informationcost").execLoadFormula();
 			}	
-		
+		//wanglei 2104-05-14  如果为空，则设置为空值,并刷新列表
+		else{
+			getBillCardPanel().getBillModel("jj_scm_informationcost").clearBodyData();
+		}
+
 	}
 }
 /**

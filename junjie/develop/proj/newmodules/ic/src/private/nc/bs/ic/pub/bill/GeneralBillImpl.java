@@ -1193,7 +1193,7 @@ public class GeneralBillImpl implements IGeneralBill {
   	SmartDMO dmo = new SmartDMO();
   	String preparedUpdateSql = "delete from jj_scm_informationcost where cbillid = '"+cbillid+"'";
       dmo.executeUpdate(preparedUpdateSql);
-      if(vos.length == 0 || vos == null) 
+      if( vos == null  || vos.length == 0) //wanglei 2014-05-14 这种低级错误也会有
       	return;
        insertSmartVOs(vos);
   }
