@@ -113,6 +113,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		setBillType(parent);//add by 付世超 2010-10-30
 		initDialog();
 		this.getBillListPanel().setHeaderValueVO(vos);
+		this.getBillListPanel().getHeadBillModel().updateValue();  //wanglei 2013-05-13 刷新数据状态
 		this.getBillListPanel().getHeadBillModel().execLoadFormula();
 //		this.getBillListPanel().getHeadItem("noriginalcurmny").setEdit(false);
 	
