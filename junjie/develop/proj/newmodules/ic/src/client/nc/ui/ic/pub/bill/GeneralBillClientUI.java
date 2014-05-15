@@ -10740,6 +10740,9 @@ public abstract class GeneralBillClientUI extends ToftPanel implements
 		// if(!getBillCardPanel().getBillData().execBodyValidateFormulas())
 		// return false;
 		// 支持验证公式 陈倪娜 090909
+		
+		getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);  //wanglei 2014-05-15 强制切换到存货页签
+		
 		if (!getBillCardPanel().getBillData().execValidateFormulas())
 			return false;
 
