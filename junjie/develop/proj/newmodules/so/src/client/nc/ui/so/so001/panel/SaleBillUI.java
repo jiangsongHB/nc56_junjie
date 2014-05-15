@@ -8035,6 +8035,9 @@ public abstract class SaleBillUI extends SaleBillListUI implements IFreshTsListe
 			getPluginProxy().afterAction(Action.SAVE, new SaleOrderVO[] { saleorder });
 
 			updateUI();
+			
+			loadCardData();  //wanglei 2014-05-15 因为有后台处理的数据，这里重新加载当前单据
+			
 			if (saleorder.getHeadVO().isCoopped()
 					&& tempBillVoCache.getTempType() == tempBillVoCache.COOP
 					&& tempBillVoCache.getSize() > 0) {
@@ -8088,6 +8091,8 @@ public abstract class SaleBillUI extends SaleBillListUI implements IFreshTsListe
 			num = vIDs.size() - 1;
 			addCacheVO();
 		}
+		
+		loadCardData(); //wanglei 2014-05-15 如上
 		
 		getBillCardPanel().updateValue();
 	}

@@ -1935,7 +1935,8 @@ public class SaleOrderDMO extends DataManageObject implements IQueryData, IQuery
 	    //创建时间工具类实例
 		nc.vo.scm.pu.Timer timer = new nc.vo.scm.pu.Timer();
 		timer.start();
-		
+		//wanglei 2014-05-14 
+		reCalcateInvFee(saleorder);
 		//后台VO校验
 		checkVo(saleorder);
 		timer.addExecutePhase("insert操作-后台VO校验：");
@@ -5756,6 +5757,9 @@ public class SaleOrderDMO extends DataManageObject implements IQueryData, IQuery
 			try {
 				// 检查VO
 				onCheck(saleorder);
+				//wanglei 2014-05-14 
+				reCalcateInvFee(saleorder);
+				
 			} catch (Exception ex) {
 				saleorder.getParentVO().setAttributeValue("vreceiptcode", null);
 				if (ex.getClass() == nc.vo.pub.BusinessException.class)
@@ -20005,5 +20009,66 @@ public class SaleOrderDMO extends DataManageObject implements IQueryData, IQuery
 		}catch(Exception e){
 			throw new BusinessException(e);
 		}
+	}
+	
+	//wanglei  2014-05-14 计算预分配费用处理
+	private boolean reCalcateInvFee(SaleOrderVO ordvo) throws Exception{
+		UFDouble nSumFeeMny = UFDouble.ZERO_DBL; //wanglei 2014-05-14 重新计算预分配费用
+		UFDouble nSumInvNum = UFDouble.ZERO_DBL; 
+		SaleorderBVO[] ordbvos = (SaleorderBVO[]) (ordvo.getAllSaleOrderVO()==null? ordvo.getChildrenVO(): ordvo.getAllSaleOrderVO().getChildrenVO());
+		for (SaleorderBVO ordbvo : ordbvos) {
+			if(ordbvo.getLaborflag().booleanValue() && ordbvo.getBlargessflag().booleanValue())
+				nSumFeeMny = nSumFeeMny.add(ordbvo.getNsummny());
+			else
+				nSumInvNum = nSumInvNum.add(ordbvo.getNnumber());
+		}
+		
+		//wanglei 2014-05-14 重新计算预分配费用
+		if (!nSumFeeMny.equals(UFDouble.ZERO_DBL) &&
+				!nSumInvNum.equals(UFDouble.ZERO_DBL)){
+			UFDouble nMnyBal = nSumFeeMny;  //记录下余额初始值
+			UFDouble nNumBal = nSumInvNum;  //记录数量余额初始值
+			UFDouble nFeeMny = UFDouble.ZERO_DBL;
+			
+//			BusinessCurrencyRateUtil currtype = new BusinessCurrencyRateUtil(ordvo.getHeadVO().getPk_corp());
+//			nc.vo.bd.b21.CurrinfoVO currVO = currtype.getCurrinfoVO(ordvo.getHeadVO().getCcurrencytypeid(), null);
+//			// v30取业务精度
+//			int digit = currVO.getCurrdigit() == null ? 4 : currVO.getCurrdigit().intValue();
+			int digit = 2;
+			for (SaleorderBVO ordbvo : ordbvos) {
+				if(ordbvo.getLaborflag().booleanValue() && ordbvo.getBlargessflag().booleanValue()) {
+//					ordbvo.setStatus(VOStatus.UPDATED);
+					continue;
+				}
+				nFeeMny = nNumBal.doubleValue() > ordbvo.getNnumber().doubleValue() ? 
+						ordbvo.getNnumber().multiply(nMnyBal.div(nNumBal)).setScale(digit, UFDouble.ROUND_HALF_UP):nMnyBal;
+				ordbvo.setAttributeValue("ndistfeemny",nFeeMny);
+				nMnyBal = nMnyBal.sub(nFeeMny);
+				nNumBal = nNumBal.sub(ordbvo.getNnumber());
+				if(ordbvo.getStatus() == VOStatus.UNCHANGED )
+					ordbvo.setStatus(VOStatus.UPDATED) ;
+//				else
+//					ordbvo.setStatus(VOStatus.UPDATED);
+			}
+		}
+		else {
+			return true;
+		}
+		
+		ArrayList<SaleorderBVO> albvos= new ArrayList<SaleorderBVO>();
+		
+		SaleorderBVO[]  ordbvos1 = (SaleorderBVO[]) ordvo.getChildrenVO();
+		for (SaleorderBVO ordbvo : ordbvos1){
+			if (ordbvo.getStatus() == VOStatus.DELETED )
+				albvos.add(ordbvo);
+		}
+		
+		for (SaleorderBVO ordbvo : ordbvos){
+				albvos.add(ordbvo);
+		}
+		
+		SaleorderBVO[] retvos = new SaleorderBVO[albvos.size()];
+		ordvo.setChildrenVO(albvos.toArray(retvos));
+		return true;
 	}
 }
