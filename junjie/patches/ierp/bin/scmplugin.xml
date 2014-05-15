@@ -2,6 +2,7 @@
 
 <scm_plugin version="1.0">
 
+
 	<scm_plugin_ic name="库存插件">
 		
 		<!--===================采购入库单=================== -->
@@ -49,6 +50,25 @@
 		</ui_extend>
 
 	</scm_plugin_ic>
+	<scm_plugin_so name="销售插件">
+		<vo_field_extend>
+		<!--单据字段扩展-->
+             <cbilltypecode>30</cbilltypecode>
+             <voclassname>nc.vo.so.so001.SaleorderBVO</voclassname>
+             <fields><!--扩展的字段-->
+                 <field><!--预分配费用金额-->
+                	<dbfieldname>ndistfeemny</dbfieldname>
+                	<vofieldname>ndistfeemny</vofieldname>
+	                <dbfieldtype>1</dbfieldtype>
+    	            <vofieldtype>3</vofieldtype>
+    	            <persistence>Y</persistence>
+    	            <length>20</length>
+                    <allownull>Y</allownull>
+                    <precision>2</precision>
+                </field> 
+             </fields>
+		</vo_field_extend>
+	</scm_plugin_so>
 
 </scm_plugin>
 

@@ -1,0 +1,8 @@
+REM Alter Order Table
+
+alter table SO_SALEORDER_B add NDISTFEEMNY NUMBER(20,8);
+
+REM INSERTING into PUB_FUNCTION
+--SET DEFINE OFF;
+Insert into PUB_FUNCTION (CLASSNAME,DR,FUNCTIONNOTE,ISCOMP,METHOD,PARAMETER,PK_BILLTYPE,PK_FUNCTION,RETURNTYPE,TS) values ('nc.impl.scm.so.pub.DataControlDMO',null,'订单行预分配费用比例最高值',null,'getMaxOrderFeeRate','nc.vo.pub.AggregatedValueObject:01','30','1004AA1000000005N6UM','DOUBLE','2014-05-14 22:51:47');
+
