@@ -85,6 +85,7 @@ public class MdczRefDlg extends nc.ui.pub.beans.UIDialog implements
 		m_refModel.clearCacheData();  //wanglei 2014-01-14 加载前清一下参照缓存；
 			
 		m_tbpnl.setDataVector(m_refModel.getData());
+		m_tbpnl.execHeadLoadFormulas();  //wanglei 2014-05-15 执行加载公式
 		
 		
 		//m_tbpnl.getBodyPanel().getTableModel().clearTotalModel();
