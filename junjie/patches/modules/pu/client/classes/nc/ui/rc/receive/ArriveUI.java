@@ -6592,6 +6592,8 @@ private boolean onSave() {
   //÷’÷π±‡º≠
   getBillCardPanel().stopEditing();
   
+  getBillCardPanel().getBodyTabbedPane().setSelectedIndex(0);  //wanglei 2014-05-16 «ø÷∆«–ªªµΩ¥Êªı“≥«©±£¥Ê
+  
   /**
    * add by ouyangzhb 
    * 
