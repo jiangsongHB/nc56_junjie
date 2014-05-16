@@ -58,6 +58,7 @@ import nc.ui.bd.b21.CurrParamQuery;
 import nc.ui.scm.pub.ScmPubHelper;
 import nc.vo.arap.billtypemap.BillTypeMapVO;
 import nc.vo.arap.change.VoTools;
+import nc.vo.arap.global.ArapDjCalculator;
 import nc.vo.ep.dj.DJZBHeaderVO;
 import nc.vo.ep.dj.DJZBItemVO;
 import nc.vo.ep.dj.DJZBVO;
@@ -102,6 +103,7 @@ import nc.vo.scm.ic.ATPVO;
 import nc.vo.scm.ic.bill.FreeVO;
 import nc.vo.pu.jjvo.InformationCostVO;
 import nc.vo.scm.pu.PuPubVO;
+import nc.vo.scm.pu.RelationsCalVO;
 import nc.vo.scm.pu.Timer;
 import nc.vo.scm.pub.SCMEnv;
 import nc.vo.scm.pub.TempTableVO;
@@ -9505,6 +9507,11 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 				//wanglei 2014-04-26   交换费用行
 				//bodyVO[0].setPk_costinfo(VOs[i].getM_pk_costinfo());
 				// bodyVO[0].setYwybm(VOs[i].getCoperatorid());// 业务员
+				//2014-05-12  重重新计算各项的值
+				ArapDjCalculator.getInstance().calculateVO(
+						bodyVO[0], "dfybje", dCurrDate.toString(),
+						headVO.getDjdl(),
+						this.getParam(bodyVO[0].getDwbm(), 3));
 				v2.addElement(bodyVO[0]);
 			}
 
@@ -9564,7 +9571,39 @@ public class EstimateImpl implements IPuToIc_EstimateImpl,
 		return;
 	}
 
-	
+	private int[] getParam(String pk_corp, int pzglh) throws Exception {
+		if (pzglh == 0) {
+			if (((ISysInitQry) NCLocator.getInstance().lookup(
+					ISysInitQry.class.getName()))
+					.getParaString(pk_corp, "AR21").equals("含税价格优先"))/*
+																	 * -=notranslate
+																	 * =-
+																	 */
+			{
+				return new int[] { RelationsCalVO.TAXPRICE_PRIOR_TO_PRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			} else {
+				return new int[] { RelationsCalVO.PRICE_PRIOR_TO_TAXPRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			}
+
+		} else {
+			if (((ISysInitQry) NCLocator.getInstance().lookup(
+					ISysInitQry.class.getName()))
+					.getParaString(pk_corp, "AP21").equals("含税价格优先"))/*
+																	 * -=notranslate
+																	 * =-
+																	 */
+			{
+				return new int[] { RelationsCalVO.TAXPRICE_PRIOR_TO_PRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			} else {
+				return new int[] { RelationsCalVO.PRICE_PRIOR_TO_TAXPRICE,
+						RelationsCalVO.YES_LOCAL_FRAC };
+			}
+		}
+
+	}
 	/**
 	 * 2010-11-06 MeiChao
 	 * 费用发票弃审时,删除当前发票的下游单据: 红蓝回冲单,库存调整单
