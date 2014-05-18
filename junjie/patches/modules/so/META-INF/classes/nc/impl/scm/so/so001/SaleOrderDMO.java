@@ -20019,10 +20019,12 @@ public class SaleOrderDMO extends DataManageObject implements IQueryData, IQuery
 		for (SaleorderBVO ordbvo : ordbvos) {
 			if(ordbvo.getLaborflag().booleanValue() && ordbvo.getBlargessflag().booleanValue())
 				nSumFeeMny = nSumFeeMny.add(ordbvo.getNsummny());
-			else
-				nSumInvNum = nSumInvNum.add(ordbvo.getNnumber());
+			//else   yiming 2014-5-16 重量合计的条件为非费用即可，注释掉，调整如下
+			//	nSumInvNum = nSumInvNum.add(ordbvo.getNnumber());
+			if(!ordbvo.getLaborflag().booleanValue())  //yiming 2014-5-16 重量合计的条件为非费用即可
+			    nSumInvNum = nSumInvNum.add(ordbvo.getNnumber());
 		}
-		
+
 		//wanglei 2014-05-14 重新计算预分配费用
 		if (!nSumFeeMny.equals(UFDouble.ZERO_DBL) &&
 				!nSumInvNum.equals(UFDouble.ZERO_DBL)){
@@ -20036,7 +20038,8 @@ public class SaleOrderDMO extends DataManageObject implements IQueryData, IQuery
 //			int digit = currVO.getCurrdigit() == null ? 4 : currVO.getCurrdigit().intValue();
 			int digit = 2;
 			for (SaleorderBVO ordbvo : ordbvos) {
-				if(ordbvo.getLaborflag().booleanValue() && ordbvo.getBlargessflag().booleanValue()) {
+				//if(ordbvo.getLaborflag().booleanValue() && ordbvo.getBlargessflag().booleanValue()) {  yiming 2014-5-16 非费用存货行跳过费用金额分配，条件修改如下
+				if(ordbvo.getLaborflag().booleanValue()) {  // yiming 2014-5-16 非费用存货行跳过费用金额分配
 //					ordbvo.setStatus(VOStatus.UPDATED);
 					continue;
 				}
