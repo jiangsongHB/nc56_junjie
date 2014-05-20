@@ -2950,7 +2950,7 @@ public class DataControlDMO extends nc.bs.pub.DataManageObject implements
 
 	//wanglei 2014-05-14
 	//返回订单中行中，订单单价预分配费用金额/行金额最高值
-	//返回订单行中，价格下调最大值，本币含税报价-（本币含税单价-费用单价）。yiming  2014-5-17
+	//返回订单行中，价格下调最大值，主计量寻价含税单价-（本币含税单价-费用单价）。yiming  2014-5-17
 	public UFDouble getMaxOrderFeeRate(AggregatedValueObject billVO) {
 		UFDouble result = UFDouble.ZERO_DBL;
 		if (billVO == null || billVO.getChildrenVO() == null
@@ -2963,7 +2963,7 @@ public class DataControlDMO extends nc.bs.pub.DataManageObject implements
 //		UFDouble nsummny = UFDouble.ZERO_DBL;      不需使用 yiming 2014-5-17
 		UFDouble nnumber = UFDouble.ZERO_DBL;    //添加订单行数量 yiming 2014-5-17
 		UFDouble ntaxprice = UFDouble.ZERO_DBL;  //添加订单行本币含税单价 yiming 2014-5-17
-		UFDouble nqttaxprc = UFDouble.ZERO_DBL;  //添加订单行本币报价含税单价 yiming 2014-5-17
+		UFDouble nqtorgtaxprc = UFDouble.ZERO_DBL;  //添加订单行主计量寻价含税单价 yiming 2014-5-20
 		for (SaleorderBVO bodyvo : bodyvos) {
 /*费用行不检查  yiming 2014-5-16
 			Object blargessflag = bodyvo.getAttributeValue("blargessflag");  //赠品行不检查
@@ -2979,7 +2979,7 @@ public class DataControlDMO extends nc.bs.pub.DataManageObject implements
 //			nsummny =  bodyvo.getNsummny() == null? UFDouble.ZERO_DBL : bodyvo.getNsummny();         不需使用 yiming 2014-5-17
 			nnumber =  bodyvo.getNnumber() == null? UFDouble.ZERO_DBL : bodyvo.getNnumber();       //订单行数量 yiming 2014-5-17
 			ntaxprice =  bodyvo.getNtaxprice() == null? UFDouble.ZERO_DBL : bodyvo.getNtaxprice(); //订单行本币含税单价 yiming 2014-5-17
-			nqttaxprc =  bodyvo.getNqttaxprc() == null? UFDouble.ZERO_DBL : bodyvo.getNqttaxprc(); //订单行本币报价含税单价 yiming 2014-5-17
+			nqtorgtaxprc =  bodyvo.getNqtorgtaxprc() == null? UFDouble.ZERO_DBL : bodyvo.getNqtorgtaxprc(); //订单行主计量寻价含税单价 yiming 2014-5-20
 			
 			if (ndistfeemny.doubleValue() == 0.0 )  //没有分配的行业跳过
 				continue;
@@ -2989,9 +2989,9 @@ public class DataControlDMO extends nc.bs.pub.DataManageObject implements
 			} 
 /*注释，调整取价格下调最大值  yiming 2014-5-17*/
 			
-			// 本币含税报价-（本币含税单价-费用单价），取最大值，即价格下调最大值。yiming  2014-5-17
-			if (nqttaxprc.sub(ntaxprice.sub((ndistfeemny.div(nnumber))).doubleValue()).doubleValue() > result.doubleValue()) {
-						result = nqttaxprc.sub(ntaxprice.sub((ndistfeemny.div(nnumber))).doubleValue());
+			// （本币含税单价-费用单价）-主计量寻价含税单价，取最小值，即价格下调最大值。yiming  2014-5-20
+			if (ntaxprice.sub((ndistfeemny.div(nnumber))).sub(nqtorgtaxprc).doubleValue() < result.doubleValue()) {				
+				result = ntaxprice.sub(ndistfeemny.div(nnumber)).sub(nqtorgtaxprc);
 					} 					 
 		}
 
