@@ -257,8 +257,7 @@ public class IOPrintData implements IDataSource {
 				costprice = UFDouble.ZERO_DBL;
 				for (int y = 0; y < inforcost.length; y++) {
 					sumcostmny = sumcostmny.add(inforcost[y]
-							.getNoriginalcurmny());
-					
+							.getNoriginalcurmny());					
 				}
 				//处理可能取到的数据为负数的情况！add by zhang xiao wei 2013-08-15
 //				if (inforcost[0].getNnumber() != null
@@ -283,24 +282,57 @@ public class IOPrintData implements IDataSource {
 			}
 			if (sItemExpress.equalsIgnoreCase("i_sumcostprice")) {
 				for (int j = 0; j < m_pnlCard.getRowCount(); j++) {
-					vecValue.addElement(costprice.add(
-							new UFDouble(getValueForCardBody(m_pnlCard
-									.getBodyItem("nprice"), j))).setScale(2, 2)
-							.toString());
+			        vecValue.addElement(costprice.add(new UFDouble(getValueForCardBody(m_pnlCard.getBodyItem("nprice"), j))).setScale(2, 2).toString());
 				}
-			}
+			}			
 
 			if (sItemExpress.equalsIgnoreCase("i_sumcostmny")) {
 				for (int j = 0; j < m_pnlCard.getRowCount(); j++) {
-					vecValue.addElement(costprice.add(
-							new UFDouble(getValueForCardBody(m_pnlCard
-									.getBodyItem("nprice"), j))).multiply(
-							new UFDouble(getValueForCardBody(m_pnlCard
-									.getBodyItem("ninnum"), j))).setScale(2, 2)
-							.toString());
+					vecValue.addElement(costprice.add(new UFDouble(getValueForCardBody(m_pnlCard.getBodyItem("nprice"), j)))
+							.multiply(new UFDouble(getValueForCardBody(m_pnlCard.getBodyItem("ninnum"), j))).setScale(2, 2).toString());
 				}
 			}
+			
 			/** add by ouyanghzb 2012-04-23 新增成本单价及成本金额字段的取值 end */
+			
+			
+			/** add by yiming 2014-05-26 新增成本含税单价、成本含税金额字段的取值 begin */
+			UFDouble costntaxprice = UFDouble.ZERO_DBL;  //添加分摊费用含税单价     yiming   2014-5-24
+			if (sItemExpress.equalsIgnoreCase("i_sumcostntaxprice")
+					|| sItemExpress.equalsIgnoreCase("i_sumcostsummny")) {
+				UFDouble sumcostnsummny = UFDouble.ZERO_DBL; //添加分摊费用含税金额(价税合计)     yiming   2014-5-24
+				UFDouble sumnum = UFDouble.ZERO_DBL;
+				costntaxprice = UFDouble.ZERO_DBL;
+				for (int y = 0; y < inforcost.length; y++) {
+					sumcostnsummny = sumcostnsummny.add(inforcost[y]
+							.getNoriginalcursummny());					
+				}
+				//wanglei 2014-04-30 取出入库单的数量作为计算的依据
+				GeneralBillItemVO[] items = (GeneralBillItemVO[])this.m_pnlCard.getBillModel().getBodyValueVOs(GeneralBillItemVO.class.getName());
+				for (int i = 0 ; i < items.length; i++) {
+					sumnum = sumnum.add(items[i].getNinnum());
+				}
+				costntaxprice = sumcostnsummny.div(sumnum);  
+			}
+			
+			if (sItemExpress.equalsIgnoreCase("i_sumcostntaxprice")) {
+				for (int j = 0; j < m_pnlCard.getRowCount(); j++) {
+			        vecValue.addElement(costntaxprice.add((new UFDouble(getValueForCardBody(m_pnlCard.getBodyItem("nmny"), j)))
+			        		                               .div(new UFDouble(getValueForCardBody(m_pnlCard.getBodyItem("ninnum"), j)))
+			        		                               .multiply(1.17)).setScale(2, 2).toString());
+				}
+			}			
+			
+			if (sItemExpress.equalsIgnoreCase("i_sumcostsummny")) {
+				for (int j = 0; j < m_pnlCard.getRowCount(); j++) {
+					vecValue.addElement(costntaxprice.multiply(new UFDouble(getValueForCardBody(m_pnlCard.getBodyItem("ninnum"), j)))
+							            .add((new UFDouble(getValueForCardBody(m_pnlCard.getBodyItem("nmny"), j))).multiply(1.17))
+							.setScale(2, 2).toString());
+				}
+			}
+			
+			
+			/** add by yiming 2014-05-26 新增成本含税单价、成本含税金额字段的取值 end */
 
 			if (sItemExpress.equalsIgnoreCase("i_costname"))
 				for (int y = 0; y < inforcost.length; y++) {
@@ -363,10 +395,27 @@ public class IOPrintData implements IDataSource {
 						vecValue.addElement(inforcost[y].getNoriginalcurmny()
 								.toString());
 				}
-			if (sItemExpress.equalsIgnoreCase("i_noriginalcurmny2"))
+			
+			//添加费用含税金额      yiming   2015-5-24
+			if (sItemExpress.equalsIgnoreCase("i_noriginalcursummny"))
+				for (int y = 0; y < inforcost.length; y++) {
+					if (y % 2 == 0)
+						vecValue.addElement(inforcost[y].getNoriginalcursummny()
+								.toString());
+				}
+			
+			if (sItemExpress.equalsIgnoreCase("i_noriginalcurmny2")) 
 				for (int y = 0; y < inforcost.length; y++) {
 					if (y % 2 == 1)
 						vecValue.addElement(inforcost[y].getNoriginalcurmny()
+								.toString());
+				}
+			
+			//添加费用含税金额2      yiming   2015-5-24			
+			if (sItemExpress.equalsIgnoreCase("i_noriginalcursummny2")) 
+				for (int y = 0; y < inforcost.length; y++) {
+					if (y % 2 == 1)
+						vecValue.addElement(inforcost[y].getNoriginalcursummny()
 								.toString());
 				}
 
@@ -376,12 +425,30 @@ public class IOPrintData implements IDataSource {
 						vecValue.addElement(inforcost[y].getNoriginalcurprice()
 								.toString());
 				}
+			
+			//添加费用含税单价      yiming  2014-5-24
+			if (sItemExpress.equalsIgnoreCase("i_noriginalcurtaxprice"))
+				for (int y = 0; y < inforcost.length; y++) {
+					if (y % 2 == 0)
+						vecValue.addElement(inforcost[y].getNoriginalcurtaxprice()
+								.toString());
+				}
+			
 			if (sItemExpress.equalsIgnoreCase("i_noriginalcurprice2"))
 				for (int y = 0; y < inforcost.length; y++) {
 					if (y % 2 == 1)
 						vecValue.addElement(inforcost[y].getNoriginalcurprice()
 								.toString());
 				}
+			
+			//添加费用含税单价2      yiming  2014-5-24
+			if (sItemExpress.equalsIgnoreCase("i_noriginalcurtaxprice2"))
+				for (int y = 0; y < inforcost.length; y++) {
+					if (y % 2 == 1)
+						vecValue.addElement(inforcost[y].getNoriginalcurtaxprice()
+								.toString());
+				}
+			
 
 			if (sItemExpress.equalsIgnoreCase("i_nnumber"))
 				for (int y = 0; y < inforcost.length; y++) {
