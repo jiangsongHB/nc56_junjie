@@ -378,6 +378,7 @@ junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/pub/PoCardPanel.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/po/pub/PoListPanel.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/ps/estimate/EstimateHelper.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/ps/estimate/EstimateUI.java -text
+junjie/develop/proj/newmodules/pu/src/client/nc/ui/ps/estimate/InitialUI.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/pu/jj/JJPuScmPubHelper.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/pu/jjpanel/InfoCostPanel.java -text
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/pu/jjpanel/InvDetailDialog.java -text
@@ -387,6 +388,7 @@ junjie/develop/proj/newmodules/pu/src/client/nc/ui/sourceref/arap/SourceBillDlgF
 junjie/develop/proj/newmodules/pu/src/client/nc/ui/sourceref/pi/SourceRefDlgStoreToPi.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pi/InvoiceDMO.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/pi/InvoiceImpl.java -text
+junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/estimate/EstimateDMO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/estimate/EstimateImpl.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/settle/SettleDMO.java -text
 junjie/develop/proj/newmodules/pu/src/private/nc/bs/ps/settle/SettleImpl.java -text
@@ -403,6 +405,7 @@ junjie/develop/proj/newmodules/pu/src/public/nc/itf/jj/update/IUpdateArap.java -
 junjie/develop/proj/newmodules/pu/src/public/nc/itf/ps/estimate/IEstimate.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/itf/pu/mm/ISrvPUToMM.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/po/OrderVO.java -text
+junjie/develop/proj/newmodules/pu/src/public/nc/vo/ps/estimate/GeneralHItemVO.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/pu/jjvo/InformationCostVO.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/pu/jjvo/InformationCostVOMeta.java -text
 junjie/develop/proj/newmodules/pu/src/public/nc/vo/pu/jjvo/InvDetailVO.java -text
