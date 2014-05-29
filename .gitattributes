@@ -828,6 +828,7 @@ junjie/patches/modules/ja/client/classes/nc/ui/ja/entityrecrpit/MyDelegator.clas
 junjie/patches/modules/ja/client/classes/nc/ui/ja/entityrecrpit/MyEventHandler.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pi/InvoiceDMO.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/pi/InvoiceImpl.class -text
+junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/estimate/EstimateDMO.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/estimate/EstimateImpl.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/settle/SettleDMO.class -text
 junjie/patches/modules/pu/META-INF/classes/nc/bs/ps/settle/SettleImpl.class -text
@@ -848,6 +849,7 @@ junjie/patches/modules/pu/classes/nc/itf/jj/update/IUpdateArap.class -text
 junjie/patches/modules/pu/classes/nc/itf/ps/estimate/IEstimate.class -text
 junjie/patches/modules/pu/classes/nc/itf/pu/mm/ISrvPUToMM.class -text
 junjie/patches/modules/pu/classes/nc/vo/po/OrderVO.class -text
+junjie/patches/modules/pu/classes/nc/vo/ps/estimate/GeneralHItemVO.class -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVO.class -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InformationCostVOMeta.class -text
 junjie/patches/modules/pu/classes/nc/vo/pu/jjvo/InvDetailVO.class -text
@@ -875,6 +877,8 @@ junjie/patches/modules/pu/client/classes/nc/ui/po/pub/PoCardPanel.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/po/pub/PoListPanel.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/ps/estimate/EstimateHelper.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/ps/estimate/EstimateUI.class -text
+junjie/patches/modules/pu/client/classes/nc/ui/ps/estimate/InitialUI$IBillRelaSortListener2Impl.class -text
+junjie/patches/modules/pu/client/classes/nc/ui/ps/estimate/InitialUI.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jj/JJPuScmPubHelper.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InfoCostPanel.class -text
 junjie/patches/modules/pu/client/classes/nc/ui/pu/jjpanel/InvDetailDialog.class -text
