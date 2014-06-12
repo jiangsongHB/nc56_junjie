@@ -509,21 +509,40 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	}
 
 	public void afterEdit(BillEditEvent e) {
-		if(e.getKey().equals("ismny")){
-		if(	(Boolean)e.getValue()){
-		   getBillListPanel().getHeadItem("noriginalcurprice").setValue(null);
-		   getBillListPanel().getHeadItem("noriginalcurprice").setEdit(false);
-		   getBillListPanel().getHeadItem("noriginalcurmny").setEdit(true);
-		}else{
-			 getBillListPanel().getHeadItem("noriginalcurmny").setValue(null);
-			   getBillListPanel().getHeadItem("noriginalcurmny").setEdit(false);
-			   getBillListPanel().getHeadItem("noriginalcurprice").setEdit(true);
-		}
-		   
+		if (e.getKey().equals("ismny")) {
+			if ((Boolean) e.getValue()) {
+				getBillListPanel().getHeadItem("noriginalcurprice").setValue(
+						null);
+				getBillListPanel().getHeadItem("noriginalcurprice").setEdit(
+						false);
+				getBillListPanel().getHeadItem("noriginalcurmny").setEdit(true);
+			} else {
+				getBillListPanel().getHeadItem("noriginalcurmny")
+						.setValue(null);
+				getBillListPanel().getHeadItem("noriginalcurmny")
+						.setEdit(false);
+				getBillListPanel().getHeadItem("noriginalcurprice").setEdit(
+						true);
+			}
+
 		}
 		
+		//wanglei 2014-06-11 处理其他字段的编辑事件
+		if (e.getKey().equals("nnumber")) {
+			//getBillListPanel().getHeadItem("nnumber").setValue( e.getValue() == null? UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString()));
+			getBillListPanel().getHeadBillModel().setValueAt(e.getValue(),e.getRow(),"nnumber");
+			reCalculateRow(e.getRow());
+		}
+		//end
 	}
 
+	//wanglei 2014-06-11 处理其他字段的编辑事件
+	private void reCalculateRow(int row){
+		UFDouble nnumber = getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber");
+		UFDouble noriginalcurprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurprice");
+		getBillListPanel().getHeadBillModel().setValueAt(nnumber.multiply(noriginalcurprice), row, "noriginalcurmny");
+	}
+	//end
 	/**
 	 * @function 设置存货总数量
 	 * 
