@@ -5612,12 +5612,12 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 				setCurOperState(getListOperState());
 
 			}
-			// add by zhang xiao wei 2013-09-04
-			DJZBVO[] billvo = getBillVO(proceVOs);
-			if (billvo != null) {
-				insertYSData(billvo);
-			}
-			// end
+//			// add by zhang xiao wei 2013-09-04
+//			DJZBVO[] billvo = getBillVO(proceVOs);
+//			if (billvo != null) {
+//				insertYSData(billvo);
+//			}
+//			// end
 			showHintMessage(nc.ui.ml.NCLangRes.getInstance().getStrByID(
 					"common", "UCH010"));
 			return;
@@ -14134,7 +14134,7 @@ public class InvoiceUI extends nc.ui.pub.ToftPanel implements BillEditListener,
 					oaUser);
 			boolean bSucced = PfUtilClient.isSuccess();
 			if (bSucced) {
-
+//注释以下几行代码，以下几行代码会导致在列表状态下审核发票时，出现多余的回冲应付单，yiming 2014-6-18
 //				// add by zhang xiao wei 2013-09-30
 //				ArrayList<DJZBVO> listvo = getDjzbvo(voaInvoice);
 //				IUpdateArap updatearap = (IUpdateArap) NCLocator.getInstance()
