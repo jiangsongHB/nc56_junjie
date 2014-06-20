@@ -722,7 +722,8 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	}
 	public void bodyRowChange(BillEditEvent e) {
 		// TODO Auto-generated method stub
-		setRowEditStatus(e.getRow());
+		if (e.getRow() != -1)
+			setRowEditStatus(e.getRow());
 	}
 
 }
