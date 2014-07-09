@@ -1986,6 +1986,11 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 			DJZBVO[] apVOs = new DJZBVO[estimationTempVOs.size()];
 			iARAP.saveArapBills(estimationTempVOs.toArray(apVOs));
 			
+			//wanglei 2014-07-04 调用系统的审核处理
+			for(DJZBVO djzbvo:estimationTempVOs.toArray(apVOs)) {
+				iARAP.auditArapBill(djzbvo);
+			}
+			//end
 			/** 4、 开始组织存货核算的库存调整单VO */
 			// 初始化库存调整单VO
 			BillVO changeBillVO = new BillVO();
