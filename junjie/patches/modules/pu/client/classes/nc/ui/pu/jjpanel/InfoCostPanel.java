@@ -414,6 +414,12 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		}
 
 	}
+	
+	private void setRowEditStatus(int i) {
+		// TODO Auto-generated method stub
+		getBillListPanel().getHeadBillModel().setCellEditable(i, "noriginalcurprice", false); //设置非编辑项  yiming 2014-6-16
+		getBillListPanel().getHeadBillModel().setCellEditable(i, "noriginalcurmny", false); //设置非编辑项  yiming 2014-6-16
+	}	
 
 	/**
 	 * @function 关闭标志
@@ -477,7 +483,131 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		   
 		}
 		
+		//yiming 2014-06-18 处理数量、税率、含税单价、价税合计编辑计算公式
+		if (e.getKey().equals("nnumber")) {
+			//getBillListPanel().getHeadItem("nnumber").setValue( e.getValue() == null? UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString()));
+			getBillListPanel().getHeadBillModel().setValueAt(e.getValue(),e.getRow(),"nnumber");
+			int row=e.getRow();
+			UFDouble nnumber = getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber");
+			UFDouble noriginalcurprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurprice");
+			UFDouble ntaxrate = getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate");
+			UFDouble noriginalcurtaxprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice");
+			
+			UFDouble noriginalcursummny = nnumber.multiply(noriginalcurtaxprice).setScale(2, UFDouble.ROUND_HALF_UP);
+			UFDouble noriginalcurmny = nnumber.multiply(noriginalcurtaxprice).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);
+			
+			getBillListPanel().getHeadBillModel().setValueAt((nnumber.multiply(noriginalcurtaxprice)).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcursummny");
+			getBillListPanel().getHeadBillModel().setValueAt(nnumber.multiply(noriginalcurtaxprice).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurmny");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurprice, row, "nprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice, row, "ntaxprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny, row, "nsummny");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurmny, row, "nmny");
+			//reCalculateRow(e.getRow());
+			
+			//noriginalcurmny->nnumber*noriginalcurprice;
+			//noriginalcursummny->nnumber*noriginalcurtaxprice;
+			//nprice->noriginalcurprice;
+			//ntaxprice->noriginalcurtaxprice;
+			//nsummny->noriginalcursummny;
+			//nmny->noriginalcurmny;
+			
+		}
+		if (e.getKey().equals("ntaxrate")) {
+			//getBillListPanel().getHeadItem("nnumber").setValue( e.getValue() == null? UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString()));
+			getBillListPanel().getHeadBillModel().setValueAt(e.getValue(),e.getRow(),"ntaxrate");
+			int row=e.getRow();
+			UFDouble nnumber = getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber");
+			UFDouble ntaxrate = getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate");
+			UFDouble noriginalcurtaxprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice");
+			UFDouble noriginalcursummny = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcursummny") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcursummny");
+
+			UFDouble noriginalcurmny = noriginalcursummny.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);		
+			UFDouble noriginalcurprice = noriginalcurtaxprice.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);	
+			
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurmny");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurprice, row, "nprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice, row, "ntaxprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny, row, "nsummny");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurmny, row, "nmny");
+			//reCalculateRow(e.getRow());
+			
+			//noriginalcurprice->noriginalcurtaxprice/(1+ntaxrate/100);
+			//noriginalcurmny->nnumber*noriginalcurtaxprice/(1+ntaxrate/100);
+			//nprice->noriginalcurprice;
+			//ntaxprice->noriginalcurtaxprice;
+			//nsummny->noriginalcursummny;
+			//nmny->noriginalcurmny;
+
+			
+		}
+
+				
+		if (e.getKey().equals("noriginalcurtaxprice")) {
+			//getBillListPanel().getHeadItem("nnumber").setValue( e.getValue() == null? UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString()));
+			getBillListPanel().getHeadBillModel().setValueAt(e.getValue(),e.getRow(),"noriginalcurtaxprice");
+			int row=e.getRow();
+			UFDouble nnumber = getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber");
+			UFDouble ntaxrate = getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate");
+			UFDouble noriginalcurtaxprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice");
+
+			UFDouble noriginalcurprice = noriginalcurtaxprice.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);
+			UFDouble noriginalcursummny = noriginalcurtaxprice.multiply(nnumber, 2,  UFDouble.ROUND_HALF_UP);
+			UFDouble noriginalcurmny = noriginalcurtaxprice.multiply(nnumber).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);	
+					
+			getBillListPanel().getHeadBillModel().setValueAt(nnumber.multiply(noriginalcurtaxprice).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcursummny");
+			getBillListPanel().getHeadBillModel().setValueAt(nnumber.multiply(noriginalcurtaxprice).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurmny");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurprice, row, "nprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice, row, "ntaxprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny, row, "nsummny");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurmny, row, "nmny");
+			
+			//noriginalcursummny->nnumber*noriginalcurtaxprice;
+			//noriginalcurmny->nnumber*noriginalcurprice;
+			//noriginalcurprice->noriginalcurtaxprice/(1+ntaxrate/100);
+			//nprice->noriginalcurprice;
+			//ntaxprice->noriginalcurtaxprice;
+			//nsummny->noriginalcursummny;
+			//nmny->noriginalcurmny;
+		}
+		
+		if (e.getKey().equals("noriginalcursummny")) {
+			getBillListPanel().getHeadBillModel().setValueAt(e.getValue(),e.getRow(),"noriginalcursummny");
+			int row=e.getRow();
+			UFDouble nnumber = getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber");
+//			UFDouble noriginalcurprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurprice");
+			UFDouble ntaxrate = getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate");
+//			UFDouble noriginalcurtaxprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice");
+			UFDouble noriginalcursummny = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcursummny") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcursummny");
+//			UFDouble noriginalcurmny = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurmny") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurmny");		
+
+			UFDouble noriginalcurtaxprice = noriginalcursummny.div(nnumber).setScale(2, UFDouble.ROUND_HALF_UP);
+			UFDouble noriginalcurmny = noriginalcursummny.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);
+			UFDouble noriginalcurprice = noriginalcursummny.div(nnumber).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);		
+					
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny.div(nnumber).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurtaxprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurmny");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny.div(nnumber).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurprice, row, "nprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice, row, "ntaxprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny, row, "nsummny");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurmny, row, "nmny");
+			
+			//noriginalcurtaxprice->noriginalcursummny/nnumber;
+			//noriginalcurmny->noriginalcursummny/(1+ntaxrate/100);
+			//noriginalcurprice->noriginalcursummny/nnumber/(1+ntaxrate/100);
+			//nprice->noriginalcurprice;
+			//ntaxprice->noriginalcurtaxprice;
+			//nsummny->noriginalcursummny;
+			//nmny->noriginalcurmny;
+		}
+
+		//end
+		
 	}
+	
+	
 
 	/**
 	 * @function 设置存货总数量
@@ -504,6 +634,8 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 		}
 		
 	}
+
+	
 	
 	/**
 	 * @function 设置当前单据类型
@@ -522,6 +654,8 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	
 	public void bodyRowChange(BillEditEvent e) {
 		// TODO Auto-generated method stub
+		if(e.getRow() != -1 )  //删除行排除掉 2014-6-18 wanglei
+			setRowEditStatus(e.getRow());
 		
 	}
 
