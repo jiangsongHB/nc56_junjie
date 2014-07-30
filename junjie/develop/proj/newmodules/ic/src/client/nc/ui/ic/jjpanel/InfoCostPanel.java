@@ -592,25 +592,6 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 
 				
 		if (e.getKey().equals("noriginalcurtaxprice")) {
-			//getBillListPanel().getHeadItem("nnumber").setValue( e.getValue() == null? UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString()));
-//			getBillListPanel().getHeadBillModel().setValueAt(e.getValue(),e.getRow(),"noriginalcurtaxprice");
-//			int row=e.getRow();
-//			UFDouble nnumber = getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber");
-//			UFDouble noriginalcurprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurprice");
-//			UFDouble ntaxrate = getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"ntaxrate");
-//			UFDouble noriginalcurtaxprice = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurtaxprice");
-//			UFDouble noriginalcursummny = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcursummny") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcursummny");
-//			UFDouble noriginalcurmny = getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurmny") == null? UFDouble.ZERO_DBL: (UFDouble)getBillListPanel().getHeadBillModel().getValueAt(row,"noriginalcurmny");		
-//
-//			getBillListPanel().getHeadBillModel().setValueAt(nnumber.multiply(noriginalcurtaxprice).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcursummny");
-//			getBillListPanel().getHeadBillModel().setValueAt(nnumber.multiply(noriginalcurtaxprice).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurmny");
-//			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurprice");
-//			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurprice, row, "nprice");
-//			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice, row, "ntaxprice");
-//			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny, row, "nsummny");
-//			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurmny, row, "nmny");
-			//reCalculateRow(e.getRow());
-			//getBillListPanel().getHeadItem("nnumber").setValue( e.getValue() == null? UFDouble.ZERO_DBL: new UFDouble(e.getValue().toString()));
 			getBillListPanel().getHeadBillModel().setValueAt(e.getValue(),e.getRow(),"noriginalcurtaxprice");
 			int row=e.getRow();
 			UFDouble nnumber = getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber") == null? UFDouble.ZERO_DBL: (UFDouble) getBillListPanel().getHeadBillModel().getValueAt(row,"nnumber");
@@ -622,7 +603,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 
 			UFDouble noriginalcurprice = noriginalcurtaxprice.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);
 			UFDouble noriginalcursummny = noriginalcurtaxprice.multiply(nnumber, 2,  UFDouble.ROUND_HALF_UP);
-			UFDouble noriginalcurmny = noriginalcurprice.multiply(nnumber, 2,  UFDouble.ROUND_HALF_UP);		
+			UFDouble noriginalcurmny = noriginalcurtaxprice.multiply(nnumber).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);		
 					
 			getBillListPanel().getHeadBillModel().setValueAt(nnumber.multiply(noriginalcurtaxprice).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcursummny");
 			getBillListPanel().getHeadBillModel().setValueAt(nnumber.multiply(noriginalcurtaxprice).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurmny");
@@ -653,11 +634,11 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 
 			UFDouble noriginalcurtaxprice = noriginalcursummny.div(nnumber).setScale(2, UFDouble.ROUND_HALF_UP);
 			UFDouble noriginalcurmny = noriginalcursummny.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);
-			UFDouble noriginalcurprice = noriginalcurtaxprice.div(nnumber).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);		
+			UFDouble noriginalcurprice = noriginalcursummny.div(nnumber).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP);		
 					
 			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny.div(nnumber).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurtaxprice");
 			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny.div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurmny");
-			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice.div(nnumber).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurprice");
+			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny.div(nnumber).div(ntaxrate.div(100).add(new UFDouble(1))).setScale(2, UFDouble.ROUND_HALF_UP), row, "noriginalcurprice");
 			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurprice, row, "nprice");
 			getBillListPanel().getHeadBillModel().setValueAt(noriginalcurtaxprice, row, "ntaxprice");
 			getBillListPanel().getHeadBillModel().setValueAt(noriginalcursummny, row, "nsummny");
@@ -722,7 +703,7 @@ public class InfoCostPanel extends UIDialog implements ActionListener,BillEditLi
 	}
 	public void bodyRowChange(BillEditEvent e) {
 		// TODO Auto-generated method stub
-		if (e.getRow() != -1)
+		if(e.getRow() != -1 )  //É¾³ýÐÐÅÅ³ýµô 2014-6-18 wanglei
 			setRowEditStatus(e.getRow());
 	}
 
