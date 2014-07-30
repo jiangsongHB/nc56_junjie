@@ -1236,7 +1236,7 @@ public class GeneralBillImpl implements IGeneralBill {
 	    ClientLink cl = new ClientLink(null, null, null, null, null, null, null,
 	            null, null, false, null, null, null);
 		
-		iasrv.apiDelete(IApks, cl);
+//		iasrv.apiDelete(IApks, cl); //wanglei  2014-06-18 取消签字时，已经删除过了。
 
 		}catch (Exception e){
 			Logger.debug("其他入库单取消签字时,作废下游单据出错!");

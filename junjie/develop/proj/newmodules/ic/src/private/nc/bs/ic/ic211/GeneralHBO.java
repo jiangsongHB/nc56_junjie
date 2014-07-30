@@ -35,12 +35,14 @@ import nc.itf.uap.IUAPQueryBS;
 import nc.itf.uap.busibean.ISysInitQry;
 import nc.itf.uap.pf.IPFConfig;
 import nc.itf.uif.pub.IUifService;
+import nc.jdbc.framework.processor.ArrayListProcessor;
 import nc.jdbc.framework.processor.BeanListProcessor;
 import nc.jdbc.framework.processor.ColumnProcessor;
 import nc.ui.pub.ClientEnvironment;
 import nc.ui.pub.beans.MessageDialog;
 import nc.uif.pub.exception.UifException;
 import nc.vo.arap.global.ArapDjCalculator;
+import nc.vo.arap.global.ResMessage;
 import nc.vo.bd.invdoc.InvclVO;
 import nc.vo.bd.invdoc.InvbasdocVO;
 import nc.vo.ep.dj.DJZBHeaderVO;
@@ -2106,6 +2108,8 @@ public GeneralBillVO fillDirectSaleOrderInfo(GeneralBillVO vo){
 	}
   
   //wanglei 2014-05-05 
+  
+  
 	private int[] getParam(String pk_corp, int pzglh) throws Exception {
 		if (pzglh == 0) {
 			if (((ISysInitQry) NCLocator.getInstance().lookup(
@@ -2168,5 +2172,156 @@ private GeneralBillItemVO[] filterBody(GeneralBillItemVO[] generalBody) throws B
 	return bvos;
 }
   
+//wanglei 2014-06-18 转移取消签字方法到这里
+
+public void delete4A2AP(nc.vo.ic.pub.bill.GeneralBillVO billVO) throws BusinessException {
+		if (billVO == null) {
+			return;
+		}
+
+		String generalbillid = billVO.getHeaderVO().getCgeneralhid();
+
+		IUAPQueryBS query = NCLocator.getInstance().lookup(IUAPQueryBS.class);// 实例化UI查询接口
+		/**
+		 * 判断对应的暂估应付单是否已生成发票
+		 */
+		String checkPUSQL = "select i.cinvoiceid " + " from po_invoice i "
+				+ "where i.cinvoiceid in " + "(select distinct p.cinvoiceid "
+				+ "from po_invoice_b p "
+				+ "where p.cupsourcebillid in (select distinct t.vouchid "
+				+ "from arap_djfb t " + "where t.ddlx = '" + generalbillid
+				+ "' " + "and t.jsfsbm = '4A' "
+				+ "and t.dr = 0) and p.dr = 0) and i.dr = 0  ";
+		Object puResult = null;
+		try {
+			puResult = query.executeQuery(checkPUSQL, new ColumnProcessor());
+		} catch (BusinessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if (puResult != null && !"".equals(puResult.toString())) {
+			// 如果推式生成的暂估应付单已生成了采购费用发票.则不允许弃审(取消签字)
+			throw new BusinessException("当前其他入库单的下游单据: 暂估应付单 已生成采购发票,不允许取消签字.");
+		}
+		/**
+		 * 对应暂估应付单
+		 */
+		String checkAPSQL = "select t.djzt,t.vouchid " + "from arap_djzb t "
+				+ "where t.vouchid in "
+				+ "(select distinct i.vouchid from arap_djfb i "
+				+ "where i.jsfsbm='4A' and i.ddlx='" + generalbillid
+				+ "' and i.dr=0) and t.dr=0";
+		List checkAPResult = new ArrayList();
+		try {
+			// 查询其他入庫單所生成的应付单状态,
+			// 结果集结构: List中的数组,数组长度为2,下标0: 单据状态 下标1: 对应单据id
+			checkAPResult = (List) query.executeQuery(checkAPSQL,
+					new ArrayListProcessor());
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			throw new BusinessException("查询其他入库单下游单据状态时出错!");
+		}
+		// 应付单PK组合
+		StringBuffer pkForAP = new StringBuffer("");
+		// wanglei 2014-05-13 调整回退处理逻辑
+		ArrayList<String> alaps = new ArrayList<String>();
+		ArrayList<String> alias = new ArrayList<String>();
+		// 处理结果集
+		if (checkAPResult == null || checkAPResult.size() == 0) {
+			// 没有下游暂估应付单,表示之前有生成失败,或已删除.
+			// MessageDialog
+			// .showHintDlg(this.getClientUI(), "警告", "当前入库单无下游应付单.");
+			// Logger.debug("当前入库单无下游应付单.");
+			return;
+		} else {
+			// 判断下游单据状态
+			for (int i = 0; i < checkAPResult.size(); i++) {
+				if (!"2".equals(((Object[]) checkAPResult.get(i))[0].toString())) {
+					// 如果单据状态不等于1,表示状态已变.则不允许弃审(取消签字)
+					throw new BusinessException(
+							"当前其他入库单的下游单据: 暂估应付单 已处理,不允许取消签字.");
+				} else {
+					pkForAP.append("'");
+					pkForAP.append(((Object[]) checkAPResult.get(i))[1]
+							.toString());
+					pkForAP.append("'");
+					if (i < checkAPResult.size() - 1) {
+						pkForAP.append(",");
+					}
+					// wanglei 2014-05-13
+					alaps.add(((Object[]) checkAPResult.get(i))[1].toString());
+
+				}
+			}
+
+		}
+		/**
+		 * 对应库存调整单
+		 */
+		String checkIASQL = "select t.bauditedflag,t.cbillid from ia_bill t where t.cbillid in "
+				+ "( select distinct t.cbillid from ia_bill_b t where t.cbilltypecode='I9' and t.cicbilltype='4A' and t.dr=0 and t.cicbillid='"
+				+ generalbillid + "') and t.dr=0";
+		// 下游库存调整单的PK
+		List iaResult = null;
+		try {
+			iaResult = (List) query.executeQuery(checkIASQL,
+					new ArrayListProcessor());
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		StringBuffer pkForIA = new StringBuffer("");
+		if (iaResult == null || iaResult.size() < 0) {
+			// 没有下游库存调整单,表示之前有生成失败,或已删除.
+			if (checkAPResult == null || checkAPResult.size() == 0) {
+				// 如果同时也没有下游暂估应付单,表示之前有生成失败,或已删除.
+				// MessageDialog
+				// .showHintDlg(this.getClientUI(), "警告", "当前入库单无下游应付单.");
+				// Logger.debug("当前入库单无下游暂估应付单及库存调整单.");
+				return;// 直接返回true 执行取消签字.
+			}
+
+		} else {// 否则,判断对应调整单状态.
+			for (int i = 0; i < iaResult.size(); i++) {
+				if ("Y".equals(((Object[]) iaResult.get(i))[0].toString())) {
+					// 如果单据状态不等于Y,表示下游调整单已审核.则不允许弃审(取消签字)
+					throw new BusinessException(
+							"当前其他入库单的下游单据:库存调整单 已审核,不允许取消签字.");
+				} else {
+					pkForIA.append("'");
+					pkForIA.append(((Object[]) iaResult.get(i))[1].toString());
+					pkForIA.append("'");
+					if (i < iaResult.size() - 1) {
+						pkForIA.append(",");
+					}
+					alias.add(((Object[]) iaResult.get(i))[1].toString());
+				}
+			}
+		}
+
+		/**
+		 * 暂估应付单及库存调整单处理完毕,校验通过,执行作废处理.
+		 */
+		// 实例化接口
+		nc.itf.ic.pub.IGeneralBill iGeneralBill = (nc.itf.ic.pub.IGeneralBill) NCLocator
+				.getInstance().lookup(
+						nc.itf.ic.pub.IGeneralBill.class.getName());// 获取库存管理接口
+		try {
+			// iGeneralBill.rollbackICtoAPandIA(generalbillid,
+			// pkForAP.toString(), pkForIA.toString());
+
+			// wanglei 2014-05-13
+			String[] appks = new String[alaps.size()];
+			String[] iapks = new String[alias.size()];
+			alaps.toArray(appks);
+			iGeneralBill.rollbackICtoAPandIA(generalbillid, appks, iapks);
+		} catch (BusinessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new BusinessException("其他入库单取消签字时,作废下游单据出错!");
+		}
+		return;
+
+	}
 	
 }
