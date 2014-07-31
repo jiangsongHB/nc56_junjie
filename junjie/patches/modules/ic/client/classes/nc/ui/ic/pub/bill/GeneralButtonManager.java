@@ -1908,17 +1908,17 @@ public class GeneralButtonManager implements IButtonManager,BillActionListener {
 						//如果当前单据存在费用信息,则尝试查询其下游单据的状态.
 						//如果无下游单据,或下游单据为已处理状态,那么不允许签字.
 						//如果下游单据为签字后的初始状态,那么删除.
-						if("4A".equals(this.getBillType())){//是否其他入库单
-							if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&
-									this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName())!=null
-									){//是否有表体费用数据
-								//执行其他入库单取消签字时的下游单据处理
-								if(!this.rollbackAudit(voAudit.getHeaderVO().getCgeneralhid())){
-									MessageDialog.showErrorDlg(this.getClientUI(), "错误", "下游单据已生效或异常,取消签字失败!");
-									return;
-								}
-							}
-						}	
+//						if("4A".equals(this.getBillType())){//是否其他入库单
+//							if(this.getBillCardPanel().getBillModel("jj_scm_informationcost")!=null&&
+//									this.getBillCardPanel().getBillModel("jj_scm_informationcost").getBodyValueVOs(InformationCostVO.class.getName())!=null
+//									){//是否有表体费用数据
+//								//执行其他入库单取消签字时的下游单据处理
+//								if(!this.rollbackAudit(voAudit.getHeaderVO().getCgeneralhid())){
+//									MessageDialog.showErrorDlg(this.getClientUI(), "错误", "下游单据已生效或异常,取消签字失败!");
+//									return;
+//								}
+//							}
+//						}	
 						break;
 
 					} catch (Exception ee1) {
