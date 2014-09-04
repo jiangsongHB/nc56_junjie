@@ -257,7 +257,7 @@ public class IOPrintData implements IDataSource {
 				costprice = UFDouble.ZERO_DBL;
 				for (int y = 0; y < inforcost.length; y++) {
 					sumcostmny = sumcostmny.add(inforcost[y]
-							.getNoriginalcurmny());					
+							.getNoriginalcursummny());	  //取费用含税金额字段 yiming 2014-8-8
 				}
 				//处理可能取到的数据为负数的情况！add by zhang xiao wei 2013-08-15
 //				if (inforcost[0].getNnumber() != null
