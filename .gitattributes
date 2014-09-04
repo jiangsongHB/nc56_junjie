@@ -1034,6 +1034,9 @@ junjie/patches/modules/uap/client/classes/nc/ui/pub/beans/UITable$SortableHeader
 junjie/patches/modules/uap/client/classes/nc/ui/pub/beans/UITable$ToolTipOnTheFly$1.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/pub/beans/UITable$ToolTipOnTheFly.class -text
 junjie/patches/modules/uap/client/classes/nc/ui/pub/beans/UITable.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/report/base/ReportUIBase$1.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/report/base/ReportUIBase$2.class -text
+junjie/patches/modules/uap/client/classes/nc/ui/report/base/ReportUIBase.class -text
 junjie/patches/modules/uapqe/client/classes/nc/ui/pub/querymodel/ParamSetDlg$IvjEventHandler.class -text
 junjie/patches/modules/uapqe/client/classes/nc/ui/pub/querymodel/ParamSetDlg.class -text
 junjie/patches/modules/uapqe/client/classes/nc/ui/pub/queryplugin/QEUserTempletUtil.class -text
