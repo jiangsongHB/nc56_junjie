@@ -198,6 +198,7 @@ junjie/develop/proj/newmodules/cmp/META-INF/module.xml -text
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/arap/actions/CopyDjAction.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/arap/ref/PayStateRefModel.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/cmp/pub/DefaultListEventHandler.java -text
+junjie/develop/proj/newmodules/cmp/src/client/nc/ui/cmp/report/dailybook/BankDailyBookToftPanel.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/cmp/settlement/SettlementListEventHandler.java -text
 junjie/develop/proj/newmodules/cmp/src/client/nc/ui/gl/initcontrast/BankReceiptClientUI.java -text svneol=unset#text/plain
 junjie/develop/proj/newmodules/cmp/src/public/nc/vo/ep/dj/DJZBItemVO.java -text svneol=unset#text/plain
