@@ -103,8 +103,10 @@ public class BankDailyBookToftPanel extends ReportFrameForReportTemplet implemen
 	private boolean isFirstTimeLinkedQuery = true;  //是否首次被联查
 	
 	/** 合并同单据分录相关列 */
+//	private static final String[] combineGroupbyCol = new String[]{"date", "corp",
+//		"system", "billtype", "billno", "explanation", "currtype", "pk_bill"};
 	private static final String[] combineGroupbyCol = new String[]{"date", "corp",
-		"system", "billtype", "billno", "explanation", "currtype", "pk_bill"};
+		"system", "billtype", "billno",  "currtype", "pk_bill"};  //wanglei 2014-11-11 按单据号合并取消摘要维度
 	private static final String[] combineSumCol = new String[]{"inamount", "inlocalamount",
 		"outamount", "outlocalamount"};
 	private ICorpQry iCorpQry=NCLocator.getInstance().lookup(ICorpQry.class);
@@ -901,8 +903,10 @@ public class BankDailyBookToftPanel extends ReportFrameForReportTemplet implemen
 			getRefPanelEndDate().setText(date.toString());
 			getChkBoxIncludeAccredit().setEnabled(false);
 			
-			getChkBoxCombineSameBill().setSelected(true);
+			//wanglei 2014-11-11
+			getChkBoxCombineSameBill().setSelected(true);  
 			getChkBoxCombineSameBill().setEnabled(true);
+			//end 
 		}
 
 		public UICheckBox getChkBoxIncludeAccredit() {
