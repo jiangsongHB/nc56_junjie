@@ -6540,9 +6540,20 @@ public abstract class CtBaseUI extends ToftPanel implements
 			//if (m_iTabbedFlag == TabState.TERM
 			if ((m_iTabbedFlag == TabState.TERM || m_iTabbedFlag == TabState.EXP)
 					&& m_iTbState == OperationState.FREE) {
-				if (ctflag == BillState.FREE || ctflag == BillState.AUDIT
-						|| ctflag == BillState.VALIDATE)
+				if (ctflag == BillState.FREE /*|| ctflag == BillState.AUDIT
+						|| ctflag == BillState.VALIDATE*/)
 					setTbGroupState(false, false, true, false, false);
+				//begin ncm  wangminp NC2014122600148_瓮福集团_2014-12-29_专
+				/*
+				 * 原始业务为自由状态，审核状态、
+				 * 生效状态【合同条款】标签页【修改按钮】都是可用状态
+				 * 现在根据瓮福需求改为审核与生效后不可修改【合同条款】
+				 */
+				else if(ctflag == BillState.AUDIT
+						|| ctflag == BillState.VALIDATE){
+					setTbGroupState(false, false, false, false, false);
+				}
+				//end ncm  wangminp NC2014122600148_瓮福集团_2014-12-29_专
 				else
 					setTbGroupState(false, false, false, false, false);
 			}
